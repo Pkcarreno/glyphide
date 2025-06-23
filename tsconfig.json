@@ -1,25 +1,20 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
-    "baseUrl": "./src",
-    "target": "esnext",
-    "lib": ["dom", "dom.iterable", "esnext", "WebWorker"],
-    "types": ["unplugin-fonts/client", "vite-plugin-pwa/react"],
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
+    "baseUrl": ".",
     "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "strictNullChecks": true,
     "paths": {
-      "@/*": ["./*"]
-    }
+      "@/*": ["./src/*"]
+    },
+    "plugins": [
+      {
+        "name": "@astrojs/ts-plugin"
+      }
+    ],
+    "types": ["vite-plugin-pwa/react", "vite-plugin-pwa/info"]
   },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "dev-dist", "dist", "lint-staged.config.js"]
+  "exclude": ["node_modules", "dist"],
+  "include": [".astro/types.d.ts", "**/*", "src"]
 }

@@ -1,0 +1,12 @@
+{
+  "rules": {
+    "types": "warn",
+    "exports": "warn"
+  },
+  "ignoreDependencies": ["tailwindcss", "tw-animate-css"],
+  "ignoreBinaries": ["only-allow"],
+  "ignoreExportsUsedInFile": {
+    "interface": true,
+    "type": true
+  }
+}
