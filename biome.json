@@ -20,15 +20,15 @@
     "enabled": true,
     "rules": {
       "recommended": true,
-      "style": {
-        "useFilenamingConvention": "error"
+      "correctness": {
+        "noChildrenProp": "off"
       },
       "nursery": {
         "useSortedClasses": {
           "level": "error",
           "options": {
             "attributes": ["className"],
-            "functions": ["clsx", "cva", "cn"]
+            "functions": ["clsx", "cva", "cn", "twMerge"]
           }
         }
       }
@@ -37,6 +37,7 @@
   "javascript": {
     "formatter": {
       "quoteStyle": "single",
+      "jsxQuoteStyle": "double",
       "trailingCommas": "none",
       "arrowParentheses": "asNeeded",
       "bracketSpacing": true,
@@ -58,7 +59,7 @@
         "rules": {
           "style": {
             "useFilenamingConvention": {
-              "level": "error",
+              "level": "warn",
               "options": {
                 "strictCase": true,
                 "filenameCases": ["PascalCase"]
@@ -70,9 +71,9 @@
     },
 
     {
-      "ignore": [
-        "src/components/**/*.{astro,js,jsx,ts,tsx}",
-        "src/layouts/**/*.{astro,js,jsx,ts,tsx}"
+      "include": [
+        "!src/components/**/*.{astro,js,jsx,ts,tsx}",
+        "!src/layouts/**/*.{astro,js,jsx,ts,tsx}"
       ],
       "linter": {
         "rules": {
