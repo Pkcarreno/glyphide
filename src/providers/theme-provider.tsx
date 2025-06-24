@@ -1,80 +1,30 @@
-import { createContext, useEffect, useState } from 'react';
+import { useMediaQuery } from '@/hooks/use-media-query'
+import { useThemeStore } from '@/stores/theme'
+import { useEffect } from 'react'
 
-import { useMediaQuery } from '@/hooks/use-media-query';
+export function ThemeProvider() {
+	const { theme, setThemeMode } = useThemeStore()
+	const isDarkMode = useMediaQuery('(prefers-color-scheme: dark)')
 
-type Theme = 'dark' | 'light' | 'system';
-type ThemeMode = 'dark' | 'light';
+	useEffect(() => {
+		const root = window.document.documentElement
 
-type ThemeProviderProps = {
-  children: React.ReactNode;
-  defaultTheme?: Theme;
-  storageKey?: string;
-};
+		root.classList.remove('light', 'dark')
 
-type ThemeProviderState = {
-  theme: Theme;
-  themeMode: ThemeMode;
-  setTheme: (theme: Theme) => void;
-};
+		let systemTheme = theme
 
-const initialState: ThemeProviderState = {
-  theme: 'system',
-  themeMode: 'light',
-  setTheme: () => null,
-};
+		if (theme === 'system') {
+			systemTheme = isDarkMode ? 'dark' : 'light'
+		}
 
-export const ThemeProviderContext =
-  createContext<ThemeProviderState>(initialState);
+		root.classList.add(systemTheme)
+	}, [theme, isDarkMode])
 
-export function ThemeProvider({
-  children,
-  defaultTheme = 'system',
-  storageKey = 'theme',
-  ...props
-}: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme,
-  );
-  const [themeMode, setThemeMode] = useState<ThemeMode>('light');
-  const isDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+	useEffect(() => {
+		if (theme === 'system') {
+			setThemeMode(isDarkMode ? 'dark' : 'light')
+		}
+	}, [theme, setThemeMode, isDarkMode])
 
-  useEffect(() => {
-    const root = window.document.documentElement;
-
-    root.classList.remove('light', 'dark');
-
-    let systemTheme = theme;
-
-    if (theme === 'system') {
-      systemTheme = isDarkMode ? 'dark' : 'light';
-    }
-
-    root.classList.add(systemTheme);
-  }, [theme, isDarkMode]);
-
-  useEffect(() => {
-    if (theme === 'system') {
-      setThemeMode(isDarkMode ? 'dark' : 'light');
-    }
-  }, [isDarkMode]);
-
-  const value = {
-    theme,
-    themeMode,
-    setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme);
-      setTheme(theme);
-      if (theme === 'system') {
-        setThemeMode(isDarkMode ? 'dark' : 'light');
-      } else {
-        setThemeMode(theme);
-      }
-    },
-  };
-
-  return (
-    <ThemeProviderContext.Provider {...props} value={value}>
-      {children}
-    </ThemeProviderContext.Provider>
-  );
+	return null
 }

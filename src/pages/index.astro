@@ -1,0 +1,36 @@
+---
+import { StatusBar } from '@/components/editor/StatusBar'
+import Header from '@/components/editor/Header/index.astro'
+import { Panels } from '@/components/editor/Panels'
+import Layout from '@/layouts/EditorLayout.astro'
+import { ExecutionController } from '@/providers/execution-controller'
+import { LayoutController } from '@/providers/layout-controller'
+import { UntrustedModeController } from '@/providers/untrusted-mode-controller'
+import { VersionManagerController } from '@/providers/version-manager-controller'
+import { HydrateStoresController } from '@/providers/hydrate-stores-controller'
+import { AppController } from '@/providers/app-controller'
+import { SettingsSidebarCompact } from '@/components/editor/SettingsSidebar/SettingsSidebarCompact'
+import { Toaster } from '@/components/ui/Sonner'
+---
+
+<Layout title="Glyphide" description="Glyphide JavaScript Editor">
+  <AppController client:load />
+  <LayoutController client:load />
+  <UntrustedModeController client:load />
+  <ExecutionController client:load />
+  <VersionManagerController client:load />
+  <SettingsSidebarCompact client:load />
+  <HydrateStoresController client:load />
+  <div class="flex h-dvh flex-col">
+    <div class="w-full p-1">
+      <Header />
+    </div>
+    <main class="h-full overflow-auto md:px-1">
+      <Panels client:load />
+    </main>
+    <div>
+      <StatusBar client:only="react" />
+    </div>
+  </div>
+  <Toaster client:load />
+</Layout>

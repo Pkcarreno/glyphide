@@ -1,0 +1,38 @@
+---
+import { pwaInfo } from 'virtual:pwa-info'
+
+interface Props {
+  title: string
+  description: string
+}
+
+const { title, description } = Astro.props
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="canonical" href="https://jsod.bypk.dev" />
+
+<title>{title}</title>
+<meta name="description" content={description} />
+<meta
+  name="keywords"
+  content="JS, JavaScript, run, quickjs, execute, online, share"
+/>
+<meta name="author" content="Pkcarreno" />
+
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32" />
+<link rel="icon" href="/favicon-16x16.png" type="image/png" sizes="16x16" />
+<meta
+  name="theme-color"
+  content="#fdfefb"
+  media="(prefers-color-scheme: light)"
+/>
+<meta
+  name="theme-color"
+  content="#11150a"
+  media="(prefers-color-scheme: dark)"
+/>
+
+{pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}

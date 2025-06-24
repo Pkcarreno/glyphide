@@ -1,0 +1,29 @@
+---
+import type { ComponentProps, HTMLAttributes } from 'astro/types'
+
+import BaseHead from '@/components/layout/BaseHead.astro'
+import { cn } from '@/utils'
+import { ThemeProvider } from '@/providers/theme-provider'
+
+type Props = ComponentProps<typeof BaseHead> &
+  HTMLAttributes<'body'> & {
+    lang?: 'es' | 'en' | string
+  }
+
+const {
+  title,
+  description,
+  lang = 'en',
+  class: className,
+  ...props
+} = Astro.props
+---
+
+<!doctype html>
+<html lang={lang} class="m-0 h-full">
+  <BaseHead title={title} description={description} />
+  <ThemeProvider client:load />
+  <body class={cn('min-h-screen', className)} {...props}>
+    <slot> Empty slot </slot>
+  </body>
+</html>
