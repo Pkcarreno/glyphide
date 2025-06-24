@@ -5,9 +5,13 @@ export const ConsoleLogTypeSchema = z.enum(['log', 'info', 'debug', 'warn', 'err
 
 export type ConsoleLogType = z.infer<typeof ConsoleLogTypeSchema>
 
+// biome-ignore lint/style/useConst: helper pattern to avoid circular issues in zod schema
 export let SerializableValueSchema: z.ZodUnion
+// biome-ignore lint/style/useConst: helper pattern to avoid circular issues in zod schema
 let ObjectLogValueSchema: z.ZodObject
+// biome-ignore lint/style/useConst: helper pattern to avoid circular issues in zod schema
 let ArrayLogValueSchema: z.ZodObject
+// biome-ignore lint/style/useConst: helper pattern to avoid circular issues in zod schema
 let PropertySchema: z.ZodObject
 
 export const PrimitiveValueSchema = z.union([
@@ -27,7 +31,10 @@ PropertySchema = z.object({
 	}
 })
 
-export type Property = z.infer<typeof PropertySchema>
+export type Property = {
+	key: string
+	value: SerializableValue
+}
 
 ObjectLogValueSchema = z.object({
 	type: z.literal('object'),
@@ -38,7 +45,12 @@ ObjectLogValueSchema = z.object({
 	}
 })
 
-export type ObjectLogValue = z.infer<typeof ObjectLogValueSchema>
+export type ObjectLogValue = {
+	type: 'object'
+	className: string | undefined
+	preview: string
+	properties: Property[]
+}
 
 ArrayLogValueSchema = z.object({
 	type: z.literal('array'),
@@ -49,7 +61,12 @@ ArrayLogValueSchema = z.object({
 	}
 })
 
-export type ArrayLogValue = z.infer<typeof ArrayLogValueSchema>
+export type ArrayLogValue = {
+	type: 'array'
+	length: number
+	preview: string
+	items: SerializableValue[]
+}
 
 export const ErrorLogValueSchema = z.object({
 	type: z.literal('error'),
@@ -58,7 +75,12 @@ export const ErrorLogValueSchema = z.object({
 	stack: z.string().optional()
 })
 
-export type ErrorLogValue = z.infer<typeof ErrorLogValueSchema>
+export type ErrorLogValue = {
+	type: 'error'
+	name: string
+	message: string
+	stack?: string
+}
 
 export const FunctionLogValueSchema = z.object({
 	type: z.literal('function'),
@@ -66,7 +88,11 @@ export const FunctionLogValueSchema = z.object({
 	preview: z.string()
 })
 
-export type FunctionLogValue = z.infer<typeof FunctionLogValueSchema>
+export type FunctionLogValue = {
+	type: 'function'
+	name: string | undefined
+	preview: string
+}
 
 SerializableValueSchema = z.union([
 	PrimitiveValueSchema,
@@ -76,7 +102,12 @@ SerializableValueSchema = z.union([
 	FunctionLogValueSchema
 ])
 
-export type SerializableValue = z.infer<typeof SerializableValueSchema>
+export type SerializableValue =
+	| PrimitiveValue
+	| ObjectLogValue
+	| ArrayLogValue
+	| ErrorLogValue
+	| FunctionLogValue
 
 export type LogEntry = Omit<ExecutionOutputPayload, 'outputs'> & {
 	outputs: SerializableValue[]

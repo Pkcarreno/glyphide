@@ -1,6 +1,11 @@
 import type { SandboxOptions } from '@sebastianwessel/quickjs'
 import { z } from 'zod/v4'
-import { ConsoleLogTypeSchema, SerializableValueSchema } from './log'
+import {
+	type ConsoleLogType,
+	ConsoleLogTypeSchema,
+	type SerializableValue,
+	SerializableValueSchema
+} from './log'
 
 export const MessageTypes = {
 	INIT_WORKER: 'INIT_WORKER',
@@ -75,7 +80,10 @@ export const ExecutionOutputPayloadSchema = z.object({
 	type: ConsoleLogTypeSchema.default('log')
 })
 
-export type ExecutionOutputPayload = z.infer<typeof ExecutionOutputPayloadSchema>
+export type ExecutionOutputPayload = {
+	outputs: SerializableValue[]
+	type: ConsoleLogType
+}
 
 export const ExecutionErrorPayloadSchema = z.object({
 	message: z.string(),

@@ -61,10 +61,10 @@ export const LogRenderer: React.FC<Props> = ({ value, isExpanded, indentationLev
 				</span>
 				{expanded && (
 					<div className="pl-4">
-						{(obj.properties as Property[]).map(prop => {
+						{obj.properties.map(prop => {
 							return (
-								<div key={obj.key as string} className="flex items-start gap-x-2">
-									<span className="text-speak">{prop.key as string}: </span>
+								<div key={prop.key} className="flex items-start gap-x-2">
+									<span className="text-speak">{prop.key}: </span>
 									<LogRenderer value={prop.value} indentationLevel={indentationLevel + 1} />
 								</div>
 							)
@@ -94,7 +94,7 @@ export const LogRenderer: React.FC<Props> = ({ value, isExpanded, indentationLev
 				</span>
 				{expanded && (
 					<div className="pl-4">
-						{(arr.items as unknown[]).map((item, index) => {
+						{arr.items.map((item, index) => {
 							const currentItem = String(index)
 							return (
 								<div

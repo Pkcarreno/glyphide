@@ -1,4 +1,5 @@
 import {
+	type ExecutionOutputPayload,
 	type MainToWorkerMessage,
 	MainToWorkerMessageSchema,
 	MessageTypes,
@@ -153,7 +154,7 @@ class ExecutionController {
 			case MessageTypes.EXECUTION_OUTPUT: {
 				const outputPayload = message.payload
 				console.log('ExecutionController: Received execution output.', outputPayload)
-				addLog(outputPayload)
+				addLog(outputPayload as ExecutionOutputPayload)
 				break
 			}
 
