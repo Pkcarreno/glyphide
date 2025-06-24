@@ -48,9 +48,8 @@ export default defineConfig({
 		sitemap(),
 		AstroPWA({
 			strategies: 'generateSW',
-      disable: true,
 			registerType: 'prompt',
-      injectRegister: null,
+			injectRegister: null,
 			manifest: manifest,
 			workbox: {
 				globPatterns: ['**/*.{html,js,css,svg,woff,woff2,ttf,eot,ico,wasm}'],
@@ -71,8 +70,7 @@ export default defineConfig({
 			topLevelAwait(),
 			nodePolyfills({
 				include: ['process', 'stream', 'util', 'path'],
-        protocolImports: true,
-
+				protocolImports: true
 			})
 		],
 		define: {
