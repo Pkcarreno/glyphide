@@ -1,3 +1,6 @@
+import { Slot } from '@radix-ui/react-slot'
+import { RotateCcwIcon } from 'lucide-react'
+import type { ComponentProps } from 'react'
 import { useAppForm } from '@/components/ui/Form'
 import { Input } from '@/components/ui/Input'
 import { Switch } from '@/components/ui/Switch'
@@ -12,9 +15,6 @@ import {
 	useSettingsStore
 } from '@/stores/settings'
 import { cn } from '@/utils'
-import { Slot } from '@radix-ui/react-slot'
-import { RotateCcwIcon } from 'lucide-react'
-import type { ComponentProps } from 'react'
 
 export const SettingsContent = () => {
 	const { config, updateConfig } = useSettingsStore()

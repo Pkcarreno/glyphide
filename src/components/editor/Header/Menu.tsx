@@ -1,3 +1,4 @@
+import { CheckIcon, EllipsisVerticalIcon, ExternalLinkIcon, RefreshCwIcon } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import {
 	DropdownMenu,
@@ -14,7 +15,6 @@ import {
 import { useSettingsSidebarStore } from '@/stores/settings-sidebar'
 import { useThemeStore } from '@/stores/theme'
 import { useVersionManagerStore } from '@/stores/version-manager'
-import { CheckIcon, EllipsisVerticalIcon, ExternalLinkIcon, RefreshCwIcon } from 'lucide-react'
 
 export const Menu = () => {
 	return (

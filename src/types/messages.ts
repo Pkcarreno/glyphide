@@ -44,7 +44,7 @@ export const ExecuteCodePayloadSchema = z.object({
 	settings: ExposedQuickJsSettingsSchema
 })
 
-type ExecuteCodePayload = z.infer<typeof ExecuteCodePayloadSchema>
+export type ExecuteCodePayload = z.infer<typeof ExecuteCodePayloadSchema>
 
 export const ExecutionResultPayloadSchema = z
 	.object({
@@ -90,7 +90,7 @@ export const ExecutionErrorPayloadSchema = z.object({
 	stack: z.string().optional()
 })
 
-type ExecutionErrorPayload = z.infer<typeof ExecutionErrorPayloadSchema>
+export type ExecutionErrorPayload = z.infer<typeof ExecutionErrorPayloadSchema>
 
 export const MainToWorkerMessageSchema = z.discriminatedUnion('type', [
 	z.object({ type: z.literal(MessageTypes.INIT_WORKER), payload: InitWorkerPayloadSchema }),

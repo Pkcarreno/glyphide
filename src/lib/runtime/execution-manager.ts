@@ -1,6 +1,6 @@
+import debounce from 'lodash.debounce'
 import { getAppStatus, getUntrustedStatus, setAppStatus } from '@/stores/app'
 import { getAutorunTimeout } from '@/stores/settings'
-import debounce from 'lodash.debounce'
 import { executeCode, terminateExecution } from './controller'
 
 let lastCodeToExecute: string | null = null

@@ -1,3 +1,5 @@
+import { TerminalIcon } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import {
@@ -11,8 +13,6 @@ import {
 	DrawerTrigger
 } from '@/components/ui/Drawer'
 import { useAppStore } from '@/stores/app'
-import { TerminalIcon } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
 import { LogActionsBar, LogActionsBarMobile } from './LogActionsBar'
 import { LogListView } from './LogListView'
 

@@ -1,5 +1,5 @@
-import { useTitleStore } from '@/stores/script'
 import { useEffect } from 'react'
+import { useTitleStore } from '@/stores/script'
 
 export const AppController = () => {
 	const { title } = useTitleStore()

@@ -1,10 +1,9 @@
-import { useCodeStore } from '@/stores/script'
-
-import { Loading } from '@/components/ui/Loading'
-import { type editorStateType, useAppStore } from '@/stores/app'
-import { useSettingsStore } from '@/stores/settings'
 import type { Extension } from '@codemirror/state'
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { Loading } from '@/components/ui/Loading'
+import { type editorStateType, useAppStore } from '@/stores/app'
+import { useCodeStore } from '@/stores/script'
+import { useSettingsStore } from '@/stores/settings'
 import CodemirrorEditor from './Codemirror'
 
 const JavascriptLanguage = () => import('@codemirror/lang-javascript')

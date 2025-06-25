@@ -1,7 +1,7 @@
+import { XIcon } from 'lucide-react'
 import { Island } from '@/components/Island'
 import { useIsCompactLayout } from '@/hooks/use-is-compact-layout'
 import { useSettingsSidebarStore } from '@/stores/settings-sidebar'
-import { XIcon } from 'lucide-react'
 import { SettingsContent } from './SettingsContent'
 
 export const SettingsSidebar = () => {

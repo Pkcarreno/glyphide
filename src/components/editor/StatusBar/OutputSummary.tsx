@@ -1,7 +1,7 @@
+import { CircleHelpIcon, CircleXIcon, InfoIcon } from 'lucide-react'
 import { useAppStore } from '@/stores/app'
 import type { LogEntry } from '@/types/log'
-import { CircleHelpIcon, CircleXIcon, InfoIcon } from 'lucide-react'
-import { StatusElement } from './components'
+import { StatusElement } from './Components'
 
 export const OutputSummary = () => {
 	const { logSummary } = useAppStore()

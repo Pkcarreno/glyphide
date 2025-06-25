@@ -1,7 +1,7 @@
+import { ShieldAlertIcon } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useIsMobile } from '@/hooks/use-is-mobile'
 import { useAppStore } from '@/stores/app'
-import { ShieldAlert, ShieldAlertIcon } from 'lucide-react'
 
 export const UntrustedModeMobile = () => {
 	const isMobile = useIsMobile()

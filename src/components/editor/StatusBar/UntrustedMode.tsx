@@ -1,5 +1,5 @@
 import { useAppStore } from '@/stores/app'
-import { StatusElement } from './components'
+import { StatusElement } from './Components'
 
 export const UntrustedMode = () => {
 	const { untrustedStatus, setUntrustedStatus } = useAppStore()

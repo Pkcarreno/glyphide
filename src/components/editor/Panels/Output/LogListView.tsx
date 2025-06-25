@@ -1,10 +1,10 @@
-import { useAppStore } from '@/stores/app'
-import type { LogEntry } from '@/types/log'
-import { cn } from '@/utils'
-import { type VirtualItem, useVirtualizer } from '@tanstack/react-virtual'
+import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual'
 import { CircleHelpIcon, CircleXIcon, CornerDownRightIcon, InfoIcon } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useRef } from 'react'
+import { useAppStore } from '@/stores/app'
+import type { LogEntry } from '@/types/log'
+import { cn } from '@/utils'
 import { LogRenderer } from './LogRenderer'
 
 interface Props {

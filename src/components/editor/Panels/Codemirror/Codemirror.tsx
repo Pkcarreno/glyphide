@@ -1,9 +1,9 @@
-import type { editorStateType } from '@/stores/app'
-import { useThemeStore } from '@/stores/theme'
 import { EditorState, type Extension, type SelectionRange, StateEffect } from '@codemirror/state'
 import { EditorView } from '@codemirror/view'
 import { basicSetup } from 'codemirror'
 import { useEffect, useMemo, useRef } from 'react'
+import type { editorStateType } from '@/stores/app'
+import { useThemeStore } from '@/stores/theme'
 import { glyphideTheme, glyphideThemeDark } from './Theme'
 
 interface CodeMirrorEditorProps {

@@ -1,11 +1,10 @@
+import copy from 'copy-to-clipboard'
+import { CheckIcon, LoaderCircleIcon, Share2Icon, XIcon } from 'lucide-react'
+import { type PropsWithChildren, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover'
 import { tryCatch } from '@/lib/try-catch'
 import { getScriptUrlState } from '@/stores/script'
-import copy from 'copy-to-clipboard'
-import { Share2Icon } from 'lucide-react'
-import { CheckIcon, LoaderCircleIcon, XIcon } from 'lucide-react'
-import { type PropsWithChildren, useMemo, useState } from 'react'
 
 export const ShareButton = () => {
 	const copyLinkToClipboard = async () => {

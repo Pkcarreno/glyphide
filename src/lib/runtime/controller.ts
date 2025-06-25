@@ -1,12 +1,4 @@
 import {
-	type ExecutionOutputPayload,
-	type MainToWorkerMessage,
-	MainToWorkerMessageSchema,
-	MessageTypes,
-	WorkerToMainMessageSchema
-} from '@/types/messages'
-
-import {
 	addLog,
 	clearLogs,
 	getAppStatus,
@@ -15,6 +7,13 @@ import {
 	setAppStatus
 } from '@/stores/app'
 import { getQuickjsSettings } from '@/stores/settings'
+import {
+	type ExecutionOutputPayload,
+	type MainToWorkerMessage,
+	MainToWorkerMessageSchema,
+	MessageTypes,
+	WorkerToMainMessageSchema
+} from '@/types/messages'
 import Worker from './worker.ts?worker'
 
 class ExecutionController {

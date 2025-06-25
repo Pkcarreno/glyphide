@@ -1,9 +1,9 @@
+import { lazy, Suspense } from 'react'
 import { Island } from '@/components/Island'
 import { Loading } from '@/components/ui/Loading'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/Resizable'
 import { useMainLayout } from '@/hooks/use-main-layout'
 import { useAppStore } from '@/stores/app'
-import { Suspense, lazy } from 'react'
 import { SettingsSidebar } from '../SettingsSidebar/SettingsSidebar'
 
 const Output = lazy(() => import('./Output').then(mod => ({ default: mod.Output })))

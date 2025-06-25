@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Label } from '@/components/ui/Label'
 import { Switch } from '@/components/ui/Switch'
@@ -6,6 +7,7 @@ import { useAppPersistStore, useAppStore } from '@/stores/app'
 export const LogActionsBar = () => {
 	const { persistLogs, updatePersistLogs } = useAppPersistStore()
 	const { clearLogs } = useAppStore()
+	const switchId = useId()
 
 	const handlePersistLogsChange = () => {
 		updatePersistLogs(!persistLogs)
@@ -14,7 +16,7 @@ export const LogActionsBar = () => {
 	return (
 		<div className="flex gap-4">
 			<div className="flex items-center space-x-2">
-				<Switch id="persist-logs" onCheckedChange={handlePersistLogsChange} checked={persistLogs} />
+				<Switch id={switchId} onCheckedChange={handlePersistLogsChange} checked={persistLogs} />
 				<Label htmlFor="persist-logs">Persist Logs</Label>
 			</div>
 
@@ -28,6 +30,7 @@ export const LogActionsBar = () => {
 export const LogActionsBarMobile = () => {
 	const { persistLogs, updatePersistLogs } = useAppPersistStore()
 	const { clearLogs } = useAppStore()
+	const switchId = useId()
 
 	const handlePersistLogsChange = () => {
 		updatePersistLogs(!persistLogs)
@@ -36,7 +39,7 @@ export const LogActionsBarMobile = () => {
 	return (
 		<div className="flex w-fit gap-4">
 			<div className="flex items-center space-x-2">
-				<Switch id="persist-logs" onCheckedChange={handlePersistLogsChange} checked={persistLogs} />
+				<Switch id={switchId} onCheckedChange={handlePersistLogsChange} checked={persistLogs} />
 				<Label htmlFor="persist-logs">Persist Logs</Label>
 			</div>
 

@@ -1,3 +1,11 @@
+import wasmUrl from '@jitl/quickjs-ng-wasmfile-release-sync?url'
+import {
+	type ErrorResponse,
+	loadQuickJs,
+	type OkResponse,
+	type SandboxFunction,
+	type SandboxOptions
+} from '@sebastianwessel/quickjs'
 import {
 	type ExecutionOutputPayload,
 	ExecutionOutputPayloadSchema,
@@ -7,14 +15,6 @@ import {
 	MessageTypes,
 	type WorkerToMainMessage
 } from '@/types/messages'
-import wasmUrl from '@jitl/quickjs-ng-wasmfile-release-sync?url'
-import {
-	type ErrorResponse,
-	type OkResponse,
-	type SandboxFunction,
-	type SandboxOptions,
-	loadQuickJs
-} from '@sebastianwessel/quickjs'
 import { serializeValueForLog } from '../log-serializer'
 
 type SandboxResult = OkResponse | ErrorResponse

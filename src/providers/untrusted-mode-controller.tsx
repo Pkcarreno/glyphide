@@ -1,3 +1,5 @@
+import { TriangleAlertIcon } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -19,8 +21,6 @@ import {
 } from '@/components/ui/Dialog'
 import { useAppStore } from '@/stores/app'
 import { useCodeStore } from '@/stores/script'
-import { TriangleAlertIcon } from 'lucide-react'
-import { useEffect, useState } from 'react'
 
 export const UntrustedModeController = () => {
 	const { untrustedStatus, setUntrustedStatus } = useAppStore()

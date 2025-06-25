@@ -1,9 +1,8 @@
 import { create } from 'zustand'
-
+import { persist } from 'zustand/middleware'
 import type { LogEntry, SerializableValue } from '@/types/log'
 import type { ExecutionOutputPayload } from '@/types/messages'
 import { createSelectors } from '@/utils'
-import { persist } from 'zustand/middleware'
 import { getMaxLogs } from './settings'
 
 function getLogOutputKey(outputs: SerializableValue[]): string {

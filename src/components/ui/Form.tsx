@@ -1,10 +1,9 @@
 // take it from: https://github.com/FatahChan/shadcn-tanstack-form
 import { Slot } from '@radix-ui/react-slot'
+import { createFormHook, createFormHookContexts, useStore } from '@tanstack/react-form'
 import * as React from 'react'
-
 import { Label } from '@/components/ui/Label'
 import { cn } from '@/utils'
-import { createFormHook, createFormHookContexts, useStore } from '@tanstack/react-form'
 
 const {
 	fieldContext,

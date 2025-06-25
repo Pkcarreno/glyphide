@@ -1,7 +1,7 @@
+import { useEffect, useState } from 'react'
 import { useIsInIframe } from '@/hooks/use-is-in-iframe'
 import { useIsMobile } from '@/hooks/use-is-mobile'
 import { useAppStore } from '@/stores/app'
-import { useEffect, useState } from 'react'
 
 export function LayoutController() {
 	const { toggleIsLayoutReady } = useAppStore()

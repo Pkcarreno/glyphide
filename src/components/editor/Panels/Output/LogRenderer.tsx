@@ -1,14 +1,13 @@
+import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react'
+import { useState } from 'react'
 import type {
 	ArrayLogValue,
 	ErrorLogValue,
 	FunctionLogValue,
 	ObjectLogValue,
-	Property,
 	SerializableValue
 } from '@/types/log'
 import { cn } from '@/utils'
-import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react'
-import { type ReactNode, useState } from 'react'
 
 interface Props {
 	value: SerializableValue
@@ -47,7 +46,8 @@ export const LogRenderer: React.FC<Props> = ({ value, isExpanded, indentationLev
 		const obj = value as ObjectLogValue
 		return (
 			<span className="font-mono text-sm">
-				<span
+				<button
+					type="button"
 					className="cursor-pointer text-plain hover:underline"
 					onClick={toggleExpand}
 					onKeyDown={toggleExpand}
@@ -58,7 +58,7 @@ export const LogRenderer: React.FC<Props> = ({ value, isExpanded, indentationLev
 						<ChevronRightIcon className="inline-block size-4" />
 					)}{' '}
 					{typeof obj.preview === 'string' ? obj.preview : ''}
-				</span>
+				</button>
 				{expanded && (
 					<div className="pl-4">
 						{obj.properties.map(prop => {
@@ -80,7 +80,8 @@ export const LogRenderer: React.FC<Props> = ({ value, isExpanded, indentationLev
 		const arr = value as ArrayLogValue
 		return (
 			<span className="font-mono text-sm">
-				<span
+				<button
+					type="button"
 					className="cursor-pointer text-plain hover:underline"
 					onClick={toggleExpand}
 					onKeyDown={toggleExpand}
@@ -91,7 +92,7 @@ export const LogRenderer: React.FC<Props> = ({ value, isExpanded, indentationLev
 						<ChevronRightIcon className="inline-block size-4" />
 					)}{' '}
 					{typeof arr.preview === 'string' ? arr.preview : ''}
-				</span>
+				</button>
 				{expanded && (
 					<div className="pl-4">
 						{arr.items.map((item, index) => {

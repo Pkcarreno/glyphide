@@ -1,6 +1,6 @@
+import { useEffect } from 'react'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { useThemeStore } from '@/stores/theme'
-import { useEffect } from 'react'
 
 export function ThemeProvider() {
 	const { theme, setThemeMode } = useThemeStore()

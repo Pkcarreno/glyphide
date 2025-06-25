@@ -1,3 +1,7 @@
+import { useStore } from '@tanstack/react-form'
+import { PencilLineIcon } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { z } from 'zod'
 import { Button } from '@/components/ui/Button'
 import { useAppForm } from '@/components/ui/Form'
 import { Input } from '@/components/ui/Input'
@@ -6,10 +10,6 @@ import { Textarea } from '@/components/ui/Textarea'
 import { useIsCompactLayout } from '@/hooks/use-is-compact-layout'
 import { useAppStore } from '@/stores/app'
 import { useTitleStore } from '@/stores/script'
-import { useStore } from '@tanstack/react-form'
-import { PencilLineIcon } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { z } from 'zod'
 
 const DEFAULT_TITLE = 'Untitled Script'
 const MAX_TITLE_TITLE_LENGTH = 100
@@ -118,7 +118,8 @@ export const ScriptTitle: React.FC = () => {
 			<div className="h-9 w-full overflow-hidden pr-6">
 				<div className="size-full overflow-hidden">
 					<div className="flex h-full items-center gap-2 overflow-hidden">
-						<span
+						<button
+							type="button"
 							data-is-editable={untrustedStatus === 'trusted'}
 							className="peer block truncate text-ellipsis whitespace-pre text-nowrap font-bold data-[is-editable=true]:cursor-pointer data-[is-editable=true]:hover:underline"
 							onClick={handleEditClick}
@@ -126,7 +127,7 @@ export const ScriptTitle: React.FC = () => {
 							title={displayTitle}
 						>
 							{displayTitle}
-						</span>
+						</button>
 						<div
 							data-visible={isEditing}
 							className="hidden cursor-pointer transition-opacity duration-200 peer-data-[is-editable=true]:peer-hover:block"

@@ -1,9 +1,9 @@
+import { useEffect } from 'react'
 import executionControllerInstance from '@/lib/runtime/controller'
 import { setInitialCode, triggerExecutionDebounced } from '@/lib/runtime/execution-manager'
 import { useAppStore } from '@/stores/app'
 import { useCodeStore } from '@/stores/script'
 import { useSettingsStore } from '@/stores/settings'
-import { useEffect } from 'react'
 
 export function ExecutionController() {
 	const { code } = useCodeStore()

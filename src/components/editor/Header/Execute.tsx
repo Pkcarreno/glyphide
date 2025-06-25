@@ -1,9 +1,9 @@
+import { PlayIcon } from 'lucide-react'
+import { useMemo } from 'react'
 import { Button } from '@/components/ui/Button'
 import { triggerExecutionImmediately } from '@/lib/runtime/execution-manager'
 import { useAppStore } from '@/stores/app'
 import { useCodeStore } from '@/stores/script'
-import { PlayIcon } from 'lucide-react'
-import { useMemo } from 'react'
 
 export const ExecuteButton = () => {
 	const { status, untrustedStatus } = useAppStore()
