@@ -8,14 +8,20 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "ignore": [".prettierrc.mjs", ".prettierignore", "*.astro", ".vercel", "dist", "dev-dist"]
+    "includes": [
+      "**",
+      "!**/.prettierrc.mjs",
+      "!**/.prettierignore",
+      "!**/*.astro",
+      "!**/.vercel",
+      "!**/dist",
+      "!**/dev-dist"
+    ]
   },
   "formatter": {
     "lineWidth": 100
   },
-  "organizeImports": {
-    "enabled": true
-  },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "linter": {
     "enabled": true,
     "rules": {
@@ -31,6 +37,18 @@
             "functions": ["clsx", "cva", "cn", "twMerge"]
           }
         }
+      },
+      "style": {
+        "noParameterAssign": "error",
+        "useAsConstAssertion": "error",
+        "useDefaultParameterLast": "error",
+        "useEnumInitializers": "error",
+        "useSelfClosingElements": "error",
+        "useSingleVarDeclarator": "error",
+        "noUnusedTemplateLiteral": "error",
+        "useNumberNamespace": "error",
+        "noInferrableTypes": "error",
+        "noUselessElse": "error"
       }
     }
   },
@@ -51,9 +69,11 @@
   },
   "overrides": [
     {
-      "include": [
-        "src/components/**/*.{astro,js,jsx,ts,tsx}",
-        "src/layouts/**/*.{astro,js,jsx,ts,tsx}"
+      "includes": [
+        "**/src/components/**/*.{astro,js,jsx,ts,tsx}",
+        "**/src/layouts/**/*.{astro,js,jsx,ts,tsx}",
+        "!**/src/components/**/index.{astro,js,jsx,ts,tsx}",
+        "!**/src/layouts/**/index.{astro,js,jsx,ts,tsx}"
       ],
       "linter": {
         "rules": {
@@ -71,9 +91,9 @@
     },
 
     {
-      "include": [
-        "!src/components/**/*.{astro,js,jsx,ts,tsx}",
-        "!src/layouts/**/*.{astro,js,jsx,ts,tsx}"
+      "includes": [
+        "!**/src/components/**/*.{astro,js,jsx,ts,tsx}",
+        "!**/src/layouts/**/*.{astro,js,jsx,ts,tsx}"
       ],
       "linter": {
         "rules": {
