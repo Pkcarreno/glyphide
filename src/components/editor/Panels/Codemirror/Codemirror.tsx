@@ -11,13 +11,15 @@ interface CodeMirrorEditorProps {
 	extensions: Extension[]
 	onChange?: (doc: string) => void
 	onEditorStateChange?: (state: editorStateType) => void
+	disabled?: boolean
 }
 
 const CodemirrorEditor: React.FC<CodeMirrorEditorProps> = ({
 	initialDoc,
 	extensions,
 	onChange,
-	onEditorStateChange
+	onEditorStateChange,
+	disabled
 }) => {
 	const editorRef = useRef<HTMLDivElement>(null)
 	const editorViewRef = useRef<EditorView | null>(null)
@@ -38,6 +40,7 @@ const CodemirrorEditor: React.FC<CodeMirrorEditorProps> = ({
 				basicSetup,
 				themeMode === 'dark' ? glyphideThemeDark : glyphideTheme,
 				EditorView.contentAttributes.of({ 'data-gramm_editor': 'false' }),
+				EditorView.editable.of(!disabled),
 				...extensions,
 				EditorView.updateListener.of(update => {
 					if (update.docChanged && onChange) {
@@ -97,12 +100,13 @@ const CodemirrorEditor: React.FC<CodeMirrorEditorProps> = ({
 				effects: StateEffect.reconfigure.of([
 					basicSetup,
 					themeMode === 'dark' ? glyphideThemeDark : glyphideTheme,
+					EditorView.editable.of(!disabled),
 					editorUpdateListener,
 					...extensions
 				])
 			})
 		}
-	}, [extensions, themeMode, editorUpdateListener])
+	}, [extensions, themeMode, editorUpdateListener, disabled])
 
 	useEffect(() => {
 		if (editorViewRef.current && editorViewRef.current.state.doc.toString() !== initialDoc) {
