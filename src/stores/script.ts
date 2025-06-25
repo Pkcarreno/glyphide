@@ -1,41 +1,71 @@
-import { create } from 'zustand'
-import { createJSONStorage, persist } from 'zustand/middleware'
+import { useStore } from '@nanostores/react'
+import { createQsUtils } from '@vp-tw/nanostores-qs'
+import { decode as decodeUriBase64, encodeURI as encodeUriBase64 } from 'js-base64'
 
-import { queryStorage } from '@/api/query-storage'
-import { createSelectors } from '@/utils'
+const qsUtils = createQsUtils()
 
-interface AppState {
-	title: string | undefined
-	code: string
-	_hasHydrated: boolean
-	setCode: (code: string) => void
-	setTitle: (value: string) => void
-	setHasHydrated: (state: boolean) => void
-}
-
-const _useScriptStore = create<AppState>()(
-	persist(
-		set => ({
-			title: undefined,
-			code: '',
-			setCode: code => set({ code }),
-			setTitle: title => set({ title }),
-			_hasHydrated: false,
-			setHasHydrated: state => {
-				set({
-					_hasHydrated: state
-				})
-			}
-		}),
-		{
-			name: 'code',
-			storage: createJSONStorage(() => queryStorage),
-			onRehydrateStorage: state => {
-				return () => state.setHasHydrated(true)
-			}
-		}
-	)
+const codeScriptStore = qsUtils.createSearchParamStore('c', def =>
+	def({
+		defaultValue: '',
+		decode: v => (!v || typeof v !== 'string' ? '' : decodeUriBase64(v)),
+		encode: encodeUriBase64
+	})
 )
 
-export const useScriptStore = createSelectors(_useScriptStore)
-export const useRawScriptStore = _useScriptStore
+const titleScriptStore = qsUtils.createSearchParamStore('t', def =>
+	def({
+		defaultValue: undefined,
+		decode: v => (!v || typeof v !== 'string' ? '' : decodeUriBase64(v)),
+		encode: encodeUriBase64
+	})
+)
+
+export const scriptStore = qsUtils.createSearchParamsStore(def => ({
+	c: def({
+		defaultValue: '',
+		decode: v => (!v || typeof v !== 'string' ? '' : decodeUriBase64(v)),
+		encode: encodeUriBase64
+	}),
+	t: def({
+		defaultValue: undefined
+	})
+}))
+
+export const useCodeStore = () => {
+	const code = useStore(codeScriptStore.$value)
+
+	const setCode = (newCode: string) => {
+		codeScriptStore.update(newCode, { replace: true })
+	}
+
+	return { code, setCode }
+}
+
+export const useTitleStore = () => {
+	const title = useStore(titleScriptStore.$value)
+
+	const setTitle = (newTitle: string | undefined) => {
+		const finalTitle = newTitle === '' ? undefined : newTitle
+		titleScriptStore.update(finalTitle, { replace: true })
+	}
+
+	return { title, setTitle }
+}
+
+export const getScriptUrlState = () => {
+	const code = codeScriptStore.$value.get()
+	const title = titleScriptStore.$value.get()
+
+	const params: { c?: string; t?: string } = {}
+
+	if (code !== undefined && code.length > 0) {
+		params.c = encodeUriBase64(code)
+	}
+	if (title !== undefined && title.length > 0) {
+		params.t = encodeUriBase64(title)
+	}
+
+	const searchParams = new URLSearchParams(params)
+
+	return searchParams
+}

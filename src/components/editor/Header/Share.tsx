@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/Button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover'
 import { tryCatch } from '@/lib/try-catch'
+import { getScriptUrlState } from '@/stores/script'
 import copy from 'copy-to-clipboard'
 import { Share2Icon } from 'lucide-react'
 import { CheckIcon, LoaderCircleIcon, XIcon } from 'lucide-react'
@@ -43,9 +44,12 @@ export const ShareButton = () => {
 }
 
 const getCurrentUrl = () => {
-	const url = new URL(location.href)
-	const searchParams = new URLSearchParams(location.hash.slice(1))
-	url.hash = searchParams.toString()
+	const url = new URL(location.origin)
+	const searchParams = getScriptUrlState()
+
+	for (const [key, value] of searchParams.entries()) {
+		url.searchParams.append(key, value)
+	}
 
 	return url
 }

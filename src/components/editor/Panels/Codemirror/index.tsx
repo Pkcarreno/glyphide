@@ -1,4 +1,4 @@
-import { useScriptStore } from '@/stores/script'
+import { useCodeStore } from '@/stores/script'
 
 import { Loading } from '@/components/ui/Loading'
 import { type editorStateType, useAppStore } from '@/stores/app'
@@ -15,8 +15,8 @@ const globalsWorker = () => import('globals')
 const vimEx = () => import('@replit/codemirror-vim')
 
 const Editor = () => {
-	const { code, setCode } = useScriptStore()
-	const { updateEditorState } = useAppStore()
+	const { code, setCode } = useCodeStore()
+	const { updateEditorState, untrustedStatus } = useAppStore()
 	const {
 		config: { vimMode }
 	} = useSettingsStore()
@@ -106,6 +106,7 @@ const Editor = () => {
 				initialDoc={code}
 				extensions={loadedExtensions}
 				onChange={handleEditorChange}
+				disabled={untrustedStatus !== 'trusted'}
 				onEditorStateChange={handleEditorStateChange}
 			/>
 		</Suspense>

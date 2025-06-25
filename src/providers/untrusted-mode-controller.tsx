@@ -18,24 +18,24 @@ import {
 	DialogTitle
 } from '@/components/ui/Dialog'
 import { useAppStore } from '@/stores/app'
-import { useScriptStore } from '@/stores/script'
+import { useCodeStore } from '@/stores/script'
 import { TriangleAlertIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 export const UntrustedModeController = () => {
 	const { untrustedStatus, setUntrustedStatus } = useAppStore()
-	const { code, _hasHydrated } = useScriptStore()
+	const { code } = useCodeStore()
 	const [open, setOpen] = useState(false)
 
 	useEffect(() => {
-		if (untrustedStatus === 'uninitialized' && _hasHydrated && code && code.length > 0) {
+		if (untrustedStatus === 'uninitialized' && code && code.length > 0) {
 			setUntrustedStatus('untrusted')
 			setOpen(true)
 		}
-		if (untrustedStatus === 'uninitialized' && _hasHydrated && (!code || code.length === 0)) {
+		if (untrustedStatus === 'uninitialized' && (!code || code.length === 0)) {
 			setUntrustedStatus('trusted')
 		}
-	}, [code, untrustedStatus, setUntrustedStatus, _hasHydrated])
+	}, [code, untrustedStatus, setUntrustedStatus])
 
 	const handleOnTrustCode = () => {
 		setUntrustedStatus('trusted')

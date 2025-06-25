@@ -5,15 +5,15 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover
 import { Textarea } from '@/components/ui/Textarea'
 import { useIsCompactLayout } from '@/hooks/use-is-compact-layout'
 import { useAppStore } from '@/stores/app'
-import { useScriptStore } from '@/stores/script'
+import { useTitleStore } from '@/stores/script'
 import { useStore } from '@tanstack/react-form'
 import { PencilLineIcon } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { z } from 'zod'
 
 const DEFAULT_TITLE = 'Untitled Script'
 const MAX_TITLE_TITLE_LENGTH = 100
-const MIN_TITLE_LENGTH = 1
+const MIN_TITLE_LENGTH = 0
 
 const TitleSchema = z.object({
 	title: z
@@ -27,7 +27,7 @@ const TitleSchema = z.object({
 })
 
 export const ScriptTitle: React.FC = () => {
-	const { title, setTitle, _hasHydrated: isHydratedScript } = useScriptStore()
+	const { title, setTitle } = useTitleStore()
 	const { untrustedStatus } = useAppStore()
 	const isCompact = useIsCompactLayout()
 
@@ -37,7 +37,7 @@ export const ScriptTitle: React.FC = () => {
 
 	const form = useAppForm({
 		defaultValues: {
-			title: title || DEFAULT_TITLE
+			title: title
 		},
 		validators: {
 			onChange: TitleSchema,
@@ -56,7 +56,7 @@ export const ScriptTitle: React.FC = () => {
 			let finalTitle = value.title
 
 			if (finalTitle === '') {
-				finalTitle = DEFAULT_TITLE
+				finalTitle = undefined
 			}
 
 			formApi.setFieldValue('title', finalTitle)
@@ -66,7 +66,7 @@ export const ScriptTitle: React.FC = () => {
 	})
 
 	useEffect(() => {
-		form.setFieldValue('title', title || DEFAULT_TITLE)
+		form.setFieldValue('title', title)
 	}, [title, form])
 
 	const handleEditClick = () => {
@@ -93,9 +93,13 @@ export const ScriptTitle: React.FC = () => {
 		}
 	}, [isEditing])
 
-	const displayTitle = useStore(form.store, state => state.values.title)
+	const displayStoreTitle = useStore(form.store, state => state.values.title)
 
-	if (!isHydratedScript) {
+	const displayTitle = useMemo(() => {
+		return displayStoreTitle && displayStoreTitle.length > 0 ? displayStoreTitle : DEFAULT_TITLE
+	}, [displayStoreTitle])
+
+	if (untrustedStatus === 'uninitialized') {
 		return (
 			<div className="h-9 w-full pr-6">
 				<div className="size-full overflow-hidden">
@@ -177,7 +181,8 @@ export const ScriptTitle: React.FC = () => {
 														value={field.state.value}
 														onChange={e => field.setValue(e.target.value)}
 														onBlur={() => form.handleSubmit()}
-														className="field-sizing-content size-full max-h-[4lh] p-0"
+														placeholder="Insert script title"
+														className="field-sizing-content size-full max-h-[4lh] p-0 px-1"
 													/>
 												</field.FormControl>
 												<field.FormMessage />
@@ -219,7 +224,8 @@ export const ScriptTitle: React.FC = () => {
 											onChange={e => field.setValue(e.target.value)}
 											onBlur={() => form.handleSubmit()}
 											onKeyDown={handleKeyDown}
-											className="w-full p-0"
+											placeholder="Insert script title"
+											className="w-full p-0 px-1"
 										/>
 									</field.FormControl>
 									<field.FormMessage />

@@ -1,8 +1,8 @@
-import { useScriptStore } from '@/stores/script'
+import { useTitleStore } from '@/stores/script'
 import { useEffect } from 'react'
 
 export const AppController = () => {
-	const { title } = useScriptStore()
+	const { title } = useTitleStore()
 
 	useEffect(() => {
 		if (typeof document !== 'undefined') {
