@@ -1,6 +1,7 @@
 # build output
 dist/
 dev-dist/
+.turbo/
 # generated types
 .astro/
 

@@ -8,7 +8,7 @@ import { cn } from '@/utils'
 const {
 	fieldContext,
 	formContext,
-	useFieldContext: _useFieldContext,
+	useFieldContext: useFormFieldContext,
 	useFormContext
 } = createFormHookContexts()
 
@@ -43,7 +43,7 @@ function FormItem({ className, ...props }: React.ComponentProps<'div'>) {
 
 const useFieldContext = () => {
 	const { id } = React.useContext(FormItemContext)
-	const { name, store, ...fieldContext } = _useFieldContext()
+	const { name, store, ...fieldContext } = useFormFieldContext()
 
 	const errors = useStore(store, state => state.meta.errors)
 	if (!fieldContext) {

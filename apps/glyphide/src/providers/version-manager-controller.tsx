@@ -1,14 +1,14 @@
 // import { useRegisterSW } from 'virtual:pwa-register/react'
-// import { useVersionManagerStore } from '@/stores/version-manager'
 // import { RefreshCwIcon } from 'lucide-react'
 // import { useEffect } from 'react'
 // import { toast } from 'sonner'
+// import { useVersionManagerStore } from '@/stores/version-manager'
 //
 // const intervalMS = 60 * 60 * 1000
 
 export const VersionManagerController = () => {
 	// const { setNeedRefresh, setUpdateServiceWorkerAction } = useVersionManagerStore()
-
+	//
 	// const {
 	// 	offlineReady: [offlineReady, setOfflineReady],
 	// 	needRefresh: [needRefreshSW],
@@ -37,11 +37,11 @@ export const VersionManagerController = () => {
 	// 		})
 	// 	}
 	// })
-
+	//
 	// useEffect(() => {
 	// 	setNeedRefresh(needRefreshSW)
 	// }, [needRefreshSW, setNeedRefresh])
-
+	//
 	// useEffect(() => {
 	// 	if (offlineReady) {
 	// 		const onOfflineClose = () => setOfflineReady(false)
@@ -51,7 +51,7 @@ export const VersionManagerController = () => {
 	// 		})
 	// 	}
 	// }, [offlineReady, setOfflineReady])
-
+	//
 	// useEffect(() => {
 	// 	if (needRefreshSW) {
 	// 		toast('New content available', {

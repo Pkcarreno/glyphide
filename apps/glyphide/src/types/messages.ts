@@ -1,4 +1,4 @@
-import type { SandboxOptions } from '@sebastianwessel/quickjs'
+import type { SandboxOptions } from '@glyphide/quickjs'
 import { z } from 'zod/v4'
 import {
 	type ConsoleLogType,

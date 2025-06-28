@@ -1,11 +1,11 @@
-import wasmUrl from '@jitl/quickjs-ng-wasmfile-release-sync?url'
 import {
 	type ErrorResponse,
 	loadQuickJs,
 	type OkResponse,
 	type SandboxFunction,
 	type SandboxOptions
-} from '@sebastianwessel/quickjs'
+} from '@glyphide/quickjs'
+import wasmUrl from '@jitl/quickjs-ng-wasmfile-release-sync?url'
 import {
 	type ExecutionOutputPayload,
 	ExecutionOutputPayloadSchema,

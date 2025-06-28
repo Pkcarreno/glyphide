@@ -8,7 +8,6 @@ import AstroPWA from '@vite-pwa/astro'
 import basicSsl from '@vitejs/plugin-basic-ssl'
 import { defineConfig, envField } from 'astro/config'
 import robots from 'astro-robots'
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import topLevelAwait from 'vite-plugin-top-level-await'
 import wasm from 'vite-plugin-wasm'
 import { config, manifest } from './src/config'
@@ -63,16 +62,7 @@ export default defineConfig({
 		})
 	],
 	vite: {
-		plugins: [
-			basicSsl(),
-			tailwindcss(),
-			wasm(),
-			topLevelAwait(),
-			nodePolyfills({
-				include: ['process', 'stream', 'util', 'path'],
-				protocolImports: true
-			})
-		],
+		plugins: [basicSsl(), tailwindcss(), wasm(), topLevelAwait()],
 		define: {
 			'import.meta.env.APP_VERSION': JSON.stringify(packageJson.version)
 		},

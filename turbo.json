@@ -1,0 +1,35 @@
+{
+  "$schema": "./node_modules/turbo/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "//#root:lint": {
+      "dependsOn": ["^root:lint"]
+    },
+    "//#root:lint:fix": {
+      "dependsOn": ["^root:lint:fix"],
+      "cache": false
+    },
+    "format": {
+      "dependsOn": ["^format"],
+      "outputs": ["node_modules/.cache/.prettiercache"]
+    },
+    "format:fix": {
+      "dependsOn": ["^format:fix"],
+      "cache": false
+    },
+    "check": {
+      "dependsOn": ["^check"]
+    },
+    "type-check": {
+      "dependsOn": ["^type-check"],
+      "outputs": ["node_modules/.cache/tsbuildinfo.json"]
+    }
+  }
+}

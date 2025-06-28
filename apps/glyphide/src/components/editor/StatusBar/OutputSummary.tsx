@@ -50,11 +50,7 @@ const SummaryTag: React.FC<{ type: LogEntry['type'] | 'total'; quantity: number 
 	}
 
 	if (type === 'total') {
-		return (
-			<>
-				<span>Total {quantity}</span>
-			</>
-		)
+		return <span>Total {quantity}</span>
 	}
 
 	return null
