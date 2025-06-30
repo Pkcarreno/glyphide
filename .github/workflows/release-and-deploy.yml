@@ -1,0 +1,88 @@
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+name: "release and deploy"
+
+jobs:
+  prepare:
+    uses: ./.github/workflows/precheck.yml
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [prepare]
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          release-type: node
+    outputs:
+      release-created: ${{ steps.release.outputs.release_created }}
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [release]
+    if: ${{ needs.release.outputs.release-created }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📦 Setup Node + PNPM + install deps
+        uses: ./.github/actions/setup-node-pnpm-install
+
+      - name: Build
+        run: pnpm build
+        shell: bash
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: apps/glyphide/dist
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build]
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    env:
+      VITE_BASE_URL: "/release-please-test/"
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: apps/glyphide/dist
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/glyphide/dist
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
