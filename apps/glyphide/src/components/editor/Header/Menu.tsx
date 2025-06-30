@@ -129,7 +129,7 @@ const DocumentationLinkItem = () => {
 const NewScriptLinkItem = () => {
 	return (
 		<DropdownMenuItem asChild>
-			<a href="/editor" className="flex cursor-pointer gap-1" target="_blank" rel="noreferrer">
+			<a href="/" className="flex cursor-pointer gap-1" target="_blank" rel="noreferrer">
 				New Script
 			</a>
 		</DropdownMenuItem>
