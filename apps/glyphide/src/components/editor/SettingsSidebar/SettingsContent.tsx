@@ -1,8 +1,8 @@
 import { Slot } from '@radix-ui/react-slot'
-import { RotateCcwIcon } from 'lucide-react'
 import type { ComponentProps } from 'react'
+import { Button } from '@/components/ui/Button'
 import { useAppForm } from '@/components/ui/Form'
-import { Input } from '@/components/ui/Input'
+import { Input, InputWrapper } from '@/components/ui/Input'
 import { Switch } from '@/components/ui/Switch'
 import {
 	DEFAULT_AUTO_RUN_TIMEOUT,
@@ -60,19 +60,23 @@ export const SettingsContent = () => {
 								children={field => (
 									<field.FormItem>
 										<field.FormLabel>Auto execution delay</field.FormLabel>
-										<div className="flex items-center gap-2">
+										<div>
 											<div className="flex w-full items-center gap-1">
 												<field.FormControl>
-													<Input
-														type="number"
-														min="600"
-														step="100"
-														value={field.state.value}
-														onChange={e => field.handleChange(Number(e.target.value))}
-														onBlur={field.handleBlur}
-													/>
+													<InputWrapper>
+														<span className="text-muted-foreground text-sm" title="milliseconds">
+															ms
+														</span>
+														<Input
+															type="number"
+															min="600"
+															step="100"
+															value={field.state.value}
+															onChange={e => field.handleChange(Number(e.target.value))}
+															onBlur={field.handleBlur}
+														/>
+													</InputWrapper>
 												</field.FormControl>
-												<field.FormDescription>ms</field.FormDescription>
 											</div>
 											<field.FormControl>
 												<ResetButton
@@ -113,17 +117,19 @@ export const SettingsContent = () => {
 								children={field => (
 									<field.FormItem>
 										<field.FormLabel>Maximum stack of logs</field.FormLabel>
-										<div className="flex items-center gap-2">
+										<div>
 											<div className="flex w-full items-center gap-1">
 												<field.FormControl>
-													<Input
-														type="number"
-														min="600"
-														step="100"
-														value={field.state.value}
-														onChange={e => field.handleChange(Number(e.target.value))}
-														onBlur={field.handleBlur}
-													/>
+													<InputWrapper>
+														<Input
+															type="number"
+															min="600"
+															step="100"
+															value={field.state.value}
+															onChange={e => field.handleChange(Number(e.target.value))}
+															onBlur={field.handleBlur}
+														/>
+													</InputWrapper>
 												</field.FormControl>
 											</div>
 											<field.FormControl>
@@ -146,19 +152,23 @@ export const SettingsContent = () => {
 								children={field => (
 									<field.FormItem>
 										<field.FormLabel>Maximum execution time</field.FormLabel>
-										<div className="flex items-center gap-2">
+										<div>
 											<div className="flex w-full items-center gap-1">
 												<field.FormControl>
-													<Input
-														type="number"
-														min="5000"
-														step="1000"
-														value={field.state.value}
-														onChange={e => field.handleChange(Number(e.target.value))}
-														onBlur={field.handleBlur}
-													/>
+													<InputWrapper>
+														<span className="text-muted-foreground text-sm" title="milliseconds">
+															ms
+														</span>
+														<Input
+															type="number"
+															min="5000"
+															step="1000"
+															value={field.state.value}
+															onChange={e => field.handleChange(Number(e.target.value))}
+															onBlur={field.handleBlur}
+														/>
+													</InputWrapper>
 												</field.FormControl>
-												<field.FormDescription>ms</field.FormDescription>
 											</div>
 											<field.FormControl>
 												<ResetButton
@@ -175,17 +185,19 @@ export const SettingsContent = () => {
 								children={field => (
 									<field.FormItem>
 										<field.FormLabel>Maximum stack size</field.FormLabel>
-										<div className="flex items-center gap-2">
+										<div>
 											<div className="flex w-full items-center gap-1">
 												<field.FormControl>
-													<Input
-														type="number"
-														min="500"
-														step="100"
-														value={field.state.value}
-														onChange={e => field.handleChange(Number(e.target.value))}
-														onBlur={field.handleBlur}
-													/>
+													<InputWrapper>
+														<Input
+															type="number"
+															min="500"
+															step="100"
+															value={field.state.value}
+															onChange={e => field.handleChange(Number(e.target.value))}
+															onBlur={field.handleBlur}
+														/>
+													</InputWrapper>
 												</field.FormControl>
 											</div>
 											<field.FormControl>
@@ -203,18 +215,22 @@ export const SettingsContent = () => {
 								children={field => (
 									<field.FormItem>
 										<field.FormLabel>Maximum memory allocation</field.FormLabel>
-										<div className="flex items-center gap-2">
+										<div>
 											<div className="flex w-full items-center gap-1">
 												<field.FormControl>
-													<Input
-														type="number"
-														min="262144"
-														value={field.state.value}
-														onChange={e => field.handleChange(Number(e.target.value))}
-														onBlur={field.handleBlur}
-													/>
+													<InputWrapper>
+														<span className="text-muted-foreground text-sm" title="bytes">
+															bytes
+														</span>
+														<Input
+															type="number"
+															min="262144"
+															value={field.state.value}
+															onChange={e => field.handleChange(Number(e.target.value))}
+															onBlur={field.handleBlur}
+														/>
+													</InputWrapper>
 												</field.FormControl>
-												<field.FormDescription>bytes</field.FormDescription>
 											</div>
 											<field.FormControl>
 												<ResetButton
@@ -231,16 +247,18 @@ export const SettingsContent = () => {
 								children={field => (
 									<field.FormItem>
 										<field.FormLabel>Maximum timeouts</field.FormLabel>
-										<div className="flex items-center gap-2">
+										<div>
 											<div className="flex w-full items-center gap-1">
 												<field.FormControl>
-													<Input
-														type="number"
-														min="20"
-														value={field.state.value}
-														onChange={e => field.handleChange(Number(e.target.value))}
-														onBlur={field.handleBlur}
-													/>
+													<InputWrapper>
+														<Input
+															type="number"
+															min="20"
+															value={field.state.value}
+															onChange={e => field.handleChange(Number(e.target.value))}
+															onBlur={field.handleBlur}
+														/>
+													</InputWrapper>
 												</field.FormControl>
 											</div>
 											<field.FormControl>
@@ -258,16 +276,18 @@ export const SettingsContent = () => {
 								children={field => (
 									<field.FormItem>
 										<field.FormLabel>Maximum intervals</field.FormLabel>
-										<div className="flex items-center gap-2">
+										<div>
 											<div className="flex w-full items-center gap-1">
 												<field.FormControl>
-													<Input
-														type="number"
-														min="20"
-														value={field.state.value}
-														onChange={e => field.handleChange(Number(e.target.value))}
-														onBlur={field.handleBlur}
-													/>
+													<InputWrapper>
+														<Input
+															type="number"
+															min="20"
+															value={field.state.value}
+															onChange={e => field.handleChange(Number(e.target.value))}
+															onBlur={field.handleBlur}
+														/>
+													</InputWrapper>
 												</field.FormControl>
 											</div>
 											<field.FormControl>
@@ -293,17 +313,17 @@ const ResetButton: React.FC<{ onClick: () => void; isResetAble: boolean }> = ({
 	onClick
 }) => {
 	return (
-		<div className="!w-6 lg:!w-5 flex h-full items-center">
-			<button
-				type="button"
-				data-display={isResetAble}
-				title="reset"
-				className="cursor-pointer text-muted-foreground/70 hover:text-muted-foreground data-[display=false]:hidden"
-				onClick={onClick}
-			>
-				<RotateCcwIcon className="size-4 lg:size-3" />
-			</button>
-		</div>
+		<Button
+			type="button"
+			data-display={isResetAble}
+			title="reset"
+			variant="dim"
+			size="sm"
+			className="data-[display=false]:hidden"
+			onClick={onClick}
+		>
+			reset
+		</Button>
 	)
 }
 
