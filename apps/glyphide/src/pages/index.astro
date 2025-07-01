@@ -10,9 +10,31 @@ import { VersionManagerController } from '@/providers/version-manager-controller
 import { AppController } from '@/providers/app-controller'
 import { SettingsSidebarCompact } from '@/components/editor/SettingsSidebar/SettingsSidebarCompact'
 import { Toaster } from '@/components/ui/Sonner'
+import type { ComponentProps } from 'astro/types'
+
+const metaData: ComponentProps<typeof Layout>['head'] = {
+  title: 'Glyphide - Local JavaScript Editor in Your Browser',
+  description:
+    'Run JavaScript locally in your browser. No backend, no accounts, no data storage. Share code via URL. Client-side development environment with modern ECMAScript support.',
+  keywords:
+    'javascript editor, browser ide, local code editor, javascript playground, client-side, ecmascript, web development, no backend',
+  meta: {
+    image: 'og.png',
+    og: {
+      title: 'Glyphide - Local JavaScript Editor',
+      description:
+        'Run JavaScript locally in your browser. No backend, no accounts, no server-side storage. Share code via URL.'
+    },
+    twitter: {
+      title: 'Glyphide - Local JavaScript Editor',
+      description:
+        'Run JavaScript locally in your browser. No backend, no accounts, no server-side storage.'
+    }
+  }
+}
 ---
 
-<Layout title="Glyphide" description="Glyphide JavaScript Editor">
+<Layout head={metaData}>
   <AppController client:load />
   <LayoutController client:load />
   <UntrustedModeController client:load />

@@ -18,7 +18,8 @@ export const manifest = {
 	display: 'standalone',
 	background_color: config.theme.light,
 	theme_color: config.theme.light,
-	description: 'Write, run, and share JavaScript code instantly.',
+	description:
+		'Run JavaScript locally in your browser. No backend, no accounts, no server-side storage.',
 	prefer_related_applications: false,
 	categories: ['productivity', 'utilities'],
 	orientation: 'portrait',

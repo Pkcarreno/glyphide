@@ -6,7 +6,7 @@ import type { ComponentProps } from 'astro/types'
 import Font from '@/components/generic/Font.astro'
 import Metatags from '@/components/generic/Metatags.astro'
 
-type Props = Pick<ComponentProps<typeof Metatags>, 'title' | 'description'>
+type Props = ComponentProps<typeof Metatags>
 const { ...props } = Astro.props
 ---
 
