@@ -18,6 +18,11 @@ export type MigrationResult =
 
 export function migrateUrl(urlString: string): MigrationResult {
 	try {
+		if (typeof urlString !== 'string' || urlString.trim().length < 1) {
+			console.warn('Migrate: Input URL string is empty or whitespace-only.')
+			throw new Error('The provided URL is empty. Please enter a valid link.')
+		}
+
 		const url = new URL(urlString)
 
 		const version = detectUrlVersion(url)

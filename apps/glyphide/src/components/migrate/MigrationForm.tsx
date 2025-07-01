@@ -6,6 +6,7 @@ import {
 	ExternalLinkIcon
 } from 'lucide-react'
 import { useState } from 'react'
+import { z } from 'zod/v4'
 import { useAppForm } from '@/components/ui/Form'
 import { Textarea } from '@/components/ui/Textarea'
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
@@ -15,11 +16,18 @@ import { Input, InputWrapper } from '../ui/Input'
 import { Label } from '../ui/Label'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/Tooltip'
 
+const formSchema = z.object({
+	link: z.string().min(1)
+})
+
 export const MigrationForm = () => {
 	const [currentLinkData, setCurrentLinkData] = useState<undefined | MigrationResult>(undefined)
 	const form = useAppForm({
 		defaultValues: {
 			link: ''
+		},
+		validators: {
+			onChange: formSchema
 		},
 		onSubmit: ({ value }) => {
 			const migrationRes = migrateUrl(value.link)
@@ -47,17 +55,33 @@ export const MigrationForm = () => {
 							</field.FormItem>
 						)}
 					/>
-					<Button
-						type="submit"
-						className="w-full"
-						onClick={e => {
-							e.preventDefault()
-							form.handleSubmit()
-						}}
-					>
-						Migrate Link
-						<ArrowRightIcon className="ml-2 h-4 w-4" />
-					</Button>
+					<form.Subscribe
+						selector={state => ({
+							canSubmit: state.canSubmit,
+							isSubmitting: state.isSubmitting,
+							isPristine: state.isPristine
+						})}
+						children={state => (
+							<Button
+								type="submit"
+								className="w-full"
+								disabled={!state.canSubmit || state.isSubmitting || state.isPristine}
+								onClick={e => {
+									e.preventDefault()
+									form.handleSubmit()
+								}}
+							>
+								{state.isSubmitting ? (
+									'Migrating...'
+								) : (
+									<>
+										Migrate Link
+										<ArrowRightIcon className="ml-2 h-4 w-4" />
+									</>
+								)}
+							</Button>
+						)}
+					/>
 				</form>
 			</form.AppForm>
 
