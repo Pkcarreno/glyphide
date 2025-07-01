@@ -1,3 +1,12 @@
-<header class="p-4">
-  <span class="text-muted-foreground">***</span>
+---
+import Logo from '@/assets/logo.svg'
+import Button from '@/components/ui/Button.astro'
+---
+
+<header
+  class="mx-auto flex w-full items-center justify-between p-2 2xl:container"
+>
+  <Logo class="h-8" />
+
+  <Button href="/" variant="outline">Open Editor</Button>
 </header>

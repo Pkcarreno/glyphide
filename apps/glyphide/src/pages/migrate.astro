@@ -1,0 +1,14 @@
+---
+import Layout from '@/layouts/Layout.astro'
+import { LinkMigrationWidget } from '@/components/migrate/LinkMigrationWidget'
+---
+
+<Layout
+  title="Migrate Tool - Glyphide"
+  description="Convert your old-version JSOD/Glyphide script links to the latest format."
+  class="h-full"
+>
+  <div class="flex h-full items-center justify-center">
+    <LinkMigrationWidget client:load />
+  </div>
+</Layout>

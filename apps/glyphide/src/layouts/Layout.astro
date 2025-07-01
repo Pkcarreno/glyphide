@@ -5,6 +5,7 @@ import BaseFooter from '@/components/layout/BaseFooter.astro'
 import BaseHead from '@/components/layout/BaseHead.astro'
 import BaseHeader from '@/components/layout/BaseHeader.astro'
 import { cn } from '@/utils'
+import { ThemeProvider } from '@/providers/theme-provider'
 
 type Props = ComponentProps<typeof BaseHead> &
   HTMLAttributes<'body'> & {
@@ -23,6 +24,7 @@ const {
 <!doctype html>
 <html lang={lang} class="m-0 h-full">
   <BaseHead title={title} description={description} />
+  <ThemeProvider client:load />
   <body class={cn('flex min-h-screen flex-col', className)} {...props}>
     <BaseHeader />
     <main class="h-full flex-1">

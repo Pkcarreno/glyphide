@@ -1,12 +1,11 @@
 ---
-import Link from '../generic/Link.astro'
+import Button from '@/components/ui/Button.astro'
 ---
 
-<footer class="p-4">
-  <span class="text-muted-foreground"
-    >By <Link
-      class="underline-offset-4 hover:underline"
-      href="https://github.com/Pkcarreno">@pkcarreno</Link
-    ></span
+<footer
+  class="mx-auto flex w-full items-center justify-center p-2 2xl:container"
+>
+  <Button variant="dim" href="https://github.com/pkcarreno/glyphide"
+    >source</Button
   >
 </footer>

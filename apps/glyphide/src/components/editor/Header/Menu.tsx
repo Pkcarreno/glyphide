@@ -32,6 +32,7 @@ export const Menu = () => {
 				<ThemeSubmenu />
 				<SettingsItem />
 				<DropdownMenuSeparator />
+				<MigratePageLinkItem />
 				<DocumentationLinkItem />
 				<GithubLinkItem />
 				<DropdownMenuSeparator />
@@ -131,6 +132,16 @@ const NewScriptLinkItem = () => {
 		<DropdownMenuItem asChild>
 			<a href="/" className="flex cursor-pointer gap-1" target="_blank" rel="noreferrer">
 				New Script
+			</a>
+		</DropdownMenuItem>
+	)
+}
+
+const MigratePageLinkItem = () => {
+	return (
+		<DropdownMenuItem asChild>
+			<a href="/migrate" className="flex cursor-pointer gap-1" target="_blank" rel="noreferrer">
+				Migrate old link
 			</a>
 		</DropdownMenuItem>
 	)
