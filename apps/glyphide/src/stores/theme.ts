@@ -4,7 +4,7 @@ import { persist } from 'zustand/middleware'
 import { createSelectors } from '@/utils'
 
 type themeType = 'system' | 'light' | 'dark'
-type themeModeType = 'light' | 'dark'
+export type themeModeType = 'light' | 'dark'
 
 interface ThemeState {
 	theme: themeType

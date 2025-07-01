@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
+import { config } from '@/config'
 import { useMediaQuery } from '@/hooks/use-media-query'
-import { useThemeStore } from '@/stores/theme'
+import { type themeModeType, useThemeStore } from '@/stores/theme'
 
 export function ThemeProvider() {
 	const { theme, setThemeMode } = useThemeStore()
@@ -11,13 +12,15 @@ export function ThemeProvider() {
 
 		root.classList.remove('light', 'dark')
 
-		let systemTheme = theme
+		let systemTheme: themeModeType = 'light'
 
 		if (theme === 'system') {
 			systemTheme = isDarkMode ? 'dark' : 'light'
 		}
 
 		root.classList.add(systemTheme)
+
+		updateThemeColor(systemTheme)
 	}, [theme, isDarkMode])
 
 	useEffect(() => {
@@ -27,4 +30,16 @@ export function ThemeProvider() {
 	}, [theme, setThemeMode, isDarkMode])
 
 	return null
+}
+
+function updateThemeColor(resolvedTheme: themeModeType): void {
+	let metaThemeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
+
+	if (!metaThemeColor) {
+		metaThemeColor = document.createElement('meta')
+		metaThemeColor.name = 'theme-color'
+		document.head.appendChild(metaThemeColor)
+	}
+
+	metaThemeColor.content = config.theme[resolvedTheme]
 }

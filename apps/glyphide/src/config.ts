@@ -3,7 +3,11 @@ const rawUrl =
 const Url = rawUrl.endsWith('/') ? rawUrl : `${rawUrl}/`
 
 export const config = {
-	site: Url
+	site: Url,
+	theme: {
+		light: '#fdfefb',
+		dark: '#11150a'
+	}
 }
 
 export const manifest = {
@@ -12,8 +16,8 @@ export const manifest = {
 	id: 'com.pkcarreno.glyphide',
 	start_url: config.site,
 	display: 'standalone',
-	background_color: '#FDFEFB',
-	theme_color: '#fdfefb',
+	background_color: config.theme.light,
+	theme_color: config.theme.light,
 	description: 'Write, run, and share JavaScript code instantly.',
 	prefer_related_applications: false,
 	categories: ['productivity', 'utilities'],
