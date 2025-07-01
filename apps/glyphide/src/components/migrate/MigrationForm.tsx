@@ -35,7 +35,6 @@ export const MigrationForm = () => {
 						name="link"
 						children={field => (
 							<field.FormItem>
-								<field.FormLabel>Link</field.FormLabel>
 								<field.FormControl>
 									<Textarea
 										placeholder="Insert your old link here..."
