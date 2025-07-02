@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.1](https://github.com/Pkcarreno/glyphide/compare/v2.0.0...v2.0.1) (2025-07-02)
+
+
+### Bug Fixes
+
+* **app:** relative path to types on worker ([8cc5af9](https://github.com/Pkcarreno/glyphide/commit/8cc5af9d8a3b82dad8be7bbeaa37448841272e69))
+
 ## [2.0.0](https://github.com/Pkcarreno/glyphide/compare/v1.8.4...v2.0.0) (2025-07-02)
 
 
