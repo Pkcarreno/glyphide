@@ -14,7 +14,7 @@ import {
 	MainToWorkerMessageSchema,
 	MessageTypes,
 	type WorkerToMainMessage
-} from '@/types/messages'
+} from '../../types/messages'
 import { serializeValueForLog } from '../log-serializer'
 
 type SandboxResult = OkResponse | ErrorResponse
