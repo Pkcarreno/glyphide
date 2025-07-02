@@ -12,7 +12,7 @@ runs:
         cache: "pnpm"
 
     - name: 📦 Install Project Dependencies
-      run: pnpm install --frozen-lockfile
+      run: pnpm install --frozen-lockfile --shamefully-hoist
       shell: bash
 
     - name: Cache turbo build setup
