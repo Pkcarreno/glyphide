@@ -13,7 +13,7 @@
         "name": "@astrojs/ts-plugin"
       }
     ],
-    "types": ["vite-plugin-pwa/react", "vite-plugin-pwa/info"],
+    "types": ["astro/client", "vite-plugin-pwa/react", "vite-plugin-pwa/info"],
     "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo.json"
   },
   "references": [
