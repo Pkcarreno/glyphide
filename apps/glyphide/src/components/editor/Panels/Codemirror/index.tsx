@@ -1,5 +1,7 @@
 import type { Extension } from '@codemirror/state'
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { type ComponentType, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { type FallbackProps, withErrorBoundary } from 'react-error-boundary'
+import { ErrorMenssage } from '@/components/ErrorMessage'
 import { Loading } from '@/components/ui/Loading'
 import { type editorStateType, useAppStore } from '@/stores/app'
 import { useCodeStore } from '@/stores/script'
@@ -13,7 +15,7 @@ const EsLintBrowserifyEx = () => import('eslint-linter-browserify')
 const globalsWorker = () => import('globals')
 const vimEx = () => import('@replit/codemirror-vim')
 
-const Editor = () => {
+const EditorContent = () => {
 	const { code, setCode } = useCodeStore()
 	const { updateEditorState, untrustedStatus } = useAppStore()
 	const {
@@ -112,4 +114,15 @@ const Editor = () => {
 	)
 }
 
-export default Editor
+const EditorErrorFallback: ComponentType<FallbackProps> = ({ error }) => {
+	return (
+		<ErrorMenssage
+			message="An error occurred in the text editor. Please try reloading the page, or report this issue if the problem persists."
+			error={error}
+		/>
+	)
+}
+
+export default withErrorBoundary(EditorContent, {
+	FallbackComponent: EditorErrorFallback
+})

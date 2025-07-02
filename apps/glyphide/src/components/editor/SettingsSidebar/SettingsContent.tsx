@@ -1,5 +1,7 @@
 import { Slot } from '@radix-ui/react-slot'
-import type { ComponentProps } from 'react'
+import type { ComponentProps, ComponentType } from 'react'
+import { type FallbackProps, withErrorBoundary } from 'react-error-boundary'
+import { ErrorMenssage } from '@/components/ErrorMessage'
 import { Button } from '@/components/ui/Button'
 import { useAppForm } from '@/components/ui/Form'
 import { Input, InputWrapper } from '@/components/ui/Input'
@@ -16,7 +18,7 @@ import {
 } from '@/stores/settings'
 import { cn } from '@/utils'
 
-export const SettingsContent = () => {
+export const SettingsFormContent = () => {
 	const { config, updateConfig } = useSettingsStore()
 
 	const form = useAppForm({
@@ -351,3 +353,16 @@ const GroupLabel = ({
 const GroupContent = ({ className, ...props }: ComponentProps<'div'>) => {
 	return <div className={cn('relative w-full min-w-0 space-y-3 px-2', className)} {...props} />
 }
+
+const SettingsContentErrorFallback: ComponentType<FallbackProps> = ({ error }) => {
+	return (
+		<ErrorMenssage
+			message="An error occurred in the settings form. Please try reloading the page, or report this issue if you encounter it again."
+			error={error}
+		/>
+	)
+}
+
+export const SettingsContent = withErrorBoundary(SettingsFormContent, {
+	FallbackComponent: SettingsContentErrorFallback
+})

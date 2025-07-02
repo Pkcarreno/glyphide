@@ -1,5 +1,7 @@
 import { TerminalIcon } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { type ComponentType, useEffect, useRef, useState } from 'react'
+import { type FallbackProps, withErrorBoundary } from 'react-error-boundary'
+import { ErrorMenssage } from '@/components/ErrorMessage'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import {
@@ -16,7 +18,7 @@ import { useAppStore } from '@/stores/app'
 import { LogActionsBar, LogActionsBarMobile } from './LogActionsBar'
 import { LogListView } from './LogListView'
 
-export const Output = () => {
+const OutputContent = () => {
 	return (
 		<div className="flex h-full flex-col">
 			<div className="flex items-center space-x-2 p-2">
@@ -28,7 +30,7 @@ export const Output = () => {
 	)
 }
 
-export const OutputDrawer = () => {
+export const OutputDrawerContent = () => {
 	return (
 		<Drawer>
 			<DrawerTrigger asChild>
@@ -111,3 +113,20 @@ const OutputDrawerButton: React.FC<Pick<React.ComponentProps<'button'>, 'onClick
 		</Button>
 	)
 }
+
+const OutputErrorFallback: ComponentType<FallbackProps> = ({ error }) => {
+	return (
+		<ErrorMenssage
+			message="Failed to display the output console. Please try reloading the page, or report this issue if the problem persists."
+			error={error}
+		/>
+	)
+}
+
+export const Output = withErrorBoundary(OutputContent, {
+	FallbackComponent: OutputErrorFallback
+})
+
+export const OutputDrawer = withErrorBoundary(OutputDrawerContent, {
+	FallbackComponent: OutputErrorFallback
+})
