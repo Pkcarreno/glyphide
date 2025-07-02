@@ -15,45 +15,36 @@ jobs:
       - name: 📦 Checkout project repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 2
 
       - name: 📦 Setup Node + PNPM + install deps
         uses: ./.github/actions/setup-node-pnpm-install
 
   lint:
-    name: Lint TS (eslint, prettier)
+    name: Lint TS (biome, prettier)
     needs: [install]
     runs-on: ubuntu-latest
     steps:
       - name: 📦 Checkout project repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 2
 
       - name: 📦 Setup Node + PNPM + install deps
         uses: ./.github/actions/setup-node-pnpm-install
 
-      - name: 🏃‍♂️ Run ESLint PR
-        if: github.event_name == 'pull_request'
-        uses: reviewdog/action-eslint@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          reporter: github-pr-review
-          eslint_flags: 'src --max-warnings=0'
-
-      - name: 🏃‍♂️ Run ESLint PR
-        if: github.event_name != 'pull_request'
-        run: pnpm run lint
+      - name: 🏃‍♂️ Run Lint & Format PR
+        run: pnpm run lint && pnpm run format
 
   type-check:
-    name: Type Check (tsc)
+    name: TypeCheck
     needs: [install]
     runs-on: ubuntu-latest
     steps:
       - name: 📦 Checkout project repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 2
 
       - name: 📦 Setup Node + PNPM + install deps
         uses: ./.github/actions/setup-node-pnpm-install

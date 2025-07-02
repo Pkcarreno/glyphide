@@ -4,12 +4,18 @@
 echo "===\n>> Checking branch name..."
 
 # Check branch protection
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
-PROTECTED_BRANCHES="^(master|main)"
+if ! git rev-parse --verify HEAD@{0}; then
+  echo ">> Skipping checking branch protection, as there are no commits to check."
+else
+  BRANCH=$(git rev-parse --abbrev-ref HEAD)
+  PROTECTED_BRANCHES="^(master|main)"
 
-if [[ $BRANCH =~ $PROTECTED_BRANCHES ]]; then
-  echo ">> Direct commits to the $BRANCH branch are not allowed. Please choose a new branch name."
-  exit 1
+  echo "values $BRANCH $PROTECTED_BRANCHES "
+
+  if [[ $BRANCH =~ $PROTECTED_BRANCHES ]]; then
+    echo ">> Direct commits to the $BRANCH branch are not allowed. Please choose a new branch name."
+    exit 1
+  fi
 fi
 
 echo ">> Finish checking branch name"

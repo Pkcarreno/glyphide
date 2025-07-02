@@ -7,7 +7,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
-name: 'release and deploy'
+name: "release and deploy"
 
 jobs:
   prepare:
@@ -19,6 +19,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      issues: write
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
@@ -31,8 +32,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [release]
     if: ${{ needs.release.outputs.release-created }}
-    env:
-      VITE_BASE_URL: '/jsod'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -50,7 +49,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dist
-          path: dist
+          path: apps/glyphide/dist
 
   deploy:
     runs-on: ubuntu-latest
@@ -60,7 +59,7 @@ jobs:
       pages: write
       id-token: write
     env:
-      VITE_BASE_URL: '/release-please-test/'
+      VITE_BASE_URL: "/release-please-test/"
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -74,12 +73,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: dist
-          path: dist
+          path: apps/glyphide/dist
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: apps/glyphide/dist
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

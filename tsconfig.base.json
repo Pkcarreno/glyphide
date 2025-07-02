@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "incremental": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "composite": true,
+    "preserveSymlinks": false,
+    "declarationMap": true
+  },
+  "exclude": ["node_modules"]
+}

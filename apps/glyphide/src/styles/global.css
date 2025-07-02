@@ -1,0 +1,181 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@layer base {
+	:root {
+		--land: oklch(0.9748 0.0035 122.98);
+		--background: oklch(0.9948 0.0035 122.98);
+		--foreground: oklch(0 0 0);
+		--muted: oklch(0.9253 0.0358 123.53);
+		--muted-foreground: oklch(0.4427 0.021 123.66);
+		--popover: oklch(0.9948 0.0035 122.98);
+		--popover-foreground: oklch(0 0 0);
+		--card: oklch(0.9896 0.007 123.04);
+		--card-foreground: oklch(0 0 0);
+		--border: oklch(0.9568 0.0038 122.99);
+		--input: oklch(0.922 0.0038 122.99);
+
+		--primary: oklch(0.8979 0.1796 126.71);
+		--primary-foreground: oklch(0.2292 0.0537 126.88);
+		--secondary: oklch(0.9316 0.0006 122.94);
+		--secondary-foreground: oklch(0.4296 0.0027 123.02);
+		--accent: oklch(0.8681 0.0104 123.11);
+		--accent-foreground: oklch(0.3523 0.0158 123.62);
+		--destructive: oklch(0.4697 0.1634 33.34);
+		--destructive-foreground: oklch(0.9449 0.0248 32.69);
+		--error: oklch(0.8562 0.0671 32.9);
+		--error-foreground: oklch(0.3659 0.1208 33.76);
+		--success: oklch(0.9014 0.0879 146.98);
+		--success-foreground: oklch(0.4282 0.1234 144.13);
+		--warning: oklch(0.9439 0.0754 99.25);
+		--warning-foreground: oklch(0.1722 0.0313 101.42);
+		--info: oklch(0.8656 0.0596 246.76);
+		--info-foreground: oklch(0.3638 0.1003 251.96);
+		--ring: oklch(0.8979 0.1796 126.71);
+		--radius: 0.625rem;
+
+		--quiet: oklch(0.7698 0.0184 123.3);
+		--subtle: oklch(0.8114 0.212249 128.9898);
+		--plain: oklch(0.7305 0.0814 124.13);
+		--yell: oklch(0.6521 0.1986 17.07);
+		--speak: oklch(0.8501 0.1461 92);
+		--whisper: oklch(0.7302 0.1525 16.53);
+		--shy: oklch(0.6779 0.1489 127.48);
+		--extra: oklch(0.8032 0.1747 126.98);
+
+		--land-raw: 0.9748 0.0035 122.98;
+		--primary-raw: 0.8979 0.1796 126.71;
+		--quiet-raw: 0.7698 0.0184 123.3;
+		--subtle-raw: 0.8114 0.212249 128.9898;
+		--plain-raw: 0.7305 0.0814 124.13;
+		--yell-raw: 0.6521 0.1986 17.07;
+		--speak-raw: 0.8501 0.1461 92;
+		--whisper-raw: 0.7302 0.1525 16.53;
+		--shy-raw: 0.6779 0.1489 127.48;
+		--extra-raw: 0.8032 0.1747 126.98;
+	}
+
+	.dark {
+		--land: oklch(0.2257 0.020944 124.7601);
+		--background: oklch(0.1572 0.018 124.06);
+		--foreground: oklch(1 0 0);
+		--muted: oklch(0.285 0.0453 125.67);
+		--muted-foreground: oklch(0.7698 0.0184 123.3);
+		--popover: oklch(0.1713 0.018 124.49);
+		--popover-foreground: oklch(1 0 0);
+		--card: oklch(0.1857 0.020944 124.7601);
+		--card-foreground: oklch(1 0 0);
+		--border: oklch(0.2451 0.0106 123.6);
+		--input: oklch(1 0.0106 123.6 / 15%);
+
+		--primary: oklch(0.8979 0.1796 126.71);
+		--primary-foreground: oklch(0.2292 0.0537 126.88);
+		--secondary: oklch(0.1965 0.005 123.32);
+		--secondary-foreground: oklch(0.7588 0.0143 123.22);
+		--accent: oklch(0.2716 0.0173 123.92);
+		--accent-foreground: oklch(0.8147 0.0247 123.39);
+		--destructive: oklch(0.6447 0.2055 33.93);
+		--destructive-foreground: oklch(1 0 0);
+		--error: oklch(0.2427 0.0763 32.12);
+		--error-foreground: oklch(0.7548 0.1229 29.57);
+		--success: oklch(0.315 0.0844 148.69);
+		--success-foreground: oklch(0.8214 0.2318 147.67);
+		--warning: oklch(0.2897 0.0564 70.78);
+		--warning-foreground: oklch(0.8469 0.1001 75.07);
+		--info: oklch(0.2449 0.062 251.56);
+		--info-foreground: oklch(0.7719 0.1017 249.26);
+		--ring: oklch(0.8979 0.1796 126.71);
+
+		--quiet: oklch(0.7698 0.0184 123.3);
+		--subtle: oklch(0.7305 0.0814 124.13);
+		--plain: oklch(0.9546 0.0832 123.15);
+		--yell: oklch(0.6865 0.1745 14.87);
+		--speak: oklch(0.8681 0.1328 92.68);
+		--whisper: oklch(0.7561 0.1346 15.62);
+		--shy: oklch(0.65 0.1262 126.67);
+		--extra: oklch(0.7755 0.1526 126.3);
+
+		--land-raw: 0.2257 0.020944 124.7601;
+		--primary-raw: 0.8979 0.1796 126.71;
+		--quiet-raw: 0.7698 0.0184 123.3;
+		--subtle-raw: 0.7305 0.0814 124.13;
+		--plain-raw: 0.9546 0.0832 123.15;
+		--yell-raw: 0.6865 0.1745 14.87;
+		--speak-raw: 0.8681 0.1328 92.68;
+		--whisper-raw: 0.7561 0.1346 15.62;
+		--shy-raw: 0.65 0.1262 126.67;
+		--extra-raw: 0.7755 0.1526 126.3;
+	}
+}
+
+@theme inline {
+	--color-land: var(--land);
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--font-sans: "IBM Plex Sans Variable", var(--font-sans);
+	--font-mono: "IBM Plex Mono", var(--font-mono);
+	--color-ring: var(--ring);
+	--color-input: var(--input);
+	--color-border: var(--border);
+	--color-destructive: var(--destructive);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-accent: var(--accent);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-muted: var(--muted);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-secondary: var(--secondary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-primary: var(--primary);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-popover: var(--popover);
+	--color-card-foreground: var(--card-foreground);
+	--color-card: var(--card);
+	--color-error: var(--error);
+	--color-error-foreground: var(--error-foreground);
+	--color-success: var(--success);
+	--color-success-foreground: var(--success-foreground);
+	--color-warning: var(--warning);
+	--color-warning-foreground: var(--warning-foreground);
+	--color-info: var(--info);
+	--color-info-foreground: var(--info-foreground);
+	--color-quiet: var(--quiet);
+	--color-subtle: var(--subtle);
+	--color-plain: var(--plain);
+	--color-yell: var(--yell);
+	--color-speak: var(--speak);
+	--color-whisper: var(--whisper);
+	--color-shy: var(--shy);
+	--color-extra: var(--extra);
+	--radius-sm: calc(var(--radius) - 4px);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+	* {
+		@apply border-border outline-ring/50;
+	}
+	body {
+		@apply bg-background text-foreground selection:bg-foreground selection:text-background font-sans box-border;
+		font-synthesis-weight: none;
+		text-rendering: optimizeLegibility;
+	}
+	::-webkit-scrollbar {
+		@apply size-1.5;
+	}
+	::-webkit-scrollbar-thumb {
+		@apply bg-foreground/20 rounded-full;
+	}
+	::-webkit-scrollbar-thumb:hover {
+		@apply bg-foreground/30;
+	}
+	::-webkit-scrollbar-track {
+		@apply bg-transparent;
+	}
+	::-webkit-scrollbar-corner {
+		@apply bg-transparent;
+	}
+}

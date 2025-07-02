@@ -1,0 +1,56 @@
+---
+import { StatusBar } from '@/components/editor/StatusBar'
+import Header from '@/components/editor/Header/index.astro'
+import { Panels } from '@/components/editor/Panels'
+import Layout from '@/layouts/EditorLayout.astro'
+import { ExecutionController } from '@/providers/execution-controller'
+import { LayoutController } from '@/providers/layout-controller'
+import { UntrustedModeController } from '@/providers/untrusted-mode-controller'
+import { VersionManagerController } from '@/providers/version-manager-controller'
+import { AppController } from '@/providers/app-controller'
+import { SettingsSidebarCompact } from '@/components/editor/SettingsSidebar/SettingsSidebarCompact'
+import { Toaster } from '@/components/ui/Sonner'
+import type { ComponentProps } from 'astro/types'
+
+const metaData: ComponentProps<typeof Layout>['head'] = {
+  title: 'Glyphide - Local JavaScript Editor in Your Browser',
+  description:
+    'Run JavaScript locally in your browser. No backend, no accounts, no data storage. Share code via URL. Client-side development environment with modern ECMAScript support.',
+  keywords:
+    'javascript editor, browser ide, local code editor, javascript playground, client-side, ecmascript, web development, no backend',
+  meta: {
+    image: 'og.png',
+    og: {
+      title: 'Glyphide - Local JavaScript Editor',
+      description:
+        'Run JavaScript locally in your browser. No backend, no accounts, no server-side storage. Share code via URL.'
+    },
+    twitter: {
+      title: 'Glyphide - Local JavaScript Editor',
+      description:
+        'Run JavaScript locally in your browser. No backend, no accounts, no server-side storage.'
+    }
+  }
+}
+---
+
+<Layout head={metaData}>
+  <AppController client:load />
+  <LayoutController client:load />
+  <UntrustedModeController client:load />
+  <ExecutionController client:load />
+  <VersionManagerController client:load />
+  <SettingsSidebarCompact client:load />
+  <div class="flex h-dvh flex-col">
+    <div class="w-full p-1">
+      <Header />
+    </div>
+    <main class="h-full overflow-auto md:px-1">
+      <Panels client:load />
+    </main>
+    <div>
+      <StatusBar client:only="react" />
+    </div>
+  </div>
+  <Toaster client:load />
+</Layout>

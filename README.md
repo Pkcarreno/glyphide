@@ -1,76 +1,121 @@
-# JSOD
+# Glyphide 🟢
 
-> [!IMPORTANT]
->
-> The project is under development, so bugs or missing important features are expected.
+**Local JavaScript editor that runs entirely in your browser**
 
-Write, run, and share JavaScript code instantly.
+**[Try Glyphide →](https://glyphide.com)** | **[Migrate old links](https://glyphide.com/migrate)** | **[Issues](https://github.com/Pkcarreno/glyphide/issues)**
 
-It's:
+Write, run, and share JavaScript code instantly. No servers, no accounts, just code.
 
-- Open Source
-- Run 100% on your device
-- Powered by QuickJS (via [quickjs-emscripten](https://github.com/justjake/quickjs-emscripten))
-- Shareable
-- Installable
-- Offline first
+## What is this?
 
-> [!CAUTION]
->
-> Although JSOD aims to provide a safe environment, there may be inappropriate or malicious behavior when executing third-party code.
+Glyphide is a JavaScript editor that runs completely in your browser. I built it because I needed something simple but powerful - no login screens, no external servers, no complexity.
 
-## Motivation
+Your code runs locally on your machine and gets encoded in the URL for sharing. That's it.
 
-I wanted to have a tool where I could create and run JS code with no extra friction, no text editors, no login screens, no opening the browser console. Plus, I wanted my code to not run on an external server and to be able to share my creations with others privately.
+**Good for:**
 
-JSOD is a super flexible calculator if you already know JS. You can do data manipulation without having to start your development environment, great for testing logic as you create. Or you can even create a calculator tailored to your needs and share it with your friends or embed it in your web page as a demo.
+- Quick prototyping without opening your IDE
+- Building custom calculators
+- Learning JavaScript with immediate feedback
+- Sharing working code examples
+- Embedding demos in documentation
 
-## Limitations
+## The story behind it
 
-For JavaScript execution, [QuickJS-NG](https://quickjs-ng.github.io/quickjs/) is used via [quickjs-emscripten](https://github.com/justjake/quickjs-emscripten). QuickJS-NG aims to be compatible with the latest ECMAScript specifications (for reference, [here you can see the progress of these features](https://quickjs-ng.github.io/quickjs/es_features)).
+I needed to help my partner calculate international shipping costs. The courier had rules but no calculator, so I wanted to write a quick JavaScript solution for her to use easily.
 
-As for the APIs provided by the environment (browser/Node.js) they depend on the implementation of **quickjs-emscripten** in the project and is currently work in progress. Below is the list of priority APIs to be integrated:
+Problem: there wasn't a good place to run JavaScript that was both simple and powerful. Everything required accounts, had paywalls, or was too basic.
 
-- [ ] fetch
-- [ ] timeout
-- [ ] interval
+So I built Glyphide. It's basically a super flexible calculator if you know JavaScript.
 
-Note: You can open an issue and suggest any other API you consider necessary.
+## How it works
 
-## Folder Structure
+**Technical stuff:**
 
-Follow [Bulletproof-react project structure](https://github.com/alan2207/bulletproof-react/blob/master/docs/project-structure.md).
+- Uses QuickJS engine (via [sebastianwessel/quickjs](https://github.com/sebastianwessel/quickjs) & [quickjs-emscripten](https://github.com/justjake/quickjs-emscripten))
+- Everything runs client-side in your browser
+- Code gets encoded in the URL for sharing
+- No backend servers or databases involved
+- Works offline after first load
 
-## Development
+**What I can promise:**
 
-To get a local copy of the code, clone it using git:
+- Your code stays on your device during execution
+- I don't store or process your code on servers
+- No user tracking or analytics from my side
 
-```bash
-git clone https://github.com/Pkcarreno/jsod
-cd jsod
+**What I can't control:**
+
+- GitHub Pages (where it's hosted) probably collects standard web analytics
+
+## Coming from JSoD?
+
+If you have old links from when this project was called JSoD, use the [migration tool](https://glyphide.com/migrate) to convert them. Your code will be exactly the same, just the URL format changes.
+
+## Quick example
+
+```javascript
+// Calculate compound interest
+const principal = 1000;
+const rate = 0.05;
+const years = 10;
+
+const result = principal * Math.pow(1 + rate, years);
+console.log(`$${principal} becomes $${result.toFixed(2)} after ${years} years`);
 ```
 
-Install dependencies:
+[**Try this example →**](https://glyphide.com/?c=Ly8gQ2FsY3VsYXRlIGNvbXBvdW5kIGludGVyZXN0CmNvbnN0IHByaW5jaXBhbCA9IDEwMDA7CmNvbnN0IHJhdGUgPSAwLjA1Owpjb25zdCB5ZWFycyA9IDEwOwoKY29uc3QgcmVzdWx0ID0gcHJpbmNpcGFsICogTWF0aC5wb3coMSArIHJhdGUsIHllYXJzKTsKY29uc29sZS5sb2coYCQke3ByaW5jaXBhbH0gYmVjb21lcyAkJHtyZXN1bHQudG9GaXhlZCgyKX0gYWZ0ZXIgJHt5ZWFyc30geWVhcnNgKTs&t=Q29tcG91bmQgaW50ZXJlc3QgY2FsY3VsYXRvcg)
+
+When you run code in Glyphide, it automatically generates a shareable URL like the one above. Send it to anyone and they'll see your working code.
+
+## Contributing
+
+This is an open source project and I appreciate help:
+
+- Found a bug? [Report it](https://github.com/Pkcarreno/glyphide/issues)
+- Want a feature? [Ask for it](https://github.com/Pkcarreno/glyphide/issues)
+- Want to code? Fork it and send a PR
+
+### Running locally
 
 ```bash
- pnpm i
-```
-
-Now, you can start a local web server by running:
-
-```bash
+git clone https://github.com/Pkcarreno/glyphide.git
+cd glyphide
+pnpm install
 pnpm dev
 ```
 
-And then open [http://localhost:4000](http://localhost:4000) to view it in the browser.
+Open [http://localhost:4000](http://localhost:4000) and you're ready.
 
-## Thanks to
+## What's next
 
-- [Vite Template React](https://github.com/SafdarJamal/vite-template-react): Template used in this project.
-- [quickjs-emscripten](https://github.com/justjake/quickjs-emscripten) and [quickjs-emscripten-sync](https://github.com/reearth/quickjs-emscripten-sync): Quickjs wrapper, the engine of this app.
-- [codi.link](http://codi.link): Web editor, made in community. Great inspiration.
-- [borrowed.nvim](https://github.com/MyyPo/borrowed.nvim): Neovim color scheme, take the naming convention to create a color scheme under the JSOD color palette.
+**Working on right now:**
+
+- Documentation page to make everything clearer
+
+**Maybe later:**
+
+- TypeScript support
+- Import from npm packages
+- More sharing options
+
+No strict roadmap - I build what seems useful or what people ask for.
+
+## Security note
+
+While Glyphide runs code in a sandboxed environment, be careful with code from untrusted sources. The local-first approach means your code stays on your device, but malicious code could still do browser-level damage.
+
+## Thanks
+
+This project builds on great open source work:
+
+- [[sebastianwessel/quickjs](https://github.com/sebastianwessel/quickjs) & [quickjs-emscripten](https://github.com/justjake/quickjs-emscripten) - makes JavaScript execution possible
+- [codi.link](http://codi.link) - inspiration for browser-based editors
 
 ## License
 
-This project is licensed under the terms of the [MIT license](https://github.com/Pkcarreno/jsod/blob/main/LICENSE).
+[MIT License](https://github.com/Pkcarreno/glyphide/blob/main/LICENSE)
+
+---
+
+_Glyphide - JavaScript that stays local_

@@ -1,0 +1,38 @@
+---
+import '@/styles/global.css'
+
+import type { ComponentProps } from 'astro/types'
+
+import Font from '@/components/generic/Font.astro'
+import Metatags from '@/components/generic/Metatags.astro'
+
+type Props = ComponentProps<typeof Metatags>
+const { ...props } = Astro.props
+---
+
+<head>
+  <Metatags {...props} />
+  <Font />
+</head>
+
+<script is:inline>
+  const getThemePreference = () => {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+      const themeStorageContent = localStorage.getItem('theme')
+      const rawTheme = JSON.parse(themeStorageContent)
+      const themeState = rawTheme.state
+      if (
+        themeState &&
+        'theme' in themeState &&
+        themeState.theme !== 'system'
+      ) {
+        return themeState.theme
+      }
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light'
+  }
+  const isDark = getThemePreference() === 'dark'
+  document.documentElement.classList[isDark ? 'add' : 'remove']('dark')
+</script>
