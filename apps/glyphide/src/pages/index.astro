@@ -39,7 +39,7 @@ const metaData: ComponentProps<typeof Layout>['head'] = {
   <LayoutController client:load />
   <UntrustedModeController client:load />
   <ExecutionController client:load />
-  <VersionManagerController client:load />
+  <VersionManagerController client:only="react" />
   <SettingsSidebarCompact client:load />
   <div class="flex h-dvh flex-col">
     <div class="w-full p-1">
