@@ -33,7 +33,7 @@ export const Menu = () => {
 				<SettingsItem />
 				<DropdownMenuSeparator />
 				<MigratePageLinkItem />
-				<DocumentationLinkItem />
+				{/* <DocumentationLinkItem /> */}
 				<GithubLinkItem />
 				<DropdownMenuSeparator />
 				<UpdateItem />
@@ -117,15 +117,15 @@ const GithubLinkItem = () => {
 	)
 }
 
-const DocumentationLinkItem = () => {
-	return (
-		<DropdownMenuItem asChild>
-			<a href="/doc" className="flex cursor-pointer gap-1">
-				Docs
-			</a>
-		</DropdownMenuItem>
-	)
-}
+// const DocumentationLinkItem = () => {
+// 	return (
+// 		<DropdownMenuItem asChild>
+// 			<a href="/doc" className="flex cursor-pointer gap-1">
+// 				Docs
+// 			</a>
+// 		</DropdownMenuItem>
+// 	)
+// }
 
 const NewScriptLinkItem = () => {
 	return (
