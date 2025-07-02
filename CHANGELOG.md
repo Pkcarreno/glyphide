@@ -1,5 +1,58 @@
 # Changelog
 
+## [2.0.0](https://github.com/Pkcarreno/glyphide/compare/v1.8.4...v2.0.0) (2025-07-02)
+
+
+### ⚠ BREAKING CHANGES
+
+* **repo:** monorepo project structure
+* new url pattern for scripts
+* Major UI upgrade
+* migrate from react vite SPA to Astro.js
+
+### Features
+
+* add disabled prop to codemirror editor component ([af968cd](https://github.com/Pkcarreno/glyphide/commit/af968cd904dda4bf86f6356a75249a83de4481bd))
+* **app:** add astro button component ([450302d](https://github.com/Pkcarreno/glyphide/commit/450302d6b3e316aeb30b80ebe55e10660eb97f66))
+* **app:** add dim variant ([268f948](https://github.com/Pkcarreno/glyphide/commit/268f948ffe24f406b0d956544c7a360d7b8d1cea))
+* **app:** add migrate url feature ([f3f9f20](https://github.com/Pkcarreno/glyphide/commit/f3f9f20ee3d88ec601c95beedec22888e31d5961))
+* **app:** enable service worker registration ([5003453](https://github.com/Pkcarreno/glyphide/commit/50034531e0c1ba7ae51b2842e8726b49feedf403))
+* **app:** improve metadata ([e9a634d](https://github.com/Pkcarreno/glyphide/commit/e9a634d7c075655cc03603dca31ad1f09888928b))
+* **app:** improve textarea component ([7283d21](https://github.com/Pkcarreno/glyphide/commit/7283d215de37f2dcffb9926b3796657b0ce410c7))
+* **app:** improve ui ([bd5a5e9](https://github.com/Pkcarreno/glyphide/commit/bd5a5e9a468770d8b5d4bc5ca6ada3988ee783c5))
+* **app:** sync theme-color to app theme state ([88fba0a](https://github.com/Pkcarreno/glyphide/commit/88fba0a9f6afbf37e494d4f0fa91aed7ae679f9a))
+* **app:** wrap main components in error boundary ([e9770bd](https://github.com/Pkcarreno/glyphide/commit/e9770bd19d19f0beaabb578e5918ac4325078fd7))
+* improve CI/CD ([6b8be9a](https://github.com/Pkcarreno/glyphide/commit/6b8be9a04704cb37c2d231ff82a8ecc83032dfef))
+* major Update ([8e74124](https://github.com/Pkcarreno/glyphide/commit/8e74124be9958af5e4f213c56229dddcd15a15db))
+* migrate config and tooling ([8ae8eb9](https://github.com/Pkcarreno/glyphide/commit/8ae8eb9113a5fd10d67c53c7bcf2fa5c11633056))
+* migrate to biome v2 ([926e32a](https://github.com/Pkcarreno/glyphide/commit/926e32afc6fb6e475bc9c6c891e0928249c9098a))
+* **repo:** migrate to monorepo ([8a53f40](https://github.com/Pkcarreno/glyphide/commit/8a53f40267d81ac1d137f20bd9619d540db60ca8))
+* **turbo:** set ui to tui ([9b9dee9](https://github.com/Pkcarreno/glyphide/commit/9b9dee9b04538d68721044f9b38e9acc36c9c16a))
+* upgrade public assets ([c32991a](https://github.com/Pkcarreno/glyphide/commit/c32991a3086e45a87494d50c7237f36d1284d926))
+* use url queryparams instead of zustand with url hash for better script state management ([35097dd](https://github.com/Pkcarreno/glyphide/commit/35097dd4b0af511bb3f125c8917f6fe06918580f))
+
+
+### Bug Fixes
+
+* add shamefully hoist at CI level ([dd37f13](https://github.com/Pkcarreno/glyphide/commit/dd37f13af4785305d6b7bfe9d295988324a592e9))
+* **app:** add astro types in tsconfig ([bcf914b](https://github.com/Pkcarreno/glyphide/commit/bcf914baaf3dd4efe40e45ff921e923d18c3bc93))
+* **app:** add importMeta types ([ea8cc4c](https://github.com/Pkcarreno/glyphide/commit/ea8cc4c2705a0628e1f2867eecace743b888cffa))
+* **app:** comment Documentation link ([af934a0](https://github.com/Pkcarreno/glyphide/commit/af934a006ecd8e3a4099c6b84fb39539e9725dda))
+* **app:** content ([038e91d](https://github.com/Pkcarreno/glyphide/commit/038e91db11701fa5046d6b2f1ca4daf8085c0b6d))
+* **app:** edit new script link ([79c810d](https://github.com/Pkcarreno/glyphide/commit/79c810dccc2fc19ffd2a899c521ac1be81a8513d))
+* **app:** improve input features ([9778a8c](https://github.com/Pkcarreno/glyphide/commit/9778a8c1c4fde89d0e65e05f8f5956ec31dc7d7a))
+* **app:** improve migration form ux ([5e1743b](https://github.com/Pkcarreno/glyphide/commit/5e1743bd2472f5ed027e5a23f2f738544c629449))
+* **app:** merging conflict ([189f566](https://github.com/Pkcarreno/glyphide/commit/189f566450e54c1b37b4a871fb6bffd99af6c9a6))
+* **app:** padding on migration header ([0164d75](https://github.com/Pkcarreno/glyphide/commit/0164d75b044e6e46702d974c09073191f9435a81))
+* **app:** use main package.json to retrieve app version ([d70e34b](https://github.com/Pkcarreno/glyphide/commit/d70e34bfe0d1e03b2b4b2af02b0af25603fa6031))
+* ignore not supported languages ([3161b64](https://github.com/Pkcarreno/glyphide/commit/3161b64b21452b1183c72567631afb7b0e45ada1))
+* improve types related to log ([3cc5537](https://github.com/Pkcarreno/glyphide/commit/3cc553785c5e98f014efd49adb269ff5dab5d8d4))
+* **lint:** biome v2 fixes ([15df27e](https://github.com/Pkcarreno/glyphide/commit/15df27ec610e8a8a9bee96bb2c949d86a866c0e4))
+* remove comment ([14f842a](https://github.com/Pkcarreno/glyphide/commit/14f842a99e615f5e1a0e8d2606525b212d49c686))
+* remove shamefully hoist ref ([64c7791](https://github.com/Pkcarreno/glyphide/commit/64c7791e77741d2aaa46bc0a7784aabede0f3660))
+* rules ([b856ca4](https://github.com/Pkcarreno/glyphide/commit/b856ca4e847be8fe716594e8fe62287cf665c0b7))
+* set shamefully hoist on workspace ([26c4294](https://github.com/Pkcarreno/glyphide/commit/26c4294aca3040bcf55f98ccf029c5c40b096003))
+
 ## [1.8.4](https://github.com/Pkcarreno/jsod/compare/v1.8.3...v1.8.4) (2025-03-15)
 
 
