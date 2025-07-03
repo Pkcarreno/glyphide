@@ -98,15 +98,16 @@ const OutputDrawerButton: React.FC<Pick<React.ComponentProps<'button'>, 'onClick
 	}
 
 	return (
-		<Button size="lg" onClick={handleClick} className="relative rounded-full">
+		<Button
+			size="lg"
+			onClick={handleClick}
+			className="relative flex size-13 items-center justify-center rounded-xl"
+		>
 			<span className="sr-only">Show output</span>
-			<TerminalIcon className="size-5" />
+			<TerminalIcon className="size-6" />
 
 			{showBadge && (
-				<Badge
-					variant="destructive"
-					className="-top-1 -right-1 absolute min-w-[1rem] rounded-full px-1 py-0.5"
-				>
+				<Badge className="-top-1 -right-1 absolute min-w-[1rem] rounded-full bg-warning-foreground px-1 py-0.5">
 					New
 				</Badge>
 			)}
