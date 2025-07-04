@@ -1,7 +1,7 @@
 {
   "name": "glyphide",
   "type": "module",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "Write, run, and share JavaScript code instantly",
   "author": "Pedro Carreño (34664891+Pkcarreno@users.noreply.github.com)",
   "license": "MIT",
