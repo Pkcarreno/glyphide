@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.0.4](https://github.com/Pkcarreno/glyphide/compare/v2.0.3...v2.0.4) (2025-07-04)
+
+
+### Bug Fixes
+
+* **app:** use es import on worker ([bf700cc](https://github.com/Pkcarreno/glyphide/commit/bf700cc7ec092621acfc825e8b9a1afbc042bf4a))
+* **quickjs:** add ./package.json export ([6900201](https://github.com/Pkcarreno/glyphide/commit/690020133ddaef8b9b0ec292febb5357bdcb66cb))
+* **repo:** add general checks before push ([3c91239](https://github.com/Pkcarreno/glyphide/commit/3c912397e7063a459e6434038cfec7745324afd1))
+
 ## [2.0.3](https://github.com/Pkcarreno/glyphide/compare/v2.0.2...v2.0.3) (2025-07-04)
 
 
