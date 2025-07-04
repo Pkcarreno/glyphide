@@ -100,9 +100,14 @@ function extractDataByVersion(url: URL, version: string): MigratedData {
 			const rawCode = url.searchParams.get('c') || ''
 			const rawTitle = url.searchParams.get('t') || ''
 
-			const returnCandidate = {
+			const evaluationCandidate = {
 				code: rawCode,
 				title: rawTitle
+			}
+
+			const returnCandidate = {
+				code: decodeUriBase64(rawCode),
+				title: decodeUriBase64(rawTitle)
 			}
 
 			const base64ValidationResult = z
@@ -110,12 +115,12 @@ function extractDataByVersion(url: URL, version: string): MigratedData {
 					code: z.base64url(),
 					title: z.base64url().optional()
 				})
-				.safeParse(returnCandidate)
+				.safeParse(evaluationCandidate)
 
 			if (base64ValidationResult.error) {
 				console.warn(
 					`Migrate: Base53 validation error in v2 URL data. Zod message: ${base64ValidationResult.error.message}. Data:`,
-					returnCandidate
+					evaluationCandidate
 				)
 				throw new Error(
 					'The URL matches v2 format but contains invalid data. Please check the link.'
