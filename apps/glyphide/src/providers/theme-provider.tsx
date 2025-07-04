@@ -14,8 +14,6 @@ export function ThemeProvider() {
 
 		let systemTheme = theme
 
-		console.log('isdarkmode', isDarkMode)
-
 		if (theme === 'system') {
 			systemTheme = isDarkMode ? 'dark' : 'light'
 		}
