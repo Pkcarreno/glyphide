@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.6](https://github.com/Pkcarreno/glyphide/compare/v2.0.5...v2.0.6) (2025-07-04)
+
+
+### Bug Fixes
+
+* **app:** background color on new outputs badge ([5629e89](https://github.com/Pkcarreno/glyphide/commit/5629e895a82097690bf6fb5b690a37367fb5b2f7))
+* **app:** set min height in editor layout to small viewport ([af52fdf](https://github.com/Pkcarreno/glyphide/commit/af52fdfc8f7b92a9b3250a21066245221a2c1b3d))
+
 ## [2.0.5](https://github.com/Pkcarreno/glyphide/compare/v2.0.4...v2.0.5) (2025-07-04)
 
 
