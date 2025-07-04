@@ -13,7 +13,8 @@
         "types": "./dist/src/index.d.ts",
         "default": "./dist/index.es.js"
       }
-    }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"
