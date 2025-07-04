@@ -8,8 +8,12 @@ BRANCH=$(git rev-parse --abbrev-ref HEAD)
 PROTECTED_BRANCHES="^(master|main)"
 
 if [[ $BRANCH =~ $PROTECTED_BRANCHES ]]; then
-  echo ">> Direct push to the $BRANCH branch are not allowed. Please choose a new branch name."
-  exit 1
+	echo ">> Direct push to the $BRANCH branch are not allowed. Please choose a new branch name."
+	exit 1
 fi
 
 echo ">> Finish checking branch name"
+echo ">> Checking project status..."
+
+pnpm check
+pnpm build
