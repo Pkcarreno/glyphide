@@ -67,7 +67,8 @@ export default defineConfig({
 			'import.meta.env.APP_VERSION': JSON.stringify(packageJson.version)
 		},
 		worker: {
-			plugins: () => [wasm(), topLevelAwait()]
+			plugins: () => [wasm(), topLevelAwait()],
+			format: 'es'
 		}
 	}
 })
