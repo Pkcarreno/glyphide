@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.0.5](https://github.com/Pkcarreno/glyphide/compare/v2.0.4...v2.0.5) (2025-07-04)
+
+
+### Bug Fixes
+
+* **app:** migrate url function return re encoded values on v2 migration ([06d3037](https://github.com/Pkcarreno/glyphide/commit/06d30377932ef0ec00b759e5ad51cd91ff5de67d))
+* **app:** remove debug log ([4f6584f](https://github.com/Pkcarreno/glyphide/commit/4f6584fc89ea576be0ad27ff7b58fbc0442fe773))
+* **app:** set height to small viewport ([522b77b](https://github.com/Pkcarreno/glyphide/commit/522b77b6354bed94544506aff672f01d2b451ef2))
+
 ## [2.0.4](https://github.com/Pkcarreno/glyphide/compare/v2.0.3...v2.0.4) (2025-07-04)
 
 
