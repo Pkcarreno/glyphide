@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.0.3](https://github.com/Pkcarreno/glyphide/compare/v2.0.2...v2.0.3) (2025-07-04)
+
+
+### Bug Fixes
+
+* **app:** improve UI of mobile open output drawer button ([5d391d3](https://github.com/Pkcarreno/glyphide/commit/5d391d3cd9e943fd7e209762625dc1d4a2a725e2))
+* **app:** theme behavior ([cf2f6bf](https://github.com/Pkcarreno/glyphide/commit/cf2f6bfcfaaf9e81cadb53b1dae62616c583797f))
+* quickjs related file not in bundle ([fd68ed2](https://github.com/Pkcarreno/glyphide/commit/fd68ed2332e06aa905776e5f788780b35a6707fc))
+* **repo:** add deep clean command ([500aa83](https://github.com/Pkcarreno/glyphide/commit/500aa838313a060e848d820c4ce0b3d37bb3cf1a))
+
 ## [2.0.2](https://github.com/Pkcarreno/glyphide/compare/v2.0.1...v2.0.2) (2025-07-02)
 
 
