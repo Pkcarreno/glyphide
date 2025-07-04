@@ -17,7 +17,7 @@ const { lang = 'en', head, class: className, ...props } = Astro.props
 <html lang={lang} class="m-0 h-full">
   <BaseHead {...head} />
   <ThemeProvider client:load />
-  <body class={cn('min-h-screen', className)} {...props}>
+  <body class={cn('min-h-svh', className)} {...props}>
     <slot> Empty slot </slot>
   </body>
 </html>
