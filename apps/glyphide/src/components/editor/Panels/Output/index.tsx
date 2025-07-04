@@ -107,7 +107,7 @@ const OutputDrawerButton: React.FC<Pick<React.ComponentProps<'button'>, 'onClick
 			<TerminalIcon className="size-6" />
 
 			{showBadge && (
-				<Badge className="-top-1 -right-1 absolute min-w-[1rem] rounded-full bg-warning-foreground px-1 py-0.5">
+				<Badge className="-top-1 -right-1 absolute min-w-[1rem] rounded-full bg-warning px-1 py-0.5 dark:bg-warning-foreground">
 					New
 				</Badge>
 			)}
