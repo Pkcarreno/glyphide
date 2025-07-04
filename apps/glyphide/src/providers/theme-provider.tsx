@@ -12,7 +12,9 @@ export function ThemeProvider() {
 
 		root.classList.remove('light', 'dark')
 
-		let systemTheme: themeModeType = 'light'
+		let systemTheme = theme
+
+		console.log('isdarkmode', isDarkMode)
 
 		if (theme === 'system') {
 			systemTheme = isDarkMode ? 'dark' : 'light'
@@ -20,7 +22,7 @@ export function ThemeProvider() {
 
 		root.classList.add(systemTheme)
 
-		updateThemeColor(systemTheme)
+		updateThemeColor(systemTheme as themeModeType)
 	}, [theme, isDarkMode])
 
 	useEffect(() => {

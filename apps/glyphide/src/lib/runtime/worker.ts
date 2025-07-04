@@ -5,7 +5,6 @@ import {
 	type SandboxFunction,
 	type SandboxOptions
 } from '@glyphide/quickjs'
-import wasmUrl from '@jitl/quickjs-ng-wasmfile-release-sync?url'
 import {
 	type ExecutionOutputPayload,
 	ExecutionOutputPayloadSchema,
@@ -113,7 +112,7 @@ const initializeQuickJS = async (): Promise<void> => {
 
 	console.log('Worker: Loading QuickJS sandbox runtime...')
 	try {
-		quickJsSandboxRuntime = await loadQuickJs(wasmUrl)
+		quickJsSandboxRuntime = await loadQuickJs()
 		console.log('Worker: QuickJS sandbox runtime loaded successfully.')
 	} catch (error: unknown) {
 		console.error('Worker: Failed to load QuickJS sandbox runtime:', error)

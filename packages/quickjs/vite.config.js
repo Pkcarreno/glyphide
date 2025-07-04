@@ -18,7 +18,8 @@ export default defineConfig({
 			entry: resolve(__dirname, 'src/index.ts'),
 			name: '@glyphide/quickjs',
 			fileName: format => `index.${format}.js`,
-			formats: ['es', 'umd']
+			formats: ['es'],
+			sourcemap: true
 		},
 		assetsDir: '.',
 		outDir: 'dist'

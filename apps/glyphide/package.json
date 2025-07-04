@@ -30,7 +30,6 @@
     "@fontsource-variable/ibm-plex-sans": "^5.2.5",
     "@fontsource/ibm-plex-mono": "^5.2.5",
     "@glyphide/quickjs": "workspace:^",
-    "@jitl/quickjs-ng-wasmfile-release-sync": "^0.31.0",
     "@lezer/highlight": "^1.2.1",
     "@nanostores/react": "^1.0.0",
     "@radix-ui/react-alert-dialog": "^1.1.14",
