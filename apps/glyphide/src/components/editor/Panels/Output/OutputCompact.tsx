@@ -1,5 +1,5 @@
 import { TerminalIcon } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import {
@@ -12,8 +12,9 @@ import {
 	DrawerTitle,
 	DrawerTrigger
 } from '@/components/ui/Drawer'
-import { useAppStore } from '@/stores/app'
-import { LogActionsBarMobile } from './LogActionsBar'
+import { Label } from '@/components/ui/Label'
+import { Switch } from '@/components/ui/Switch'
+import { useAppPersistStore, useAppStore } from '@/stores/app'
 import { LogListView } from './LogListView'
 
 export const OutputCompact = () => {
@@ -33,7 +34,7 @@ export const OutputCompact = () => {
 					<LogListView />
 				</div>
 				<DrawerFooter className="flex flex-row justify-between">
-					<LogActionsBarMobile />
+					<ActionsBarCompact />
 					<DrawerClose className="w-fit">
 						<Button variant="outline" size="lg">
 							Close
@@ -96,5 +97,35 @@ const DrawerToggler: React.FC<Pick<React.ComponentProps<'button'>, 'onClick'>> =
 				</Badge>
 			)}
 		</Button>
+	)
+}
+
+export const ActionsBarCompact = () => {
+	const { persistLogs, updatePersistLogs } = useAppPersistStore()
+	const { clearLogs } = useAppStore()
+	const switchId = useId()
+
+	const handlePersistLogsChange = () => {
+		updatePersistLogs(!persistLogs)
+	}
+
+	return (
+		<div className="flex w-fit gap-4">
+			<div className="flex items-center space-x-2">
+				<Switch
+					className="cursor-pointer"
+					id={switchId}
+					onCheckedChange={handlePersistLogsChange}
+					checked={persistLogs}
+				/>
+				<Label className="cursor-pointer" htmlFor={switchId}>
+					Persist Logs
+				</Label>
+			</div>
+
+			<Button variant="secondary" size="lg" onClick={clearLogs}>
+				Clear
+			</Button>
+		</div>
 	)
 }
