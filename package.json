@@ -13,7 +13,7 @@
     "lint:fix": "turbo run root:lint:fix",
     "format": "turbo run format",
     "format:fix": "turbo run format:fix",
-    "check": "turbo run root:lint format type-check check",
+    "check": "turbo run root:knip root:lint format type-check check",
     "type-check": "turbo run type-check",
     "root:lint": "biome check .",
     "root:lint:fix": "biome check --write .",
@@ -22,7 +22,8 @@
     "commitlint": "commitlint",
     "prepare": "husky",
     "postinstall": "turbo run build --filter=@glyphide/quickjs",
-    "knip": "knip",
+    "root:knip": "knip",
+    "knip": "turbo run root:knip",
     "clean": "node scripts/clean.js"
   },
   "packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184",
