@@ -1,7 +1,5 @@
 import { TerminalIcon } from 'lucide-react'
-import { type ComponentType, useEffect, useRef, useState } from 'react'
-import { type FallbackProps, withErrorBoundary } from 'react-error-boundary'
-import { ErrorMenssage } from '@/components/ErrorMessage'
+import { useEffect, useRef, useState } from 'react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import {
@@ -15,26 +13,14 @@ import {
 	DrawerTrigger
 } from '@/components/ui/Drawer'
 import { useAppStore } from '@/stores/app'
-import { LogActionsBar, LogActionsBarMobile } from './LogActionsBar'
+import { LogActionsBarMobile } from './LogActionsBar'
 import { LogListView } from './LogListView'
 
-const OutputContent = () => {
-	return (
-		<div className="flex h-full flex-col">
-			<div className="flex items-center space-x-2 p-2">
-				<LogActionsBar />
-			</div>
-
-			<LogListView />
-		</div>
-	)
-}
-
-export const OutputDrawerContent = () => {
+export const OutputCompact = () => {
 	return (
 		<Drawer>
 			<DrawerTrigger asChild>
-				<OutputDrawerButton />
+				<DrawerToggler />
 			</DrawerTrigger>
 			<DrawerContent className="h-full">
 				<DrawerHeader>
@@ -59,9 +45,7 @@ export const OutputDrawerContent = () => {
 	)
 }
 
-const OutputDrawerButton: React.FC<Pick<React.ComponentProps<'button'>, 'onClick'>> = ({
-	onClick
-}) => {
+const DrawerToggler: React.FC<Pick<React.ComponentProps<'button'>, 'onClick'>> = ({ onClick }) => {
 	const { logs } = useAppStore()
 	const [showBadge, setShowBadge] = useState(false)
 	const [firstTime, setFirstTime] = useState(true)
@@ -114,20 +98,3 @@ const OutputDrawerButton: React.FC<Pick<React.ComponentProps<'button'>, 'onClick
 		</Button>
 	)
 }
-
-const OutputErrorFallback: ComponentType<FallbackProps> = ({ error }) => {
-	return (
-		<ErrorMenssage
-			message="Failed to display the output console. Please try reloading the page, or report this issue if the problem persists."
-			error={error}
-		/>
-	)
-}
-
-export const Output = withErrorBoundary(OutputContent, {
-	FallbackComponent: OutputErrorFallback
-})
-
-export const OutputDrawer = withErrorBoundary(OutputDrawerContent, {
-	FallbackComponent: OutputErrorFallback
-})

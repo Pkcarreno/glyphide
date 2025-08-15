@@ -6,8 +6,10 @@ import { useMainLayout } from '@/hooks/use-main-layout'
 import { useAppStore } from '@/stores/app'
 import { SettingsSidebar } from '../SettingsSidebar/SettingsSidebar'
 
-const Output = lazy(() => import('./Output').then(mod => ({ default: mod.Output })))
-const OutputDrawer = lazy(() => import('./Output').then(mod => ({ default: mod.OutputDrawer })))
+const Output = lazy(() => import('./Output/Output').then(mod => ({ default: mod.Output })))
+const OutputCompact = lazy(() =>
+	import('./Output/OutputCompact').then(mod => ({ default: mod.OutputCompact }))
+)
 const Codemirror = lazy(() => import('./Codemirror'))
 
 export const Panels = () => {
@@ -29,7 +31,7 @@ export const Panels = () => {
 
 				<div className="absolute right-4 bottom-16 z-50">
 					<Suspense fallback={<Loading />}>
-						<OutputDrawer />
+						<OutputCompact />
 					</Suspense>
 				</div>
 			</>
