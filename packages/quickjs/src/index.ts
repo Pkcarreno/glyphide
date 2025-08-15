@@ -12,7 +12,7 @@ async function loadQuickJs(): Promise<ReturnType<typeof _loadQuickJsFromSebastia
 		const quickJsInstance = await _loadQuickJsFromSebastianWessel(quickJsNgWasmVariant)
 		return quickJsInstance
 	} catch (error) {
-		console.error('Error al cargar QuickJS en loadQuickJs():', error)
+		console.error('[@glyphide/quickjs] Error while loading QuickJS in loadQuickJs():', error)
 		throw error
 	}
 }
