@@ -30,6 +30,14 @@ const LogListViewBase: React.FC<Props> = ({ className }) => {
 		virtualizer.scrollToIndex(logs.length - 1)
 	}, [logs, virtualizer])
 
+	if (logs.length < 1) {
+		return (
+			<div className="flex h-full items-center justify-center">
+				<span>No logs yet.</span>
+			</div>
+		)
+	}
+
 	return (
 		<div className={cn('flex h-full overflow-y-auto', className)}>
 			<div ref={scrollableRef} className="relative flex-grow overflow-auto">
