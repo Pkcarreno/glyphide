@@ -5,6 +5,7 @@ import {
 	AlertDialogAction,
 	AlertDialogCancel,
 	AlertDialogContent,
+	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
@@ -54,55 +55,46 @@ export const UntrustedModeController = () => {
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogContent>
-				<DialogHeader className="rounded-xl border border-destructive bg-destructive/10 p-4 text-destructive">
-					<DialogTitle className="flex items-center justify-center gap-2 sm:flex-row">
-						<TriangleAlertIcon className="size-6" />
-						WARNING!
-					</DialogTitle>
-					<DialogDescription className="text-destructive">
-						Although Glyphide aims to provide a safe environment, there may be inappropriate or
-						malicious behavior when executing third-party code.
+				<DialogHeader>
+					<DialogTitle>Third party code</DialogTitle>
+					<DialogDescription>
+						This code comes from a shared link. <br />
+						You can review it first without running anything, or enable execution if you trust the
+						source.
 					</DialogDescription>
 				</DialogHeader>
 				<DialogHeader>
-					<DialogDescription>
-						If you do not trust the origin of the code, we recommend continuing in the untrusted
-						mode. Before executing the code, make sure you understand its behavior and scope.
-					</DialogDescription>
 					<div className="text-muted-foreground text-sm">
 						<span className="font-semibold">Remember</span>
 
 						<ul className="list-inside list-disc">
-							<li>The security of your device and your data is your responsibility.</li>
-							<li>If you have doubts about the security of the code, do not execute it.</li>
+							<li>We'll disable all runtime capabilities while inspecting.</li>
+							<li>You can enable execution at any time from the toolbar or statusbar.</li>
 						</ul>
 					</div>
 				</DialogHeader>
-				<DialogFooter className="flex-col gap-2 sm:flex-col sm:space-x-0">
+				<DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between sm:space-x-0">
 					<AlertDialog>
 						<AlertDialogTrigger asChild>
-							<Button variant="outline" className="flex h-full flex-1 flex-col">
-								<span className="text-wrap font-semibold">
-									Yes, I trust the origin of this code.
-								</span>
-								<span className="text-wrap italic">Trust the code and enable all features</span>
-							</Button>
+							<Button variant="outline">Enable execution</Button>
 						</AlertDialogTrigger>
 						<AlertDialogContent>
 							<AlertDialogHeader>
-								<AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+								<AlertDialogTitle>Enable execution</AlertDialogTitle>
+								<AlertDialogDescription>
+									Runs with your current settings. You can change or disable later in Settings.
+								</AlertDialogDescription>
 							</AlertDialogHeader>
 							<AlertDialogFooter>
-								<AlertDialogCancel>No</AlertDialogCancel>
-								<AlertDialogAction onClick={handleOnTrustCode}>Yes</AlertDialogAction>
+								<AlertDialogCancel>Go back</AlertDialogCancel>
+								<AlertDialogAction className="font-bold" autoFocus onClick={handleOnTrustCode}>
+									Enable Execution
+								</AlertDialogAction>
 							</AlertDialogFooter>
 						</AlertDialogContent>
 					</AlertDialog>
-					<Button className="flex h-full flex-1 flex-col" onClick={handleOnNoTrust}>
-						<span className="text-wrap font-semibold">
-							No, I don't trust the origin of this code.
-						</span>
-						<span className="text-wrap italic">Inspect code in untrusted mode</span>
+					<Button className="font-bold" autoFocus onClick={handleOnNoTrust}>
+						Inspect only (recommended)
 					</Button>
 				</DialogFooter>
 			</DialogContent>
