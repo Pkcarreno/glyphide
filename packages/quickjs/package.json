@@ -33,10 +33,10 @@
   "license": "MIT",
   "dependencies": {
     "@jitl/quickjs-ng-wasmfile-release-sync": "^0.31.0",
-    "@sebastianwessel/quickjs": "^2.3.1",
+    "@sebastianwessel/quickjs": "^3.0.0",
     "quickjs-emscripten-core": "^0.31.0",
     "vite-plugin-dts": "^4.5.4",
-    "vite-plugin-node-polyfills": "^0.23.0"
+    "vite-plugin-node-polyfills": "^0.24.0"
   },
   "repository": {
     "type": "git",
