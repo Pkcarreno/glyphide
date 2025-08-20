@@ -5,13 +5,11 @@ export const ConsoleLogTypeSchema = z.enum(['log', 'info', 'debug', 'warn', 'err
 
 export type ConsoleLogType = z.infer<typeof ConsoleLogTypeSchema>
 
-// biome-ignore lint/style/useConst: helper pattern to avoid circular issues in zod schema
 export let SerializableValueSchema: z.ZodUnion
 // biome-ignore lint/style/useConst: helper pattern to avoid circular issues in zod schema
 let ObjectLogValueSchema: z.ZodObject
 // biome-ignore lint/style/useConst: helper pattern to avoid circular issues in zod schema
 let ArrayLogValueSchema: z.ZodObject
-// biome-ignore lint/style/useConst: helper pattern to avoid circular issues in zod schema
 let PropertySchema: z.ZodObject
 
 export const PrimitiveValueSchema = z.union([
