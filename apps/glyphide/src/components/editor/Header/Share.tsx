@@ -29,6 +29,7 @@ export const ShareButton = () => {
 		<Popover>
 			<PopoverTrigger asChild>
 				<Button size="icon" variant="outline">
+					<span className="sr-only">Share</span>
 					<Share2Icon />
 				</Button>
 			</PopoverTrigger>
