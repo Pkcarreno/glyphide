@@ -1,4 +1,4 @@
-import debounce from 'lodash.debounce'
+import { debounce } from 'es-toolkit/compat'
 import { getAppStatus, getUntrustedStatus, setAppStatus } from '@/stores/app'
 import { getAutorunTimeout } from '@/stores/settings'
 import { executeCode, terminateExecution } from './controller'

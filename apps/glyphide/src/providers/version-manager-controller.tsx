@@ -16,7 +16,9 @@ export const VersionManagerController = () => {
 	} = useRegisterSW({
 		onRegistered(r) {
 			if (r) {
-				setUpdateServiceWorkerAction(async () => r.update())
+				setUpdateServiceWorkerAction(async () => {
+					r.update()
+				})
 				setInterval(() => {
 					r.update()
 				}, intervalMS)

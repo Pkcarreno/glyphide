@@ -10,6 +10,9 @@
       "cache": false,
       "persistent": true
     },
+    "//#root:knip": {
+      "dependsOn": ["^root:knip"]
+    },
     "//#root:lint": {
       "dependsOn": ["^root:lint"]
     },

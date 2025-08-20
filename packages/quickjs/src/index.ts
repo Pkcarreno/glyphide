@@ -6,15 +6,13 @@ import {
 	type SandboxFunction,
 	type SandboxOptions
 } from '@sebastianwessel/quickjs'
-import { newQuickJSWASMModuleFromVariant } from 'quickjs-emscripten-core'
 
 async function loadQuickJs(): Promise<ReturnType<typeof _loadQuickJsFromSebastianWessel>> {
 	try {
-		const wasmModuleInstance = await newQuickJSWASMModuleFromVariant(quickJsNgWasmVariant)
-		const quickJsInstance = await _loadQuickJsFromSebastianWessel(wasmModuleInstance)
+		const quickJsInstance = await _loadQuickJsFromSebastianWessel(quickJsNgWasmVariant)
 		return quickJsInstance
 	} catch (error) {
-		console.error('Error al cargar QuickJS en loadQuickJs():', error)
+		console.error('[@glyphide/quickjs] Error while loading QuickJS in loadQuickJs():', error)
 		throw error
 	}
 }

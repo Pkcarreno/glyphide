@@ -1,7 +1,9 @@
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual'
 import { CircleHelpIcon, CircleXIcon, CornerDownRightIcon, InfoIcon } from 'lucide-react'
 import type React from 'react'
-import { useEffect, useRef } from 'react'
+import { type ComponentType, useEffect, useRef } from 'react'
+import { type FallbackProps, withErrorBoundary } from 'react-error-boundary'
+import { ErrorMenssage } from '@/components/ErrorMessage'
 import { useAppStore } from '@/stores/app'
 import type { LogEntry } from '@/types/log'
 import { cn } from '@/utils'
@@ -11,7 +13,7 @@ interface Props {
 	className?: React.ComponentProps<'div'>['className']
 }
 
-export const LogListView: React.FC<Props> = ({ className }) => {
+const LogListViewBase: React.FC<Props> = ({ className }) => {
 	const { logs } = useAppStore()
 	const scrollableRef = useRef<HTMLDivElement>(null)
 
@@ -27,6 +29,14 @@ export const LogListView: React.FC<Props> = ({ className }) => {
 	useEffect(() => {
 		virtualizer.scrollToIndex(logs.length - 1)
 	}, [logs, virtualizer])
+
+	if (logs.length < 1) {
+		return (
+			<div className="flex h-full items-center justify-center">
+				<span>No logs yet.</span>
+			</div>
+		)
+	}
 
 	return (
 		<div className={cn('flex h-full overflow-y-auto', className)}>
@@ -106,3 +116,16 @@ const LogEntryRow: React.FC<{ log: LogEntry; virtualItem: VirtualItem }> = ({
 		</div>
 	)
 }
+
+const LogListViewErrorFallback: ComponentType<FallbackProps> = ({ error }) => {
+	return (
+		<ErrorMenssage
+			message="Failed to display the log list. Please try reloading the page, or report this issue if the problem persists."
+			error={error}
+		/>
+	)
+}
+
+export const LogListView = withErrorBoundary(LogListViewBase, {
+	FallbackComponent: LogListViewErrorFallback
+})

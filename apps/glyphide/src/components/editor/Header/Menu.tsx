@@ -21,6 +21,7 @@ export const Menu = () => {
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
 				<Button size="icon" variant="outline">
+					<span className="sr-only">Menu</span>
 					<EllipsisVerticalIcon className="size-4" />
 				</Button>
 			</DropdownMenuTrigger>

@@ -3,10 +3,13 @@ import { CheckIcon, LoaderCircleIcon, Share2Icon, XIcon } from 'lucide-react'
 import { type PropsWithChildren, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover'
+import { useIsInIframe } from '@/hooks/use-is-in-iframe'
 import { tryCatch } from '@/lib/try-catch'
-import { getScriptUrlState } from '@/stores/script'
+import { getCurrentUrl } from '@/utils'
 
 export const ShareButton = () => {
+	const isInIframe = useIsInIframe()
+
 	const copyLinkToClipboard = async () => {
 		const url = getCurrentUrl()
 
@@ -20,10 +23,13 @@ export const ShareButton = () => {
 		copy(embededUrl)
 	}
 
+	if (isInIframe) return null
+
 	return (
 		<Popover>
 			<PopoverTrigger asChild>
 				<Button size="icon" variant="outline">
+					<span className="sr-only">Share</span>
 					<Share2Icon />
 				</Button>
 			</PopoverTrigger>
@@ -40,17 +46,6 @@ export const ShareButton = () => {
 			</PopoverContent>
 		</Popover>
 	)
-}
-
-const getCurrentUrl = () => {
-	const url = new URL(location.origin)
-	const searchParams = getScriptUrlState()
-
-	for (const [key, value] of searchParams.entries()) {
-		url.searchParams.append(key, value)
-	}
-
-	return url
 }
 
 type statusType = 'loading' | 'idle' | 'error' | 'done'

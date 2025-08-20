@@ -19,6 +19,16 @@
   },
   "overrides": [
     {
+      "includes": ["**/src/styles/global.css"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noUnknownAtRules": "off"
+          }
+        }
+      }
+    },
+    {
       "includes": [
         "**/src/components/**/*.{astro,js,jsx,ts,tsx}",
         "**/src/layouts/**/*.{astro,js,jsx,ts,tsx}",

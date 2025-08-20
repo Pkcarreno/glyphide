@@ -39,7 +39,10 @@ const CodemirrorEditor: React.FC<CodeMirrorEditorProps> = ({
 			extensions: [
 				basicSetup,
 				themeMode === 'dark' ? glyphideThemeDark : glyphideTheme,
-				EditorView.contentAttributes.of({ 'data-gramm_editor': 'false' }),
+				EditorView.contentAttributes.of({
+					'data-gramm_editor': 'false',
+					'aria-label': 'text editor'
+				}),
 				EditorView.editable.of(!disabled),
 				...extensions,
 				EditorView.updateListener.of(update => {
@@ -100,6 +103,10 @@ const CodemirrorEditor: React.FC<CodeMirrorEditorProps> = ({
 				effects: StateEffect.reconfigure.of([
 					basicSetup,
 					themeMode === 'dark' ? glyphideThemeDark : glyphideTheme,
+					EditorView.contentAttributes.of({
+						'data-gramm_editor': 'false',
+						'aria-label': 'text editor'
+					}),
 					EditorView.editable.of(!disabled),
 					editorUpdateListener,
 					...extensions

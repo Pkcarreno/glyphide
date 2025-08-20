@@ -109,7 +109,7 @@ While Glyphide runs code in a sandboxed environment, be careful with code from u
 
 This project builds on great open source work:
 
-- [[sebastianwessel/quickjs](https://github.com/sebastianwessel/quickjs) & [quickjs-emscripten](https://github.com/justjake/quickjs-emscripten) - makes JavaScript execution possible
+- [sebastianwessel/quickjs](https://github.com/sebastianwessel/quickjs) & [quickjs-emscripten](https://github.com/justjake/quickjs-emscripten) - makes JavaScript execution possible
 - [codi.link](http://codi.link) - inspiration for browser-based editors
 
 ## License
