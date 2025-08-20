@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import type { StoreApi, UseBoundStore } from 'zustand'
+import { getScriptUrlState } from './stores/script'
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs))
@@ -18,4 +19,15 @@ export const createSelectors = <S extends UseBoundStore<StoreApi<object>>>(_stor
 	}
 
 	return store
+}
+
+export const getCurrentUrl = () => {
+	const url = new URL(location.origin)
+	const searchParams = getScriptUrlState()
+
+	for (const [key, value] of searchParams.entries()) {
+		url.searchParams.append(key, value)
+	}
+
+	return url
 }

@@ -2,6 +2,7 @@
 import { ExecuteButton } from './Execute'
 import { Menu } from './Menu'
 import { ShareButton } from './Share'
+import { OpenInAppButton } from './Open'
 import { ScriptTitle } from './Title'
 import { UntrustedModeMobile } from './UntrustedModeMobile'
 import Logo from '@/assets/logo-square.svg'
@@ -18,6 +19,7 @@ import Logo from '@/assets/logo-square.svg'
   </div>
 
   <div class="flex gap-2 py-1">
+    <OpenInAppButton client:load />
     <ShareButton client:load />
     <ExecuteButton client:only="react" />
   </div>
