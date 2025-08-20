@@ -1,5 +1,33 @@
 # Changelog
 
+## [2.1.0](https://github.com/Pkcarreno/glyphide/compare/v2.0.6...v2.1.0) (2025-08-20)
+
+
+### Features
+
+* **app:** empty message on output panel ([2b7b95b](https://github.com/Pkcarreno/glyphide/commit/2b7b95bcdc843fded393347986fab83cc32b6eb4))
+* **app:** improve UI/UX of untrusted mode dialog ([f9186fd](https://github.com/Pkcarreno/glyphide/commit/f9186fd6057603de343dc674109554a57bd092dc))
+* **app:** new 'open in app' button for embeded variant ([c5c5ea4](https://github.com/Pkcarreno/glyphide/commit/c5c5ea45063e220e5244b78012ffe39963ab9c18))
+* improve UI of actions bar ([7bd9895](https://github.com/Pkcarreno/glyphide/commit/7bd9895597c492e8ca230123833e5caff2b03332))
+* **knip:** add knip to CI/CD workflow ([4348ef1](https://github.com/Pkcarreno/glyphide/commit/4348ef1909fbe6ad10ac78ec518b5f096c186b77))
+
+
+### Bug Fixes
+
+* add vite to quickjs package ([2d92841](https://github.com/Pkcarreno/glyphide/commit/2d928414a4b6811745ce27de2b34b2664732eb94))
+* **app:** added aria label to text editor ([b3dcb3d](https://github.com/Pkcarreno/glyphide/commit/b3dcb3dbbdfa3129e3ca969ce6ea0c2da1c7a976))
+* **app:** added buttons accesible names ([e2d055c](https://github.com/Pkcarreno/glyphide/commit/e2d055c62c1e8440dab0898ccc90731fdb275942))
+* **app:** ignore biome unknown rules in css files temporaly ([8b77b7e](https://github.com/Pkcarreno/glyphide/commit/8b77b7eb64cf7efacbfe75678eae420dbbead116))
+* **app:** js-base64 as normal dependency ([151cee6](https://github.com/Pkcarreno/glyphide/commit/151cee66f07b93f74fb0903b71b72a608a5fab67))
+* **app:** mobile height in migration page ([b9486c9](https://github.com/Pkcarreno/glyphide/commit/b9486c995e0cc234d991195923a7948fafccea76))
+* **app:** remove some biome suppression comment ([ee5e411](https://github.com/Pkcarreno/glyphide/commit/ee5e4115fb0a621936ad686061437d86ffed497b))
+* **app:** remove unused icon ([c4fa3a3](https://github.com/Pkcarreno/glyphide/commit/c4fa3a31077355fee5f65e76ad632c7bf7b9ecc0))
+* **app:** replace lodash with es-toolkit ([c4420c0](https://github.com/Pkcarreno/glyphide/commit/c4420c035f52bd79c85e2734c487590c97195aee))
+* **app:** type issue with serviceworkeraction ([0d0c9da](https://github.com/Pkcarreno/glyphide/commit/0d0c9daa51013baafb933375e034bf7007852552))
+* **knip:** config ([8f3b118](https://github.com/Pkcarreno/glyphide/commit/8f3b118f70b55078a2500abf4e747c11b22b4420))
+* **quickjs:** error log message ([692dcc4](https://github.com/Pkcarreno/glyphide/commit/692dcc42ff9078c5a9f6aa238f3ad55e0466a811))
+* update deps ([87f9237](https://github.com/Pkcarreno/glyphide/commit/87f923791efe243983ed4e378e1459cd36bab385))
+
 ## [2.0.6](https://github.com/Pkcarreno/glyphide/compare/v2.0.5...v2.0.6) (2025-07-04)
 
 
