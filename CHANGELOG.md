@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.1.1](https://github.com/Pkcarreno/glyphide/compare/v2.1.0...v2.1.1) (2025-08-22)
+
+
+### Bug Fixes
+
+* **app:** accesibility issue ([f6e260b](https://github.com/Pkcarreno/glyphide/commit/f6e260bb68412bae949d6531ab2034add18fad08))
+* **app:** add id to log entries ([756ae2f](https://github.com/Pkcarreno/glyphide/commit/756ae2fc2cdd33df828b5ff70a7e81667cb65920))
+* **app:** visuals of buttons in output drawer (mobile) ([92d12dc](https://github.com/Pkcarreno/glyphide/commit/92d12dc5d5c49b74c8c58156826edc75d903d676))
+
 ## [2.1.0](https://github.com/Pkcarreno/glyphide/compare/v2.0.6...v2.1.0) (2025-08-20)
 
 
