@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.2](https://github.com/Pkcarreno/glyphide/compare/v2.1.1...v2.1.2) (2025-08-22)
+
+
+### Bug Fixes
+
+* **deps:** bump the all group across 1 directory with 12 updates ([aafc1fc](https://github.com/Pkcarreno/glyphide/commit/aafc1fc5efe34d34b99220a09916c92aba153e62))
+
 ## [2.1.1](https://github.com/Pkcarreno/glyphide/compare/v2.1.0...v2.1.1) (2025-08-22)
 
 
