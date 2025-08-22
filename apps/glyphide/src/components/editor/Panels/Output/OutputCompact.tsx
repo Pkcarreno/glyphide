@@ -35,8 +35,8 @@ export const OutputCompact = () => {
 				</div>
 				<DrawerFooter className="flex flex-row justify-between">
 					<ActionsBarCompact />
-					<DrawerClose className="w-fit">
-						<Button variant="outline" size="lg">
+					<DrawerClose asChild className="w-fit">
+						<Button variant="dim" size="lg">
 							Close
 						</Button>
 					</DrawerClose>
@@ -48,35 +48,13 @@ export const OutputCompact = () => {
 
 const DrawerToggler: React.FC<Pick<React.ComponentProps<'button'>, 'onClick'>> = ({ onClick }) => {
 	const { logs } = useAppStore()
-	const [showBadge, setShowBadge] = useState(false)
-	const [firstTime, setFirstTime] = useState(true)
-	const prevLastLogRef = useRef<string | null>(null)
+	const lastClickedId = useRef<string | null>(null)
 
-	useEffect(() => {
-		if (!prevLastLogRef.current && logs && logs.length > 0 && !firstTime) {
-			prevLastLogRef.current = logs[logs.length - 1]._outputKey
-			setShowBadge(true)
-		}
-		if (
-			!firstTime &&
-			prevLastLogRef.current &&
-			logs &&
-			logs.length > 0 &&
-			logs[logs.length - 1]._outputKey !== prevLastLogRef.current
-		) {
-			setShowBadge(true)
-			prevLastLogRef.current = logs[logs.length - 1]._outputKey
-		}
-		if (!prevLastLogRef.current && logs && logs.length > 0 && firstTime) {
-			prevLastLogRef.current = logs[logs.length - 1]._outputKey
-		}
-		if (firstTime) {
-			setFirstTime(false)
-		}
-	}, [logs, firstTime])
+	const latestId = logs.at(-1)?.id ?? null
+	const hasNew = latestId !== lastClickedId.current
 
 	const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-		setShowBadge(false)
+		lastClickedId.current = latestId
 		if (onClick) {
 			onClick(e)
 		}
@@ -91,7 +69,7 @@ const DrawerToggler: React.FC<Pick<React.ComponentProps<'button'>, 'onClick'>> =
 			<span className="sr-only">Show output</span>
 			<TerminalIcon className="size-6" />
 
-			{showBadge && (
+			{hasNew && (
 				<Badge className="-top-1 -right-1 absolute min-w-[1rem] rounded-full bg-warning px-1 py-0.5 dark:bg-warning-foreground">
 					New
 				</Badge>
@@ -123,7 +101,7 @@ export const ActionsBarCompact = () => {
 				</Label>
 			</div>
 
-			<Button variant="secondary" size="lg" onClick={clearLogs}>
+			<Button variant="outline" size="lg" onClick={clearLogs}>
 				Clear
 			</Button>
 		</div>

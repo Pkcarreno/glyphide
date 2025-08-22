@@ -5,7 +5,9 @@ updates:
     schedule:
       interval: "weekly"
     commit-message:
-      prefix: "build(deps)"
+      prefix: fix
+      include: scope
+      prefix-development: chore
     versioning-strategy: increase
     groups:
       all:
