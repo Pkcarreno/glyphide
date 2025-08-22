@@ -1,19 +1,46 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { LogEntry, SerializableValue } from '@/types/log'
+import type {
+	ArrayLogValue,
+	FunctionLogValue,
+	LogEntry,
+	ObjectLogValue,
+	SerializableValue
+} from '@/types/log'
 import type { ExecutionOutputPayload } from '@/types/messages'
 import { createSelectors } from '@/utils'
 import { getMaxLogs } from './settings'
 
+let instanceCounter = 0
+
+function getInstanceKey(): string {
+	instanceCounter++
+	return instanceCounter.toString(36).padStart(4, '0') + Math.random().toString(36).slice(2, 6)
+}
+
+type WithPreview = ObjectLogValue | ArrayLogValue | FunctionLogValue
+
+function hasPreview(val: SerializableValue): val is WithPreview {
+	return (
+		typeof val === 'object' &&
+		val !== null &&
+		'preview' in val &&
+		typeof (val as any).preview === 'string'
+	)
+}
+
 function getLogOutputKey(outputs: SerializableValue[]): string {
-	return outputs
-		.map(output => {
-			if (typeof output === 'object' && output !== null && 'preview' in output) {
-				return output.preview
-			}
-			return String(output)
-		})
-		.join(' ')
+	let hash = 2166136261 >>> 0
+	for (let i = 0; i < outputs.length; i++) {
+		const val = outputs[i]
+		const str = hasPreview(val) ? val.preview : String(val ?? '')
+
+		for (let j = 0; j < str.length; j++) {
+			hash ^= str.charCodeAt(j)
+			hash = Math.imul(hash, 16777619)
+		}
+	}
+	return (hash >>> 0).toString(36)
 }
 
 type appStatusType = 'uninitialized' | 'loading' | 'idle' | 'waiting' | 'running' | 'error'
@@ -96,7 +123,8 @@ const _useAppStore = create<AppState>(set => ({
 					outputs: payload.outputs,
 					timestamp: new Date(),
 					repeatCount: 1,
-					_outputKey: currentLogKey
+					_outputKey: currentLogKey,
+					id: getInstanceKey()
 				})
 			}
 

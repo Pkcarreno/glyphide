@@ -112,4 +112,5 @@ export type LogEntry = Omit<ExecutionOutputPayload, 'outputs'> & {
 	timestamp: Date
 	repeatCount?: number
 	_outputKey: string
+	id: string
 }
