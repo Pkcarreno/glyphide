@@ -36,7 +36,7 @@ export const OutputCompact = () => {
 				<DrawerFooter className="flex flex-row justify-between">
 					<ActionsBarCompact />
 					<DrawerClose asChild className="w-fit">
-						<Button variant="outline" size="lg">
+						<Button variant="dim" size="lg">
 							Close
 						</Button>
 					</DrawerClose>
@@ -101,7 +101,7 @@ export const ActionsBarCompact = () => {
 				</Label>
 			</div>
 
-			<Button variant="secondary" size="lg" onClick={clearLogs}>
+			<Button variant="outline" size="lg" onClick={clearLogs}>
 				Clear
 			</Button>
 		</div>
