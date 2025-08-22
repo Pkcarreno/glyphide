@@ -35,7 +35,7 @@ export const OutputCompact = () => {
 				</div>
 				<DrawerFooter className="flex flex-row justify-between">
 					<ActionsBarCompact />
-					<DrawerClose className="w-fit">
+					<DrawerClose asChild className="w-fit">
 						<Button variant="outline" size="lg">
 							Close
 						</Button>
