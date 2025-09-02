@@ -1,5 +1,5 @@
 import { TerminalIcon } from 'lucide-react'
-import { useEffect, useId, useRef, useState } from 'react'
+import { useId, useRef } from 'react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import {
