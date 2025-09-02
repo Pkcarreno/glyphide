@@ -104,7 +104,7 @@ export const ScriptTitle: React.FC = () => {
 			<div className="h-9 w-full pr-6">
 				<div className="size-full overflow-hidden">
 					<div className="flex h-full items-center gap-2 overflow-hidden">
-						<span className="block truncate text-ellipsis whitespace-pre text-nowrap font-bold">
+						<span className="ml-1 block truncate text-ellipsis whitespace-pre text-nowrap font-bold">
 							loading...
 						</span>
 					</div>
@@ -121,7 +121,7 @@ export const ScriptTitle: React.FC = () => {
 						<button
 							type="button"
 							data-is-editable={untrustedStatus === 'trusted'}
-							className="peer block truncate text-ellipsis whitespace-pre text-nowrap font-bold data-[is-editable=true]:cursor-pointer data-[is-editable=true]:hover:underline"
+							className="peer ml-1 block truncate text-ellipsis whitespace-pre text-nowrap rounded-md font-bold outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 data-[is-editable=true]:cursor-pointer data-[is-editable=true]:hover:underline"
 							onClick={handleEditClick}
 							onKeyUp={() => {}}
 							title={displayTitle}
@@ -148,7 +148,7 @@ export const ScriptTitle: React.FC = () => {
 						<div className="size-full overflow-hidden">
 							<div className="flex h-full items-center gap-2 overflow-hidden">
 								<span
-									className="block cursor-pointer truncate text-ellipsis whitespace-pre text-nowrap font-bold group-hover:underline"
+									className="ml-1 block cursor-pointer truncate text-ellipsis whitespace-pre text-nowrap font-bold group-hover:underline"
 									title={displayTitle}
 								>
 									{displayTitle}
