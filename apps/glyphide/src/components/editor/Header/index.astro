@@ -5,20 +5,16 @@ import { ShareButton } from './Share'
 import { OpenInAppButton } from './Open'
 import { ScriptTitle } from './Title'
 import { UntrustedModeMobile } from './UntrustedModeMobile'
-import Logo from '@/assets/logo-square.svg'
 ---
 
-<header class="flex justify-between gap-2 px-2 py-1">
+<header class="flex justify-between gap-2 px-1 py-1">
   <div class="flex w-full gap-2 overflow-hidden py-1">
-    <div class="flex items-center justify-center">
-      <Logo class="size-8" />
-    </div>
     <Menu client:load />
     <UntrustedModeMobile client:load />
     <ScriptTitle client:load />
   </div>
 
-  <div class="flex gap-2 py-1">
+  <div class="mr-1 flex gap-2 py-1">
     <OpenInAppButton client:load />
     <ShareButton client:load />
     <ExecuteButton client:only="react" />
