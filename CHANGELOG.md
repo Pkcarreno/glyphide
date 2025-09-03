@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.2.0](https://github.com/Pkcarreno/glyphide/compare/v2.1.3...v2.2.0) (2025-09-03)
+
+
+### Features
+
+* **app:** improve UX of share button ([fddbb11](https://github.com/Pkcarreno/glyphide/commit/fddbb114236c8407e37f74f34e2ec4d122b10869))
+* **app:** move untrusted button in mobile view near to thumb area ([0b37243](https://github.com/Pkcarreno/glyphide/commit/0b372438bb3f73594aa9b6ba66b3b08de081bde5))
+
+
+### Bug Fixes
+
+* add separator component ([77d307c](https://github.com/Pkcarreno/glyphide/commit/77d307ccf2647265554934f7c435cba3ced09ed9))
+* align menu content ([0a8436f](https://github.com/Pkcarreno/glyphide/commit/0a8436f69347572bf40d2eb6d26bee45ec6c0948))
+* **app:** remove unused dep ([f4faa00](https://github.com/Pkcarreno/glyphide/commit/f4faa009844a132ff31bfaf7cf5bb53e0ab41741))
+* improve menu button UI ([ff1f1e5](https://github.com/Pkcarreno/glyphide/commit/ff1f1e5dce57392342496c8c01c4dceeebf1f77e))
+* improve title margins ([15c4909](https://github.com/Pkcarreno/glyphide/commit/15c490909de2359752180a2075523be83ba0d549))
+* improve UI styles ([5bee724](https://github.com/Pkcarreno/glyphide/commit/5bee7244cc3bac6f3a3b988837bf9873f07b46fb))
+* remove unused file ([b73a510](https://github.com/Pkcarreno/glyphide/commit/b73a510f9be45f25dc1820afc0a9d4ad0c163b6b))
+* removed unused imports ([e66dbb6](https://github.com/Pkcarreno/glyphide/commit/e66dbb6dbd29aa95481b00080eb066c0807740d2))
+
 ## [2.1.3](https://github.com/Pkcarreno/glyphide/compare/v2.1.2...v2.1.3) (2025-08-26)
 
 
