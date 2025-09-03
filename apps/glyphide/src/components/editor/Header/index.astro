@@ -16,7 +16,7 @@ import { UntrustedModeMobile } from './UntrustedModeMobile'
 
   <div class="mr-1 flex gap-2 py-1">
     <OpenInAppButton client:load />
-    <ShareButton client:load />
+    <ShareButton client:only="react" />
     <ExecuteButton client:only="react" />
   </div>
 </header>

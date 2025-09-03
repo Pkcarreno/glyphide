@@ -1,113 +1,100 @@
-import copy from 'copy-to-clipboard'
-import { CheckIcon, LoaderCircleIcon, Share2Icon, XIcon } from 'lucide-react'
-import { type PropsWithChildren, useMemo, useState } from 'react'
+import { PopoverTrigger } from '@radix-ui/react-popover'
+import { CheckIcon, ChevronDownIcon, CopyIcon, Share2Icon } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger
+} from '@/components/ui/DropdownMenu'
+import { Popover, PopoverContent } from '@/components/ui/Popover'
+import { Separator } from '@/components/ui/Separator'
+import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
 import { useIsInIframe } from '@/hooks/use-is-in-iframe'
-import { tryCatch } from '@/lib/try-catch'
 import { getCurrentUrl } from '@/utils'
 
 export const ShareButton = () => {
+	const { copied: copiedUrl, copy: copyUrl } = useCopyToClipboard()
+	const { copied: copiedEmbeded, copy: copyEmbeded } = useCopyToClipboard()
 	const isInIframe = useIsInIframe()
 
-	const copyLinkToClipboard = async () => {
+	const onClickUrl = () => {
 		const url = getCurrentUrl()
-
-		copy(url.href)
+		copyUrl(url.href)
 	}
 
-	const copyIframeToClipboard = async () => {
+	const onClickEmbeded = () => {
 		const url = getCurrentUrl()
-
 		const embededUrl = `<iframe src="${url.href}" height="800" width="800" />`
-		copy(embededUrl)
+
+		copyEmbeded(embededUrl)
 	}
 
 	if (isInIframe) return null
 
 	return (
 		<Popover>
-			<PopoverTrigger asChild>
-				<Button size="icon" variant="outline">
-					<span className="sr-only">Share</span>
-					<Share2Icon />
+			<div className="group/buttons relative flex rounded-lg bg-secondary *:[[data-slot=button]]:focus-visible:relative *:[[data-slot=button]]:focus-visible:z-10">
+				<Button
+					variant="secondary"
+					size="sm"
+					className="hidden h-full shadow-none sm:flex md:text-[0.8rem]"
+					onClick={onClickUrl}
+				>
+					<span className="sr-only">Copy url</span>
+					{copiedUrl || copiedEmbeded ? <CheckIcon /> : <CopyIcon />}
+					Copy Url
 				</Button>
-			</PopoverTrigger>
-			<PopoverContent className="space-y-4">
-				<div className="space-y-2">
-					<p className="text-muted-foreground text-sm">
-						Share Glyphide <br /> with your current code.
-					</p>
-				</div>
-				<div className="flex flex-col gap-1">
-					<CopyButton onClick={copyLinkToClipboard}>Copy link</CopyButton>
-					<CopyButton onClick={copyIframeToClipboard}>Copy iframe</CopyButton>
-				</div>
-			</PopoverContent>
+				<Separator
+					orientation="vertical"
+					className="!bg-foreground/10 absolute top-0 right-8 z-0 hidden peer-focus-visible:opacity-0 sm:right-7 sm:flex"
+				/>
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild className="hidden sm:flex">
+						<Button
+							variant="secondary"
+							size="sm"
+							className="peer -ml-0.5 h-full w-8 shadow-none md:w-7 md:text-[0.8rem]"
+						>
+							<span className="sr-only">More copy options</span>
+							<ChevronDownIcon />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end" className="shadow-none">
+						<DropdownMenuItem onClick={onClickEmbeded}>Copy iframe</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
+
+				<PopoverTrigger asChild className="flex sm:hidden">
+					<Button variant="secondary" size="icon" className="h-full shadow-none">
+						<span className="sr-only">Share options</span>
+						<Share2Icon />
+					</Button>
+				</PopoverTrigger>
+				<PopoverContent
+					className="w-52 rounded-lg bg-background/70 p-1 shadow-sm backdrop-blur-sm dark:bg-background/60"
+					align="end"
+				>
+					<Button
+						variant="ghost"
+						size="lg"
+						className="w-full justify-start font-normal text-base *:[svg]:text-muted-foreground"
+						onClick={onClickUrl}
+					>
+						{copiedUrl ? <CheckIcon /> : <CopyIcon />}
+						Copy Url
+					</Button>
+					<Button
+						variant="ghost"
+						size="lg"
+						className="w-full justify-start font-normal text-base *:[svg]:text-muted-foreground"
+						onClick={onClickEmbeded}
+					>
+						{copiedEmbeded ? <CheckIcon /> : <CopyIcon />}
+						Copy iframe
+					</Button>
+				</PopoverContent>
+			</div>
 		</Popover>
 	)
-}
-
-type statusType = 'loading' | 'idle' | 'error' | 'done'
-
-interface Props extends PropsWithChildren {
-	onClick: () => Promise<void>
-}
-
-const CopyButton: React.FC<Props> = ({ children, onClick }) => {
-	const [status, setStatus] = useState<statusType>('idle')
-
-	const isLoading = useMemo(() => {
-		return status === 'loading'
-	}, [status])
-
-	const isDone = useMemo(() => {
-		return status === 'done'
-	}, [status])
-
-	const handleOnClick = async () => {
-		setStatus('loading')
-
-		const res = await tryCatch(onClick())
-
-		if (res.error) {
-			setStatus('error')
-			console.error('Share: error on copy', res.error)
-			return
-		}
-
-		setStatus('done')
-	}
-
-	return (
-		<Button
-			onClick={handleOnClick}
-			className="w-full justify-between"
-			disabled={isLoading || isDone}
-			variant="secondary"
-		>
-			{children}
-			<ReferenceStatus status={status} />
-		</Button>
-	)
-}
-
-interface ReferenceStatusProps {
-	status: statusType
-}
-
-const ReferenceStatus: React.FC<ReferenceStatusProps> = ({ status }) => {
-	if (status === 'loading') {
-		return <LoaderCircleIcon className="animate-spin" />
-	}
-
-	if (status === 'error') {
-		return <XIcon />
-	}
-
-	if (status === 'done') {
-		return <CheckIcon />
-	}
-
-	return null
 }
