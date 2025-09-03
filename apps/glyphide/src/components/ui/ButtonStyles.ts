@@ -10,8 +10,9 @@ export const buttonVariants = cva(
 					'bg-red-600 text-white shadow-xs hover:bg-red-600/70 focus-visible:ring-red-300/40 dark:focus-visible:ring-red-300/60',
 				outline:
 					'border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50',
-				secondary: 'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80',
-				ghost: 'hover:bg-muted',
+				secondary:
+					'bg-secondary text-secondary-foreground shadow-xs hover:text-secondary-foreground/80',
+				ghost: 'hover:bg-muted hover:text-muted-foreground',
 				dim: 'text-muted-foreground hover:text-foreground',
 				link: 'text-primary underline-offset-4 hover:underline'
 			},
