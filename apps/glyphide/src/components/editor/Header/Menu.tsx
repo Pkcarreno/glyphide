@@ -28,7 +28,7 @@ export const Menu = () => {
 					</div>
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent>
+			<DropdownMenuContent align="start">
 				<NewScriptLinkItem />
 				<DropdownMenuSeparator />
 				<ThemeSubmenu />
