@@ -4,13 +4,11 @@ import { Menu } from './Menu'
 import { ShareButton } from './Share'
 import { OpenInAppButton } from './Open'
 import { ScriptTitle } from './Title'
-import { UntrustedModeMobile } from './UntrustedModeMobile'
 ---
 
 <header class="flex justify-between gap-2 px-1 py-1">
   <div class="flex w-full gap-2 overflow-hidden py-1">
     <Menu client:load />
-    <UntrustedModeMobile client:load />
     <ScriptTitle client:load />
   </div>
 

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/Button'
 import { useIsMobile } from '@/hooks/use-is-mobile'
 import { useAppStore } from '@/stores/app'
 
-export const UntrustedModeMobile = () => {
+export const UntrustedModeCompact = () => {
 	const isMobile = useIsMobile()
 	const { untrustedStatus, setUntrustedStatus } = useAppStore()
 
@@ -14,7 +14,13 @@ export const UntrustedModeMobile = () => {
 	if (!isMobile || untrustedStatus !== 'untrusted') return null
 
 	return (
-		<Button variant="destructive" size="icon" onClick={handleOnClick} title="Untrusted mode">
+		<Button
+			variant="destructive"
+			size="icon"
+			onClick={handleOnClick}
+			className="rounded-xl"
+			title="Untrusted mode"
+		>
 			<span className="sr-only">Untrusted mode</span>
 			<ShieldAlertIcon className="size-4" />
 		</Button>
