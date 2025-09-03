@@ -1,10 +1,10 @@
-import { CheckIcon, EllipsisVerticalIcon, ExternalLinkIcon, RefreshCwIcon } from 'lucide-react'
+import { CheckIcon, ChevronDownIcon, ExternalLinkIcon, RefreshCwIcon } from 'lucide-react'
+import Logo from '@/assets/logo-square.svg?react'
 import { Button } from '@/components/ui/Button'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuLabel,
 	DropdownMenuPortal,
 	DropdownMenuSeparator,
 	DropdownMenuSub,
@@ -20,14 +20,15 @@ export const Menu = () => {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button size="icon" variant="outline">
+				<Button variant="ghost" className="group ml-1 px-0 hover:bg-muted/60">
 					<span className="sr-only">Menu</span>
-					<EllipsisVerticalIcon className="size-4" />
+					<div className="flex items-center justify-center gap-0.5">
+						<Logo className="size-8" />
+						<ChevronDownIcon className="size-3 text-muted-foreground transition-transform duration-150 ease-in-out group-hover:translate-y-[2px] group-hover:text-muted-foreground/70" />
+					</div>
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent>
-				<DropdownMenuLabel>Glyphide</DropdownMenuLabel>
-				<DropdownMenuSeparator />
+			<DropdownMenuContent align="start">
 				<NewScriptLinkItem />
 				<DropdownMenuSeparator />
 				<ThemeSubmenu />
@@ -149,5 +150,5 @@ const MigratePageLinkItem = () => {
 }
 
 const AppVersionItem = () => {
-	return <DropdownMenuItem disabled>v{import.meta.env.APP_VERSION}</DropdownMenuItem>
+	return <DropdownMenuItem disabled>Glyphide v{import.meta.env.APP_VERSION}</DropdownMenuItem>
 }

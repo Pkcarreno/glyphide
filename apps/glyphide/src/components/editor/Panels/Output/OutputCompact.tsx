@@ -1,5 +1,5 @@
 import { TerminalIcon } from 'lucide-react'
-import { useEffect, useId, useRef, useState } from 'react'
+import { useId, useRef } from 'react'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import {
@@ -16,33 +16,37 @@ import { Label } from '@/components/ui/Label'
 import { Switch } from '@/components/ui/Switch'
 import { useAppPersistStore, useAppStore } from '@/stores/app'
 import { LogListView } from './LogListView'
+import { UntrustedModeCompact } from './UntrustedCompact'
 
 export const OutputCompact = () => {
 	return (
-		<Drawer>
-			<DrawerTrigger asChild>
-				<DrawerToggler />
-			</DrawerTrigger>
-			<DrawerContent className="h-full">
-				<DrawerHeader>
-					<DrawerTitle>Output</DrawerTitle>
-					<DrawerDescription className="sr-only">
-						Panel where the logs are displayed
-					</DrawerDescription>
-				</DrawerHeader>
-				<div className="h-full overflow-hidden px-2">
-					<LogListView />
-				</div>
-				<DrawerFooter className="flex flex-row justify-between">
-					<ActionsBarCompact />
-					<DrawerClose asChild className="w-fit">
-						<Button variant="dim" size="lg">
-							Close
-						</Button>
-					</DrawerClose>
-				</DrawerFooter>
-			</DrawerContent>
-		</Drawer>
+		<div className="flex flex-col items-end gap-2">
+			<UntrustedModeCompact />
+			<Drawer>
+				<DrawerTrigger asChild>
+					<DrawerToggler />
+				</DrawerTrigger>
+				<DrawerContent className="h-full">
+					<DrawerHeader>
+						<DrawerTitle>Output</DrawerTitle>
+						<DrawerDescription className="sr-only">
+							Panel where the logs are displayed
+						</DrawerDescription>
+					</DrawerHeader>
+					<div className="h-full overflow-hidden px-2">
+						<LogListView />
+					</div>
+					<DrawerFooter className="flex flex-row justify-between">
+						<ActionsBarCompact />
+						<DrawerClose asChild className="w-fit">
+							<Button variant="dim" size="lg">
+								Close
+							</Button>
+						</DrawerClose>
+					</DrawerFooter>
+				</DrawerContent>
+			</Drawer>
+		</div>
 	)
 }
 
