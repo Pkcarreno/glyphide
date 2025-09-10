@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.1](https://github.com/Pkcarreno/glyphide/compare/v2.2.0...v2.2.1) (2025-09-10)
+
+
+### Bug Fixes
+
+* **deps:** bump the all group with 16 updates ([4b651d5](https://github.com/Pkcarreno/glyphide/commit/4b651d5e9d93a8ef3ba1323d720265fcc47bd33d))
+
 ## [2.2.0](https://github.com/Pkcarreno/glyphide/compare/v2.1.3...v2.2.0) (2025-09-03)
 
 
