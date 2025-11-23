@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.2.3](https://github.com/Pkcarreno/glyphide/compare/v2.2.2...v2.2.3) (2025-11-23)
+
+
+### Bug Fixes
+
+* add buffer and events polyfills ([dd7f1fd](https://github.com/Pkcarreno/glyphide/commit/dd7f1fd2fc799faf67b99ede028ba4a603f132bc))
+* add tailwind directives to biome ([f2eaf85](https://github.com/Pkcarreno/glyphide/commit/f2eaf85b4b59cba525eb97a01fa44ec61ef8520f))
+* codemirror packages issues ([4f9f766](https://github.com/Pkcarreno/glyphide/commit/4f9f76646168bcd6e5818144960b2a0e64eb094e))
+* **deps:** bump the all group across 1 directory with 37 updates ([e80b215](https://github.com/Pkcarreno/glyphide/commit/e80b215ce1e7d29025e9733ac08c49a85f386df7))
+
 ## [2.2.2](https://github.com/Pkcarreno/glyphide/compare/v2.2.1...v2.2.2) (2025-09-17)
 
 
