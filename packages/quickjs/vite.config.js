@@ -7,7 +7,7 @@ export default defineConfig({
 	plugins: [
 		dts(),
 		nodePolyfills({
-			include: ['process', 'fs', 'path', 'stream'],
+			include: ['process', 'fs', 'path', 'stream', 'buffer', 'events'],
 			overrides: {
 				fs: 'memfs'
 			}
