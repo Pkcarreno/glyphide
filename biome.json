@@ -51,6 +51,11 @@
       "semicolons": "asNeeded"
     }
   },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
   "json": {
     "formatter": {
       "indentStyle": "space"
