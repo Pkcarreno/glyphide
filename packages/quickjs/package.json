@@ -34,7 +34,7 @@
   "dependencies": {
     "@jitl/quickjs-ng-wasmfile-release-sync": "^0.31.0",
     "@sebastianwessel/quickjs": "^3.0.0",
-    "vite": "^7.2.2",
+    "vite": "^7.3.1",
     "vite-plugin-dts": "^4.5.4",
     "vite-plugin-node-polyfills": "^0.24.0"
   },
