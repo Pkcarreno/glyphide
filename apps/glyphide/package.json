@@ -17,7 +17,7 @@
     "format:fix": "prettier --write . --cache --cache-location='node_modules/.cache/.prettiercache'",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "type-check": "tsc --project tsconfig.json --noEmit"
+    "tsc": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.6",
