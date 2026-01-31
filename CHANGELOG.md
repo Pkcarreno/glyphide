@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.2.4](https://github.com/Pkcarreno/glyphide/compare/v2.2.3...v2.2.4) (2026-01-31)
+
+
+### Bug Fixes
+
+* **deps:** bump the all group across 1 directory with 33 updates ([60bb8f5](https://github.com/Pkcarreno/glyphide/commit/60bb8f552d28173e02c0f73deb0134a9d86d7052))
+* lint and tsc issues & migrate resizable to v4 apis ([6f42fbc](https://github.com/Pkcarreno/glyphide/commit/6f42fbc29a5b4c2ec5fa669bf0929c307c0e3e98))
+
 ## [2.2.3](https://github.com/Pkcarreno/glyphide/compare/v2.2.2...v2.2.3) (2025-11-23)
 
 
