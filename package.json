@@ -11,7 +11,7 @@
     "dev": "turbo run dev",
     "format": "turbo run format",
     "format:fix": "turbo run format:fix",
-    "check": "turbo run root:knip format type-check check",
+    "check": "turbo check",
     "type-check": "turbo run type-check",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
