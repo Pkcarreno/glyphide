@@ -22,10 +22,7 @@ type WithPreview = ObjectLogValue | ArrayLogValue | FunctionLogValue
 
 function hasPreview(val: SerializableValue): val is WithPreview {
 	return (
-		typeof val === 'object' &&
-		val !== null &&
-		'preview' in val &&
-		typeof (val as any).preview === 'string'
+		typeof val === 'object' && val !== null && 'preview' in val && typeof val.preview === 'string'
 	)
 }
 

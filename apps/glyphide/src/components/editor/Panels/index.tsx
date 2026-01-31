@@ -42,11 +42,11 @@ export const Panels = () => {
 		<div className="flex h-full gap-1">
 			<SettingsSidebar />
 			<ResizablePanelGroup
-				autoSaveId="layout"
-				direction={layout}
+				autoSave="layout"
+				orientation={layout}
 				className="flex h-full gap-1 overflow-auto"
 			>
-				<ResizablePanel defaultSize={70} minSize={20}>
+				<ResizablePanel defaultSize="70%" minSize="20%">
 					<Island>
 						<Suspense fallback={<Loading />}>
 							<Codemirror />
@@ -56,7 +56,7 @@ export const Panels = () => {
 
 				<ResizableHandle className="my-0.5 bg-transparent" withHandle={layout === 'vertical'} />
 
-				<ResizablePanel defaultSize={30} minSize={20}>
+				<ResizablePanel defaultSize="30%" minSize="20%">
 					<Island>
 						<Suspense fallback={<Loading />}>
 							<Output />

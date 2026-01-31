@@ -4,7 +4,7 @@ import type React from 'react'
 
 import { cn } from '@/utils'
 
-const spinnerVariants = cva('-ml-1 mr-3 animate-spin', {
+const spinnerVariants = cva('mr-3 -ml-1 animate-spin', {
 	variants: {
 		variant: {
 			default: 'text-primary-foreground dark:text-primary',
