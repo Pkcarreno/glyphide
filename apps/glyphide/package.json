@@ -52,14 +52,14 @@
     "codemirror": "^6.0.1",
     "es-toolkit": "^1.44.0",
     "eslint-linter-browserify": "^9.39.2",
-    "globals": "^17.0.0",
+    "globals": "^17.3.0",
     "js-base64": "^3.7.8",
-    "lucide-react": "^0.562.0",
+    "lucide-react": "^0.563.0",
     "nanostores": "^1.0.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-error-boundary": "^6.1.0",
-    "react-resizable-panels": "^4.4.1",
+    "react-resizable-panels": "^4.5.9",
     "sonner": "^2.0.4",
     "tailwind-merge": "3.4.0",
     "tailwindcss": "^4.1.7",
@@ -67,7 +67,7 @@
     "vite-plugin-svgr": "^4.5.0",
     "workbox-window": "^7.3.0",
     "zod": "^4.3.5",
-    "zustand": "^5.0.10"
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@astrojs/react": "^4.4.2",
