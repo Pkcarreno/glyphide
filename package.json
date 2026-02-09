@@ -28,16 +28,16 @@
   },
   "packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184",
   "devDependencies": {
-    "@biomejs/biome": "^2.3.11",
-    "@commitlint/cli": "^20.3.1",
-    "@commitlint/config-conventional": "^20.3.1",
+    "@biomejs/biome": "^2.3.14",
+    "@commitlint/cli": "^20.4.1",
+    "@commitlint/config-conventional": "^20.4.1",
     "husky": "^9.1.7",
-    "knip": "^5.82.1",
+    "knip": "^5.83.1",
     "lint-staged": "^16.2.6",
     "prettier": "^3.8.0",
     "prettier-plugin-astro": "^0.14.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
-    "turbo": "^2.7.5",
+    "turbo": "^2.8.3",
     "typescript": "^5.9.3"
   },
   "osMetadata": {
