@@ -36,12 +36,7 @@ export default defineConfig({
 			})
 		}
 	},
-	build: {
-		sourceMaps: true,
-		inlineStylesheets: 'always'
-	},
 	compressHTML: true,
-	prefetch: true,
 	integrations: [
 		react(),
 		robots(),
@@ -53,8 +48,7 @@ export default defineConfig({
 			manifest: manifest,
 			workbox: {
 				globPatterns: ['**/*.{html,js,css,svg,woff,woff2,ttf,eot,ico,wasm}'],
-				maximumFileSizeToCacheInBytes: 5000000,
-				sourcemap: true
+				maximumFileSizeToCacheInBytes: 5000000
 			},
 			devOptions: {
 				enabled: true,
