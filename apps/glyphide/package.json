@@ -20,8 +20,8 @@
     "tsc": "tsc --project tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.6",
-    "@astrojs/sitemap": "^3.7.0",
+    "@astrojs/check": "^0.9.8",
+    "@astrojs/sitemap": "^3.7.2",
     "@codemirror/lang-javascript": "^6.2.3",
     "@codemirror/language": "^6.12.1",
     "@codemirror/lint": "^6.9.2",
@@ -45,7 +45,7 @@
     "@tanstack/react-form": "^1.27.7",
     "@tanstack/react-virtual": "^3.13.18",
     "@vp-tw/nanostores-qs": "^0.4.0",
-    "astro": "^5.16.11",
+    "astro": "^6.1.2",
     "astro-robots": "^2.3.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -70,8 +70,8 @@
     "zustand": "^5.0.10"
   },
   "devDependencies": {
-    "@astrojs/react": "^4.4.2",
-    "@astrojs/ts-plugin": "^1.10.6",
+    "@astrojs/react": "^5.0.2",
+    "@astrojs/ts-plugin": "^1.10.7",
     "@tailwindcss/vite": "^4.1.18",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.2",
