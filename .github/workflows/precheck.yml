@@ -1,68 +1,51 @@
-# Taken from obytes' react native template: https://github.com/obytes/react-native-template-obytes
-
-name: Precheck
+name: Checks
 
 on:
   pull_request:
     branches: [main]
-  workflow_call:
 
 jobs:
-  install:
-    name: Prepare enviroment + Cache
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📦 Checkout project repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
-      - name: 📦 Setup Node + PNPM + install deps
-        uses: ./.github/actions/setup-node-pnpm-install
-
   lint:
-    name: Lint TS (biome, prettier)
-    needs: [install]
+    name: Lint Check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
-      - name: 📦 Checkout project repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
-      - name: 📦 Setup Node + PNPM + install deps
-        uses: ./.github/actions/setup-node-pnpm-install
+      - uses: ./.github/actions/setup-node-pnpm-install
 
-      - name: 🏃‍♂️ Run Lint & Format PR
-        run: pnpm run lint && pnpm run format
-
-  type-check:
-    name: TypeCheck
-    needs: [install]
-    runs-on: ubuntu-latest
-    steps:
-      - name: 📦 Checkout project repo
-        uses: actions/checkout@v4
+      - name: Run Lint (PR)
+        if: github.event_name == 'pull_request'
+        uses: mongolyy/reviewdog-action-biome@v2
         with:
-          fetch-depth: 2
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review
 
-      - name: 📦 Setup Node + PNPM + install deps
-        uses: ./.github/actions/setup-node-pnpm-install
-
-      - name: 📦 Install Reviewdog
-        if: github.event_name == 'pull_request'
-        uses: reviewdog/action-setup@v1
-
-      - name: 🏃‍♂️ Run TypeScript PR # Reviewdog tsc errorformat: %f:%l:%c - error TS%n: %m
-        # We only need to add the reviewdog step if it's a pull request
-        if: github.event_name == 'pull_request'
-        run: |
-          pnpm type-check | reviewdog -name="tsc" -efm="%f(%l,%c): error TS%n: %m" -reporter="github-pr-review" -filter-mode="nofilter" -fail-on-error -tee
-        env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name:
-          🏃‍♂️ Run TypeScript Commit
-          # If it's not a Pull Request then we just need to run the type-check
+      - name: Run Lint (Commit)
         if: github.event_name != 'pull_request'
-        run: pnpm type-check
+        run: pnpm run lint
+
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup-node-pnpm-install
+
+      - name: Run Type Check
+        run: pnpm tsc
+
+  astro:
+    name: Astro Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup-node-pnpm-install
+
+      - run: pnpm check
