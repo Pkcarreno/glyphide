@@ -72,7 +72,7 @@
 		"@astrojs/ts-plugin": "^1.10.7",
 		"@tailwindcss/vite": "^4.2.2",
 		"@tanstack/store": "^0.9.3",
-		"@types/react": "^19.2.8",
+		"@types/react": "^19.2.14",
 		"@types/react-dom": "^19.2.2",
 		"@vite-pwa/astro": "^1.2.0",
 		"@vitejs/plugin-basic-ssl": "^2.1.3",
