@@ -108,8 +108,8 @@ importers:
         specifier: ^3.13.23
         version: 3.13.23(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@vp-tw/nanostores-qs':
-        specifier: ^0.4.0
-        version: 0.4.0(nanostores@1.2.0)
+        specifier: ^1.0.0
+        version: 1.0.0(nanostores@1.2.0)
       astro:
         specifier: ^6.1.2
         version: 6.1.2(@types/node@24.12.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@2.80.0)(terser@5.46.1)(typescript@6.0.2)(yaml@2.8.3)
@@ -2923,10 +2923,10 @@ packages:
   '@volar/typescript@2.4.28':
     resolution: {integrity: sha512-Ja6yvWrbis2QtN4ClAKreeUZPVYMARDYZl9LMEv1iQ1QdepB6wn0jTRxA9MftYmYa4DQ4k/DaSZpFPUfxl8giw==}
 
-  '@vp-tw/nanostores-qs@0.4.0':
-    resolution: {integrity: sha512-m/LihgV0kdcMjoPPT0hjpYpGLk3kWf/NQHtLunXkIwkDo1/vDvXw2k8d9A+bo/74sXY96kSEQSiqud+nfzL3Tg==}
+  '@vp-tw/nanostores-qs@1.0.0':
+    resolution: {integrity: sha512-95JOtaWMU++FIWuhUPltD0VI6YtLNgblO2BO/qANL2tImpHYHS07dgHQ9WIvEz22wHcpmsio+oN//lyqMQS3MQ==}
     peerDependencies:
-      nanostores: ^0.11.4
+      nanostores: ^1.1.0
 
   '@vscode/emmet-helper@2.11.0':
     resolution: {integrity: sha512-QLxjQR3imPZPQltfbWRnHU6JecWTF1QSWhx3GAKQpslx7y3Dp6sIIXhKjiUJ/BR9FX8PVthjr9PD6pNwOJfAzw==}
@@ -8733,7 +8733,7 @@ snapshots:
       path-browserify: 1.0.1
       vscode-uri: 3.1.0
 
-  '@vp-tw/nanostores-qs@0.4.0(nanostores@1.2.0)':
+  '@vp-tw/nanostores-qs@1.0.0(nanostores@1.2.0)':
     dependencies:
       es-toolkit: 1.45.1
       nanostores: 1.2.0
