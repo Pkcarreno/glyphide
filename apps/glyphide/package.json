@@ -60,7 +60,7 @@
 		"react-resizable-panels": "^4.4.1",
 		"sonner": "^2.0.4",
 		"tailwind-merge": "3.4.0",
-		"tailwindcss": "^4.1.7",
+		"tailwindcss": "^4.2.2",
 		"vaul": "^1.1.2",
 		"vite-plugin-svgr": "^4.5.0",
 		"workbox-window": "^7.3.0",
@@ -70,7 +70,7 @@
 	"devDependencies": {
 		"@astrojs/react": "^5.0.2",
 		"@astrojs/ts-plugin": "^1.10.7",
-		"@tailwindcss/vite": "^4.1.18",
+		"@tailwindcss/vite": "^4.2.2",
 		"@tanstack/store": "^0.9.3",
 		"@types/react": "^19.2.8",
 		"@types/react-dom": "^19.2.2",
