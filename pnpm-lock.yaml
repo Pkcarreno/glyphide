@@ -129,8 +129,8 @@ importers:
         specifier: ^1.45.1
         version: 1.45.1
       eslint-linter-browserify:
-        specifier: ^9.39.2
-        version: 9.39.2
+        specifier: ^10.1.0
+        version: 10.1.0
       globals:
         specifier: ^17.4.0
         version: 17.4.0
@@ -3818,8 +3818,8 @@ packages:
     resolution: {integrity: sha512-/veY75JbMK4j1yjvuUxuVsiS/hr/4iHs9FTT6cgTexxdE0Ly/glccBAkloH/DofkjRbZU3bnoj38mOmhkZ0lHw==}
     engines: {node: '>=12'}
 
-  eslint-linter-browserify@9.39.2:
-    resolution: {integrity: sha512-X4oD9ymZLMaNcSRZkNyDEcwObLPTg9QsQM/YHnfWJbnqUJpmmgicXtgi9UGgk+ntC9Aydnp3RW7+uWrkoUbWbg==}
+  eslint-linter-browserify@10.1.0:
+    resolution: {integrity: sha512-PEcXfZXc/Rqo+kUqq1uf4ia8jleXFertdQI8Icj8KBq1kLzjOXOmRACg1hLNsHBgQYNDZH71X3O1amv5/WqHfA==}
 
   estree-walker@1.0.1:
     resolution: {integrity: sha512-1fMXF3YP4pZZVozF8j/ZLfvnR8NSIljt56UhbZ5PeeDmmGHpgpdwQt7ITlGvYaQukCvuBRMLEiKiYC+oeIg4cg==}
@@ -10031,7 +10031,7 @@ snapshots:
 
   escape-string-regexp@5.0.0: {}
 
-  eslint-linter-browserify@9.39.2: {}
+  eslint-linter-browserify@10.1.0: {}
 
   estree-walker@1.0.1: {}
 
