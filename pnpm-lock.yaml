@@ -69,8 +69,8 @@ importers:
         specifier: ^1.2.3
         version: 1.2.3
       '@nanostores/react':
-        specifier: ^1.0.0
-        version: 1.0.0(nanostores@1.1.0)(react@19.2.4)
+        specifier: ^1.1.0
+        version: 1.1.0(nanostores@1.2.0)(react@19.2.4)
       '@radix-ui/react-alert-dialog':
         specifier: ^1.1.14
         version: 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -109,7 +109,7 @@ importers:
         version: 3.13.18(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@vp-tw/nanostores-qs':
         specifier: ^0.4.0
-        version: 0.4.0(nanostores@1.1.0)
+        version: 0.4.0(nanostores@1.2.0)
       astro:
         specifier: ^6.1.2
         version: 6.1.2(@types/node@24.12.0)(jiti@2.6.1)(lightningcss@1.32.0)(rollup@2.80.0)(terser@5.46.1)(typescript@6.0.2)(yaml@2.8.3)
@@ -141,8 +141,8 @@ importers:
         specifier: ^0.562.0
         version: 0.562.0(react@19.2.4)
       nanostores:
-        specifier: ^1.0.1
-        version: 1.1.0
+        specifier: ^1.2.0
+        version: 1.2.0
       react:
         specifier: ^19.2.3
         version: 19.2.4
@@ -1688,11 +1688,11 @@ packages:
   '@microsoft/tsdoc@0.16.0':
     resolution: {integrity: sha512-xgAyonlVVS+q7Vc7qLW0UrJU7rSFcETRWsqdXZtjzRU8dF+6CkozTK4V4y1LwOX7j8r/vHphjDeMeGI4tNGeGA==}
 
-  '@nanostores/react@1.0.0':
-    resolution: {integrity: sha512-eDduyNy+lbQJMg6XxZ/YssQqF6b4OXMFEZMYKPJCCmBevp1lg0g+4ZRi94qGHirMtsNfAWKNwsjOhC+q1gvC+A==}
+  '@nanostores/react@1.1.0':
+    resolution: {integrity: sha512-MbH35fjhcf7LAubYX5vhOChYUfTLzNLqH/mBGLVsHkcvjy0F8crO1WQwdmQ2xKbAmtpalDa2zBt3Hlg5kqr8iw==}
     engines: {node: ^20.0.0 || >=22.0.0}
     peerDependencies:
-      nanostores: ^0.9.0 || ^0.10.0 || ^0.11.0 || ^1.0.0
+      nanostores: ^1.2.0
       react: '>=18.0.0'
 
   '@napi-rs/wasm-runtime@1.1.2':
@@ -4566,8 +4566,8 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  nanostores@1.1.0:
-    resolution: {integrity: sha512-yJBmDJr18xy47dbNVlHcgdPrulSn1nhSE6Ns9vTG+Nx9VPT6iV1MD6aQFp/t52zpf82FhLLTXAXr30NuCnxvwA==}
+  nanostores@1.2.0:
+    resolution: {integrity: sha512-F0wCzbsH80G7XXo0Jd9/AVQC7ouWY6idUCTnMwW5t/Rv9W8qmO6endavDwg7TNp5GbugwSukFMVZqzPSrSMndg==}
     engines: {node: ^20.0.0 || >=22.0.0}
 
   neotraverse@0.6.18:
@@ -7613,9 +7613,9 @@ snapshots:
 
   '@microsoft/tsdoc@0.16.0': {}
 
-  '@nanostores/react@1.0.0(nanostores@1.1.0)(react@19.2.4)':
+  '@nanostores/react@1.1.0(nanostores@1.2.0)(react@19.2.4)':
     dependencies:
-      nanostores: 1.1.0
+      nanostores: 1.2.0
       react: 19.2.4
 
   '@napi-rs/wasm-runtime@1.1.2(@emnapi/core@1.8.1)(@emnapi/runtime@1.8.1)':
@@ -8740,10 +8740,10 @@ snapshots:
       path-browserify: 1.0.1
       vscode-uri: 3.1.0
 
-  '@vp-tw/nanostores-qs@0.4.0(nanostores@1.1.0)':
+  '@vp-tw/nanostores-qs@0.4.0(nanostores@1.2.0)':
     dependencies:
       es-toolkit: 1.44.0
-      nanostores: 1.1.0
+      nanostores: 1.2.0
       ts-toolbelt: 9.6.0
 
   '@vscode/emmet-helper@2.11.0':
@@ -10816,7 +10816,7 @@ snapshots:
 
   nanoid@3.3.11: {}
 
-  nanostores@1.1.0: {}
+  nanostores@1.2.0: {}
 
   neotraverse@0.6.18: {}
 
