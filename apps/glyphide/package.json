@@ -41,7 +41,7 @@
 		"@radix-ui/react-tooltip": "^1.2.7",
 		"@replit/codemirror-vim": "^6.3.0",
 		"@tanstack/react-form": "^1.27.7",
-		"@tanstack/react-virtual": "^3.13.18",
+		"@tanstack/react-virtual": "^3.13.23",
 		"@vp-tw/nanostores-qs": "^0.4.0",
 		"astro": "^6.1.2",
 		"astro-robots": "^2.3.1",
