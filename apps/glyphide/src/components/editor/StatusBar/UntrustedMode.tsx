@@ -1,14 +1,14 @@
-import { useAppStore } from '@/stores/app'
-import { StatusElement } from './Components'
+import { useAppStore } from "@/stores/app";
+import { StatusElement } from "./Components";
 
 export const UntrustedMode = () => {
-	const { untrustedStatus, setUntrustedStatus } = useAppStore()
+	const { untrustedStatus, setUntrustedStatus } = useAppStore();
 
 	const handleOnClick = () => {
-		setUntrustedStatus('uninitialized')
-	}
+		setUntrustedStatus("uninitialized");
+	};
 
-	if (untrustedStatus === 'untrusted') {
+	if (untrustedStatus === "untrusted") {
 		return (
 			<StatusElement
 				className="!text-white hover:!bg-red-600/70 cursor-pointer bg-red-600 font-bold"
@@ -16,8 +16,8 @@ export const UntrustedMode = () => {
 			>
 				<span>Untrusted mode</span>
 			</StatusElement>
-		)
+		);
 	}
 
-	return null
-}
+	return null;
+};

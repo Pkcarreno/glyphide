@@ -1,26 +1,34 @@
-import { lazy, Suspense } from 'react'
-import { Island } from '@/components/Island'
-import { Loading } from '@/components/ui/Loading'
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/Resizable'
-import { useMainLayout } from '@/hooks/use-main-layout'
-import { useAppStore } from '@/stores/app'
-import { SettingsSidebar } from '../SettingsSidebar/SettingsSidebar'
+import { lazy, Suspense } from "react";
+import { Island } from "@/components/Island";
+import { Loading } from "@/components/ui/Loading";
+import {
+	ResizableHandle,
+	ResizablePanel,
+	ResizablePanelGroup,
+} from "@/components/ui/Resizable";
+import { useMainLayout } from "@/hooks/use-main-layout";
+import { useAppStore } from "@/stores/app";
+import { SettingsSidebar } from "../SettingsSidebar/SettingsSidebar";
 
-const Output = lazy(() => import('./Output/Output').then(mod => ({ default: mod.Output })))
+const Output = lazy(() =>
+	import("./Output/Output").then((mod) => ({ default: mod.Output })),
+);
 const OutputCompact = lazy(() =>
-	import('./Output/OutputCompact').then(mod => ({ default: mod.OutputCompact }))
-)
-const Codemirror = lazy(() => import('./Codemirror'))
+	import("./Output/OutputCompact").then((mod) => ({
+		default: mod.OutputCompact,
+	})),
+);
+const Codemirror = lazy(() => import("./Codemirror"));
 
 export const Panels = () => {
-	const { isLayoutReady } = useAppStore()
-	const { layout, device } = useMainLayout()
+	const { isLayoutReady } = useAppStore();
+	const { layout, device } = useMainLayout();
 
 	if (!isLayoutReady) {
-		return <Loading />
+		return <Loading />;
 	}
 
-	if (device === 'mobile') {
+	if (device === "mobile") {
 		return (
 			<>
 				<div className="h-full">
@@ -35,7 +43,7 @@ export const Panels = () => {
 					</Suspense>
 				</div>
 			</>
-		)
+		);
 	}
 
 	return (
@@ -54,7 +62,10 @@ export const Panels = () => {
 					</Island>
 				</ResizablePanel>
 
-				<ResizableHandle className="my-0.5 bg-transparent" withHandle={layout === 'vertical'} />
+				<ResizableHandle
+					className="my-0.5 bg-transparent"
+					withHandle={layout === "vertical"}
+				/>
 
 				<ResizablePanel defaultSize="30%" minSize="20%">
 					<Island>
@@ -65,5 +76,5 @@ export const Panels = () => {
 				</ResizablePanel>
 			</ResizablePanelGroup>
 		</div>
-	)
-}
+	);
+};

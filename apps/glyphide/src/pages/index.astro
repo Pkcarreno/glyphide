@@ -1,16 +1,16 @@
 ---
-import { StatusBar } from '@/components/editor/StatusBar'
+import type { ComponentProps } from 'astro/types'
 import Header from '@/components/editor/Header/index.astro'
 import { Panels } from '@/components/editor/Panels'
+import { SettingsSidebarCompact } from '@/components/editor/SettingsSidebar/SettingsSidebarCompact'
+import { StatusBar } from '@/components/editor/StatusBar'
+import { Toaster } from '@/components/ui/Sonner'
 import Layout from '@/layouts/EditorLayout.astro'
+import { AppController } from '@/providers/app-controller'
 import { ExecutionController } from '@/providers/execution-controller'
 import { LayoutController } from '@/providers/layout-controller'
 import { UntrustedModeController } from '@/providers/untrusted-mode-controller'
 import { VersionManagerController } from '@/providers/version-manager-controller'
-import { AppController } from '@/providers/app-controller'
-import { SettingsSidebarCompact } from '@/components/editor/SettingsSidebar/SettingsSidebarCompact'
-import { Toaster } from '@/components/ui/Sonner'
-import type { ComponentProps } from 'astro/types'
 
 const metaData: ComponentProps<typeof Layout>['head'] = {
   title: 'Glyphide - Local JavaScript Editor in Your Browser',

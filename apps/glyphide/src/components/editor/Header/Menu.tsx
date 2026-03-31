@@ -1,6 +1,11 @@
-import { CheckIcon, ChevronDownIcon, ExternalLinkIcon, RefreshCwIcon } from 'lucide-react'
-import Logo from '@/assets/logo-square.svg?react'
-import { Button } from '@/components/ui/Button'
+import {
+	CheckIcon,
+	ChevronDownIcon,
+	ExternalLinkIcon,
+	RefreshCwIcon,
+} from "lucide-react";
+import Logo from "@/assets/logo-square.svg?react";
+import { Button } from "@/components/ui/Button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -10,11 +15,11 @@ import {
 	DropdownMenuSub,
 	DropdownMenuSubContent,
 	DropdownMenuSubTrigger,
-	DropdownMenuTrigger
-} from '@/components/ui/DropdownMenu'
-import { useSettingsSidebarStore } from '@/stores/settings-sidebar'
-import { useThemeStore } from '@/stores/theme'
-import { useVersionManagerStore } from '@/stores/version-manager'
+	DropdownMenuTrigger,
+} from "@/components/ui/DropdownMenu";
+import { useSettingsSidebarStore } from "@/stores/settings-sidebar";
+import { useThemeStore } from "@/stores/theme";
+import { useVersionManagerStore } from "@/stores/version-manager";
 
 export const Menu = () => {
 	return (
@@ -42,11 +47,11 @@ export const Menu = () => {
 				<AppVersionItem />
 			</DropdownMenuContent>
 		</DropdownMenu>
-	)
-}
+	);
+};
 
 const ThemeSubmenu = () => {
-	const { theme, setTheme } = useThemeStore()
+	const { theme, setTheme } = useThemeStore();
 
 	return (
 		<DropdownMenuSub>
@@ -54,46 +59,50 @@ const ThemeSubmenu = () => {
 			<DropdownMenuPortal>
 				<DropdownMenuSubContent>
 					<DropdownMenuItem
-						disabled={theme === 'light'}
-						onClick={() => setTheme('light')}
+						disabled={theme === "light"}
+						onClick={() => setTheme("light")}
 						className="justify-between"
 					>
 						Light
-						{theme === 'light' && <CheckIcon className="size-4" />}
+						{theme === "light" && <CheckIcon className="size-4" />}
 					</DropdownMenuItem>
 					<DropdownMenuItem
-						disabled={theme === 'dark'}
-						onClick={() => setTheme('dark')}
+						disabled={theme === "dark"}
+						onClick={() => setTheme("dark")}
 						className="justify-between"
 					>
 						Dark
-						{theme === 'dark' && <CheckIcon className="size-4" />}
+						{theme === "dark" && <CheckIcon className="size-4" />}
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem
-						disabled={theme === 'system'}
-						onClick={() => setTheme('system')}
+						disabled={theme === "system"}
+						onClick={() => setTheme("system")}
 						className="justify-between"
 					>
 						System
-						{theme === 'system' && <CheckIcon className="size-4" />}
+						{theme === "system" && <CheckIcon className="size-4" />}
 					</DropdownMenuItem>
 				</DropdownMenuSubContent>
 			</DropdownMenuPortal>
 		</DropdownMenuSub>
-	)
-}
+	);
+};
 
 const SettingsItem = () => {
-	const { toggleSettingsSidebar } = useSettingsSidebarStore()
+	const { toggleSettingsSidebar } = useSettingsSidebarStore();
 
-	return <DropdownMenuItem onClick={toggleSettingsSidebar}>Settings</DropdownMenuItem>
-}
+	return (
+		<DropdownMenuItem onClick={toggleSettingsSidebar}>
+			Settings
+		</DropdownMenuItem>
+	);
+};
 
 const UpdateItem = () => {
-	const { needRefresh, updateServiceWorkerAction } = useVersionManagerStore()
+	const { needRefresh, updateServiceWorkerAction } = useVersionManagerStore();
 
-	if (!needRefresh) return null
+	if (!needRefresh) return null;
 
 	return (
 		<>
@@ -106,18 +115,21 @@ const UpdateItem = () => {
 			</DropdownMenuItem>
 			<DropdownMenuSeparator />
 		</>
-	)
-}
+	);
+};
 
 const GithubLinkItem = () => {
 	return (
 		<DropdownMenuItem asChild>
-			<a href="https://github.com/pkcarreno/glyphide" className="flex cursor-pointer gap-1">
+			<a
+				href="https://github.com/pkcarreno/glyphide"
+				className="flex cursor-pointer gap-1"
+			>
 				Github <ExternalLinkIcon className="size-4" />
 			</a>
 		</DropdownMenuItem>
-	)
-}
+	);
+};
 
 // const DocumentationLinkItem = () => {
 // 	return (
@@ -132,23 +144,37 @@ const GithubLinkItem = () => {
 const NewScriptLinkItem = () => {
 	return (
 		<DropdownMenuItem asChild>
-			<a href="/" className="flex cursor-pointer gap-1" target="_blank" rel="noreferrer">
+			<a
+				href="/"
+				className="flex cursor-pointer gap-1"
+				target="_blank"
+				rel="noreferrer"
+			>
 				New Script
 			</a>
 		</DropdownMenuItem>
-	)
-}
+	);
+};
 
 const MigratePageLinkItem = () => {
 	return (
 		<DropdownMenuItem asChild>
-			<a href="/migrate" className="flex cursor-pointer gap-1" target="_blank" rel="noreferrer">
+			<a
+				href="/migrate"
+				className="flex cursor-pointer gap-1"
+				target="_blank"
+				rel="noreferrer"
+			>
 				Migrate old link
 			</a>
 		</DropdownMenuItem>
-	)
-}
+	);
+};
 
 const AppVersionItem = () => {
-	return <DropdownMenuItem disabled>Glyphide v{import.meta.env.APP_VERSION}</DropdownMenuItem>
-}
+	return (
+		<DropdownMenuItem disabled>
+			Glyphide v{import.meta.env.APP_VERSION}
+		</DropdownMenuItem>
+	);
+};

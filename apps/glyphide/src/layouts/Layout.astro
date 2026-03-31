@@ -4,8 +4,8 @@ import type { ComponentProps, HTMLAttributes } from 'astro/types'
 import BaseFooter from '@/components/layout/BaseFooter.astro'
 import BaseHead from '@/components/layout/BaseHead.astro'
 import BaseHeader from '@/components/layout/BaseHeader.astro'
-import { cn } from '@/utils'
 import { ThemeProvider } from '@/providers/theme-provider'
+import { cn } from '@/utils'
 
 type Props = Omit<HTMLAttributes<'body'>, 'title'> & {
   lang?: 'es' | 'en' | string

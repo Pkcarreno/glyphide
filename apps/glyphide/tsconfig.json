@@ -1,36 +1,36 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
-  "extends": ["astro/tsconfigs/strict"],
-  "compilerOptions": {
-    "declaration": true,
-    "declarationMap": true,
-    "incremental": false,
-    "lib": ["es2022", "DOM", "DOM.Iterable"],
-    "moduleDetection": "force",
-    "strictNullChecks": true,
-    "paths": {
-      "@/*": ["./src/*"]
-    },
-    "plugins": [
-      {
-        "name": "@astrojs/ts-plugin"
-      }
-    ],
-    "types": [
-      "astro/client",
-      "vite-plugin-pwa/react",
-      "vite-plugin-pwa/info",
-      "vite-plugin-svgr/client"
-    ],
-    "jsx": "react-jsx",
-    "jsxImportSource": "react",
-    "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo.json"
-  },
-  "references": [
-    {
-      "path": "../../packages/quickjs"
-    }
-  ],
-  "exclude": ["node_modules", "dist", "dev-dist"],
-  "include": [".astro/types.d.ts", "**/*", "src"]
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"extends": ["astro/tsconfigs/strict"],
+	"compilerOptions": {
+		"declaration": true,
+		"declarationMap": true,
+		"incremental": false,
+		"lib": ["es2022", "DOM", "DOM.Iterable"],
+		"moduleDetection": "force",
+		"strictNullChecks": true,
+		"paths": {
+			"@/*": ["./src/*"]
+		},
+		"plugins": [
+			{
+				"name": "@astrojs/ts-plugin"
+			}
+		],
+		"types": [
+			"astro/client",
+			"vite-plugin-pwa/react",
+			"vite-plugin-pwa/info",
+			"vite-plugin-svgr/client"
+		],
+		"jsx": "react-jsx",
+		"jsxImportSource": "react",
+		"tsBuildInfoFile": "node_modules/.cache/tsbuildinfo.json"
+	},
+	"references": [
+		{
+			"path": "../../packages/quickjs"
+		}
+	],
+	"exclude": ["node_modules", "dist", "dev-dist"],
+	"include": [".astro/types.d.ts", "**/*", "src"]
 }

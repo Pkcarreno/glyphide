@@ -1,6 +1,6 @@
 interface Props {
-	message: string
-	error: Error | unknown | undefined
+	message: string;
+	error: Error | unknown | undefined;
 }
 
 export const ErrorMenssage: React.FC<Props> = ({ message, error }) => {
@@ -9,7 +9,9 @@ export const ErrorMenssage: React.FC<Props> = ({ message, error }) => {
 			<strong className="text-error-foreground text-xl">Error</strong>
 			<div className="flex flex-col gap-2">
 				<p>{message}</p>
-				<span className="text-sm italic">{error instanceof Error && error.message}</span>
+				<span className="text-sm italic">
+					{error instanceof Error && error.message}
+				</span>
 				{import.meta.env.DEV && (
 					<pre className="text-muted-foreground text-xs">
 						{error instanceof Error ? error.stack : JSON.stringify(error)}
@@ -17,5 +19,5 @@ export const ErrorMenssage: React.FC<Props> = ({ message, error }) => {
 				)}
 			</div>
 		</div>
-	)
-}
+	);
+};

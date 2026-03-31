@@ -1,12 +1,14 @@
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/Tooltip'
-import { cn } from '@/utils'
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/Tooltip";
+import { cn } from "@/utils";
 
-export const StatusElement: React.FC<React.ComponentProps<'div'> & { popoverTitle?: string }> = ({
-	children,
-	className,
-	popoverTitle,
-	...props
-}) => {
+export const StatusElement: React.FC<
+	React.ComponentProps<"div"> & { popoverTitle?: string }
+> = ({ children, className, popoverTitle, ...props }) => {
 	if (popoverTitle) {
 		return (
 			<TooltipProvider>
@@ -14,8 +16,8 @@ export const StatusElement: React.FC<React.ComponentProps<'div'> & { popoverTitl
 					<TooltipTrigger>
 						<div
 							className={cn(
-								'h-full w-fit px-2.5 text-accent-foreground text-xs tabular-nums leading-5 transition-colors hover:bg-secondary',
-								className
+								"h-full w-fit px-2.5 text-accent-foreground text-xs tabular-nums leading-5 transition-colors hover:bg-secondary",
+								className,
 							)}
 							{...props}
 						>
@@ -25,18 +27,18 @@ export const StatusElement: React.FC<React.ComponentProps<'div'> & { popoverTitl
 					<TooltipContent>{popoverTitle}</TooltipContent>
 				</Tooltip>
 			</TooltipProvider>
-		)
+		);
 	}
 
 	return (
 		<div
 			className={cn(
 				className,
-				'h-full w-fit px-2.5 text-accent-foreground text-xs tabular-nums leading-5 transition-colors hover:bg-secondary'
+				"h-full w-fit px-2.5 text-accent-foreground text-xs tabular-nums leading-5 transition-colors hover:bg-secondary",
 			)}
 			{...props}
 		>
 			{children}
 		</div>
-	)
-}
+	);
+};

@@ -1,45 +1,47 @@
-import { useEffect } from 'react'
-import { config } from '@/config'
-import { useMediaQuery } from '@/hooks/use-media-query'
-import { type themeModeType, useThemeStore } from '@/stores/theme'
+import { useEffect } from "react";
+import { config } from "@/config";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { type themeModeType, useThemeStore } from "@/stores/theme";
 
 export function ThemeProvider() {
-	const { theme, setThemeMode } = useThemeStore()
-	const isDarkMode = useMediaQuery('(prefers-color-scheme: dark)')
+	const { theme, setThemeMode } = useThemeStore();
+	const isDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
 
 	useEffect(() => {
-		const root = window.document.documentElement
+		const root = window.document.documentElement;
 
-		root.classList.remove('light', 'dark')
+		root.classList.remove("light", "dark");
 
-		let systemTheme = theme
+		let systemTheme = theme;
 
-		if (theme === 'system') {
-			systemTheme = isDarkMode ? 'dark' : 'light'
+		if (theme === "system") {
+			systemTheme = isDarkMode ? "dark" : "light";
 		}
 
-		root.classList.add(systemTheme)
+		root.classList.add(systemTheme);
 
-		updateThemeColor(systemTheme as themeModeType)
-	}, [theme, isDarkMode])
+		updateThemeColor(systemTheme as themeModeType);
+	}, [theme, isDarkMode]);
 
 	useEffect(() => {
-		if (theme === 'system') {
-			setThemeMode(isDarkMode ? 'dark' : 'light')
+		if (theme === "system") {
+			setThemeMode(isDarkMode ? "dark" : "light");
 		}
-	}, [theme, setThemeMode, isDarkMode])
+	}, [theme, setThemeMode, isDarkMode]);
 
-	return null
+	return null;
 }
 
 function updateThemeColor(resolvedTheme: themeModeType): void {
-	let metaThemeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
+	let metaThemeColor = document.querySelector<HTMLMetaElement>(
+		'meta[name="theme-color"]',
+	);
 
 	if (!metaThemeColor) {
-		metaThemeColor = document.createElement('meta')
-		metaThemeColor.name = 'theme-color'
-		document.head.appendChild(metaThemeColor)
+		metaThemeColor = document.createElement("meta");
+		metaThemeColor.name = "theme-color";
+		document.head.appendChild(metaThemeColor);
 	}
 
-	metaThemeColor.content = config.theme[resolvedTheme]
+	metaThemeColor.content = config.theme[resolvedTheme];
 }

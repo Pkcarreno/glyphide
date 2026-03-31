@@ -1,31 +1,31 @@
-import { useEffect, useState } from 'react'
-import { useIsInIframe } from '@/hooks/use-is-in-iframe'
-import { useIsMobile } from '@/hooks/use-is-mobile'
-import { useAppStore } from '@/stores/app'
+import { useEffect, useState } from "react";
+import { useIsInIframe } from "@/hooks/use-is-in-iframe";
+import { useIsMobile } from "@/hooks/use-is-mobile";
+import { useAppStore } from "@/stores/app";
 
 export function LayoutController() {
-	const { toggleIsLayoutReady } = useAppStore()
-	const IsInIframe = useIsInIframe()
-	const IsMobile = useIsMobile()
-	const { setDevice, setEnviroment } = useAppStore()
-	const [isMobileCheckReady, setIsMobileCheckReady] = useState(false)
-	const [isEnviromentCheckReady, setIsEnviromentCheckReady] = useState(false)
+	const { toggleIsLayoutReady } = useAppStore();
+	const IsInIframe = useIsInIframe();
+	const IsMobile = useIsMobile();
+	const { setDevice, setEnviroment } = useAppStore();
+	const [isMobileCheckReady, setIsMobileCheckReady] = useState(false);
+	const [isEnviromentCheckReady, setIsEnviromentCheckReady] = useState(false);
 
 	useEffect(() => {
-		setEnviroment(IsInIframe ? 'iframe' : 'standalone')
-		setIsEnviromentCheckReady(true)
-	}, [IsInIframe, setEnviroment])
+		setEnviroment(IsInIframe ? "iframe" : "standalone");
+		setIsEnviromentCheckReady(true);
+	}, [IsInIframe, setEnviroment]);
 
 	useEffect(() => {
-		setDevice(IsMobile ? 'mobile' : 'desktop')
-		setIsMobileCheckReady(true)
-	}, [IsMobile, setDevice])
+		setDevice(IsMobile ? "mobile" : "desktop");
+		setIsMobileCheckReady(true);
+	}, [IsMobile, setDevice]);
 
 	useEffect(() => {
 		if (isMobileCheckReady && isEnviromentCheckReady) {
-			toggleIsLayoutReady()
+			toggleIsLayoutReady();
 		}
-	}, [isMobileCheckReady, isEnviromentCheckReady, toggleIsLayoutReady])
+	}, [isMobileCheckReady, isEnviromentCheckReady, toggleIsLayoutReady]);
 
-	return null
+	return null;
 }

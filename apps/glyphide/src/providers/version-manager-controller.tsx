@@ -1,71 +1,74 @@
-import { useRegisterSW } from 'virtual:pwa-register/react'
-import { RefreshCwIcon } from 'lucide-react'
-import { useEffect } from 'react'
-import { toast } from 'sonner'
-import { useVersionManagerStore } from '@/stores/version-manager'
+import { useRegisterSW } from "virtual:pwa-register/react";
+import { RefreshCwIcon } from "lucide-react";
+import { useEffect } from "react";
+import { toast } from "sonner";
+import { useVersionManagerStore } from "@/stores/version-manager";
 
-const intervalMS = 60 * 60 * 1000
+const intervalMS = 60 * 60 * 1000;
 
 export const VersionManagerController = () => {
-	const { setNeedRefresh, setUpdateServiceWorkerAction } = useVersionManagerStore()
+	const { setNeedRefresh, setUpdateServiceWorkerAction } =
+		useVersionManagerStore();
 
 	const {
 		offlineReady: [offlineReady, setOfflineReady],
 		needRefresh: [needRefreshSW],
-		updateServiceWorker
+		updateServiceWorker,
 	} = useRegisterSW({
 		onRegistered(r) {
 			if (r) {
 				setUpdateServiceWorkerAction(async () => {
-					r.update()
-				})
+					r.update();
+				});
 				setInterval(() => {
-					r.update()
-				}, intervalMS)
-				console.log('ServiceWorker: Registered')
+					r.update();
+				}, intervalMS);
+				console.log("ServiceWorker: Registered");
 			} else {
-				console.log('ServiceWorker: Not registered', r)
+				console.log("ServiceWorker: Not registered", r);
 				setUpdateServiceWorkerAction(async () => {
 					console.error(
-						'ServiceWorker: update function not available because ServiceWorker is not registered.'
-					)
-				})
+						"ServiceWorker: update function not available because ServiceWorker is not registered.",
+					);
+				});
 			}
 		},
 		onRegisterError(error) {
-			console.error('ServiceWorker: registration error', error)
+			console.error("ServiceWorker: registration error", error);
 			setUpdateServiceWorkerAction(async () => {
-				console.error('ServiceWorker: update function not available due to registration error.')
-			})
-		}
-	})
+				console.error(
+					"ServiceWorker: update function not available due to registration error.",
+				);
+			});
+		},
+	});
 
 	useEffect(() => {
-		setNeedRefresh(needRefreshSW)
-	}, [needRefreshSW, setNeedRefresh])
+		setNeedRefresh(needRefreshSW);
+	}, [needRefreshSW, setNeedRefresh]);
 
 	useEffect(() => {
 		if (offlineReady) {
-			const onOfflineClose = () => setOfflineReady(false)
-			toast('App ready to work offline', {
+			const onOfflineClose = () => setOfflineReady(false);
+			toast("App ready to work offline", {
 				onDismiss: onOfflineClose,
-				onAutoClose: onOfflineClose
-			})
+				onAutoClose: onOfflineClose,
+			});
 		}
-	}, [offlineReady, setOfflineReady])
+	}, [offlineReady, setOfflineReady]);
 
 	useEffect(() => {
 		if (needRefreshSW) {
-			toast('New content available', {
-				description: 'click on reload button to update',
+			toast("New content available", {
+				description: "click on reload button to update",
 				icon: <RefreshCwIcon className="size-4" />,
 				action: {
-					label: 'Reload',
-					onClick: () => updateServiceWorker(true)
-				}
-			})
+					label: "Reload",
+					onClick: () => updateServiceWorker(true),
+				},
+			});
 		}
-	}, [needRefreshSW, updateServiceWorker])
+	}, [needRefreshSW, updateServiceWorker]);
 
-	return null
-}
+	return null;
+};

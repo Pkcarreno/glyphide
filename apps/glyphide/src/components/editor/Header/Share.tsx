@@ -1,36 +1,36 @@
-import { PopoverTrigger } from '@radix-ui/react-popover'
-import { CheckIcon, ChevronDownIcon, CopyIcon, Share2Icon } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import { PopoverTrigger } from "@radix-ui/react-popover";
+import { CheckIcon, ChevronDownIcon, CopyIcon, Share2Icon } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuTrigger
-} from '@/components/ui/DropdownMenu'
-import { Popover, PopoverContent } from '@/components/ui/Popover'
-import { Separator } from '@/components/ui/Separator'
-import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
-import { useIsInIframe } from '@/hooks/use-is-in-iframe'
-import { getCurrentUrl } from '@/utils'
+	DropdownMenuTrigger,
+} from "@/components/ui/DropdownMenu";
+import { Popover, PopoverContent } from "@/components/ui/Popover";
+import { Separator } from "@/components/ui/Separator";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
+import { useIsInIframe } from "@/hooks/use-is-in-iframe";
+import { getCurrentUrl } from "@/utils";
 
 export const ShareButton = () => {
-	const { copied: copiedUrl, copy: copyUrl } = useCopyToClipboard()
-	const { copied: copiedEmbeded, copy: copyEmbeded } = useCopyToClipboard()
-	const isInIframe = useIsInIframe()
+	const { copied: copiedUrl, copy: copyUrl } = useCopyToClipboard();
+	const { copied: copiedEmbeded, copy: copyEmbeded } = useCopyToClipboard();
+	const isInIframe = useIsInIframe();
 
 	const onClickUrl = () => {
-		const url = getCurrentUrl()
-		copyUrl(url.href)
-	}
+		const url = getCurrentUrl();
+		copyUrl(url.href);
+	};
 
 	const onClickEmbeded = () => {
-		const url = getCurrentUrl()
-		const embededUrl = `<iframe src="${url.href}" height="800" width="800" />`
+		const url = getCurrentUrl();
+		const embededUrl = `<iframe src="${url.href}" height="800" width="800" />`;
 
-		copyEmbeded(embededUrl)
-	}
+		copyEmbeded(embededUrl);
+	};
 
-	if (isInIframe) return null
+	if (isInIframe) return null;
 
 	return (
 		<Popover>
@@ -61,12 +61,18 @@ export const ShareButton = () => {
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end" className="shadow-none">
-						<DropdownMenuItem onClick={onClickEmbeded}>Copy iframe</DropdownMenuItem>
+						<DropdownMenuItem onClick={onClickEmbeded}>
+							Copy iframe
+						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
 
 				<PopoverTrigger asChild className="flex sm:hidden">
-					<Button variant="secondary" size="icon" className="h-full shadow-none">
+					<Button
+						variant="secondary"
+						size="icon"
+						className="h-full shadow-none"
+					>
 						<span className="sr-only">Share options</span>
 						<Share2Icon />
 					</Button>
@@ -96,5 +102,5 @@ export const ShareButton = () => {
 				</PopoverContent>
 			</div>
 		</Popover>
-	)
-}
+	);
+};

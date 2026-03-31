@@ -1,7 +1,7 @@
-import { TerminalIcon } from 'lucide-react'
-import { useId, useRef } from 'react'
-import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
+import { TerminalIcon } from "lucide-react";
+import { useId, useRef } from "react";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import {
 	Drawer,
 	DrawerClose,
@@ -10,13 +10,13 @@ import {
 	DrawerFooter,
 	DrawerHeader,
 	DrawerTitle,
-	DrawerTrigger
-} from '@/components/ui/Drawer'
-import { Label } from '@/components/ui/Label'
-import { Switch } from '@/components/ui/Switch'
-import { useAppPersistStore, useAppStore } from '@/stores/app'
-import { LogListView } from './LogListView'
-import { UntrustedModeCompact } from './UntrustedCompact'
+	DrawerTrigger,
+} from "@/components/ui/Drawer";
+import { Label } from "@/components/ui/Label";
+import { Switch } from "@/components/ui/Switch";
+import { useAppPersistStore, useAppStore } from "@/stores/app";
+import { LogListView } from "./LogListView";
+import { UntrustedModeCompact } from "./UntrustedCompact";
 
 export const OutputCompact = () => {
 	return (
@@ -47,22 +47,24 @@ export const OutputCompact = () => {
 				</DrawerContent>
 			</Drawer>
 		</div>
-	)
-}
+	);
+};
 
-const DrawerToggler: React.FC<Pick<React.ComponentProps<'button'>, 'onClick'>> = ({ onClick }) => {
-	const { logs } = useAppStore()
-	const lastClickedId = useRef<string | null>(null)
+const DrawerToggler: React.FC<
+	Pick<React.ComponentProps<"button">, "onClick">
+> = ({ onClick }) => {
+	const { logs } = useAppStore();
+	const lastClickedId = useRef<string | null>(null);
 
-	const latestId = logs.at(-1)?.id ?? null
-	const hasNew = latestId !== lastClickedId.current
+	const latestId = logs.at(-1)?.id ?? null;
+	const hasNew = latestId !== lastClickedId.current;
 
 	const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-		lastClickedId.current = latestId
+		lastClickedId.current = latestId;
 		if (onClick) {
-			onClick(e)
+			onClick(e);
 		}
-	}
+	};
 
 	return (
 		<Button
@@ -79,17 +81,17 @@ const DrawerToggler: React.FC<Pick<React.ComponentProps<'button'>, 'onClick'>> =
 				</Badge>
 			)}
 		</Button>
-	)
-}
+	);
+};
 
 export const ActionsBarCompact = () => {
-	const { persistLogs, updatePersistLogs } = useAppPersistStore()
-	const { clearLogs } = useAppStore()
-	const switchId = useId()
+	const { persistLogs, updatePersistLogs } = useAppPersistStore();
+	const { clearLogs } = useAppStore();
+	const switchId = useId();
 
 	const handlePersistLogsChange = () => {
-		updatePersistLogs(!persistLogs)
-	}
+		updatePersistLogs(!persistLogs);
+	};
 
 	return (
 		<div className="flex w-fit gap-4">
@@ -109,5 +111,5 @@ export const ActionsBarCompact = () => {
 				Clear
 			</Button>
 		</div>
-	)
-}
+	);
+};

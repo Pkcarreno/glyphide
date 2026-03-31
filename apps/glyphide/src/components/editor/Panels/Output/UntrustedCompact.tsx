@@ -1,17 +1,17 @@
-import { ShieldAlertIcon } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { useIsMobile } from '@/hooks/use-is-mobile'
-import { useAppStore } from '@/stores/app'
+import { ShieldAlertIcon } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { useIsMobile } from "@/hooks/use-is-mobile";
+import { useAppStore } from "@/stores/app";
 
 export const UntrustedModeCompact = () => {
-	const isMobile = useIsMobile()
-	const { untrustedStatus, setUntrustedStatus } = useAppStore()
+	const isMobile = useIsMobile();
+	const { untrustedStatus, setUntrustedStatus } = useAppStore();
 
 	const handleOnClick = () => {
-		setUntrustedStatus('uninitialized')
-	}
+		setUntrustedStatus("uninitialized");
+	};
 
-	if (!isMobile || untrustedStatus !== 'untrusted') return null
+	if (!isMobile || untrustedStatus !== "untrusted") return null;
 
 	return (
 		<Button
@@ -24,5 +24,5 @@ export const UntrustedModeCompact = () => {
 			<span className="sr-only">Untrusted mode</span>
 			<ShieldAlertIcon className="size-4" />
 		</Button>
-	)
-}
+	);
+};
