@@ -14,6 +14,7 @@ pre-push:
 post-merge:
   jobs:
     - run: pnpm install
+      files: git diff --name-only ORIG_HEAD HEAD
       glob: "pnpm-lock.yaml"
 
 commit-msg:
