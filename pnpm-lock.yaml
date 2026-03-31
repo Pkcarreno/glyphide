@@ -30,8 +30,8 @@ importers:
         specifier: ^6.0.2
         version: 6.0.2
       ultracite:
-        specifier: ^7.4.0
-        version: 7.4.0
+        specifier: ^7.4.2
+        version: 7.4.2
 
   apps/glyphide:
     dependencies:
@@ -5644,8 +5644,8 @@ packages:
   ufo@1.6.3:
     resolution: {integrity: sha512-yDJTmhydvl5lJzBmy/hyOAA0d+aqCBuwl818haVdYCRrWV84o7YyeVm4QlVHStqNrrJSTb6jKuFAVqAFsr+K3Q==}
 
-  ultracite@7.4.0:
-    resolution: {integrity: sha512-PkJVuQ7+Zf9Jwy7+0GyUe7HAvw9VHFAD5HLqD+hP/SQ0a0a/BxYdbpIVAOM295JSwBa8ukx/1kJjlXrPNgXgTw==}
+  ultracite@7.4.2:
+    resolution: {integrity: sha512-NjpvM78XgyVPCAw1qSlOnPYFcH4Z7z49Xm0xZdL7Z73f1iAQ/dHttBbN/feMkJ0JDcjsMEWNeEX97wQ45UQHHw==}
     hasBin: true
     peerDependencies:
       oxlint: ^1.0.0
@@ -12285,7 +12285,7 @@ snapshots:
 
   ufo@1.6.3: {}
 
-  ultracite@7.4.0:
+  ultracite@7.4.2:
     dependencies:
       '@clack/prompts': 1.1.0
       commander: 14.0.3
