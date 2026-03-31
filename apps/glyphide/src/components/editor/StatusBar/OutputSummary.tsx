@@ -1,10 +1,10 @@
-import { CircleHelpIcon, CircleXIcon, InfoIcon } from 'lucide-react'
-import { useAppStore } from '@/stores/app'
-import type { LogEntry } from '@/types/log'
-import { StatusElement } from './Components'
+import { CircleHelpIcon, CircleXIcon, InfoIcon } from "lucide-react";
+import { useAppStore } from "@/stores/app";
+import type { LogEntry } from "@/types/log";
+import { StatusElement } from "./Components";
 
 export const OutputSummary = () => {
-	const { logSummary } = useAppStore()
+	const { logSummary } = useAppStore();
 
 	return (
 		<StatusElement>
@@ -15,43 +15,43 @@ export const OutputSummary = () => {
 				<SummaryTag type="total" quantity={logSummary.total} />
 			</button>
 		</StatusElement>
-	)
-}
+	);
+};
 
-const SummaryTag: React.FC<{ type: LogEntry['type'] | 'total'; quantity: number }> = ({
-	type,
-	quantity
-}) => {
-	if (type === 'info' && quantity > 0) {
+const SummaryTag: React.FC<{
+	type: LogEntry["type"] | "total";
+	quantity: number;
+}> = ({ type, quantity }) => {
+	if (type === "info" && quantity > 0) {
 		return (
 			<>
 				<InfoIcon className="mr-0.5 h-full" height="14" width="14" />
 				<span>{quantity} </span>
 			</>
-		)
+		);
 	}
 
-	if (type === 'warn' && quantity > 0) {
+	if (type === "warn" && quantity > 0) {
 		return (
 			<>
 				<CircleHelpIcon className="mr-0.5 h-full" height="14" width="14" />
 				<span>{quantity} </span>
 			</>
-		)
+		);
 	}
 
-	if (type === 'error' && quantity > 0) {
+	if (type === "error" && quantity > 0) {
 		return (
 			<>
 				<CircleXIcon className="mr-0.5 h-full" height="14" width="14" />
 				<span>{quantity} </span>
 			</>
-		)
+		);
 	}
 
-	if (type === 'total') {
-		return <span>Total {quantity}</span>
+	if (type === "total") {
+		return <span>Total {quantity}</span>;
 	}
 
-	return null
-}
+	return null;
+};

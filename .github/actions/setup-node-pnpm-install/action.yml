@@ -1,17 +1,18 @@
-# Taken from obytes' react native template: https://github.com/obytes/react-native-template-obytes
-
 name: "Setup  Node + PNPM + Install Dependencies"
+
 description: "Setup  Node + PNPM + Install Dependencies"
+
 runs:
   using: "composite"
   steps:
     - uses: pnpm/action-setup@v4
 
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v6
       with:
+        node-version-file: ".nvmrc"
         cache: "pnpm"
 
-    - name: 📦 Install Project Dependencies
+    - name: Install Project Dependencies
       run: pnpm install --frozen-lockfile
       shell: bash
 

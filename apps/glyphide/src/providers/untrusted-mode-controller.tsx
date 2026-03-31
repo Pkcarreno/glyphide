@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -8,48 +8,48 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-	AlertDialogTrigger
-} from '@/components/ui/AlertDialog'
-import { Button } from '@/components/ui/Button'
+	AlertDialogTrigger,
+} from "@/components/ui/AlertDialog";
+import { Button } from "@/components/ui/Button";
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
-	DialogTitle
-} from '@/components/ui/Dialog'
-import { useAppStore } from '@/stores/app'
-import { useCodeStore } from '@/stores/script'
+	DialogTitle,
+} from "@/components/ui/Dialog";
+import { useAppStore } from "@/stores/app";
+import { useCodeStore } from "@/stores/script";
 
 export const UntrustedModeController = () => {
-	const { untrustedStatus, setUntrustedStatus } = useAppStore()
-	const { code } = useCodeStore()
-	const [open, setOpen] = useState(false)
+	const { untrustedStatus, setUntrustedStatus } = useAppStore();
+	const { code } = useCodeStore();
+	const [open, setOpen] = useState(false);
 
 	useEffect(() => {
-		if (untrustedStatus === 'uninitialized' && code && code.length > 0) {
-			setUntrustedStatus('untrusted')
-			setOpen(true)
+		if (untrustedStatus === "uninitialized" && code && code.length > 0) {
+			setUntrustedStatus("untrusted");
+			setOpen(true);
 		}
-		if (untrustedStatus === 'uninitialized' && (!code || code.length === 0)) {
-			setUntrustedStatus('trusted')
+		if (untrustedStatus === "uninitialized" && (!code || code.length === 0)) {
+			setUntrustedStatus("trusted");
 		}
-	}, [code, untrustedStatus, setUntrustedStatus])
+	}, [code, untrustedStatus, setUntrustedStatus]);
 
 	const handleOnTrustCode = () => {
-		setUntrustedStatus('trusted')
+		setUntrustedStatus("trusted");
 		if (open) {
-			setOpen(false)
+			setOpen(false);
 		}
-	}
+	};
 
 	const handleOnNoTrust = () => {
-		setUntrustedStatus('untrusted')
+		setUntrustedStatus("untrusted");
 		if (open) {
-			setOpen(false)
+			setOpen(false);
 		}
-	}
+	};
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -58,8 +58,8 @@ export const UntrustedModeController = () => {
 					<DialogTitle>Third party code</DialogTitle>
 					<DialogDescription>
 						This code comes from a shared link. <br />
-						You can review it first without running anything, or enable execution if you trust the
-						source.
+						You can review it first without running anything, or enable
+						execution if you trust the source.
 					</DialogDescription>
 				</DialogHeader>
 				<DialogHeader>
@@ -68,7 +68,10 @@ export const UntrustedModeController = () => {
 
 						<ul className="list-inside list-disc">
 							<li>We'll disable all runtime capabilities while inspecting.</li>
-							<li>You can enable execution at any time from the toolbar or statusbar.</li>
+							<li>
+								You can enable execution at any time from the toolbar or
+								statusbar.
+							</li>
 						</ul>
 					</div>
 				</DialogHeader>
@@ -81,12 +84,17 @@ export const UntrustedModeController = () => {
 							<AlertDialogHeader>
 								<AlertDialogTitle>Enable execution</AlertDialogTitle>
 								<AlertDialogDescription>
-									Runs with your current settings. You can change or disable later in Settings.
+									Runs with your current settings. You can change or disable
+									later in Settings.
 								</AlertDialogDescription>
 							</AlertDialogHeader>
 							<AlertDialogFooter>
 								<AlertDialogCancel>Go back</AlertDialogCancel>
-								<AlertDialogAction className="font-bold" autoFocus onClick={handleOnTrustCode}>
+								<AlertDialogAction
+									className="font-bold"
+									autoFocus
+									onClick={handleOnTrustCode}
+								>
 									Enable Execution
 								</AlertDialogAction>
 							</AlertDialogFooter>
@@ -98,5 +106,5 @@ export const UntrustedModeController = () => {
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>
-	)
-}
+	);
+};

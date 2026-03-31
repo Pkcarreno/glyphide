@@ -1,9 +1,11 @@
-import { useMediaQuery } from './use-media-query'
+import { useMediaQuery } from "./use-media-query";
 
-const MOBILE_BREAKPOINT = 1020
+const MOBILE_BREAKPOINT = 1020;
 
 export function useIsCompactLayout() {
-	const isCompactLayout = useMediaQuery(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
+	const isCompactLayout = useMediaQuery(
+		`(max-width: ${MOBILE_BREAKPOINT - 1}px)`,
+	);
 
-	return !!isCompactLayout
+	return !!isCompactLayout;
 }

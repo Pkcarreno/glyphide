@@ -1,13 +1,13 @@
-import { useIsMobile } from '@/hooks/use-is-mobile'
-import { AppStatus } from './AppStatus'
-import { EditorStatus } from './EditorStatus'
-import { OutputSummary } from './OutputSummary'
-import { UntrustedMode } from './UntrustedMode'
+import { useIsMobile } from "@/hooks/use-is-mobile";
+import { AppStatus } from "./AppStatus";
+import { EditorStatus } from "./EditorStatus";
+import { OutputSummary } from "./OutputSummary";
+import { UntrustedMode } from "./UntrustedMode";
 
 export const StatusBar = () => {
-	const isMobile = useIsMobile()
+	const isMobile = useIsMobile();
 
-	if (isMobile) return null
+	if (isMobile) return null;
 
 	return (
 		<footer className="flex h-5">
@@ -21,5 +21,5 @@ export const StatusBar = () => {
 				<OutputSummary />
 			</div>
 		</footer>
-	)
-}
+	);
+};

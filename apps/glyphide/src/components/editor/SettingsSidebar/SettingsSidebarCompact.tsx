@@ -3,17 +3,18 @@ import {
 	SheetContent,
 	SheetDescription,
 	SheetHeader,
-	SheetTitle
-} from '@/components/ui/Sheet'
-import { useIsCompactLayout } from '@/hooks/use-is-compact-layout'
-import { useSettingsSidebarStore } from '@/stores/settings-sidebar'
-import { SettingsContent } from './SettingsContent'
+	SheetTitle,
+} from "@/components/ui/Sheet";
+import { useIsCompactLayout } from "@/hooks/use-is-compact-layout";
+import { useSettingsSidebarStore } from "@/stores/settings-sidebar";
+import { SettingsContent } from "./SettingsContent";
 
 export const SettingsSidebarCompact = () => {
-	const isCompactLayout = useIsCompactLayout()
-	const { isSettingsSidebarOpen, toggleSettingsSidebar } = useSettingsSidebarStore()
+	const isCompactLayout = useIsCompactLayout();
+	const { isSettingsSidebarOpen, toggleSettingsSidebar } =
+		useSettingsSidebarStore();
 
-	if (!isCompactLayout) return null
+	if (!isCompactLayout) return null;
 
 	return (
 		<Sheet open={isSettingsSidebarOpen} onOpenChange={toggleSettingsSidebar}>
@@ -25,5 +26,5 @@ export const SettingsSidebarCompact = () => {
 				<SettingsContent />
 			</SheetContent>
 		</Sheet>
-	)
-}
+	);
+};

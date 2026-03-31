@@ -9,18 +9,13 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "lint": "turbo run root:lint",
-    "lint:fix": "turbo run root:lint:fix",
-    "format": "turbo run format",
-    "format:fix": "turbo run format:fix",
-    "check": "turbo run root:knip root:lint format type-check check",
-    "type-check": "turbo run type-check",
-    "root:lint": "biome check .",
-    "root:lint:fix": "biome check --write .",
+    "check": "turbo check",
+    "tsc": "turbo run tsc",
+    "lint": "ultracite check",
+    "lint:fix": "ultracite fix",
     "preinstall": "npx only-allow pnpm",
-    "lint-staged": "lint-staged",
     "commitlint": "commitlint",
-    "prepare": "husky",
+    "prepare": "lefthook install",
     "postinstall": "turbo run build --filter=@glyphide/quickjs",
     "root:knip": "knip",
     "knip": "turbo run root:knip",
@@ -28,17 +23,14 @@
   },
   "packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184",
   "devDependencies": {
-    "@biomejs/biome": "^2.3.11",
-    "@commitlint/cli": "^20.3.1",
-    "@commitlint/config-conventional": "^20.3.1",
-    "husky": "^9.1.7",
-    "knip": "^5.82.1",
-    "lint-staged": "^16.2.6",
-    "prettier": "^3.8.0",
-    "prettier-plugin-astro": "^0.14.1",
-    "prettier-plugin-tailwindcss": "^0.7.2",
-    "turbo": "^2.7.5",
-    "typescript": "^5.9.3"
+    "@biomejs/biome": "^2.4.10",
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "knip": "^6.1.1",
+    "lefthook": "^2.1.4",
+    "turbo": "^2.9.1",
+    "typescript": "^6.0.2",
+    "ultracite": "^7.4.2"
   },
   "osMetadata": {
     "initVersion": "1.3.0"
@@ -50,5 +42,10 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pkcarreno/glyphide.git"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "lefthook"
+    ]
   }
 }

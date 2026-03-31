@@ -1,23 +1,23 @@
-import { PlayIcon } from 'lucide-react'
-import { useMemo } from 'react'
-import { Button } from '@/components/ui/Button'
-import { triggerExecutionImmediately } from '@/lib/runtime/execution-manager'
-import { useAppStore } from '@/stores/app'
-import { useCodeStore } from '@/stores/script'
+import { PlayIcon } from "lucide-react";
+import { useMemo } from "react";
+import { Button } from "@/components/ui/Button";
+import { triggerExecutionImmediately } from "@/lib/runtime/execution-manager";
+import { useAppStore } from "@/stores/app";
+import { useCodeStore } from "@/stores/script";
 
 export const ExecuteButton = () => {
-	const { status, untrustedStatus } = useAppStore()
-	const { code } = useCodeStore()
+	const { status, untrustedStatus } = useAppStore();
+	const { code } = useCodeStore();
 
 	const isDisabled = useMemo(() => {
-		if (untrustedStatus !== 'trusted') return true
+		if (untrustedStatus !== "trusted") return true;
 
-		return status === 'running' || status === 'waiting'
-	}, [status, untrustedStatus])
+		return status === "running" || status === "waiting";
+	}, [status, untrustedStatus]);
 
 	const handleManualExecution = () => {
-		triggerExecutionImmediately(code)
-	}
+		triggerExecutionImmediately(code);
+	};
 
 	// const handleManualStop = () => {
 	//   terminateCurrentExecution()
@@ -42,5 +42,5 @@ export const ExecuteButton = () => {
 			<span className="sr-only">Execute script</span>
 			<PlayIcon className="size-4" />
 		</Button>
-	)
-}
+	);
+};

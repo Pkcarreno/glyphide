@@ -1,0 +1,22 @@
+pre-commit:
+  jobs:
+    - run: pnpm check
+      glob: "*.{js,jsx,ts,tsx,json,jsonc,css,astro}"
+    - run: pnpm lint:fix {staged_files}
+      glob: "*.{js,jsx,ts,tsx,json,jsonc,css,astro}"
+      stage_fixed: true
+
+pre-push:
+  jobs:
+    - run: pnpm lint {push_files}
+      glob: "*.{js,jsx,ts,tsx,json,jsonc,css,astro}"
+
+post-merge:
+  jobs:
+    - run: pnpm install
+      files: git diff --name-only ORIG_HEAD HEAD
+      glob: "pnpm-lock.yaml"
+
+commit-msg:
+  jobs:
+    - run: pnpm commitlint --edit {1}

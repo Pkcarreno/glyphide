@@ -1,5 +1,6 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": ["ultracite/biome/core"],
   "vcs": {
     "enabled": false,
     "clientKind": "git",
@@ -9,56 +10,11 @@
   "files": {
     "ignoreUnknown": true,
     "includes": [
-      "**",
-      "!**/.prettierrc.mjs",
-      "!**/.prettierignore",
-      "!**/*.astro",
       "!**/.vercel",
       "!**/.turbo",
+      "!**/.astro",
       "!**/dist",
       "!**/dev-dist"
     ]
-  },
-  "formatter": {
-    "lineWidth": 100
-  },
-  "assist": { "actions": { "source": { "organizeImports": "on" } } },
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": true,
-      "style": {
-        "noParameterAssign": "error",
-        "useAsConstAssertion": "error",
-        "useDefaultParameterLast": "error",
-        "useEnumInitializers": "error",
-        "useSelfClosingElements": "error",
-        "useSingleVarDeclarator": "error",
-        "noUnusedTemplateLiteral": "error",
-        "useNumberNamespace": "error",
-        "noInferrableTypes": "error",
-        "noUselessElse": "error"
-      }
-    }
-  },
-  "javascript": {
-    "formatter": {
-      "quoteStyle": "single",
-      "jsxQuoteStyle": "double",
-      "trailingCommas": "none",
-      "arrowParentheses": "asNeeded",
-      "bracketSpacing": true,
-      "semicolons": "asNeeded"
-    }
-  },
-  "css": {
-    "parser": {
-      "tailwindDirectives": true
-    }
-  },
-  "json": {
-    "formatter": {
-      "indentStyle": "space"
-    }
   }
 }

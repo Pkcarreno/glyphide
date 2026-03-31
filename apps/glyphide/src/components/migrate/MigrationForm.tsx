@@ -3,37 +3,44 @@ import {
 	CheckCircleIcon,
 	CheckIcon,
 	CopyIcon,
-	ExternalLinkIcon
-} from 'lucide-react'
-import { useState } from 'react'
-import { z } from 'zod/v4'
-import { useAppForm } from '@/components/ui/Form'
-import { Textarea } from '@/components/ui/Textarea'
-import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard'
-import { type MigrationResult, migrateUrl } from '@/lib/migrations'
-import { Button } from '../ui/Button'
-import { Input, InputWrapper } from '../ui/Input'
-import { Label } from '../ui/Label'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/Tooltip'
+	ExternalLinkIcon,
+} from "lucide-react";
+import { useState } from "react";
+import { z } from "zod/v4";
+import { useAppForm } from "@/components/ui/Form";
+import { Textarea } from "@/components/ui/Textarea";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
+import { type MigrationResult, migrateUrl } from "@/lib/migrations";
+import { Button } from "../ui/Button";
+import { Input, InputWrapper } from "../ui/Input";
+import { Label } from "../ui/Label";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "../ui/Tooltip";
 
 const formSchema = z.object({
-	link: z.string().min(1)
-})
+	link: z.string().min(1),
+});
 
 export const MigrationForm = () => {
-	const [currentLinkData, setCurrentLinkData] = useState<undefined | MigrationResult>(undefined)
+	const [currentLinkData, setCurrentLinkData] = useState<
+		undefined | MigrationResult
+	>(undefined);
 	const form = useAppForm({
 		defaultValues: {
-			link: ''
+			link: "",
 		},
 		validators: {
-			onChange: formSchema
+			onChange: formSchema,
 		},
 		onSubmit: ({ value }) => {
-			const migrationRes = migrateUrl(value.link)
-			setCurrentLinkData(migrationRes)
-		}
-	})
+			const migrationRes = migrateUrl(value.link);
+			setCurrentLinkData(migrationRes);
+		},
+	});
 
 	return (
 		<div className="space-y-6">
@@ -41,13 +48,13 @@ export const MigrationForm = () => {
 				<form className="space-y-4">
 					<form.AppField
 						name="link"
-						children={field => (
+						children={(field) => (
 							<field.FormItem>
 								<field.FormControl>
 									<Textarea
 										placeholder="Insert your old link here..."
 										value={field.state.value}
-										onChange={e => field.handleChange(e.target.value)}
+										onChange={(e) => field.handleChange(e.target.value)}
 										onBlur={field.handleBlur}
 										className="field-sizing-content size-full max-h-[6lh]"
 									/>
@@ -56,23 +63,25 @@ export const MigrationForm = () => {
 						)}
 					/>
 					<form.Subscribe
-						selector={state => ({
+						selector={(state) => ({
 							canSubmit: state.canSubmit,
 							isSubmitting: state.isSubmitting,
-							isPristine: state.isPristine
+							isPristine: state.isPristine,
 						})}
-						children={state => (
+						children={(state) => (
 							<Button
 								type="submit"
 								className="w-full"
-								disabled={!state.canSubmit || state.isSubmitting || state.isPristine}
-								onClick={e => {
-									e.preventDefault()
-									form.handleSubmit()
+								disabled={
+									!state.canSubmit || state.isSubmitting || state.isPristine
+								}
+								onClick={(e) => {
+									e.preventDefault();
+									form.handleSubmit();
 								}}
 							>
 								{state.isSubmitting ? (
-									'Migrating...'
+									"Migrating..."
 								) : (
 									<>
 										Migrate Link
@@ -87,23 +96,23 @@ export const MigrationForm = () => {
 
 			<StatusMessage data={currentLinkData} />
 		</div>
-	)
-}
+	);
+};
 
 interface StatusMessageProps {
-	data: MigrationResult | undefined
+	data: MigrationResult | undefined;
 }
 
 export const StatusMessage: React.FC<StatusMessageProps> = ({ data }) => {
-	const { copy, copied } = useCopyToClipboard()
+	const { copy, copied } = useCopyToClipboard();
 
 	const handleCopy = () => {
 		if (data?.success) {
-			copy(data.url)
+			copy(data.url);
 		}
-	}
+	};
 
-	if (!data) return null
+	if (!data) return null;
 
 	if (!data.success) {
 		return (
@@ -117,7 +126,7 @@ export const StatusMessage: React.FC<StatusMessageProps> = ({ data }) => {
 					<p>{data.error}</p>
 				</div>
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -125,13 +134,15 @@ export const StatusMessage: React.FC<StatusMessageProps> = ({ data }) => {
 			<div className="flex items-center gap-2 text-success-foreground">
 				<CheckCircleIcon className="h-5 w-5" />
 				<span className="font-medium">
-					{data.isLatest ? 'Your link is already up to date!' : 'Migration Successful!'}
+					{data.isLatest
+						? "Your link is already up to date!"
+						: "Migration Successful!"}
 				</span>
 			</div>
 
 			<div className="space-y-3">
 				<Label className="font-medium text-muted-foreground text-sm">
-					{data.isLatest ? 'Your link' : 'Your migrated link'}:
+					{data.isLatest ? "Your link" : "Your migrated link"}:
 				</Label>
 
 				<InputWrapper>
@@ -139,7 +150,12 @@ export const StatusMessage: React.FC<StatusMessageProps> = ({ data }) => {
 					<TooltipProvider delayDuration={0}>
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<Button onClick={handleCopy} variant="dim" disabled={copied} className="-me-3.5">
+								<Button
+									onClick={handleCopy}
+									variant="dim"
+									disabled={copied}
+									className="-me-3.5"
+								>
 									{copied ? (
 										<CheckIcon className="stroke-green-600" size={16} />
 									) : (
@@ -147,18 +163,20 @@ export const StatusMessage: React.FC<StatusMessageProps> = ({ data }) => {
 									)}
 								</Button>
 							</TooltipTrigger>
-							<TooltipContent className="px-2 py-1 text-xs">Copy to clipboard</TooltipContent>
+							<TooltipContent className="px-2 py-1 text-xs">
+								Copy to clipboard
+							</TooltipContent>
 						</Tooltip>
 					</TooltipProvider>
 				</InputWrapper>
 
 				<Button asChild variant="secondary" className="w-full">
-					<a href={data.url} target="_blank">
+					<a href={data.url} target="_blank" rel="noopener">
 						Open Link
 						<ExternalLinkIcon className="ml-2 h-4 w-4" />
 					</a>
 				</Button>
 			</div>
 		</div>
-	)
-}
+	);
+};

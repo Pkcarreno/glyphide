@@ -13,13 +13,6 @@
     "//#root:knip": {
       "dependsOn": ["^root:knip"]
     },
-    "//#root:lint": {
-      "dependsOn": ["^root:lint"]
-    },
-    "//#root:lint:fix": {
-      "dependsOn": ["^root:lint:fix"],
-      "cache": false
-    },
     "format": {
       "dependsOn": ["^format"],
       "outputs": ["node_modules/.cache/.prettiercache"]
@@ -31,8 +24,8 @@
     "check": {
       "dependsOn": ["^check"]
     },
-    "type-check": {
-      "dependsOn": ["^type-check"],
+    "tsc": {
+      "dependsOn": ["^tsc"],
       "outputs": ["node_modules/.cache/tsbuildinfo.json"]
     }
   }

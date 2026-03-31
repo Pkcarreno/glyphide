@@ -1,5 +1,11 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
-import { MigrationForm } from './MigrationForm'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/Card";
+import { MigrationForm } from "./MigrationForm";
 
 export const LinkMigrationWidget = () => {
 	return (
@@ -7,13 +13,14 @@ export const LinkMigrationWidget = () => {
 			<CardHeader>
 				<CardTitle>Migrate Your Code</CardTitle>
 				<CardDescription>
-					Convert your existing JSOD/Glyphide links to work with the current version. <br /> Paste
-					your old link below and get an updated version instantly.
+					Convert your existing JSOD/Glyphide links to work with the current
+					version. <br /> Paste your old link below and get an updated version
+					instantly.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<MigrationForm />
 			</CardContent>
 		</Card>
-	)
-}
+	);
+};
