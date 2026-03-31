@@ -52,7 +52,7 @@
 		"eslint-linter-browserify": "^9.39.2",
 		"globals": "^17.4.0",
 		"js-base64": "^3.7.8",
-		"lucide-react": "^0.562.0",
+		"lucide-react": "^1.7.0",
 		"nanostores": "^1.2.0",
 		"react": "^19.2.3",
 		"react-dom": "^19.2.3",
