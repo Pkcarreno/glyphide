@@ -62,7 +62,7 @@
 		"tailwind-merge": "3.5.0",
 		"tailwindcss": "^4.2.2",
 		"vaul": "^1.1.2",
-		"vite-plugin-svgr": "^4.5.0",
+		"vite-plugin-svgr": "^5.0.0",
 		"workbox-window": "^7.3.0",
 		"zod": "^4.3.5",
 		"zustand": "^5.0.12"
