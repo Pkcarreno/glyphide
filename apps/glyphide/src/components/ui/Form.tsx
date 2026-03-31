@@ -57,7 +57,7 @@ const useFieldContext = () => {
 		formDescriptionId: `${id}-form-item-description`,
 		formMessageId: `${id}-form-item-message`,
 		errors,
-		store,
+		store: store as unknown,
 		...fieldContext
 	}
 }
