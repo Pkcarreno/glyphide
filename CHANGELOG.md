@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.3.0](https://github.com/Pkcarreno/glyphide/compare/v2.2.4...v2.3.0) (2026-03-31)
+
+
+### Features
+
+* add ultracite and use biome as formatter ([fa418ea](https://github.com/Pkcarreno/glyphide/commit/fa418ea29f2f3b8ff11f11abf3bb09ad9e10d165))
+* migrate from husky to lefthook ([2dc3853](https://github.com/Pkcarreno/glyphide/commit/2dc3853048740301087fb300e5d820fbbf283d47))
+
+
+### Bug Fixes
+
+* **app:** improve astro config ([bd35658](https://github.com/Pkcarreno/glyphide/commit/bd3565877eab4928ad4660af3f5eed33134154ac))
+* **app:** type inference issue ([2e2b0fb](https://github.com/Pkcarreno/glyphide/commit/2e2b0fb7b94e74219a2e41a61c19baa71230220d))
+* **app:** typecheck issues ([8c03008](https://github.com/Pkcarreno/glyphide/commit/8c03008ced5333bf167258f91ddaccf81311626a))
+* lefthook workflow on pre push ([d154cb3](https://github.com/Pkcarreno/glyphide/commit/d154cb36fb44248630eb005f029259411e68ca90))
+* lefthook workflow post merge ([cdb53d8](https://github.com/Pkcarreno/glyphide/commit/cdb53d82643a4f713fa4835cf3a37ace31cb2df0))
+* lint ([1a3f81b](https://github.com/Pkcarreno/glyphide/commit/1a3f81b22f6d2e01d1761fa34337a024d163b660))
+* only run astro check on pnpm check ([0f6a6f1](https://github.com/Pkcarreno/glyphide/commit/0f6a6f13290e2b02ab08aa48afe6694e69fecbd0))
+* **quickjs:** include url polyfill ([cb0cf87](https://github.com/Pkcarreno/glyphide/commit/cb0cf87b599c88d3e422e2436ce9906e3c277aa7))
+* update tsconfig per package ([ca82dc8](https://github.com/Pkcarreno/glyphide/commit/ca82dc89375beb3b4c89ee6f6209addb4cab1bd6))
+
 ## [2.2.4](https://github.com/Pkcarreno/glyphide/compare/v2.2.3...v2.2.4) (2026-01-31)
 
 
