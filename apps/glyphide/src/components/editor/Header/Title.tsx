@@ -97,7 +97,10 @@ export const ScriptTitle: React.FC = () => {
 		}
 	}, [isEditing]);
 
-	const displayStoreTitle = useStore(form.store, (state) => state.values.title);
+	const displayStoreTitle = useStore(
+		form.store as any,
+		(state: any) => state?.values?.title,
+	);
 
 	const displayTitle = useMemo(() => {
 		return displayStoreTitle && displayStoreTitle.length > 0
