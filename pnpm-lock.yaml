@@ -159,8 +159,8 @@ importers:
         specifier: ^2.0.4
         version: 2.0.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       tailwind-merge:
-        specifier: 3.4.0
-        version: 3.4.0
+        specifier: 3.5.0
+        version: 3.5.0
       tailwindcss:
         specifier: ^4.2.2
         version: 4.2.2
@@ -5508,8 +5508,8 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  tailwind-merge@3.4.0:
-    resolution: {integrity: sha512-uSaO4gnW+b3Y2aWoWfFpX62vn2sR3skfhbjsEnaBI81WD1wBLlHZe5sWf0AqjksNdYTbGBEd0UasQMT3SNV15g==}
+  tailwind-merge@3.5.0:
+    resolution: {integrity: sha512-I8K9wewnVDkL1NTGoqWmVEIlUcB9gFriAEkXkfCjX5ib8ezGxtR3xD7iZIxrfArjEsH7F1CHD4RFUtxefdqV/A==}
 
   tailwindcss@4.2.2:
     resolution: {integrity: sha512-KWBIxs1Xb6NoLdMVqhbhgwZf2PGBpPEiwOqgI4pFIYbNTfBXiKYyWoTsXgBQ9WFg/OlhnvHaY+AEpW7wSmFo2Q==}
@@ -12185,7 +12185,7 @@ snapshots:
       picocolors: 1.1.1
       sax: 1.6.0
 
-  tailwind-merge@3.4.0: {}
+  tailwind-merge@3.5.0: {}
 
   tailwindcss@4.2.2: {}
 
