@@ -1,0 +1,14 @@
+import { defineConfig } from "vite";
+import topLevelAwait from "vite-plugin-top-level-await";
+import wasm from "vite-plugin-wasm";
+
+export default defineConfig({
+  plugins: [wasm(), topLevelAwait()],
+  worker: {
+    plugins: () => [wasm(), topLevelAwait()],
+    format: "es",
+  },
+  optimizeDeps: {
+    exclude: ["quickjs-emscripten"],
+  },
+});
