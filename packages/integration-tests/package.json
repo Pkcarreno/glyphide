@@ -12,6 +12,7 @@
   "devDependencies": {
     "@glyphide/mock-engine": "workspace:*",
     "@glyphide/orchestrator": "workspace:*",
+    "@glyphide/quickjs-engine": "workspace:*",
     "@glyphide/rpc-protocol": "workspace:*",
     "happy-dom": "^20.9.0",
     "typescript": "^6.0.2",

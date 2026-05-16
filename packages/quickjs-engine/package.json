@@ -1,0 +1,40 @@
+{
+  "name": "@glyphide/quickjs-engine",
+  "version": "0.1.0",
+  "description": "QuickJS engine adapter for orchestrator",
+  "type": "module",
+  "exports": {
+    "./adapter": {
+      "types": "./dist/src/quickjs-adapter.d.ts",
+      "default": "./dist/src/quickjs-adapter.js"
+    },
+    "./types": {
+      "types": "./dist/src/types.d.ts",
+      "default": "./dist/src/types.js"
+    },
+    "./worker": {
+      "types": "./dist/worker/quickjs-worker.d.ts",
+      "default": "./dist/worker/quickjs-worker.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@glyphide/rpc-protocol": "workspace:*",
+    "quickjs-emscripten": "^0.32.0"
+  },
+  "peerDependencies": {
+    "@glyphide/orchestrator": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.6"
+  }
+}
