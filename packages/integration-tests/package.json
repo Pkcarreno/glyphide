@@ -1,0 +1,20 @@
+{
+  "name": "@glyphide/integration-tests",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Integration tests for the Glyphide Execution System.",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@glyphide/mock-engine": "workspace:*",
+    "@glyphide/orchestrator": "workspace:*",
+    "@glyphide/rpc-protocol": "workspace:*",
+    "happy-dom": "^20.9.0",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.6"
+  }
+}
