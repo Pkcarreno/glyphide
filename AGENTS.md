@@ -34,6 +34,10 @@ A test execution engine designed to validate the RPC protocol and orchestrator b
 
 Production-ready execution engine utilizing QuickJS (via WebAssembly) for safe, synchronous JavaScript evaluation. Replaces the legacy precompiled package.
 
+### 5. @glyphide/integration-tests
+
+Dedicated workspace package for cross-engine integration tests, ensuring correct orchestrated behavior across all implemented engines.
+
 ## CI/CD & Infraestructure
 
 ### GitHub Actions
