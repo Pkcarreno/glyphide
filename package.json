@@ -31,7 +31,6 @@
     "knip": "^6.1.1",
     "lefthook": "^2.1.4",
     "turbo": "^2.9.1",
-    "typescript": "^6.0.2",
     "ultracite": "^7.4.2"
   },
   "osMetadata": {
