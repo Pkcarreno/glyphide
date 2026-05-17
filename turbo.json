@@ -30,10 +30,6 @@
     "typecheck": {
       "dependsOn": ["^typecheck"],
       "outputs": ["node_modules/.cache/tsbuildinfo.json"]
-    },
-    "tsc": {
-      "dependsOn": ["^tsc"],
-      "outputs": ["node_modules/.cache/tsbuildinfo.json"]
     }
   }
 }

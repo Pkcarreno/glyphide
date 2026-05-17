@@ -22,7 +22,7 @@
   "scripts": {
     "dev": "vite build --watch",
     "build": "vite build",
-    "tsc": "tsc --project tsconfig.json --noEmit"
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [
     "glyphide",

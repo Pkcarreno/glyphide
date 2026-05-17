@@ -15,7 +15,7 @@
 		"check": "astro check",
 		"lint": "ultracite check",
 		"lint:fix": "ultracite fix",
-		"tsc": "tsc --project tsconfig.json --noEmit"
+		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
 		"@astrojs/check": "^0.9.8",
