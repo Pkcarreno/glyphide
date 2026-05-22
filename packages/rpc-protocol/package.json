@@ -8,28 +8,30 @@
   "license": "MIT",
   "exports": {
     "./constants": {
-      "types": "./dist/constants.d.ts",
-      "default": "./dist/constants.js"
+      "types": "./dist/constants.d.mts",
+      "default": "./dist/constants.mjs"
     },
     "./guards": {
-      "types": "./dist/guards.d.ts",
-      "default": "./dist/guards.js"
+      "types": "./dist/guards.d.mts",
+      "default": "./dist/guards.mjs"
     },
     "./types": {
-      "types": "./dist/types.d.ts",
-      "default": "./dist/types.js"
+      "types": "./dist/types.d.mts",
+      "default": "./dist/types.mjs"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "tsdown": "^0.22.0",
     "typescript": "^6.0.2",
     "vitest": "^4.1.6"
   }

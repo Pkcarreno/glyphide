@@ -8,27 +8,24 @@
   "license": "MIT",
   "exports": {
     ".": {
-      "types": "./dist/orchestrator.d.ts",
-      "default": "./dist/orchestrator.js"
+      "types": "./dist/orchestrator.d.mts",
+      "default": "./dist/orchestrator.mjs"
     },
     "./message-bus": {
-      "types": "./dist/message-bus.d.ts",
-      "default": "./dist/message-bus.js"
+      "types": "./dist/message-bus.d.mts",
+      "default": "./dist/message-bus.mjs"
     },
     "./promise-registry": {
-      "types": "./dist/promise-registry.d.ts",
-      "default": "./dist/promise-registry.js"
-    },
-    "./types": {
-      "types": "./dist/types.d.ts",
-      "default": "./dist/types.js"
+      "types": "./dist/promise-registry.d.mts",
+      "default": "./dist/promise-registry.mjs"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
@@ -37,6 +34,7 @@
     "@glyphide/rpc-protocol": "workspace:*"
   },
   "devDependencies": {
+    "tsdown": "^0.22.0",
     "typescript": "^6.0.2",
     "vitest": "^4.1.6"
   }

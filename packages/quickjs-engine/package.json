@@ -5,23 +5,24 @@
   "type": "module",
   "exports": {
     "./adapter": {
-      "types": "./dist/src/quickjs-adapter.d.ts",
-      "default": "./dist/src/quickjs-adapter.js"
+      "types": "./dist/src/quickjs-adapter.d.mts",
+      "default": "./dist/src/quickjs-adapter.mjs"
     },
     "./types": {
-      "types": "./dist/src/types.d.ts",
-      "default": "./dist/src/types.js"
+      "types": "./dist/src/types.d.mts",
+      "default": "./dist/src/types.mjs"
     },
     "./worker": {
-      "types": "./dist/worker/quickjs-worker.d.ts",
-      "default": "./dist/worker/quickjs-worker.js"
+      "types": "./dist/worker/quickjs-worker.d.mts",
+      "default": "./dist/worker/quickjs-worker.mjs"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
@@ -34,6 +35,7 @@
     "@glyphide/orchestrator": "workspace:*"
   },
   "devDependencies": {
+    "tsdown": "^0.22.0",
     "typescript": "^6.0.2",
     "vitest": "^4.1.6"
   }

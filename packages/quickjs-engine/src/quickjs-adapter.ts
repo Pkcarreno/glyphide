@@ -381,7 +381,7 @@ export class QuickJSEngineAdapter {
  * The worker file must be bundled or served correctly by the consumer.
  */
 export function createQuickJSWorker(): Worker {
-  return new Worker(new URL("../worker/quickjs-worker.js", import.meta.url), {
+  return new Worker(new URL("../worker/quickjs-worker.mjs", import.meta.url), {
     type: "module",
   });
 }
