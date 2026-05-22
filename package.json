@@ -17,7 +17,6 @@
     "preinstall": "npx only-allow pnpm",
     "commitlint": "commitlint",
     "prepare": "lefthook install",
-    "postinstall": "turbo run build --filter=@glyphide/quickjs",
     "root:knip": "knip",
     "knip": "turbo run root:knip",
     "clean": "node scripts/clean.js"
