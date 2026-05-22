@@ -17,18 +17,14 @@
       "dependsOn": ["^root:knip"]
     },
     "format": {
-      "dependsOn": ["^format"],
       "outputs": ["node_modules/.cache/.prettiercache"]
     },
     "format:fix": {
-      "dependsOn": ["^format:fix"],
       "cache": false
     },
-    "check": {
-      "dependsOn": ["^check"]
-    },
+    "check": {},
     "typecheck": {
-      "dependsOn": ["^typecheck"],
+      "dependsOn": ["^build"],
       "outputs": ["node_modules/.cache/tsbuildinfo.json"]
     }
   }
