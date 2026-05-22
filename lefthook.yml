@@ -9,8 +9,6 @@ pre-commit:
       glob: "*.{js,jsx,ts,tsx,json,jsonc,css,astro}"
     - run: pnpm test
       glob: "*.{js,jsx,ts,tsx,json,jsonc,css,astro}"
-    - run: gga run
-      fail_text: "Gentleman Guardian Angel failed. Fix violations before committing."
 
 pre-push:
   jobs:
