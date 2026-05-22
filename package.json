@@ -11,7 +11,7 @@
     "typecheck": "turbo run typecheck",
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "check": "turbo check",
+    "check": "turbo run check",
     "lint": "ultracite check",
     "lint:fix": "ultracite fix",
     "preinstall": "npx only-allow pnpm",
