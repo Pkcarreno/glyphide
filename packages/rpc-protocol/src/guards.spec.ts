@@ -48,7 +48,7 @@ describe("JSON-RPC Type Guards", () => {
     });
 
     it("returns false for notification", () => {
-      const msg = { jsonrpc: "2.0", method: EngineMethod.Print, params: {} };
+      const msg = { jsonrpc: "2.0", method: EngineMethod.Output, params: {} };
       expect(isJsonRpcRequest(msg)).toBe(false);
     });
 
@@ -62,7 +62,7 @@ describe("JSON-RPC Type Guards", () => {
     it("returns true for valid notification", () => {
       const msg = {
         jsonrpc: "2.0",
-        method: EngineMethod.Print,
+        method: EngineMethod.Output,
         params: { content: "test" },
       };
       expect(isJsonRpcNotification(msg)).toBe(true);

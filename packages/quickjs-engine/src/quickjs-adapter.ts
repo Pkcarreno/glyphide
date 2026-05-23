@@ -1,3 +1,4 @@
+import type { EngineWorkerFactory } from "@glyphide/orchestrator";
 import { EngineMethod, RpcErrorCode } from "@glyphide/rpc-protocol/constants";
 import {
   isJsonRpcNotification,
@@ -14,7 +15,11 @@ import {
   type QuickJSContext,
   type QuickJSRuntime,
 } from "quickjs-emscripten";
-import { defaultCapabilities, type QuickJSEngineConfig } from "./types";
+import {
+  defaultCapabilities,
+  type QuickJSEngineConfig,
+  type QuickJSOutputPayload,
+} from "./types";
 
 type NotificationHandler = (method: string, params?: object) => void;
 type ResponseSender = (
@@ -202,8 +207,9 @@ export class QuickJSEngineAdapter {
   #handleInterrupt(): void {
     if (this.#runtime) {
       this.#runtime.setInterruptHandler(() => true);
-      this.#onNotification(EngineMethod.Log, {
-        content: "Execution interrupted",
+      this.#onNotification(EngineMethod.Output, {
+        type: "log",
+        data: "Execution interrupted",
       });
     }
   }
@@ -267,11 +273,12 @@ export class QuickJSEngineAdapter {
             ? JSON.stringify(dumped)
             : String(dumped);
         });
-        const targetMethod =
-          method === "warn" || method === "error"
-            ? EngineMethod.Warn
-            : EngineMethod.Log;
-        this.#onNotification(targetMethod, { content: texts.join(" ") });
+        const outputType =
+          method === "warn" || method === "error" ? "warn" : method;
+        this.#onNotification(EngineMethod.Output, {
+          type: outputType,
+          data: texts.join(" "),
+        });
       });
     };
 
@@ -380,8 +387,9 @@ export class QuickJSEngineAdapter {
  * Factory function to create a new Web Worker running the QuickJS engine.
  * The worker file must be bundled or served correctly by the consumer.
  */
-export function createQuickJSWorker(): Worker {
-  return new Worker(new URL("../worker/quickjs-worker.mjs", import.meta.url), {
+export const createQuickJSWorker: EngineWorkerFactory<
+  QuickJSOutputPayload
+> = () =>
+  new Worker(new URL("../worker/quickjs-worker.mjs", import.meta.url), {
     type: "module",
   });
-}

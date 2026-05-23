@@ -4,9 +4,14 @@
 
 export interface MockCapabilities {
   interruptible: boolean;
-  outputTypes: readonly ("print" | "log" | "warn")[];
+  outputTypes: readonly string[];
   stateful: boolean;
 }
+
+/** Discriminated output payload for the mock engine. */
+export type MockOutputPayload =
+  | { data: string; type: "log" | "print" | "warn" }
+  | { data: string; type: "system" };
 
 export interface MockEngineConfig {
   /** Capabilities exposed by the engine. Default: defaultCapabilities */

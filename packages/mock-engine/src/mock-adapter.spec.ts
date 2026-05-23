@@ -14,7 +14,7 @@ interface CapturedResponse {
 
 interface CapturedNotification {
   method: string;
-  params?: { content?: string };
+  params?: { type?: string; data?: unknown };
 }
 
 describe("MockEngineAdapter", () => {
@@ -163,8 +163,9 @@ describe("MockEngineAdapter", () => {
       await new Promise((r) => setTimeout(r, 20));
 
       expect(notifications).toHaveLength(1);
-      expect(notifications[0].method).toBe(EngineMethod.Print);
-      expect(notifications[0].params?.content).toBe("test code");
+      expect(notifications[0].method).toBe(EngineMethod.Output);
+      expect(notifications[0].params?.type).toBe("print");
+      expect(notifications[0].params?.data).toBe("test code");
 
       adapter.dispose();
     });
@@ -256,7 +257,7 @@ describe("MockEngineAdapter", () => {
       await new Promise((r) => setTimeout(r, 20));
 
       expect(responses[0].result).toEqual({ executed: true });
-      expect(notifications[0].params?.content).toBe("");
+      expect(notifications[0].params?.data).toBe("");
 
       adapter.dispose();
     });
@@ -321,8 +322,9 @@ describe("MockEngineAdapter", () => {
       await new Promise((r) => setTimeout(r, 250));
 
       expect(notifications).toHaveLength(1);
-      expect(notifications[0].method).toBe(EngineMethod.Log);
-      expect(notifications[0].params?.content).toBe("Execution interrupted");
+      expect(notifications[0].method).toBe(EngineMethod.Output);
+      expect(notifications[0].params?.type).toBe("log");
+      expect(notifications[0].params?.data).toBe("Execution interrupted");
 
       adapter.dispose();
     });
@@ -350,7 +352,7 @@ describe("MockEngineAdapter", () => {
       expect(responses).toHaveLength(1);
       expect(responses[0].result).toEqual({ executed: true });
       expect(notifications).toHaveLength(1);
-      expect(notifications[0].method).toBe(EngineMethod.Print);
+      expect(notifications[0].method).toBe(EngineMethod.Output);
 
       adapter.dispose();
     });
@@ -428,7 +430,7 @@ describe("MockEngineAdapter", () => {
 
       adapter.handleMessage({
         jsonrpc: "2.0",
-        method: EngineMethod.Print,
+        method: EngineMethod.Output,
         params: { content: "test" },
       } as never);
 

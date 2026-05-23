@@ -6,6 +6,7 @@
 import { EngineMethod } from "@glyphide/rpc-protocol/constants";
 import { isJsonRpcFail, isJsonRpcOk } from "@glyphide/rpc-protocol/guards";
 import type {
+  EngineOutputPayload,
   JsonRpcFailResponse,
   JsonRpcNotification,
   JsonRpcOkResponse,
@@ -18,37 +19,56 @@ export interface EngineConfig {
   timeout?: number;
 }
 
-export type OutputType = "print" | "log" | "warn";
+/**
+ * Phantom-typed worker factory.
+ * The generic parameter carries the engine's output payload shape
+ * through the type system without adding runtime overhead.
+ */
+export type EngineWorkerFactory<
+  TPayload extends EngineOutputPayload = EngineOutputPayload,
+> = (() => Worker) & {
+  readonly _payloadType?: TPayload;
+};
 
-export interface OrchestratorEvents {
+/** Extracts the payload type carried by an `EngineWorkerFactory`. */
+export type InferEnginePayload<TFactory> =
+  TFactory extends EngineWorkerFactory<infer P> ? P : EngineOutputPayload;
+
+export interface OrchestratorEvents<
+  TPayload extends EngineOutputPayload = EngineOutputPayload,
+> {
   onInit?: (config: EngineConfig) => void;
-  onOutput?: (line: string, type: OutputType) => void;
+  onOutput?: (payload: TPayload) => void;
 }
 
-export interface OrchestratorConfig {
+export interface OrchestratorConfig<
+  TFactory extends EngineWorkerFactory = EngineWorkerFactory,
+> {
   /** Factory function to create the engine worker instance. */
-  createWorker?: () => Worker;
+  createWorker?: TFactory;
   /** Event handlers. */
-  events?: OrchestratorEvents;
+  events?: OrchestratorEvents<InferEnginePayload<TFactory>>;
   /** Enable worker mode. If false, runs inline (future). */
   useWorker?: boolean;
 }
 
-export class EngineOrchestrator {
-  readonly #config: Required<OrchestratorConfig>;
+export class EngineOrchestrator<
+  TFactory extends EngineWorkerFactory = EngineWorkerFactory,
+> {
+  readonly #config: Required<OrchestratorConfig<TFactory>>;
   readonly #registry: PromiseRegistry;
   #worker: Worker | null = null;
   #bus: MessageBus | null = null;
   #nextId = 0;
   #timeout = 30_000;
 
-  constructor(config: OrchestratorConfig) {
+  constructor(config: OrchestratorConfig<TFactory>) {
     this.#config = {
       createWorker:
         config.createWorker ??
-        (() => {
+        ((() => {
           throw new Error("createWorker factory not provided");
-        }),
+        }) as unknown as TFactory),
       useWorker: config.useWorker ?? true,
       events: config.events ?? {},
     };
@@ -169,15 +189,13 @@ export class EngineOrchestrator {
   }
 
   #handleNotification(notification: JsonRpcNotification): void {
-    const payload = notification.params as { content?: string } | undefined;
-    const content = payload?.content ?? "";
-
-    if (notification.method === EngineMethod.Print) {
-      this.#config.events.onOutput?.(content, "print");
-    } else if (notification.method === EngineMethod.Log) {
-      this.#config.events.onOutput?.(content, "log");
-    } else if (notification.method === EngineMethod.Warn) {
-      this.#config.events.onOutput?.(content, "warn");
+    if (notification.method === EngineMethod.Output) {
+      const payload = notification.params as
+        | InferEnginePayload<TFactory>
+        | undefined;
+      if (payload) {
+        this.#config.events.onOutput?.(payload);
+      }
     }
   }
 

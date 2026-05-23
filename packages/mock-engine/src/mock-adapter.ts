@@ -168,7 +168,10 @@ export class MockEngineAdapter {
       const payload = params as { code?: string } | undefined;
       const code = payload?.code ?? "";
 
-      this.#onNotification(EngineMethod.Print, { content: code });
+      this.#onNotification(EngineMethod.Output, {
+        type: "print",
+        data: code,
+      });
       this.#sendResponse({
         jsonrpc: "2.0",
         id,
@@ -181,8 +184,9 @@ export class MockEngineAdapter {
   #handleInterrupt(): void {
     if (this.#running) {
       this.#interrupted = true;
-      this.#onNotification(EngineMethod.Log, {
-        content: "Execution interrupted",
+      this.#onNotification(EngineMethod.Output, {
+        type: "log",
+        data: "Execution interrupted",
       });
     }
   }

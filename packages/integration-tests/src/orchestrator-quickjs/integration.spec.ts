@@ -22,7 +22,7 @@ describe("Orchestrator + QuickJS Engine Integration", () => {
       expect(config).toHaveProperty("timeout", 30_000);
       expect(config).toHaveProperty("stateful", true);
       expect(config).toHaveProperty("interruptible", true);
-      expect((config as any).outputTypes).toContain("print");
+      expect((config as any).outputTypes).toContain("log");
     });
   });
 
@@ -47,7 +47,11 @@ describe("Orchestrator + QuickJS Engine Integration", () => {
       orchestrator = new EngineOrchestrator({
         createWorker: createQuickJSWorker,
         events: {
-          onOutput: (content, type) => outputs.push({ content, type }),
+          onOutput: (payload) =>
+            outputs.push({
+              content: String(payload.data ?? ""),
+              type: payload.type,
+            }),
         },
       });
 
@@ -68,7 +72,11 @@ describe("Orchestrator + QuickJS Engine Integration", () => {
       orchestrator = new EngineOrchestrator({
         createWorker: createQuickJSWorker,
         events: {
-          onOutput: (content, type) => outputs.push({ content, type }),
+          onOutput: (payload) =>
+            outputs.push({
+              content: String(payload.data ?? ""),
+              type: payload.type,
+            }),
         },
       });
 

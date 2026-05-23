@@ -87,7 +87,11 @@ describe("Orchestrator + Mock Engine Integration", () => {
       orchestrator = new EngineOrchestrator({
         createWorker: createMockWorker,
         events: {
-          onOutput: (content, type) => outputs.push({ content, type }),
+          onOutput: (payload) =>
+            outputs.push({
+              content: String(payload.data ?? ""),
+              type: payload.type,
+            }),
         },
       });
 
@@ -108,7 +112,11 @@ describe("Orchestrator + Mock Engine Integration", () => {
       orchestrator = new EngineOrchestrator({
         createWorker: createMockWorker,
         events: {
-          onOutput: (content, type) => outputs.push({ content, type }),
+          onOutput: (payload) =>
+            outputs.push({
+              content: String(payload.data ?? ""),
+              type: payload.type,
+            }),
         },
       });
 

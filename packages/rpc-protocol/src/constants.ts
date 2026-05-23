@@ -6,9 +6,7 @@ export const EngineMethod = {
   Run: "RUN",
   Interrupt: "ENGINE.INTERRUPT",
   Reset: "ENGINE.RESET",
-  Print: "PRINT",
-  Log: "LOG",
-  Warn: "WARN",
+  Output: "ENGINE.OUTPUT",
 } as const;
 
 export type EngineMethod = (typeof EngineMethod)[keyof typeof EngineMethod];

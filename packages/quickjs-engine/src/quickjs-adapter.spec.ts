@@ -14,7 +14,7 @@ interface CapturedResponse {
 
 interface CapturedNotification {
   method: string;
-  params?: { content?: string };
+  params?: { type?: string; data?: unknown };
 }
 
 describe("QuickJSEngineAdapter", () => {
@@ -60,7 +60,7 @@ describe("QuickJSEngineAdapter", () => {
         timeout: 30_000,
         stateful: true,
         interruptible: true,
-        outputTypes: ["print", "log", "warn"],
+        outputTypes: ["log", "warn", "error", "info"],
       });
     });
   });
@@ -129,8 +129,9 @@ describe("QuickJSEngineAdapter", () => {
       await new Promise((r) => setTimeout(r, 50));
 
       expect(notifications).toHaveLength(1);
-      expect(notifications[0].method).toBe(EngineMethod.Log);
-      expect(notifications[0].params?.content).toBe("hello world");
+      expect(notifications[0].method).toBe(EngineMethod.Output);
+      expect(notifications[0].params?.type).toBe("log");
+      expect(notifications[0].params?.data).toBe("hello world");
     });
 
     it("returns error on syntax error", async () => {
@@ -250,8 +251,8 @@ describe("QuickJSEngineAdapter", () => {
       expect(
         notifications.some(
           (n) =>
-            n.method === EngineMethod.Log &&
-            n.params?.content === "Execution interrupted"
+            n.method === EngineMethod.Output &&
+            n.params?.data === "Execution interrupted"
         )
       ).toBe(true);
     });
@@ -383,7 +384,7 @@ describe("QuickJSEngineAdapter", () => {
       expect(
         notifications.some(
           (n) =>
-            n.method === EngineMethod.Log && n.params?.content === "after reset"
+            n.method === EngineMethod.Output && n.params?.data === "after reset"
         )
       ).toBe(true);
     });

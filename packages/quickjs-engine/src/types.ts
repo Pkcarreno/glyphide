@@ -3,8 +3,13 @@ export interface QuickJSEngineConfig {
   memoryLimit?: number;
 }
 
+/** Discriminated output payload for QuickJS engine. */
+export type QuickJSOutputPayload =
+  | { data: string; type: "error" | "info" | "log" | "warn" }
+  | { data: string; type: "system" };
+
 export const defaultCapabilities = {
   stateful: true,
   interruptible: true,
-  outputTypes: ["print", "log", "warn"],
+  outputTypes: ["log", "warn", "error", "info"] as const,
 };

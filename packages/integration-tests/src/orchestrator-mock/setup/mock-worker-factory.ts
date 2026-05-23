@@ -1,12 +1,16 @@
 import { MockEngineAdapter } from "@glyphide/mock-engine/adapter";
-import type { MockEngineConfig } from "@glyphide/mock-engine/types";
+import type {
+  MockEngineConfig,
+  MockOutputPayload,
+} from "@glyphide/mock-engine/types";
+import type { EngineWorkerFactory } from "@glyphide/orchestrator";
 import type { JsonRpcMessage } from "@glyphide/rpc-protocol/types";
 
 /**
  * Creates a mock engine worker instance by polyfilling the Web Worker interface.
  * This allows integration tests to run in Node.js without actual Web Workers.
  */
-export function createMockWorker(): Worker {
+export const createMockWorker: EngineWorkerFactory<MockOutputPayload> = () => {
   const adapter = new MockEngineAdapter();
 
   const worker = {
@@ -60,7 +64,7 @@ export function createMockWorker(): Worker {
   );
 
   return worker as unknown as Worker;
-}
+};
 
 /**
  * Creates a configuration object to pass to the mock engine during initialization.

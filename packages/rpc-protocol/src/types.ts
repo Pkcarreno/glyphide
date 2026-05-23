@@ -42,3 +42,14 @@ export type JsonRpcMessage =
   | JsonRpcRequest
   | JsonRpcNotification
   | JsonRpcResponse;
+
+/**
+ * Generic output payload sent by engines via ENGINE.OUTPUT notifications.
+ * The `type` field is engine-defined, allowing arbitrary output categories
+ * (e.g., "log", "warn", "table", "debug"). The consuming application
+ * decides how to render each type or falls back to plain text.
+ */
+export interface EngineOutputPayload {
+  data?: unknown;
+  type: string;
+}
