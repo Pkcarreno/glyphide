@@ -108,7 +108,7 @@ describe("QuickJSEngineAdapter", () => {
       expect(responses[0].result).toEqual({ executed: true, value: 2 });
     });
 
-    it("emits log notification when console.log is called", async () => {
+    it("emits log notification with structured tokens", async () => {
       const notifications: CapturedNotification[] = [];
 
       adapter.setup(
@@ -131,7 +131,182 @@ describe("QuickJSEngineAdapter", () => {
       expect(notifications).toHaveLength(1);
       expect(notifications[0].method).toBe(EngineMethod.Output);
       expect(notifications[0].params?.type).toBe("log");
-      expect(notifications[0].params?.data).toBe("hello world");
+      expect(notifications[0].params?.data).toEqual([
+        { type: "string", value: "hello" },
+        { type: "string", value: "world" },
+      ]);
+    });
+
+    it("tokenizes primitives correctly", async () => {
+      const notifications: CapturedNotification[] = [];
+
+      adapter.setup(
+        () => {
+          /* noop */
+        },
+        (m, p) =>
+          notifications.push({ method: m, params: p as { data?: unknown } })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: "console.log(42, true, null, undefined);" },
+        id: 5,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(notifications[0].params?.data).toEqual([
+        { type: "number", value: 42 },
+        { type: "boolean", value: true },
+        { type: "null" },
+        { type: "undefined" },
+      ]);
+    });
+
+    it("tokenizes objects and arrays", async () => {
+      const notifications: CapturedNotification[] = [];
+
+      adapter.setup(
+        () => {
+          /* noop */
+        },
+        (m, p) =>
+          notifications.push({ method: m, params: p as { data?: unknown } })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: "console.log({ a: 1 }, [1, 'two']);" },
+        id: 5,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(notifications[0].params?.data).toEqual([
+        {
+          type: "object",
+          properties: {
+            a: { type: "number", value: 1 },
+          },
+        },
+        {
+          type: "array",
+          elements: [
+            { type: "number", value: 1 },
+            { type: "string", value: "two" },
+          ],
+          length: 2,
+        },
+      ]);
+    });
+
+    it("handles circular references without crashing", async () => {
+      const notifications: CapturedNotification[] = [];
+
+      adapter.setup(
+        () => {
+          /* noop */
+        },
+        (m, p) =>
+          notifications.push({ method: m, params: p as { data?: unknown } })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: "const a = {}; a.self = a; console.log(a);" },
+        id: 5,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(notifications).toHaveLength(1);
+      const tokens = notifications[0].params?.data as Array<{
+        type: string;
+        properties?: Record<string, { type: string }>;
+      }>;
+      expect(tokens[0].type).toBe("object");
+      expect(tokens[0].properties?.self).toEqual({ type: "circular" });
+    });
+
+    it("tokenizes functions with name", async () => {
+      const notifications: CapturedNotification[] = [];
+
+      adapter.setup(
+        () => {
+          /* noop */
+        },
+        (m, p) =>
+          notifications.push({ method: m, params: p as { data?: unknown } })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: {
+          code: "function myFn() {}; console.log(myFn);",
+        },
+        id: 5,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(notifications[0].params?.data).toEqual([
+        { type: "function", name: "myFn" },
+      ]);
+    });
+
+    it("applies WHATWG format specifiers", async () => {
+      const notifications: CapturedNotification[] = [];
+
+      adapter.setup(
+        () => {
+          /* noop */
+        },
+        (m, p) =>
+          notifications.push({ method: m, params: p as { data?: unknown } })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: {
+          code: 'console.log("Hello %s, you are %d", "World", 42);',
+        },
+        id: 5,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(notifications[0].params?.data).toEqual([
+        { type: "string", value: "Hello World, you are 42" },
+      ]);
+    });
+
+    it("preserves console method type for error", async () => {
+      const notifications: CapturedNotification[] = [];
+
+      adapter.setup(
+        () => {
+          /* noop */
+        },
+        (m, p) =>
+          notifications.push({ method: m, params: p as { data?: unknown } })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: "console.error('oops');" },
+        id: 5,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(notifications[0].params?.type).toBe("error");
     });
 
     it("returns error on syntax error", async () => {
@@ -247,11 +422,12 @@ describe("QuickJSEngineAdapter", () => {
 
       await new Promise((r) => setTimeout(r, 50));
 
-      // Should have emitted a log
+      // Should have emitted a system notification
       expect(
         notifications.some(
           (n) =>
             n.method === EngineMethod.Output &&
+            n.params?.type === "system" &&
             n.params?.data === "Execution interrupted"
         )
       ).toBe(true);
@@ -384,7 +560,10 @@ describe("QuickJSEngineAdapter", () => {
       expect(
         notifications.some(
           (n) =>
-            n.method === EngineMethod.Output && n.params?.data === "after reset"
+            n.method === EngineMethod.Output &&
+            Array.isArray(n.params?.data) &&
+            (n.params?.data as Array<{ type: string; value?: string }>)[0]
+              ?.value === "after reset"
         )
       ).toBe(true);
     });

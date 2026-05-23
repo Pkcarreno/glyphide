@@ -3,9 +3,22 @@ export interface QuickJSEngineConfig {
   memoryLimit?: number;
 }
 
+/** AST token representing a single JS value serialized for transport. */
+export type ConsoleToken =
+  | { type: "string"; value: string }
+  | { type: "number"; value: number }
+  | { type: "boolean"; value: boolean }
+  | { type: "null" }
+  | { type: "undefined" }
+  | { type: "function"; name: string }
+  | { type: "symbol"; description: string }
+  | { type: "circular" }
+  | { type: "array"; elements: ConsoleToken[]; length: number }
+  | { type: "object"; properties: Record<string, ConsoleToken> };
+
 /** Discriminated output payload for QuickJS engine. */
 export type QuickJSOutputPayload =
-  | { data: string; type: "error" | "info" | "log" | "warn" }
+  | { data: ConsoleToken[]; type: "error" | "info" | "log" | "warn" }
   | { data: string; type: "system" };
 
 export const defaultCapabilities = {

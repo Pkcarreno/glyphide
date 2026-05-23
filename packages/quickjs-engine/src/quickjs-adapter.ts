@@ -15,7 +15,9 @@ import {
   type QuickJSContext,
   type QuickJSRuntime,
 } from "quickjs-emscripten";
+import { consoleAstSource } from "./console-ast-builder";
 import {
+  type ConsoleToken,
   defaultCapabilities,
   type QuickJSEngineConfig,
   type QuickJSOutputPayload,
@@ -208,7 +210,7 @@ export class QuickJSEngineAdapter {
     if (this.#runtime) {
       this.#runtime.setInterruptHandler(() => true);
       this.#onNotification(EngineMethod.Output, {
-        type: "log",
+        type: "system",
         data: "Execution interrupted",
       });
     }
@@ -263,41 +265,38 @@ export class QuickJSEngineAdapter {
       return;
     }
     const ctx = this.#context;
-    const consoleHandle = ctx.newObject();
 
-    const createLogger = (method: string) => {
-      return ctx.newFunction(method, (...args) => {
-        const texts = args.map((arg) => {
-          const dumped = ctx.dump(arg);
-          return typeof dumped === "object"
-            ? JSON.stringify(dumped)
-            : String(dumped);
-        });
-        const outputType =
-          method === "warn" || method === "error" ? "warn" : method;
+    // Bind host callback that receives (method, jsonTokens)
+    const emitHandle = ctx.newFunction(
+      "__glyphide_emit__",
+      (methodHandle, jsonHandle) => {
+        const method = ctx.getString(methodHandle);
+        const json = ctx.getString(jsonHandle);
+
+        let tokens: ConsoleToken[];
+        try {
+          tokens = JSON.parse(json) as ConsoleToken[];
+        } catch {
+          tokens = [{ type: "string", value: json }];
+        }
+
         this.#onNotification(EngineMethod.Output, {
-          type: outputType,
-          data: texts.join(" "),
+          type: method as "log" | "warn" | "error" | "info",
+          data: tokens,
         });
-      });
-    };
+      }
+    );
 
-    const logHandle = createLogger("log");
-    const warnHandle = createLogger("warn");
-    const errorHandle = createLogger("error");
-    const infoHandle = createLogger("info");
+    ctx.setProp(ctx.global, "__glyphide_emit__", emitHandle);
+    emitHandle.dispose();
 
-    ctx.setProp(consoleHandle, "log", logHandle);
-    ctx.setProp(consoleHandle, "warn", warnHandle);
-    ctx.setProp(consoleHandle, "error", errorHandle);
-    ctx.setProp(consoleHandle, "info", infoHandle);
-    ctx.setProp(ctx.global, "console", consoleHandle);
-
-    logHandle.dispose();
-    warnHandle.dispose();
-    errorHandle.dispose();
-    infoHandle.dispose();
-    consoleHandle.dispose();
+    // Evaluate the AST builder which sets up globalThis.console
+    const result = ctx.evalCode(consoleAstSource);
+    if (result.error) {
+      result.error.dispose();
+    } else {
+      result.value.dispose();
+    }
   }
 
   #injectFetch(): void {

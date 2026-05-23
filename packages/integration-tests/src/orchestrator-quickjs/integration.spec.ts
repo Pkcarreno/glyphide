@@ -41,15 +41,15 @@ describe("Orchestrator + QuickJS Engine Integration", () => {
   });
 
   describe("notifications", () => {
-    it("emits log output from running code", async () => {
-      const outputs: Array<{ content: string; type: string }> = [];
+    it("emits log output with structured tokens", async () => {
+      const outputs: Array<{ data: unknown; type: string }> = [];
 
       orchestrator = new EngineOrchestrator({
         createWorker: createQuickJSWorker,
         events: {
           onOutput: (payload) =>
             outputs.push({
-              content: String(payload.data ?? ""),
+              data: payload.data,
               type: payload.type,
             }),
         },
@@ -58,10 +58,11 @@ describe("Orchestrator + QuickJS Engine Integration", () => {
       await orchestrator.init();
       await orchestrator.run("console.log('hello from quickjs')");
 
-      expect(outputs).toContainEqual({
-        content: "hello from quickjs",
-        type: "log",
-      });
+      expect(outputs).toHaveLength(1);
+      expect(outputs[0].type).toBe("log");
+      expect(outputs[0].data).toEqual([
+        { type: "string", value: "hello from quickjs" },
+      ]);
     });
   });
 
@@ -102,7 +103,7 @@ describe("Orchestrator + QuickJS Engine Integration", () => {
 
       expect(
         outputs.some(
-          (o) => o.type === "log" && o.content === "Execution interrupted"
+          (o) => o.type === "system" && o.content === "Execution interrupted"
         )
       ).toBe(true);
     });
