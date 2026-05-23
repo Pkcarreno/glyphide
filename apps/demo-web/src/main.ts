@@ -1,5 +1,6 @@
 import { EngineOrchestrator } from "@glyphide/orchestrator";
 import { createQuickJSWorker } from "@glyphide/quickjs-engine/adapter";
+import type { ConsoleToken } from "@glyphide/quickjs-engine/types";
 import "./styles.css";
 
 const codeInput = document.getElementById("code-input") as HTMLTextAreaElement;
@@ -28,11 +29,55 @@ type EngineState = "idle" | "initializing" | "running" | "error";
 let engineInitialized = false;
 let currentState: EngineState = "idle";
 
+/**
+ * Converts a ConsoleToken into a human-readable string for the output panel.
+ * This is a transitional renderer until a proper interactive console UI is built.
+ */
+function stringifyToken(token: ConsoleToken): string {
+  switch (token.type) {
+    case "string":
+      return token.value;
+    case "number":
+      return String(token.value);
+    case "boolean":
+      return String(token.value);
+    case "null":
+      return "null";
+    case "undefined":
+      return "undefined";
+    case "function":
+      return `ƒ ${token.name || "anonymous"}()`;
+    case "symbol":
+      return token.description;
+    case "circular":
+      return "[Circular]";
+    case "array":
+      return `[${token.elements.map(stringifyToken).join(", ")}]`;
+    case "object": {
+      const entries = Object.entries(token.properties)
+        .map(([k, v]) => `${k}: ${stringifyToken(v)}`)
+        .join(", ");
+      return `{${entries}}`;
+    }
+    default:
+      return "value" in token
+        ? String((token as Record<string, unknown>).value)
+        : "unknown";
+  }
+}
+
 const orchestrator = new EngineOrchestrator({
   createWorker: createQuickJSWorker,
   events: {
-    onOutput: (payload) =>
-      appendOutput(String(payload.data ?? ""), payload.type),
+    onOutput: (payload) => {
+      if (payload.type === "system") {
+        appendOutput(payload.data as string, "system");
+      } else {
+        const tokens = payload.data as ConsoleToken[];
+        const text = tokens.map(stringifyToken).join(" ");
+        appendOutput(text, payload.type);
+      }
+    },
   },
 });
 
