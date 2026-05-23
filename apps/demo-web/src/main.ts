@@ -1,4 +1,3 @@
-import type { OutputType } from "@glyphide/orchestrator";
 import { EngineOrchestrator } from "@glyphide/orchestrator";
 import { createQuickJSWorker } from "@glyphide/quickjs-engine/adapter";
 import "./styles.css";
@@ -32,7 +31,8 @@ let currentState: EngineState = "idle";
 const orchestrator = new EngineOrchestrator({
   createWorker: createQuickJSWorker,
   events: {
-    onOutput: (content, type) => appendOutput(content, type),
+    onOutput: (payload) =>
+      appendOutput(String(payload.data ?? ""), payload.type),
   },
 });
 
@@ -56,10 +56,7 @@ function setEngineState(state: EngineState): void {
   interruptButton.disabled = state !== "running";
 }
 
-function appendOutput(
-  content: string,
-  type: OutputType | "error" | "system"
-): void {
+function appendOutput(content: string, type: string): void {
   // Remove placeholder if present
   const placeholder = outputPanel.querySelector(".output-placeholder");
   if (placeholder) {
@@ -68,7 +65,7 @@ function appendOutput(
 
   const line = document.createElement("div");
   line.className = `output-line ${type}`;
-  line.textContent = content;
+  line.textContent = `[${type.toUpperCase()}] ${content}`;
   outputPanel.appendChild(line);
 
   // Auto-scroll to bottom
