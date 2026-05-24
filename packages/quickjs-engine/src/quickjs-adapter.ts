@@ -13,6 +13,7 @@ import type {
 import {
   getQuickJS,
   type QuickJSContext,
+  type QuickJSHandle,
   type QuickJSRuntime,
 } from "quickjs-emscripten";
 import { consoleAstSource } from "./console-ast-builder";
@@ -183,7 +184,7 @@ export class QuickJSEngineAdapter {
         return;
       }
 
-      const valueMsg = this.#context.dump(result.value);
+      const valueMsg = this.#safeDump(result.value);
       result.value.dispose();
 
       // QuickJS handles async jobs separately. We execute any pending promises.
@@ -258,6 +259,45 @@ export class QuickJSEngineAdapter {
         },
       });
     }
+  }
+
+  /**
+   * Safely serializes a QuickJSHandle to a native JS value.
+   *
+   * Uses getPromiseState() to distinguish between regular values
+   * and Promises. For non-Promises, getPromiseState returns
+   * `{ type: "fulfilled", value: handle, notAPromise: true }`
+   * where `value` is the same handle reference. For actual
+   * Promises, it returns a separate handle to the resolved value
+   * (or error) that must be disposed independently.
+   *
+   * Calling dump() directly on a Promise handle crashes with
+   * "Lifetime not alive" because WASM-backed promise internals
+   * are not safely traversable.
+   */
+  #safeDump(handle: QuickJSHandle): unknown {
+    if (!this.#context) {
+      return undefined;
+    }
+
+    const state = this.#context.getPromiseState(handle);
+
+    if ((state as { notAPromise?: boolean }).notAPromise) {
+      // Regular value — state.value IS the same handle, do NOT dispose it.
+      return this.#context.dump(handle);
+    }
+
+    if (state.type === "fulfilled") {
+      const value = this.#context.dump(state.value);
+      state.value.dispose();
+      return value;
+    }
+
+    if (state.type === "rejected") {
+      state.error.dispose();
+    }
+
+    return undefined;
   }
 
   #injectConsole(): void {

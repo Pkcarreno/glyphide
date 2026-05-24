@@ -568,4 +568,332 @@ describe("QuickJSEngineAdapter", () => {
       ).toBe(true);
     });
   });
+
+  describe("promise serialization", () => {
+    beforeEach(async () => {
+      adapter.setup(
+        () => {
+          /* noop */
+        },
+        () => {
+          /* noop */
+        }
+      );
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Init,
+        id: "init",
+      });
+      await new Promise((r) => setTimeout(r, 50));
+    });
+
+    it("returns success when evalCode result is an unresolved Promise", async () => {
+      const responses: CapturedResponse[] = [];
+
+      adapter.setup(
+        (r) =>
+          responses.push({
+            id: r.id,
+            result: r.result as object,
+            error: r.error,
+          }),
+        () => {
+          /* noop */
+        }
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: "new Promise(() => {})" },
+        id: 10,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(responses).toHaveLength(1);
+      expect(responses[0].error).toBeUndefined();
+      expect(responses[0].result).toEqual({
+        executed: true,
+        value: undefined,
+      });
+    });
+
+    it("returns success when evalCode result is a resolved Promise", async () => {
+      const responses: CapturedResponse[] = [];
+
+      adapter.setup(
+        (r) =>
+          responses.push({
+            id: r.id,
+            result: r.result as object,
+            error: r.error,
+          }),
+        () => {
+          /* noop */
+        }
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: "Promise.resolve(42)" },
+        id: 11,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(responses).toHaveLength(1);
+      expect(responses[0].error).toBeUndefined();
+      expect(responses[0].result).toMatchObject({ executed: true });
+    });
+
+    it("does not crash on Promise.reject as last expression", async () => {
+      const responses: CapturedResponse[] = [];
+
+      adapter.setup(
+        (r) =>
+          responses.push({
+            id: r.id,
+            result: r.result as object,
+            error: r.error,
+          }),
+        () => {
+          /* noop */
+        }
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: "Promise.reject('oops')" },
+        id: 12,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(responses).toHaveLength(1);
+      expect(responses[0].error).toBeUndefined();
+      expect(responses[0].result).toMatchObject({ executed: true });
+    });
+  });
+
+  describe("fetch async lifecycle", () => {
+    let originalFetch: typeof globalThis.fetch;
+
+    beforeEach(async () => {
+      originalFetch = globalThis.fetch;
+      adapter.setup(
+        () => {
+          /* noop */
+        },
+        () => {
+          /* noop */
+        }
+      );
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Init,
+        id: "init",
+      });
+      await new Promise((r) => setTimeout(r, 50));
+    });
+
+    afterEach(() => {
+      globalThis.fetch = originalFetch;
+    });
+
+    it("emits console output after async fetch resolves", async () => {
+      globalThis.fetch = () =>
+        new Promise((resolve) => {
+          setTimeout(
+            () =>
+              resolve({
+                ok: true,
+                status: 200,
+                text: async () => JSON.stringify({ msg: "hello" }),
+              } as Response),
+            30
+          );
+        });
+
+      const responses: CapturedResponse[] = [];
+      const notifications: CapturedNotification[] = [];
+
+      adapter.setup(
+        (r) =>
+          responses.push({
+            id: r.id,
+            result: r.result as object,
+            error: r.error,
+          }),
+        (m, p) =>
+          notifications.push({
+            method: m,
+            params: p as { type?: string; data?: unknown },
+          })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: {
+          code: 'fetch("http://test.com").then(r => r.json()).then(d => console.log(d.msg));',
+        },
+        id: 20,
+      });
+
+      // Run response should arrive immediately without error
+      await new Promise((r) => setTimeout(r, 20));
+      expect(responses).toHaveLength(1);
+      expect(responses[0].error).toBeUndefined();
+      expect(responses[0].result).toMatchObject({ executed: true });
+
+      // Wait for the async fetch + microtasks to complete
+      await new Promise((r) => setTimeout(r, 200));
+
+      const logNotification = notifications.find(
+        (n) => n.method === EngineMethod.Output && n.params?.type === "log"
+      );
+      expect(logNotification).toBeDefined();
+      expect(logNotification?.params?.data).toEqual([
+        { type: "string", value: "hello" },
+      ]);
+    });
+
+    it("emits console output for fetch().then(r => r.text())", async () => {
+      globalThis.fetch = async () =>
+        ({
+          ok: true,
+          status: 200,
+          text: async () => "plain text response",
+        }) as Response;
+
+      const notifications: CapturedNotification[] = [];
+
+      adapter.setup(
+        () => {
+          /* noop */
+        },
+        (m, p) =>
+          notifications.push({
+            method: m,
+            params: p as { type?: string; data?: unknown },
+          })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: {
+          code: 'fetch("http://test.com").then(r => r.text()).then(t => console.log(t));',
+        },
+        id: 21,
+      });
+
+      await new Promise((r) => setTimeout(r, 200));
+
+      const logNotification = notifications.find(
+        (n) => n.method === EngineMethod.Output && n.params?.type === "log"
+      );
+      expect(logNotification).toBeDefined();
+      expect(logNotification?.params?.data).toEqual([
+        { type: "string", value: "plain text response" },
+      ]);
+    });
+
+    it("handles fetch network error without crashing the engine", async () => {
+      globalThis.fetch = () => Promise.reject(new Error("Network failure"));
+
+      const responses: CapturedResponse[] = [];
+      const notifications: CapturedNotification[] = [];
+
+      adapter.setup(
+        (r) =>
+          responses.push({
+            id: r.id,
+            result: r.result as object,
+            error: r.error,
+          }),
+        (m, p) =>
+          notifications.push({
+            method: m,
+            params: p as { type?: string; data?: unknown },
+          })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: {
+          code: 'fetch("http://bad.url").catch(e => console.error(e));',
+        },
+        id: 22,
+      });
+
+      await new Promise((r) => setTimeout(r, 200));
+
+      // Run should succeed (the promise itself is the return value)
+      expect(responses).toHaveLength(1);
+      expect(responses[0].error).toBeUndefined();
+
+      // The .catch handler should have emitted an error log
+      const errorNotification = notifications.find(
+        (n) => n.method === EngineMethod.Output && n.params?.type === "error"
+      );
+      expect(errorNotification).toBeDefined();
+    });
+
+    it("executes chained .then() microtasks in order", async () => {
+      globalThis.fetch = async () =>
+        ({
+          ok: true,
+          status: 200,
+          text: async () => JSON.stringify({ step: 1 }),
+        }) as Response;
+
+      const notifications: CapturedNotification[] = [];
+
+      adapter.setup(
+        () => {
+          /* noop */
+        },
+        (m, p) =>
+          notifications.push({
+            method: m,
+            params: p as { type?: string; data?: unknown },
+          })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: {
+          code: `
+            fetch("http://test.com")
+              .then(r => r.json())
+              .then(d => { console.log("step1", d.step); return d.step + 1; })
+              .then(v => console.log("step2", v));
+          `,
+        },
+        id: 23,
+      });
+
+      await new Promise((r) => setTimeout(r, 200));
+
+      const logs = notifications.filter(
+        (n) => n.method === EngineMethod.Output && n.params?.type === "log"
+      );
+
+      expect(logs).toHaveLength(2);
+      expect(logs[0].params?.data).toEqual([
+        { type: "string", value: "step1" },
+        { type: "number", value: 1 },
+      ]);
+      expect(logs[1].params?.data).toEqual([
+        { type: "string", value: "step2" },
+        { type: "number", value: 2 },
+      ]);
+    });
+  });
 });
