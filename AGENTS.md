@@ -38,6 +38,10 @@ Production-ready execution engine utilizing QuickJS (via WebAssembly) for safe, 
 
 Dedicated workspace package for cross-engine integration tests, ensuring correct orchestrated behavior across all implemented engines.
 
+### 6. @glyphide/editor
+
+A SolidJS Single Page Application (SPA) providing the user interface for the code editor. It must strictly follow the **Atomic Design methodology** (quarks, atoms, molecules, organisms, templates, pages) to organize UI components, ensuring a highly modular and maintainable frontend architecture.
+
 ## CI/CD & Infraestructure
 
 ### GitHub Actions
