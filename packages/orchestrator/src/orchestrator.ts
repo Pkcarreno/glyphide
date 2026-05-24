@@ -61,6 +61,7 @@ export class EngineOrchestrator<
   #bus: MessageBus | null = null;
   #nextId = 0;
   #timeout = 30_000;
+  #lastInitParams?: unknown;
 
   constructor(config: OrchestratorConfig<TFactory>) {
     this.#config = {
@@ -80,6 +81,8 @@ export class EngineOrchestrator<
    * @param configParams Optional configuration to pass to the engine during initialization.
    */
   async init(configParams?: unknown): Promise<EngineConfig> {
+    this.#lastInitParams = configParams;
+
     if (this.#config.useWorker) {
       this.#spawnWorker();
     }
@@ -120,16 +123,42 @@ export class EngineOrchestrator<
   }
 
   /**
-   * Gracefully interrupts the running execution.
+   * Forcefully interrupts the running execution by terminating the worker.
+   * State is lost, but the Orchestrator is automatically restored to a usable state.
    */
   async interrupt(): Promise<void> {
     if (!this.#worker) {
       return;
     }
 
-    this.#sendNotification({ method: EngineMethod.Interrupt });
+    // Terminate worker to force stop synchronous WASM execution
+    this.#worker.terminate();
+    this.#bus?.terminate();
+    this.#worker = null;
+    this.#bus = null;
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    // Clear pending promises (which rejects them with "Worker terminated")
+    this.#registry.clear();
+
+    // Notify listeners that execution was forcefully interrupted
+    this.#config.events.onOutput?.({
+      type: "system",
+      data: "Execution interrupted",
+    } as InferEnginePayload<TFactory>);
+
+    // Respawn worker and reinitialize
+    if (this.#config.useWorker) {
+      this.#spawnWorker();
+    }
+
+    try {
+      await this.#sendRequest({
+        method: EngineMethod.Init,
+        params: this.#lastInitParams,
+      });
+    } catch {
+      // Silently ignore init errors on respawn to keep orchestrator alive
+    }
   }
 
   /**

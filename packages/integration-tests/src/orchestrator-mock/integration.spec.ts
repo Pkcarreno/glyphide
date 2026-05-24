@@ -123,18 +123,23 @@ describe("Orchestrator + Mock Engine Integration", () => {
       // Use a long delay to ensure it stays "running" while we interrupt
       await orchestrator.init(createMockConfig({ runDelay: 300 }));
 
-      const runPromise = orchestrator.run("while(true){}");
+      let runError: Error | undefined;
+      const runPromise = orchestrator.run("while(true){}").catch((e) => {
+        runError = e;
+      });
 
       // Wait briefly, then interrupt
       await new Promise((resolve) => setTimeout(resolve, 50));
       await orchestrator.interrupt();
 
-      // The run promise should still resolve (graceful stop)
+      // The run promise should reject because of forced termination
       await runPromise;
+      expect(runError).toBeDefined();
+      expect(runError?.message).toBe("Execution failed: Worker terminated");
 
       expect(outputs).toContainEqual({
         content: "Execution interrupted",
-        type: "log",
+        type: "system",
       });
     });
   });

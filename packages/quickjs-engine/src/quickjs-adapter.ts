@@ -92,9 +92,7 @@ export class QuickJSEngineAdapter {
       case EngineMethod.Run:
         this.#handleRun((message as JsonRpcRequest).id, message.params);
         break;
-      case EngineMethod.Interrupt:
-        this.#handleInterrupt();
-        break;
+
       case EngineMethod.Reset:
         this.#handleReset((message as JsonRpcRequest).id);
         break;
@@ -203,16 +201,6 @@ export class QuickJSEngineAdapter {
           code: RpcErrorCode.InternalError,
           message: `Execution failed: ${error instanceof Error ? error.message : String(error)}`,
         },
-      });
-    }
-  }
-
-  #handleInterrupt(): void {
-    if (this.#runtime) {
-      this.#runtime.setInterruptHandler(() => true);
-      this.#onNotification(EngineMethod.Output, {
-        type: "system",
-        data: "Execution interrupted",
       });
     }
   }

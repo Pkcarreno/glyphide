@@ -84,19 +84,22 @@ describe("Orchestrator + QuickJS Engine Integration", () => {
       await orchestrator.init();
 
       // Start execution that will take some time
-      const runPromise = orchestrator.run(`
+      let runError: Error | undefined;
+      const runPromise = orchestrator
+        .run(`
         let i = 0;
-        while(i < 10000000) { i++; }
-      `);
+        while(true) { i++; }
+      `)
+        .catch((e) => {
+          runError = e;
+        });
 
       // Send interrupt
       await orchestrator.interrupt();
 
-      try {
-        await runPromise;
-      } catch (_e) {
-        // May throw interrupted error
-      }
+      await runPromise;
+      expect(runError).toBeDefined();
+      expect(runError?.message).toBe("Execution failed: Worker terminated");
 
       // Wait briefly for notification
       await new Promise((resolve) => setTimeout(resolve, 50));

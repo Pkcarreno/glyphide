@@ -382,58 +382,6 @@ describe("QuickJSEngineAdapter", () => {
     });
   });
 
-  describe("interrupt", () => {
-    beforeEach(async () => {
-      adapter.setup(
-        () => {
-          /* noop */
-        },
-        () => {
-          /* noop */
-        }
-      );
-      adapter.handleMessage({
-        jsonrpc: "2.0",
-        method: EngineMethod.Init,
-        id: "init",
-      });
-      await new Promise((r) => setTimeout(r, 50));
-    });
-
-    it("handles interrupt gracefully", async () => {
-      const responses: CapturedResponse[] = [];
-      const notifications: CapturedNotification[] = [];
-
-      adapter.setup(
-        (r) =>
-          responses.push({
-            id: r.id,
-            result: r.result as object,
-            error: r.error,
-          }),
-        (m, p) =>
-          notifications.push({ method: m, params: p as { content?: string } })
-      );
-
-      adapter.handleMessage({
-        jsonrpc: "2.0",
-        method: EngineMethod.Interrupt,
-      });
-
-      await new Promise((r) => setTimeout(r, 50));
-
-      // Should have emitted a system notification
-      expect(
-        notifications.some(
-          (n) =>
-            n.method === EngineMethod.Output &&
-            n.params?.type === "system" &&
-            n.params?.data === "Execution interrupted"
-        )
-      ).toBe(true);
-    });
-  });
-
   describe("reset", () => {
     beforeEach(async () => {
       adapter.setup(
