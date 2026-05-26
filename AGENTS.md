@@ -42,7 +42,7 @@ Dedicated workspace package for cross-engine integration tests, ensuring correct
 
 A SolidJS Single Page Application (SPA) providing the user interface for the code editor.
 - **Atomic Design**: It must strictly follow the **Atomic Design methodology** (quarks, atoms, molecules, organisms, templates, pages) to organize UI components, ensuring a highly modular and maintainable frontend architecture.
-- **Compound Primitives (MANDATORY)**: Any new UI primitive MUST be developed agnostically as a headless component using the **Compound Component pattern** (e.g., `Root`, `Trigger`, `Portal`, `Popup`). State and logic must be cleanly separated from the visual representation. These primitive parts must then be composed and styled using Tailwind to perfectly match the editor's design system and aesthetics.
+- **Compound Primitives vs Opinionated Atoms**: UI structures that require flexible composition, internal context sharing, and modular layouts (e.g., Modals, Tooltips, Accordions) MUST be developed agnostically using the **Compound Component pattern** (Root, Trigger, Portal, Content). However, highly opinionated primitives that impose strict hierarchies and manage atomic state or have standard HTML counterparts (e.g., Buttons, Switches, Icons, Inputs) are exempt and should be developed as standalone components.
 
 ## CI/CD & Infraestructure
 
