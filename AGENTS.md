@@ -40,7 +40,9 @@ Dedicated workspace package for cross-engine integration tests, ensuring correct
 
 ### 6. @glyphide/editor
 
-A SolidJS Single Page Application (SPA) providing the user interface for the code editor. It must strictly follow the **Atomic Design methodology** (quarks, atoms, molecules, organisms, templates, pages) to organize UI components, ensuring a highly modular and maintainable frontend architecture.
+A SolidJS Single Page Application (SPA) providing the user interface for the code editor.
+- **Atomic Design**: It must strictly follow the **Atomic Design methodology** (quarks, atoms, molecules, organisms, templates, pages) to organize UI components, ensuring a highly modular and maintainable frontend architecture.
+- **Compound Primitives (MANDATORY)**: Any new UI primitive MUST be developed agnostically as a headless component using the **Compound Component pattern** (e.g., `Root`, `Trigger`, `Portal`, `Popup`). State and logic must be cleanly separated from the visual representation. These primitive parts must then be composed and styled using Tailwind to perfectly match the editor's design system and aesthetics.
 
 ## CI/CD & Infraestructure
 
@@ -87,6 +89,13 @@ Adhere to the `.editorconfig` configuration:
 - **Workspace Packages**: Use `@glyphide/` prefix for internal dependencies.
 - **No Barrel Files**: Avoid using barrel files. Export directly from the module.
 - **Package-scoped Dependencies**: Install dependencies strictly within the `package.json` of the package that requires them. The root `package.json` is reserved exclusively for monorepo management tools (e.g., Turborepo, Biome, Lefthook).
+
+#### UI, Tailwind & CSS (Strict Rules)
+
+- **No Custom Classes**: Avoid creating custom CSS classes or styles in TypeScript files.
+- **No Magic Values**: Avoid using Tailwind arbitrary properties (e.g. `bg-[#000000]`). Use theme tokens instead.
+- **Component-Driven Styling**: Visual structures must be defined directly in the components using Tailwind utilities, rather than creating external `.css` class names.
+- **Variant Authority**: The use of the `cn` (clsx + tailwind-merge) helper and `class-variance-authority` (CVA) is **mandatory** for managing UI component variants.
 
 #### TypeScript & Types
 
