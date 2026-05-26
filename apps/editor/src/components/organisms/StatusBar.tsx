@@ -2,7 +2,8 @@ import { splitProps, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import type { SystemStatus } from "../../types/system";
 import { Icon } from "../atoms/Icon";
-import { ChevronDown, Settings2 } from "lucide-solid";
+import ChevronDown from "lucide-solid/icons/chevron-down";
+import Settings2 from "lucide-solid/icons/settings-2";
 import { cn } from "../../helpers/cn";
 import {
   TooltipRoot,

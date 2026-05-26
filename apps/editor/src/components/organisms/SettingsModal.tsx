@@ -8,7 +8,10 @@ import {
 } from "../atoms/Dialog";
 import { SettingSwitch } from "../molecules/SettingSwitch";
 import { Icon } from "../atoms/Icon";
-import { X, Monitor, Moon, Sun } from "lucide-solid";
+import X from "lucide-solid/icons/x";
+import Monitor from "lucide-solid/icons/monitor";
+import Moon from "lucide-solid/icons/moon";
+import Sun from "lucide-solid/icons/sun";
 import { cn } from "../../helpers/cn";
 import { useTheme, ThemeType } from "../../stores/theme";
 

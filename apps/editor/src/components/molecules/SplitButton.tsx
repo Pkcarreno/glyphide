@@ -3,7 +3,7 @@ import type { JSX } from "solid-js";
 import { Button, type ButtonProps } from "../atoms/Button";
 import { ButtonGroup } from "../atoms/ButtonGroup";
 import { Icon } from "../atoms/Icon";
-import { ChevronDown } from "lucide-solid";
+import ChevronDown from "lucide-solid/icons/chevron-down";
 
 interface SplitButtonProps extends Omit<ButtonProps, "onClick"> {
   /** Text or element to show on the main button. */

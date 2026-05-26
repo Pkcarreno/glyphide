@@ -3,7 +3,9 @@ import type { JSX } from "solid-js";
 import { Button } from "../atoms/Button";
 import { SplitButton } from "../molecules/SplitButton";
 import { Icon } from "../atoms/Icon";
-import { Settings, Share2, Play } from "lucide-solid";
+import Settings from "lucide-solid/icons/settings";
+import Share2 from "lucide-solid/icons/share-2";
+import Play from "lucide-solid/icons/play";
 import { cn } from "../../helpers/cn";
 import logo from "../../assets/logo-square.svg";
 

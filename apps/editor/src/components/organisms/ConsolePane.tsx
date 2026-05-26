@@ -2,7 +2,8 @@ import { splitProps } from "solid-js";
 import type { JSX } from "solid-js";
 import { ConsoleMessage } from "../molecules/ConsoleMessage";
 import { Icon } from "../atoms/Icon";
-import { Trash2, Pin } from "lucide-solid";
+import Trash2 from "lucide-solid/icons/trash-2";
+import Pin from "lucide-solid/icons/pin";
 import { cn } from "../../helpers/cn";
 
 /**
