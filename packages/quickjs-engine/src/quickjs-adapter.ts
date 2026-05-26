@@ -265,7 +265,7 @@ export class QuickJSEngineAdapter {
    */
   #safeDump(handle: QuickJSHandle): unknown {
     if (!this.#context) {
-      return undefined;
+      return;
     }
 
     const state = this.#context.getPromiseState(handle);
@@ -285,7 +285,7 @@ export class QuickJSEngineAdapter {
       state.error.dispose();
     }
 
-    return undefined;
+    return;
   }
 
   #injectConsole(): void {
