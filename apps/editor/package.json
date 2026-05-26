@@ -11,7 +11,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "solid-js": "^1.9.13"
+    "@fontsource/ibm-plex-mono": "^5.2.7",
+    "@fontsource/ibm-plex-sans": "^5.2.8",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-solid": "^1.16.0",
+    "solid-js": "^1.9.13",
+    "tailwind-merge": "3.5.0"
   },
   "devDependencies": {
     "@solidjs/testing-library": "^0.8.10",

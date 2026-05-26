@@ -1,5 +1,138 @@
 @import "tailwindcss";
 
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/700.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/700.css";
+
+/* ---------- Dark mode by class ---------- */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------- Light theme (Industrial/Surgical) ---------- */
+
+:root {
+  --ui-background: #ffffff;
+  --ui-surface: #f8f8f8;
+  --ui-surface-variant: #e0e0e0;
+  --ui-on-surface: #000000;
+  --ui-on-surface-variant: #333333;
+  --ui-primary: #bef263; /* Acid Lime */
+  --ui-on-primary: #000000;
+  --ui-outline: #000000; /* Stark black lines */
+  --ui-outline-variant: rgba(0, 0, 0, 0.15); /* Technical grid lines */
+  --ui-error: #ba1a1a;
+  --ui-on-error: #ffffff;
+  --ui-error-container: #ffdad6;
+  --ui-editor-bg: #ffffff;
+  --ui-log-warn: #b07d00;
+  --ui-token-keyword: #d73a49;
+  --ui-token-function: #6f42c1;
+  --ui-token-string: #032f62;
+  --ui-token-comment: #6a737d;
+  --ui-border-subtle: rgba(0, 0, 0, 0.1);
+  --ui-target-size: 24px;
+}
+
+/* ---------- Dark theme (Bit-Perfect Noir) ---------- */
+
+.dark {
+  --ui-background: #0c0f07; /* surface-container-lowest */
+  --ui-surface: #11140c; /* surface */
+  --ui-surface-variant: #1a1d13; /* surface-container-low */
+  --ui-on-surface: #e2e4d4;
+  --ui-on-surface-variant: #c3c9b2;
+  --ui-primary: #bef263;
+  --ui-on-primary: #000000;
+  --ui-outline: rgba(255, 255, 255, 0.2);
+  --ui-outline-variant: rgba(255, 255, 255, 0.1); /* border-low-contrast */
+  --ui-error: #ffb4ab;
+  --ui-on-error: #690005;
+  --ui-error-container: #93000a;
+  --ui-editor-bg: #0c0f07; /* pure black workspace */
+  --ui-log-warn: #e3b341;
+  --ui-token-keyword: #ff7b72;
+  --ui-token-function: #d2a8ff;
+  --ui-token-string: #a5d6ff;
+  --ui-token-comment: #8b949e;
+  --ui-border-subtle: rgba(255, 255, 255, 0.1);
+}
+
+/* ---------- Touch targets ---------- */
+
+@media (pointer: coarse) {
+  :root {
+    --ui-target-size: 44px;
+    --spacing-header-height: 52px;
+  }
+}
+
+/* ---------- Design tokens → Tailwind utilities ---------- */
+
+@theme inline {
+  /* Colors */
+  --color-background: var(--ui-background);
+  --color-surface: var(--ui-surface);
+  --color-surface-variant: var(--ui-surface-variant);
+  --color-on-surface: var(--ui-on-surface);
+  --color-on-surface-variant: var(--ui-on-surface-variant);
+  --color-primary: var(--ui-primary);
+  --color-on-primary: var(--ui-on-primary);
+  --color-outline: var(--ui-outline);
+  --color-outline-variant: var(--ui-outline-variant);
+  --color-error: var(--ui-error);
+  --color-on-error: var(--ui-on-error);
+  --color-error-container: var(--ui-error-container);
+  --color-editor-bg: var(--ui-editor-bg);
+  --color-log-warn: var(--ui-log-warn);
+  --color-token-keyword: var(--ui-token-keyword);
+  --color-token-function: var(--ui-token-function);
+  --color-token-string: var(--ui-token-string);
+  --color-token-comment: var(--ui-token-comment);
+  --color-border-subtle: var(--ui-border-subtle);
+}
+
 @theme {
-  --font-sans: "Inter", "Roboto", "Outfit", ui-sans-serif, system-ui, sans-serif;
+  /* Typography */
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Font sizes */
+  --text-code-desktop: 12px;
+  --text-code-desktop--line-height: 1.5;
+  --text-code-desktop--font-weight: 400;
+
+  --text-code-mobile: 14px;
+  --text-code-mobile--line-height: 1.5;
+  --text-code-mobile--font-weight: 400;
+
+  --text-ui-label: 11px;
+  --text-ui-label--line-height: 1;
+  --text-ui-label--font-weight: 500;
+
+  --text-status-bar: 10px;
+  --text-status-bar--line-height: 1;
+  --text-status-bar--font-weight: 500;
+  --text-status-bar--letter-spacing: 0.05em;
+
+  --text-section-header: 9px;
+  --text-section-header--line-height: 1;
+  --text-section-header--font-weight: 700;
+  --text-section-header--letter-spacing: 0.15em;
+
+  /* Spacing */
+  --spacing-header-height: 36px;
+  --spacing-status-bar-height: 24px;
+  --spacing-padding-x: 8px;
+  --spacing-padding-y: 4px;
+  --spacing-gap-compact: 4px;
+
+  /* Border radius - Brutalist and exact */
+  --radius-sm: 0.125rem; /* 2px */
+  --radius-DEFAULT: 0.125rem; /* Base radius changed from 4px to 2px */
+  --radius-md: 0.125rem;
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.5rem;
 }
