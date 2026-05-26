@@ -18,7 +18,6 @@
   "devDependencies": {
     "typescript": "^6.0.2",
     "vite": "^8.0.10",
-    "vite-plugin-top-level-await": "^1.5.0",
     "vite-plugin-wasm": "^3.6.0"
   }
 }
