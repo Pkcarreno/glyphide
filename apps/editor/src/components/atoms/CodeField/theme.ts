@@ -42,6 +42,21 @@ const editorBaseStyles = {
 		color: themeTokens.foreground,
 		borderTop: `1px solid ${themeTokens.border}`,
 	},
+	".cm-textfield": {
+		backgroundColor: themeTokens.background,
+		color: themeTokens.foreground,
+		border: `1px solid ${themeTokens.border}`,
+		borderRadius: "var(--radius-sm)",
+		outline: "none",
+	},
+	".cm-button": {
+		backgroundColor: themeTokens.background,
+		color: themeTokens.foreground,
+		backgroundImage: "none",
+		border: `1px solid ${themeTokens.border}`,
+		borderRadius: "var(--radius-sm)",
+		cursor: "pointer",
+	},
 	".cm-gutters": {
 		background: themeTokens.background,
 		color: themeTokens.mutedForeground,
