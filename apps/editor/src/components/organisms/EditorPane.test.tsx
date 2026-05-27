@@ -1,19 +1,24 @@
 import { render } from "@solidjs/testing-library";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeAll } from "vitest";
 import { EditorPane } from "./EditorPane";
 
-describe("EditorPane", () => {
-  it("when rendered, displays code lines", () => {
-    const { getByText } = render(() => <EditorPane />);
-    expect(getByText("1")).toBeTruthy();
-    expect(getByText("serve")).toBeTruthy();
-    expect(getByText('"@glyphide/quickjs"')).toBeTruthy();
-  });
+beforeAll(() => {
+  if (typeof window !== "undefined" && typeof window.Range !== "undefined") {
+    window.Range.prototype.getBoundingClientRect = () => ({
+      bottom: 0, height: 0, left: 0, right: 0, top: 0, width: 0, x: 0, y: 0, toJSON: () => { }
+    });
+    window.Range.prototype.getClientRects = () => ({
+      item: () => null,
+      length: 0,
+      [Symbol.iterator]: function* () { },
+    } as any);
+  }
+});
 
-  it("when rendered, includes line numbers", () => {
-    const { getByText } = render(() => <EditorPane />);
-    expect(getByText("1")).toBeTruthy();
-    expect(getByText("6")).toBeTruthy();
+describe("EditorPane", () => {
+  it("when rendered, displays the CodeField editor", () => {
+    const { container } = render(() => <EditorPane />);
+    expect(container.querySelector(".cm-editor")).not.toBeNull();
   });
 
   it("when custom class is provided, merges it", () => {
