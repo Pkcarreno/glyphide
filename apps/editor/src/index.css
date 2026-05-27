@@ -35,19 +35,20 @@
   --ui-border-subtle: rgba(0, 0, 0, 0.1);
   --ui-target-size: 24px;
 
-  --quiet-raw: 0.55 0.04 286;
-  --subtle-raw: 0.45 0.04 286;
-  --plain-raw: 0.25 0.02 286;
-  --yell-raw: 0.48 0.17 353;
-  --speak-raw: 0.55 0.14 50;
-  --whisper-raw: 0.50 0.10 15;
-  --shy-raw: 0.45 0.10 227;
+  /* Ayu Light-Glyphide palette — inspired by ayu-light, tied to lime primary */
+  --quiet-raw: 0.55 0.02 255;
+  --subtle-raw: 0.48 0.02 255;
+  --plain-raw: 0.75 0.15 66;
+  --yell-raw: 0.78 0.17 65;
+  --speak-raw: 0.68 0.09 210;
+  --whisper-raw: 0.44 0.02 255;
+  --shy-raw: 0.60 0.16 127;
 
-  --editor-accent: var(--color-on-primary);
-  --editor-selection-bg: color-mix(in oklch, var(--editor-accent) 15%, transparent);
-  --editor-line-bg: color-mix(in oklch, var(--editor-accent) 5%, transparent);
-  --editor-search-match: color-mix(in oklch, oklch(var(--yell-raw) / 1) 30%, transparent);
-  --editor-search-selected: color-mix(in oklch, oklch(var(--yell-raw) / 1) 50%, transparent);
+  --editor-accent: oklch(0.55 0.15 47);
+  --editor-selection-bg: color-mix(in oklch, oklch(0.60 0.16 127) 12%, transparent);
+  --editor-line-bg: color-mix(in oklch, oklch(0.60 0.16 127) 5%, transparent);
+  --editor-search-match: color-mix(in oklch, oklch(0.78 0.17 65) 30%, transparent);
+  --editor-search-selected: color-mix(in oklch, oklch(0.78 0.17 65) 52%, transparent);
 }
 
 /* ---------- Dark theme (Bit-Perfect Noir) ---------- */
@@ -73,17 +74,20 @@
   --ui-token-comment: #8b949e;
   --ui-border-subtle: rgba(255, 255, 255, 0.1);
 
-  --quiet-raw: 0.52 0.04 286;
-  --subtle-raw: 0.65 0.04 286;
-  --plain-raw: 0.90 0.02 286;
+  /* Mayu-Glyphide dark palette — warm tones from borrowed-mayu with lime accent */
+  --quiet-raw: 0.50 0.05 286;
+  --subtle-raw: 0.63 0.05 286;
+  --plain-raw: 0.90 0.03 286;
   --yell-raw: 0.65 0.17 353;
-  --speak-raw: 0.82 0.14 74;
-  --whisper-raw: 0.75 0.10 15;
-  --shy-raw: 0.60 0.10 227;
+  --speak-raw: 0.82 0.13 74;
+  --whisper-raw: 0.76 0.09 15;
+  --shy-raw: 0.72 0.17 127;
 
   --editor-accent: var(--color-primary);
-  --editor-selection-bg: color-mix(in oklch, var(--editor-accent) 20%, transparent);
-  --editor-line-bg: color-mix(in oklch, var(--editor-accent) 8%, transparent);
+  --editor-selection-bg: color-mix(in oklch, var(--color-primary) 22%, transparent);
+  --editor-line-bg: color-mix(in oklch, var(--color-primary) 7%, transparent);
+  --editor-search-match: color-mix(in oklch, oklch(var(--speak-raw) / 1) 30%, transparent);
+  --editor-search-selected: color-mix(in oklch, oklch(var(--speak-raw) / 1) 50%, transparent);
 }
 
 /* ---------- Touch targets ---------- */
