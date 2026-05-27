@@ -1,0 +1,45 @@
+import { describe, expect, it } from "vitest";
+import { createSettingsModel } from "./settings";
+import type { PersistencePort } from "../ports/persistence";
+
+function createMockPersistence(initialData: Record<string, string> = {}): PersistencePort {
+  const data = new Map(Object.entries(initialData));
+  return {
+    get: (key) => data.get(key) ?? null,
+    set: (key, val) => data.set(key, val),
+    remove: (key) => data.delete(key),
+  };
+}
+
+describe("SettingsModel", () => {
+  it("initializes with default settings if persistence is empty", () => {
+    const persistence = createMockPersistence();
+    const model = createSettingsModel(persistence);
+
+    expect(model.settings.theme).toBe("system");
+    expect(model.settings.isWordWrapEnabled).toBe(false);
+  });
+
+  it("loads settings from persistence port", () => {
+    const persistence = createMockPersistence({
+      settings: JSON.stringify({ theme: "dark", isWordWrapEnabled: true }),
+    });
+    const model = createSettingsModel(persistence);
+
+    expect(model.settings.theme).toBe("dark");
+    expect(model.settings.isWordWrapEnabled).toBe(true);
+    // Preserves defaults for missing keys
+    expect(model.settings.isClearOnRunEnabled).toBe(true);
+  });
+
+  it("updates settings and persists them", () => {
+    const persistence = createMockPersistence();
+    const model = createSettingsModel(persistence);
+
+    model.updateSettings({ theme: "light" });
+
+    expect(model.settings.theme).toBe("light");
+    const saved = JSON.parse(persistence.get("settings")!);
+    expect(saved.theme).toBe("light");
+  });
+});

@@ -11,6 +11,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@glyphide/mock-engine": "workspace:*",
+    "@glyphide/orchestrator": "workspace:*",
+    "@glyphide/quickjs-engine": "workspace:*",
+    "@glyphide/rpc-protocol": "workspace:*",
     "@codemirror/lang-javascript": "^6.2.5",
     "@codemirror/lang-python": "^6.2.1",
     "@codemirror/language": "^6.12.3",

@@ -72,6 +72,18 @@ importers:
       '@fontsource/ibm-plex-sans':
         specifier: ^5.2.8
         version: 5.2.8
+      '@glyphide/mock-engine':
+        specifier: workspace:*
+        version: link:../../packages/mock-engine
+      '@glyphide/orchestrator':
+        specifier: workspace:*
+        version: link:../../packages/orchestrator
+      '@glyphide/quickjs-engine':
+        specifier: workspace:*
+        version: link:../../packages/quickjs-engine
+      '@glyphide/rpc-protocol':
+        specifier: workspace:*
+        version: link:../../packages/rpc-protocol
       '@lezer/highlight':
         specifier: ^1.2.3
         version: 1.2.3
