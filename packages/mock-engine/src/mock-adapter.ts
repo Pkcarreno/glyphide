@@ -201,3 +201,12 @@ export class MockEngineAdapter {
     });
   }
 }
+
+/**
+ * Factory function to create a new Web Worker running the Mock engine.
+ * The worker file must be bundled or served correctly by the consumer.
+ */
+export const createMockWorker = () =>
+  new Worker(new URL("../worker/mock-worker.mjs", import.meta.url), {
+    type: "module",
+  });
