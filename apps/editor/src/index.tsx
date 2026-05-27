@@ -2,6 +2,7 @@ import { render } from "solid-js/web";
 import "./index.css";
 
 import App from "./App";
+import { EditorProvider } from "./core/context";
 
 const root = document.getElementById("root");
 
@@ -11,4 +12,11 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
   );
 }
 
-render(() => <App />, root!);
+render(
+  () => (
+    <EditorProvider>
+      <App />
+    </EditorProvider>
+  ),
+  root!
+);

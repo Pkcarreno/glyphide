@@ -1,11 +1,24 @@
 import { render } from "@solidjs/testing-library";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import { Header } from "./Header";
 
+const dispatchMock = vi.fn();
+vi.mock("../../core/context", () => ({
+  useEditor: () => ({
+    project: { name: () => "TEST_PROJECT" },
+    engine: { status: () => "idle" },
+    dispatcher: { dispatch: dispatchMock }
+  })
+}));
+
 describe("Header", () => {
+  beforeEach(() => {
+    dispatchMock.mockClear();
+  });
+
   it("when rendered, displays the app title", () => {
     const { getByText } = render(() => <Header />);
-    expect(getByText("[ UNTITLED_PROJECT ]")).toBeTruthy();
+    expect(getByText("[ TEST_PROJECT ]")).toBeTruthy();
   });
 
   it("when settings button clicked, fires onSettingsClick", () => {
@@ -22,13 +35,11 @@ describe("Header", () => {
     expect(handler).toHaveBeenCalledOnce();
   });
 
-  it("when run button clicked, fires onRunClick", () => {
-    const handler = vi.fn();
-    const { getAllByRole } = render(() => <Header onRunClick={handler} />);
-    // The main button inside SplitButton renders its children as text
+  it("when run button clicked, dispatches RUN_CODE action", () => {
+    const { getAllByRole } = render(() => <Header />);
     const buttons = getAllByRole("button", { name: /Run/ });
     buttons[0].click();
-    expect(handler).toHaveBeenCalledOnce();
+    expect(dispatchMock).toHaveBeenCalledWith({ type: "RUN_CODE" });
   });
 
   it("when run options clicked, fires onRunOptionsClick", () => {

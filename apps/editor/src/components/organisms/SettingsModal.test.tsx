@@ -2,6 +2,22 @@ import { render } from "@solidjs/testing-library";
 import { describe, expect, it, vi } from "vitest";
 import { SettingsModal } from "./SettingsModal";
 import { createSignal } from "solid-js";
+const updateSettingsMock = vi.fn();
+
+vi.mock("../../core/context", () => ({
+  useEditor: () => ({
+    settings: {
+      settings: {
+        theme: "system",
+        isWordWrapEnabled: false,
+        isAutoRunEnabled: false,
+        isClearOnRunEnabled: true
+      },
+      updateSettings: updateSettingsMock
+    },
+    dispatcher: { dispatch: vi.fn() }
+  })
+}));
 
 describe("SettingsModal", () => {
   it("when isOpen is false, modal is not in the DOM", () => {
@@ -26,8 +42,8 @@ describe("SettingsModal", () => {
     expect(getAllByText("Appearance").length).toBeGreaterThan(0);
     expect(getAllByText("Execution").length).toBeGreaterThan(0);
     
-    // 4 switches total based on our mockup
-    expect(getAllByRole("switch")).toHaveLength(4);
+    // 3 switches total (Word Wrap, Auto-run, Clear console)
+    expect(getAllByRole("switch")).toHaveLength(3);
   });
 
   it("when close button clicked, fires onOpenChange with false", () => {

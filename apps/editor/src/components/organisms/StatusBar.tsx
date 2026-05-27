@@ -1,10 +1,10 @@
 import { splitProps, Show } from "solid-js";
 import type { JSX } from "solid-js";
-import type { SystemStatus } from "../../types/system";
 import { Icon } from "../atoms/Icon";
 import ChevronDown from "lucide-solid/icons/chevron-down";
 import Settings2 from "lucide-solid/icons/settings-2";
 import { cn } from "../../helpers/cn";
+import { useEditor } from "../../core/context";
 import {
   TooltipRoot,
   TooltipTrigger,
@@ -15,15 +15,15 @@ import {
 
 /**
  * Props for the StatusBar root component.
- */interface StatusBarProps extends JSX.HTMLAttributes<HTMLElement> {
-  /** The system status to display */
-  status?: SystemStatus;
+ */
+interface StatusBarProps extends JSX.HTMLAttributes<HTMLElement> {
   class?: string;
 }
 
 /**
  * Props for the StatusBarItem component.
- */interface StatusBarItemProps extends JSX.HTMLAttributes<HTMLDivElement> {
+ */
+interface StatusBarItemProps extends JSX.HTMLAttributes<HTMLDivElement> {
   class?: string;
   children: JSX.Element;
 }
@@ -47,7 +47,8 @@ function StatusBarItem(props: StatusBarItemProps) {
 
 /**
  * Props for the StatusBarButton component.
- */interface StatusBarButtonProps
+ */
+interface StatusBarButtonProps
   extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
   class?: string;
   tooltip?: string;
@@ -132,10 +133,14 @@ function StatusBarButton(props: StatusBarButtonProps) {
  * Compound parts: `StatusBar.Item`, `StatusBar.Button`.
  */
 function StatusBar(props: StatusBarProps) {
-  const [local, rest] = splitProps(props, [
-    "status",
-    "class",
-  ]);
+  const [local, rest] = splitProps(props, ["class"]);
+  const core = useEditor();
+
+  function toggleEngine() {
+    const active = core.engine.activeEngineId();
+    const nextEngine = active === "quickjs" ? "mock" : "quickjs";
+    core.dispatcher.dispatch({ type: "SELECT_ENGINE", engineId: nextEngine });
+  }
 
   return (
     <footer
@@ -149,16 +154,16 @@ function StatusBar(props: StatusBarProps) {
     >
       <div class="flex items-center gap-1 h-full">
         <StatusBarItem>
-          <span>14:3</span>
+          <span>{core.buffer.content().split("\n").length} Lines</span>
         </StatusBarItem>
         <StatusBarItem>
-          <span>TypeScript</span>
+          <span>JavaScript</span>
         </StatusBarItem>
       </div>
 
       <div class="flex items-center gap-1 h-full">
-        <StatusBarButton tooltip="Change Engine">
-          <span>QuickJS V8</span>
+        <StatusBarButton tooltip="Change Engine" onClick={toggleEngine}>
+          <span>{core.engine.activeEngineId() === "quickjs" ? "QuickJS V8" : "Mock Engine"}</span>
           <Icon icon={ChevronDown} size={12} />
         </StatusBarButton>
 
@@ -167,7 +172,7 @@ function StatusBar(props: StatusBarProps) {
         </StatusBarButton>
 
         <StatusBarButton tooltip="System Status">
-          <span>{local.status === "running" ? "Running" : "Idle"}</span>
+          <span>{core.engine.status()}</span>
         </StatusBarButton>
       </div>
     </footer>

@@ -1,4 +1,4 @@
-import { splitProps } from "solid-js";
+import { splitProps, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import { Button } from "../atoms/Button";
 import { SplitButton } from "../molecules/SplitButton";
@@ -6,13 +6,14 @@ import { Icon } from "../atoms/Icon";
 import Settings from "lucide-solid/icons/settings";
 import Share2 from "lucide-solid/icons/share-2";
 import Play from "lucide-solid/icons/play";
+import Square from "lucide-solid/icons/square";
 import { cn } from "../../helpers/cn";
 import logo from "../../assets/logo-square.svg";
+import { useEditor } from "../../core/context";
 
 interface HeaderProps extends JSX.HTMLAttributes<HTMLElement> {
   onSettingsClick?: () => void;
   onShareClick?: () => void;
-  onRunClick?: () => void;
   onRunOptionsClick?: () => void;
   class?: string;
 }
@@ -25,10 +26,19 @@ function Header(props: HeaderProps) {
   const [local, rest] = splitProps(props, [
     "onSettingsClick",
     "onShareClick",
-    "onRunClick",
     "onRunOptionsClick",
     "class",
   ]);
+
+  const core = useEditor();
+
+  function handleRunClick() {
+    if (core.engine.status() === "running") {
+      core.dispatcher.dispatch({ type: "INTERRUPT_EXECUTION" });
+    } else {
+      core.dispatcher.dispatch({ type: "RUN_CODE" });
+    }
+  }
 
   return (
     <header
@@ -42,7 +52,7 @@ function Header(props: HeaderProps) {
       <div class="flex items-center gap-3">
         <img src={logo} alt="Glyphide Logo" class="h-6 w-6" />
         <h1 class="font-mono text-ui-label tracking-widest text-on-surface">
-          [ UNTITLED_PROJECT ]
+          [ {core.project.name() || "UNTITLED_PROJECT"} ]
         </h1>
       </div>
 
@@ -64,13 +74,17 @@ function Header(props: HeaderProps) {
           Share
         </Button>
         <SplitButton
-          variant="primary"
-          onMainClick={local.onRunClick}
+          variant={core.engine.status() === "running" ? "outline" : "primary"}
+          onMainClick={handleRunClick}
           onDropdownClick={local.onRunOptionsClick}
           dropdownLabel="Run options"
         >
-          <Icon icon={Play} class="mr-1" />
-          Run
+          <Show 
+            when={core.engine.status() === "running"} 
+            fallback={<><Icon icon={Play} class="mr-1" /> Run</>}
+          >
+            <Icon icon={Square} class="mr-1" /> Stop
+          </Show>
         </SplitButton>
       </div>
     </header>

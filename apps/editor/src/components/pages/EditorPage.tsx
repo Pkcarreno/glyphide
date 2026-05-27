@@ -1,12 +1,11 @@
-import { createSignal } from "solid-js";
+import { createSignal, createEffect } from "solid-js";
 import { Header } from "../organisms/Header";
 import { StatusBar } from "../organisms/StatusBar";
 import { EditorPane } from "../organisms/EditorPane";
 import { ConsolePane } from "../organisms/ConsolePane";
 import { SettingsModal } from "../organisms/SettingsModal";
 import { WorkspaceLayout } from "../templates/WorkspaceLayout";
-import { useTheme } from "../../stores/theme";
-import type { SystemStatus } from "../../types/system";
+import { useEditor } from "../../core/context";
 
 /**
  * Main application page component.
@@ -14,10 +13,17 @@ import type { SystemStatus } from "../../types/system";
  * and injects it into the WorkspaceLayout and Organisms.
  */
 function EditorPage() {
-  useTheme();
-  
+  const core = useEditor();
   const [isSettingsOpen, setIsSettingsOpen] = createSignal(false);
-  const [execStatus, setExecStatus] = createSignal<SystemStatus>("idle");
+
+  createEffect(() => {
+    const theme = core.settings.settings.theme;
+    const isDark =
+      theme === "dark" ||
+      (theme === "system" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.classList.toggle("dark", isDark);
+  });
 
   function handleSettingsClick() {
     setIsSettingsOpen(true);
@@ -27,18 +33,6 @@ function EditorPage() {
     alert("Share functionality coming soon!");
   }
 
-  function handleRunClick() {
-    setExecStatus("running");
-    
-    setTimeout(() => {
-      setExecStatus("error");
-    }, 1500);
-  }
-
-  function handleRunOptionsClick() {
-    alert("Run options coming soon!");
-  }
-
   return (
     <>
       <WorkspaceLayout
@@ -46,17 +40,11 @@ function EditorPage() {
           <Header
             onSettingsClick={handleSettingsClick}
             onShareClick={handleShareClick}
-            onRunClick={handleRunClick}
-            onRunOptionsClick={handleRunOptionsClick}
           />
         }
         editorPane={<EditorPane />}
         consolePane={<ConsolePane />}
-        statusBar={
-          <StatusBar
-            status={execStatus()}
-          />
-        }
+        statusBar={<StatusBar />}
       />
       <SettingsModal
         isOpen={isSettingsOpen()}

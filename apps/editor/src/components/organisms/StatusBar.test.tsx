@@ -2,27 +2,44 @@ import { render, fireEvent, screen, cleanup } from "@solidjs/testing-library";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { StatusBar } from "./StatusBar";
 
-afterEach(() => cleanup());
+const dispatchMock = vi.fn();
+let mockStatus = "idle";
+let mockEngineId = "quickjs";
 
+vi.mock("../../core/context", () => ({
+  useEditor: () => ({
+    buffer: { content: () => "line1\nline2" },
+    engine: {
+      status: () => mockStatus,
+      activeEngineId: () => mockEngineId
+    },
+    dispatcher: { dispatch: dispatchMock }
+  })
+}));
 
-/* ---------- Organism ---------- */
+afterEach(() => {
+  cleanup();
+  mockStatus = "idle";
+  mockEngineId = "quickjs";
+  dispatchMock.mockClear();
+});
 
 describe("StatusBar", () => {
-  it("when rendered with defaults, shows idle status and 'Idle'", () => {
+  it("when rendered with defaults, shows idle status and 'idle'", () => {
     const { getByText } = render(() => <StatusBar />);
-    expect(getByText("Idle")).toBeTruthy();
+    expect(getByText("idle")).toBeTruthy();
   });
 
-  it("when status provided, displays it", () => {
-    const { getByText } = render(() => (
-      <StatusBar status="running" />
-    ));
-    expect(getByText("Running")).toBeTruthy();
+  it("when status provided via core, displays it", () => {
+    mockStatus = "running";
+    const { getByText } = render(() => <StatusBar />);
+    expect(getByText("running")).toBeTruthy();
   });
 
   it("when rendered, displays hardcoded environment info", () => {
     const { getByText } = render(() => <StatusBar />);
-    expect(getByText("TypeScript")).toBeTruthy();
+    expect(getByText("JavaScript")).toBeTruthy();
+    expect(getByText("2 Lines")).toBeTruthy();
   });
 
   it("when custom class is provided, merges it", () => {
@@ -30,8 +47,6 @@ describe("StatusBar", () => {
     expect(container.firstElementChild?.className).toContain("mt-auto");
   });
 });
-
-/* ---------- StatusBar.Item ---------- */
 
 describe("StatusBar.Item", () => {
   it("when rendered, displays children", () => {
@@ -60,8 +75,6 @@ describe("StatusBar.Item", () => {
     expect(el.className).toContain("flex");
   });
 });
-
-/* ---------- StatusBar.Button ---------- */
 
 describe("StatusBar.Button", () => {
   it("when rendered, renders a native button element", () => {
