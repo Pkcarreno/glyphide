@@ -41,6 +41,9 @@ Dedicated workspace package for cross-engine integration tests, ensuring correct
 ### 6. @glyphide/editor
 
 A SolidJS Single Page Application (SPA) providing the user interface for the code editor.
+- **Architecture (EditorCore)**: The application follows a strict horizontal decoupling architecture. The `EditorCore` serves as the central aggregate for all business logic, containing reactive models (`BufferModel`, `EngineModel`, `SettingsModel`, etc.) and storage adapters. UI components MUST NOT maintain global state independently.
+- **Unidirectional Data Flow**: The UI must communicate with the core exclusively via the `ActionDispatcher`. UI components capture user intents and dispatch strongly-typed `EditorAction` objects (e.g., `core.dispatcher.dispatch({ type: 'RUN_CODE' })`).
+- **Dependency Inversion**: UI components must depend on the core via dependency injection (`useEditor` context). This ensures the UI remains fully testable via mocked contexts.
 - **Atomic Design**: It must strictly follow the **Atomic Design methodology** (quarks, atoms, molecules, organisms, templates, pages) to organize UI components, ensuring a highly modular and maintainable frontend architecture.
 - **Compound Primitives vs Opinionated Atoms**: UI structures that require flexible composition, internal context sharing, and modular layouts (e.g., Modals, Tooltips, Accordions) MUST be developed agnostically using the **Compound Component pattern** (Root, Trigger, Portal, Content). However, highly opinionated primitives that impose strict hierarchies and manage atomic state or have standard HTML counterparts (e.g., Buttons, Switches, Icons, Inputs) are exempt and should be developed as standalone components.
 
