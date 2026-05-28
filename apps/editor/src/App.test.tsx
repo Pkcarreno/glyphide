@@ -9,7 +9,8 @@ vi.mock("./core/context", () => ({
     engine: { status: () => "idle", activeEngineId: () => "quickjs" },
     output: { entries: () => [] },
     settings: { settings: { theme: "system", isWordWrapEnabled: false, isAutoRunEnabled: false, isClearOnRunEnabled: true } },
-    dispatcher: { dispatch: vi.fn() }
+    dispatcher: { dispatch: vi.fn() },
+    overlays: { isOpen: () => false }
   })
 }));
 

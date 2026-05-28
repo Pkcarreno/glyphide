@@ -11,10 +11,7 @@ import { cn } from "../../helpers/cn";
 import logo from "../../assets/logo-square.svg";
 import { useEditor } from "../../core/context";
 
-interface HeaderProps extends JSX.HTMLAttributes<HTMLElement> {
-  onSettingsClick?: () => void;
-  onShareClick?: () => void;
-  onRunOptionsClick?: () => void;
+interface HeaderProps extends Omit<JSX.HTMLAttributes<HTMLElement>, "onSettingsClick" | "onShareClick" | "onRunOptionsClick"> {
   class?: string;
 }
 
@@ -23,12 +20,7 @@ interface HeaderProps extends JSX.HTMLAttributes<HTMLElement> {
  * and primary actions (Settings, Share, Run).
  */
 function Header(props: HeaderProps) {
-  const [local, rest] = splitProps(props, [
-    "onSettingsClick",
-    "onShareClick",
-    "onRunOptionsClick",
-    "class",
-  ]);
+  const [local, rest] = splitProps(props, ["class"]);
 
   const core = useEditor();
 
@@ -38,6 +30,14 @@ function Header(props: HeaderProps) {
     } else {
       core.dispatcher.dispatch({ type: "RUN_CODE" });
     }
+  }
+
+  function handleSettingsClick() {
+    core.dispatcher.dispatch({ type: "TOGGLE_OVERLAY", overlayId: "settings" });
+  }
+
+  function handleShareClick() {
+    alert("Share functionality coming soon!");
   }
 
   return (
@@ -61,14 +61,14 @@ function Header(props: HeaderProps) {
           variant="ghost"
           size="icon"
           aria-label="Settings"
-          onClick={local.onSettingsClick}
+          onClick={handleSettingsClick}
         >
           <Icon icon={Settings} />
         </Button>
         <Button
           variant="outline"
           aria-label="Share workspace"
-          onClick={local.onShareClick}
+          onClick={handleShareClick}
         >
           <Icon icon={Share2} class="mr-1" />
           Share
@@ -76,7 +76,6 @@ function Header(props: HeaderProps) {
         <SplitButton
           variant={core.engine.status() === "running" ? "outline" : "primary"}
           onMainClick={handleRunClick}
-          onDropdownClick={local.onRunOptionsClick}
           dropdownLabel="Run options"
         >
           <Show 

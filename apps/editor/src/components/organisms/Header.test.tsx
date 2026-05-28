@@ -2,6 +2,8 @@ import { render } from "@solidjs/testing-library";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { Header } from "./Header";
 
+vi.stubGlobal("alert", vi.fn());
+
 const dispatchMock = vi.fn();
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
@@ -21,18 +23,16 @@ describe("Header", () => {
     expect(getByText("[ TEST_PROJECT ]")).toBeTruthy();
   });
 
-  it("when settings button clicked, fires onSettingsClick", () => {
-    const handler = vi.fn();
-    const { getByRole } = render(() => <Header onSettingsClick={handler} />);
+  it("when settings button clicked, dispatches TOGGLE_OVERLAY action", () => {
+    const { getByRole } = render(() => <Header />);
     getByRole("button", { name: "Settings" }).click();
-    expect(handler).toHaveBeenCalledOnce();
+    expect(dispatchMock).toHaveBeenCalledWith({ type: "TOGGLE_OVERLAY", overlayId: "settings" });
   });
 
-  it("when share button clicked, fires onShareClick", () => {
-    const handler = vi.fn();
-    const { getByRole } = render(() => <Header onShareClick={handler} />);
+  it("when share button clicked, shows alert", () => {
+    const { getByRole } = render(() => <Header />);
     getByRole("button", { name: "Share workspace" }).click();
-    expect(handler).toHaveBeenCalledOnce();
+    expect(window.alert).toHaveBeenCalledWith("Share functionality coming soon!");
   });
 
   it("when run button clicked, dispatches RUN_CODE action", () => {
@@ -40,13 +40,6 @@ describe("Header", () => {
     const buttons = getAllByRole("button", { name: /Run/ });
     buttons[0].click();
     expect(dispatchMock).toHaveBeenCalledWith({ type: "RUN_CODE" });
-  });
-
-  it("when run options clicked, fires onRunOptionsClick", () => {
-    const handler = vi.fn();
-    const { getByRole } = render(() => <Header onRunOptionsClick={handler} />);
-    getByRole("button", { name: "Run options" }).click();
-    expect(handler).toHaveBeenCalledOnce();
   });
 
   it("when custom class is provided, merges it", () => {

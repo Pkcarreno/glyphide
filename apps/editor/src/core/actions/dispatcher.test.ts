@@ -13,6 +13,17 @@ describe("ActionDispatcher", () => {
     expect(handler).toHaveBeenCalledWith({ type: "RUN_CODE" });
   });
 
+  it("routes overlay actions to registered handlers", () => {
+    const dispatcher = createActionDispatcher();
+    const handler = vi.fn();
+
+    dispatcher.on("TOGGLE_OVERLAY", handler);
+    dispatcher.dispatch({ type: "TOGGLE_OVERLAY", overlayId: "settings" });
+
+    expect(handler).toHaveBeenCalledOnce();
+    expect(handler).toHaveBeenCalledWith({ type: "TOGGLE_OVERLAY", overlayId: "settings" });
+  });
+
   it("does not call handlers of other types", () => {
     const dispatcher = createActionDispatcher();
     const handler = vi.fn();

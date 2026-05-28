@@ -3,7 +3,7 @@ import { Header } from "../organisms/Header";
 import { StatusBar } from "../organisms/StatusBar";
 import { EditorPane } from "../organisms/EditorPane";
 import { ConsolePane } from "../organisms/ConsolePane";
-import { SettingsModal } from "../organisms/SettingsModal";
+import { FloatingLayer } from "../organisms/FloatingLayer";
 import { WorkspaceLayout } from "../templates/WorkspaceLayout";
 import { useEditor } from "../../core/context";
 
@@ -14,7 +14,6 @@ import { useEditor } from "../../core/context";
  */
 function EditorPage() {
   const core = useEditor();
-  const [isSettingsOpen, setIsSettingsOpen] = createSignal(false);
 
   createEffect(() => {
     const theme = core.settings.settings.theme;
@@ -25,31 +24,15 @@ function EditorPage() {
     document.documentElement.classList.toggle("dark", isDark);
   });
 
-  function handleSettingsClick() {
-    setIsSettingsOpen(true);
-  }
-
-  function handleShareClick() {
-    alert("Share functionality coming soon!");
-  }
-
   return (
     <>
       <WorkspaceLayout
-        header={
-          <Header
-            onSettingsClick={handleSettingsClick}
-            onShareClick={handleShareClick}
-          />
-        }
+        header={<Header />}
         editorPane={<EditorPane />}
         consolePane={<ConsolePane />}
         statusBar={<StatusBar />}
       />
-      <SettingsModal
-        isOpen={isSettingsOpen()}
-        onOpenChange={setIsSettingsOpen}
-      />
+      <FloatingLayer />
     </>
   );
 }

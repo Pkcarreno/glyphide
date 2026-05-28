@@ -49,6 +49,18 @@ describe("EditorCore", () => {
     const onBufferUpdatedSpy = vi.spyOn(core.engine, "onBufferUpdated");
     core.dispatcher.dispatch({ type: "UPDATE_BUFFER", content: "const a = 1;" });
     expect(onBufferUpdatedSpy).toHaveBeenCalledWith("const a = 1;");
+
+    const openSpy = vi.spyOn(core.overlays, "open");
+    core.dispatcher.dispatch({ type: "OPEN_OVERLAY", overlayId: "settings" });
+    expect(openSpy).toHaveBeenCalledWith("settings");
+
+    const closeSpy = vi.spyOn(core.overlays, "close");
+    core.dispatcher.dispatch({ type: "CLOSE_OVERLAY", overlayId: "settings" });
+    expect(closeSpy).toHaveBeenCalledWith("settings");
+
+    const toggleSpy = vi.spyOn(core.overlays, "toggle");
+    core.dispatcher.dispatch({ type: "TOGGLE_OVERLAY", overlayId: "settings" });
+    expect(toggleSpy).toHaveBeenCalledWith("settings");
   });
 
   it("cleans up resources on dispose", () => {

@@ -82,4 +82,9 @@ export const defaultShortcutBindings: ShortcutBinding[] = [
     action: { type: "INTERRUPT_EXECUTION" },
     label: "Escape",
   },
+  {
+    combo: { key: ",", ctrlOrMeta: true, shift: false, alt: false },
+    action: { type: "TOGGLE_OVERLAY", overlayId: "settings" },
+    label: "Ctrl+,",
+  },
 ];

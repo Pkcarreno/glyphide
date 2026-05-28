@@ -14,14 +14,7 @@ import Sun from "lucide-solid/icons/sun";
 import { cn } from "../../helpers/cn";
 import { useEditor } from "../../core/context";
 
-/**
- * Props for the SettingsModal component.
- */
 interface SettingsModalProps {
-  /** Controlled open state. */
-  isOpen: boolean;
-  /** Fires when open state changes. */
-  onOpenChange: (isOpen: boolean) => void;
   class?: string;
 }
 
@@ -30,16 +23,22 @@ interface SettingsModalProps {
  * Displays application settings using high density components.
  */
 function SettingsModal(props: SettingsModalProps) {
-  const [local, rest] = splitProps(props, [
-    "isOpen",
-    "onOpenChange",
-    "class",
-  ]);
+  const [local, rest] = splitProps(props, ["class"]);
 
   const core = useEditor();
 
+  const handleOpenChange = (isOpen: boolean) => {
+    core.dispatcher.dispatch({
+      type: isOpen ? "OPEN_OVERLAY" : "CLOSE_OVERLAY",
+      overlayId: "settings",
+    });
+  };
+
   return (
-    <Dialog isOpen={local.isOpen} onOpenChange={local.onOpenChange}>
+    <Dialog
+      isOpen={core.overlays.isOpen("settings")}
+      onOpenChange={handleOpenChange}
+    >
       <DialogContent class={cn("relative max-w-2xl w-full h-5/6 flex flex-col md:flex-row overflow-hidden p-0", local.class)} {...rest}>
 
         <DialogClose

@@ -10,7 +10,13 @@ export type EditorAction =
   | { type: "INTERRUPT_EXECUTION" }
   | { type: "CLEAR_OUTPUT" }
   | { type: "SELECT_ENGINE"; engineId: EngineId }
-  | { type: "UPDATE_BUFFER"; content: string };
+  | { type: "UPDATE_BUFFER"; content: string }
+  | { type: "OPEN_OVERLAY"; overlayId: OverlayId }
+  | { type: "CLOSE_OVERLAY"; overlayId: OverlayId }
+  | { type: "TOGGLE_OVERLAY"; overlayId: OverlayId };
+
+/** Uniquely identifies an overlay (modal, menu, etc). */
+export type OverlayId = string;
 
 /** Extracts the action type string literal from the union. */
 export type EditorActionType = EditorAction["type"];

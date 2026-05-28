@@ -19,6 +19,8 @@ import type { EngineModel } from "./models/engine";
 import { createEngineModel } from "./models/engine";
 import type { EngineRegistry } from "./engine/registry";
 import { createEngineRegistry } from "./engine/registry";
+import type { OverlayModel } from "./models/overlay";
+import { createOverlayModel } from "./models/overlay";
 
 /** External dependencies required by the editor core. */
 export interface EditorCoreDeps {
@@ -38,6 +40,7 @@ export interface EditorCore {
   output: OutputModel;
   engine: EngineModel;
   engineRegistry: EngineRegistry;
+  overlays: OverlayModel;
   dispatcher: ActionDispatcher;
   shortcuts: ShortcutRegistry;
   /** Tears down all resources (call on unmount). */
@@ -55,6 +58,7 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
   const settings = createSettingsModel(deps.persistence);
   const project = createProjectModel(deps.urlState);
   const output = createOutputModel();
+  const overlays = createOverlayModel();
   const engineRegistry = createEngineRegistry();
   const engine = createEngineModel({
     buffer,
@@ -97,6 +101,24 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
     }),
   );
 
+  unsubscribers.push(
+    dispatcher.on("OPEN_OVERLAY", (action) => {
+      overlays.open(action.overlayId);
+    }),
+  );
+
+  unsubscribers.push(
+    dispatcher.on("CLOSE_OVERLAY", (action) => {
+      overlays.close(action.overlayId);
+    }),
+  );
+
+  unsubscribers.push(
+    dispatcher.on("TOGGLE_OVERLAY", (action) => {
+      overlays.toggle(action.overlayId);
+    }),
+  );
+
   function dispose(): void {
     engine.terminate();
     for (const unsubscribe of unsubscribers) {
@@ -111,6 +133,7 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
     output,
     engine,
     engineRegistry,
+    overlays,
     dispatcher,
     shortcuts,
     dispose,
