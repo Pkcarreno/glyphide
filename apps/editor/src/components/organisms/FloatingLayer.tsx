@@ -1,4 +1,5 @@
 import { SettingsModal } from "./SettingsModal";
+import { EngineSelectorCommand } from "./EngineSelectorCommand";
 
 /**
  * Orchestrates all application-level floating elements.
@@ -8,6 +9,7 @@ export function FloatingLayer() {
   return (
     <>
       <SettingsModal />
+      <EngineSelectorCommand />
     </>
   );
 }

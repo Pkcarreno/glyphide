@@ -136,10 +136,8 @@ function StatusBar(props: StatusBarProps) {
   const [local, rest] = splitProps(props, ["class"]);
   const core = useEditor();
 
-  function toggleEngine() {
-    const active = core.engine.activeEngineId();
-    const nextEngine = active === "quickjs" ? "mock" : "quickjs";
-    core.dispatcher.dispatch({ type: "SELECT_ENGINE", engineId: nextEngine });
+  function openEngineSelector() {
+    core.dispatcher.dispatch({ type: "OPEN_OVERLAY", overlayId: "engine-selector" });
   }
 
   return (
@@ -162,9 +160,8 @@ function StatusBar(props: StatusBarProps) {
       </div>
 
       <div class="flex items-center gap-1 h-full">
-        <StatusBarButton tooltip="Change Engine" onClick={toggleEngine}>
-          <span>{core.engine.activeEngineId() === "quickjs" ? "QuickJS V8" : "Mock Engine"}</span>
-          <Icon icon={ChevronDown} size={12} />
+        <StatusBarButton tooltip="Select Engine" onClick={openEngineSelector}>
+          <span>{core.engine.activeEngineId()}</span>
         </StatusBarButton>
 
         <StatusBarButton tooltip="Engine Settings" aria-label="Engine settings">
