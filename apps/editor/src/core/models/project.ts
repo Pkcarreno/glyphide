@@ -12,8 +12,12 @@ const DEFAULT_PROJECT_NAME = "untitled_project";
 export interface ProjectModel {
   /** Reactive accessor for the project name. */
   name: Accessor<string>;
+  /** Indicates whether the project state is small enough to be shared via URL. */
+  isUrlShareable: Accessor<boolean>;
   /** Updates the project name and persists it to URL state. */
   setName(newName: string): void;
+  /** Sets the shareability state of the URL. */
+  setShareableState(isShareable: boolean): void;
 }
 
 /** Creates a `ProjectModel` backed by the given URL state port. */
@@ -21,6 +25,7 @@ export function createProjectModel(urlState: UrlStatePort): ProjectModel {
   const initialName =
     urlState.get(PROJECT_NAME_PARAM) ?? DEFAULT_PROJECT_NAME;
   const [name, setNameSignal] = createSignal(initialName);
+  const [isUrlShareable, setIsUrlShareableSignal] = createSignal(true);
 
   function setName(newName: string): void {
     const sanitized = newName.trim() || DEFAULT_PROJECT_NAME;
@@ -28,5 +33,9 @@ export function createProjectModel(urlState: UrlStatePort): ProjectModel {
     urlState.set(PROJECT_NAME_PARAM, sanitized);
   }
 
-  return { name, setName };
+  function setShareableState(isShareable: boolean): void {
+    setIsUrlShareableSignal(isShareable);
+  }
+
+  return { name, isUrlShareable, setName, setShareableState };
 }

@@ -51,7 +51,7 @@ export interface EditorCore {
 export function createEditorCore(deps: EditorCoreDeps): EditorCore {
   const dispatcher = createActionDispatcher();
   const shortcuts = createShortcutRegistry(defaultShortcutBindings);
-  const buffer = createBufferModel();
+  const buffer = createBufferModel(deps.urlState);
   const settings = createSettingsModel(deps.persistence);
   const project = createProjectModel(deps.urlState);
   const output = createOutputModel();
@@ -61,6 +61,7 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
     output,
     settings,
     registry: engineRegistry,
+    urlState: deps.urlState,
   });
 
   const unsubscribers: (() => void)[] = [];
@@ -92,6 +93,7 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
   unsubscribers.push(
     dispatcher.on("UPDATE_BUFFER", (action) => {
       buffer.setContent(action.content);
+      engine.onBufferUpdated(action.content);
     }),
   );
 

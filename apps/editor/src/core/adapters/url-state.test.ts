@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { createUrlStateAdapter } from "./url-state";
+import { createBrowserUrlStateAdapter } from "./url-state";
 
 describe("UrlStateAdapter", () => {
   let replaceStateSpy: any;
@@ -11,14 +11,14 @@ describe("UrlStateAdapter", () => {
 
   it("gets parameters from the URL", () => {
     window.history.replaceState(null, "", "/?test=value");
-    const adapter = createUrlStateAdapter();
+    const adapter = createBrowserUrlStateAdapter();
 
     expect(adapter.get("test")).toBe("value");
     expect(adapter.get("missing")).toBeNull();
   });
 
   it("sets parameters without triggering navigation", () => {
-    const adapter = createUrlStateAdapter();
+    const adapter = createBrowserUrlStateAdapter();
     adapter.set("test", "newValue");
 
     expect(window.location.search).toContain("test=newValue");
@@ -27,7 +27,7 @@ describe("UrlStateAdapter", () => {
 
   it("removes parameters correctly", () => {
     window.history.replaceState(null, "", "/?toDelete=123");
-    const adapter = createUrlStateAdapter();
+    const adapter = createBrowserUrlStateAdapter();
 
     adapter.remove("toDelete");
 

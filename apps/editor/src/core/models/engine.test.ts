@@ -5,6 +5,7 @@ import { createOutputModel } from "./output";
 import { createSettingsModel } from "./settings";
 import { createEngineRegistry } from "../engine/registry";
 import type { PersistencePort } from "../ports/persistence";
+import type { UrlStatePort } from "../ports/url-state";
 
 function createMockPersistence(): PersistencePort {
   const data = new Map();
@@ -12,6 +13,15 @@ function createMockPersistence(): PersistencePort {
     get: (key) => data.get(key) ?? null,
     set: (key, val) => data.set(key, val),
     remove: (key) => data.delete(key),
+  };
+}
+
+function createMockUrlState(): UrlStatePort {
+  const data = new Map();
+  return {
+    get: (key) => data.get(key) ?? null,
+    set: (key, val) => { data.set(key, val); },
+    remove: (key) => { data.delete(key); },
   };
 }
 
@@ -53,9 +63,11 @@ describe("EngineModel (Integration)", () => {
   let output: ReturnType<typeof createOutputModel>;
   let settings: ReturnType<typeof createSettingsModel>;
   let registry: ReturnType<typeof createEngineRegistry>;
+  let urlState: ReturnType<typeof createMockUrlState>;
 
   beforeEach(() => {
-    buffer = createBufferModel();
+    urlState = createMockUrlState();
+    buffer = createBufferModel(urlState);
     output = createOutputModel();
     settings = createSettingsModel(createMockPersistence());
     registry = createTestRegistry();
@@ -63,7 +75,7 @@ describe("EngineModel (Integration)", () => {
   });
 
   it("initializes in idle state", () => {
-    const model = createEngineModel({ buffer, output, settings, registry });
+    const model = createEngineModel({ buffer, output, settings, registry, urlState });
     expect(model.status()).toBe("idle");
     expect(model.activeEngineId()).toBe("quickjs");
   });
@@ -71,7 +83,7 @@ describe("EngineModel (Integration)", () => {
   const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   it("executes code using mock engine and captures output", async () => {
-    const model = createEngineModel({ buffer, output, settings, registry });
+    const model = createEngineModel({ buffer, output, settings, registry, urlState });
     model.selectEngine("mock");
     buffer.setContent("test code");
 
@@ -88,7 +100,7 @@ describe("EngineModel (Integration)", () => {
   });
 
   it("clears output on run if setting is enabled", async () => {
-    const model = createEngineModel({ buffer, output, settings, registry });
+    const model = createEngineModel({ buffer, output, settings, registry, urlState });
     model.selectEngine("mock");
     buffer.setContent("code1");
     settings.updateSettings({ isClearOnRunEnabled: true });
@@ -108,7 +120,7 @@ describe("EngineModel (Integration)", () => {
   });
 
   it("interrupts running execution", async () => {
-    const model = createEngineModel({ buffer, output, settings, registry });
+    const model = createEngineModel({ buffer, output, settings, registry, urlState });
     model.selectEngine("mock");
 
     buffer.setContent("test");
@@ -116,5 +128,37 @@ describe("EngineModel (Integration)", () => {
     await model.interruptExecution();
     await execPromise;
     expect(model.status()).toBe("idle");
+  });
+
+  describe("onBufferUpdated", () => {
+    it("sets the active engine in the URL if code is not empty and no engine exists in URL", () => {
+      const model = createEngineModel({ buffer, output, settings, registry, urlState });
+      
+      expect(urlState.get("engine")).toBeNull();
+      
+      model.onBufferUpdated("const a = 1;");
+      
+      expect(urlState.get("engine")).toBe("quickjs");
+    });
+
+    it("does not override the engine in the URL if it is already set", () => {
+      const model = createEngineModel({ buffer, output, settings, registry, urlState });
+      
+      urlState.set("engine", "mock-engine");
+      
+      model.onBufferUpdated("const a = 1;");
+      
+      expect(urlState.get("engine")).toBe("mock-engine");
+    });
+
+    it("does not set the engine in the URL if code is empty", () => {
+      const model = createEngineModel({ buffer, output, settings, registry, urlState });
+      
+      expect(urlState.get("engine")).toBeNull();
+      
+      model.onBufferUpdated("   ");
+      
+      expect(urlState.get("engine")).toBeNull();
+    });
   });
 });

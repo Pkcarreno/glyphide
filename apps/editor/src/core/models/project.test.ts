@@ -41,4 +41,21 @@ describe("ProjectModel", () => {
     expect(model.name()).toBe("untitled_project");
     expect(urlState.get("name")).toBe("untitled_project");
   });
+
+  it("initializes with isUrlShareable true by default", () => {
+    const urlState = createMockUrlState();
+    const model = createProjectModel(urlState);
+    expect(model.isUrlShareable()).toBe(true);
+  });
+
+  it("updates shareable state when setShareableState is called", () => {
+    const urlState = createMockUrlState();
+    const model = createProjectModel(urlState);
+
+    model.setShareableState(false);
+    expect(model.isUrlShareable()).toBe(false);
+
+    model.setShareableState(true);
+    expect(model.isUrlShareable()).toBe(true);
+  });
 });

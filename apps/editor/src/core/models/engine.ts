@@ -6,6 +6,7 @@ import type { EngineId, EngineRegistry } from "../engine/registry";
 import type { BufferModel } from "./buffer";
 import type { OutputModel } from "./output";
 import type { SettingsModel } from "./settings";
+import type { UrlStatePort } from "../ports/url-state";
 
 /** Execution lifecycle states for the active engine. */
 export type EngineStatus = "idle" | "initializing" | "running";
@@ -16,6 +17,7 @@ export interface EngineModelDeps {
   output: OutputModel;
   settings: SettingsModel;
   registry: EngineRegistry;
+  urlState: UrlStatePort;
 }
 
 /**
@@ -38,13 +40,17 @@ export interface EngineModel {
   selectEngine(engineId: EngineId): void;
   /** Tears down the orchestrator and releases resources. */
   terminate(): void;
+  /** Syncs engine state based on buffer updates. */
+  onBufferUpdated(newCode: string): void;
 }
 
 /** Creates an `EngineModel` wired to the given dependencies. */
 export function createEngineModel(deps: EngineModelDeps): EngineModel {
   const [status, setStatus] = createSignal<EngineStatus>("idle");
+  
+  const initialEngineId = deps.urlState.get("engine") as EngineId | null;
   const [activeEngineId, setActiveEngineId] =
-    createSignal<EngineId>("quickjs");
+    createSignal<EngineId>(initialEngineId ?? "quickjs");
 
   let orchestrator: EngineOrchestrator | null = null;
   let isInitialized = false;
@@ -114,6 +120,7 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     if (engineId === activeEngineId()) return;
     terminate();
     setActiveEngineId(engineId);
+    deps.urlState.set("engine", engineId);
   }
 
   function terminate(): void {
@@ -123,6 +130,12 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     setStatus("idle");
   }
 
+  function onBufferUpdated(newCode: string): void {
+    if (newCode.trim() !== "" && deps.urlState.get("engine") === null) {
+      deps.urlState.set("engine", activeEngineId());
+    }
+  }
+
   return {
     status,
     activeEngineId,
@@ -130,5 +143,6 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     interruptExecution,
     selectEngine,
     terminate,
+    onBufferUpdated,
   };
 }

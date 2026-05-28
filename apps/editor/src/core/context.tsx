@@ -7,7 +7,10 @@ import type { JSX } from "solid-js";
 import type { EditorCore } from "./editor-core";
 import { createEditorCore } from "./editor-core";
 import { createLocalStorageAdapter } from "./adapters/local-storage";
-import { createUrlStateAdapter } from "./adapters/url-state";
+import { createBrowserUrlStateAdapter } from "./adapters/url-state";
+import { createLzStringCodecAdapter } from "./adapters/lz-string-codec";
+import { composeSizeLimitedUrlState } from "./decorators/url-state-limit";
+import { composeCompressedUrlState } from "./decorators/url-state-compression";
 
 const EditorContext = createContext<EditorCore>();
 
@@ -18,10 +21,30 @@ const EditorContext = createContext<EditorCore>();
  * logic and the browser environment.
  */
 export function EditorProvider(props: { children: JSX.Element }) {
-  const core = createEditorCore({
+  let core: EditorCore;
+
+  const browserUrlAdapter = createBrowserUrlStateAdapter();
+  const codecAdapter = createLzStringCodecAdapter();
+
+  const safeUrlState = composeSizeLimitedUrlState(
+    browserUrlAdapter,
+    8000,
+    (isShareable) => {
+      core?.project.setShareableState(isShareable);
+    },
+  );
+
+  const finalUrlState = composeCompressedUrlState(
+    safeUrlState,
+    codecAdapter,
+    ["code", "name", "engine"],
+  );
+
+  core = createEditorCore({
     persistence: createLocalStorageAdapter(),
-    urlState: createUrlStateAdapter(),
+    urlState: finalUrlState,
   });
+
 
   onCleanup(() => core.dispose());
 

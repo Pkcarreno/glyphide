@@ -45,6 +45,10 @@ describe("EditorCore", () => {
     const selectEngineSpy = vi.spyOn(core.engine, "selectEngine");
     core.dispatcher.dispatch({ type: "SELECT_ENGINE", engineId: "mock" });
     expect(selectEngineSpy).toHaveBeenCalledWith("mock");
+
+    const onBufferUpdatedSpy = vi.spyOn(core.engine, "onBufferUpdated");
+    core.dispatcher.dispatch({ type: "UPDATE_BUFFER", content: "const a = 1;" });
+    expect(onBufferUpdatedSpy).toHaveBeenCalledWith("const a = 1;");
   });
 
   it("cleans up resources on dispose", () => {

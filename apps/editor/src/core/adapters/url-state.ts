@@ -5,7 +5,7 @@ import type { UrlStatePort } from "../ports/url-state";
  * Reads and writes query parameters using the History API
  * without triggering full-page navigation.
  */
-export function createUrlStateAdapter(): UrlStatePort {
+export function createBrowserUrlStateAdapter(): UrlStatePort {
   return {
     get(key) {
       const params = new URLSearchParams(window.location.search);

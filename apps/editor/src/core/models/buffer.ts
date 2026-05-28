@@ -1,10 +1,12 @@
 import { createSignal } from "solid-js";
 import type { Accessor } from "solid-js";
+import type { UrlStatePort } from "../ports/url-state";
 
 /**
  * Pure model for the single code buffer.
  * Manages the source code string as a reactive signal.
- * Has no knowledge of the editor UI, DOM, or browser APIs.
+ * Syncs the code to the URL state.
+ * Has no knowledge of the editor UI, DOM, browser APIs, or compression.
  */
 export interface BufferModel {
   /** Reactive accessor for the current code content. */
@@ -13,9 +15,18 @@ export interface BufferModel {
   setContent(code: string): void;
 }
 
-/** Creates a new `BufferModel` with optional initial content. */
-export function createBufferModel(initialContent = ""): BufferModel {
-  const [content, setContent] = createSignal(initialContent);
+/** Creates a new `BufferModel` synced with URL state. */
+export function createBufferModel(
+  urlState: UrlStatePort,
+  initialContent = "",
+): BufferModel {
+  const startContent = urlState.get("code") ?? initialContent;
+  const [content, setContentSignal] = createSignal(startContent);
+
+  function setContent(code: string): void {
+    setContentSignal(code);
+    urlState.set("code", code);
+  }
 
   return { content, setContent };
 }
