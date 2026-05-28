@@ -2,6 +2,7 @@ import {
   createContext,
   useContext,
   onCleanup,
+  onMount,
 } from "solid-js";
 import type { JSX } from "solid-js";
 import type { EditorCore } from "./editor-core";
@@ -11,6 +12,7 @@ import { createBrowserUrlStateAdapter } from "./adapters/url-state";
 import { createLzStringCodecAdapter } from "./adapters/lz-string-codec";
 import { composeSizeLimitedUrlState } from "./decorators/url-state-limit";
 import { composeCompressedUrlState } from "./decorators/url-state-compression";
+import { parseKeyCombo } from "./shortcuts/registry";
 
 const EditorContext = createContext<EditorCore>();
 
@@ -45,6 +47,24 @@ export function EditorProvider(props: { children: JSX.Element }) {
     urlState: finalUrlState,
   });
 
+  onMount(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const combo = parseKeyCombo(e);
+      const action = core.shortcuts.matchShortcut(combo);
+
+      if (action) {
+        e.preventDefault();
+        e.stopPropagation();
+        core.dispatcher.dispatch(action);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown, true);
+
+    onCleanup(() => {
+      window.removeEventListener("keydown", handleKeyDown, true);
+    });
+  });
 
   onCleanup(() => core.dispose());
 
