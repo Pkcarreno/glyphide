@@ -111,7 +111,7 @@ function DialogOverlay(props: DialogOverlayProps) {
   return (
     <div
       class={cn(
-        "fixed inset-0 z-50 bg-black/60 backdrop-blur-md",
+        "fixed inset-0 z-50 bg-transparent",
         local.class,
       )}
       onClick={close}
@@ -133,7 +133,7 @@ function DialogContent(props: DialogContentProps) {
 
   return (
     <Show when={isOpen()}>
-      <div class="fixed inset-0 z-50 flex items-center justify-center">
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <DialogOverlay />
         <div
           role="dialog"
@@ -141,9 +141,9 @@ function DialogContent(props: DialogContentProps) {
           class={cn(
             "relative z-50",
             "bg-surface border border-outline-variant",
-            "rounded-sm shadow-none overflow-hidden",
+            "rounded-xl shadow-2xl overflow-hidden",
             "w-full max-w-sm",
-            "flex flex-col font-sans text-ui-label",
+            "flex flex-col text-on-surface",
             local.class,
           )}
           {...rest}
