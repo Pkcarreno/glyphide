@@ -1,5 +1,5 @@
-import { render } from "@solidjs/testing-library";
-import { describe, expect, it, vi } from "vitest";
+import { render, cleanup } from "@solidjs/testing-library";
+import { describe, expect, it, vi, afterEach } from "vitest";
 import { SettingsModal } from "./SettingsModal";
 import { createSignal } from "solid-js";
 const updateSettingsMock = vi.fn();
@@ -26,6 +26,10 @@ vi.mock("../../core/context", () => ({
 }));
 
 describe("SettingsModal", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   it("when core.overlays is false, modal is not in the DOM", () => {
     setMockIsOpen(false);
     const { queryByRole } = render(() => <SettingsModal />);

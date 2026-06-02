@@ -1,5 +1,5 @@
-import { render } from "@solidjs/testing-library";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { render, cleanup } from "@solidjs/testing-library";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { FloatingLayer } from "./FloatingLayer";
 import { createSignal } from "solid-js";
 
@@ -26,6 +26,10 @@ vi.mock("../../core/context", () => ({
 describe("FloatingLayer", () => {
   beforeEach(() => {
     setMockIsOpen(false);
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   it("when rendered and settings overlay is closed, dialog is null", () => {

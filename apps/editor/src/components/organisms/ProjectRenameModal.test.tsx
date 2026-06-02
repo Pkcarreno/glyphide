@@ -1,5 +1,5 @@
-import { render, fireEvent } from "@solidjs/testing-library";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { render, fireEvent, cleanup } from "@solidjs/testing-library";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { ProjectRenameModal } from "./ProjectRenameModal";
 import { createSignal } from "solid-js";
 
@@ -22,6 +22,10 @@ describe("ProjectRenameModal", () => {
   beforeEach(() => {
     dispatchMock.mockClear();
     setMockIsOpen(false);
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   it("when core.overlays is false, dialog is not in the DOM", () => {
