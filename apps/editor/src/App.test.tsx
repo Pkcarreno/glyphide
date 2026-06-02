@@ -33,6 +33,6 @@ beforeAll(() => {
 describe("App", () => {
   it("renders the EditorPage component", () => {
     const { getByText } = render(() => <App />);
-    expect(getByText("[ TEST_PROJECT ]")).toBeTruthy();
+    expect(getByText(/TEST_PROJECT/)).toBeTruthy();
   });
 });

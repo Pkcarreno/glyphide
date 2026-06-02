@@ -1,5 +1,6 @@
 import { SettingsModal } from "./SettingsModal";
 import { EngineSelectorCommand } from "./EngineSelectorCommand";
+import { ProjectRenameModal } from "./ProjectRenameModal";
 
 /**
  * Orchestrates all application-level floating elements.
@@ -10,6 +11,7 @@ export function FloatingLayer() {
     <>
       <SettingsModal />
       <EngineSelectorCommand />
+      <ProjectRenameModal />
     </>
   );
 }

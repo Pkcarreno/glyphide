@@ -20,7 +20,7 @@ describe("Header", () => {
 
   it("when rendered, displays the app title", () => {
     const { getByText } = render(() => <Header />);
-    expect(getByText("[ TEST_PROJECT ]")).toBeTruthy();
+    expect(getByText(/TEST_PROJECT/)).toBeTruthy();
   });
 
   it("when settings button clicked, dispatches TOGGLE_OVERLAY action", () => {

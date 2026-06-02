@@ -51,9 +51,14 @@ function Header(props: HeaderProps) {
     >
       <div class="flex items-center gap-3">
         <img src={logo} alt="Glyphide Logo" class="h-6 w-6" />
-        <h1 class="font-mono text-ui-label tracking-widest text-on-surface">
-          [ {core.project.name() || "UNTITLED_PROJECT"} ]
-        </h1>
+        <Button
+          variant="ghost"
+          class="font-mono tracking-widest text-on-surface uppercase"
+          aria-label="Rename Project"
+          onClick={() => core.dispatcher.dispatch({ type: "OPEN_OVERLAY", overlayId: "project-rename" })}
+        >
+          {core.project.name() || "UNTITLED_PROJECT"}
+        </Button>
       </div>
 
       <div class="flex items-center gap-gap-compact">
@@ -78,8 +83,8 @@ function Header(props: HeaderProps) {
           onMainClick={handleRunClick}
           dropdownLabel="Run options"
         >
-          <Show 
-            when={core.engine.status() === "running"} 
+          <Show
+            when={core.engine.status() === "running"}
             fallback={<><Icon icon={Play} class="mr-1" /> Run</>}
           >
             <Icon icon={Square} class="mr-1" /> Stop

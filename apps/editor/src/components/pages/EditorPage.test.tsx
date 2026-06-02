@@ -49,7 +49,7 @@ describe("EditorPage", () => {
   it("when rendered, displays the full application layout", () => {
     const { getByText, getByRole } = render(() => <EditorPage />);
 
-    expect(getByText("[ TEST_PROJECT ]")).toBeTruthy();
+    expect(getByText(/TEST_PROJECT/)).toBeTruthy();
     expect(getByText("Output")).toBeTruthy();
     expect(getByText("idle")).toBeTruthy();
     expect(getByRole("main")).toBeTruthy();
