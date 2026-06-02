@@ -1,7 +1,6 @@
 import { splitProps, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import { Button } from "../atoms/Button";
-import { SplitButton } from "../molecules/SplitButton";
 import { Icon } from "../atoms/Icon";
 import Settings from "lucide-solid/icons/settings";
 import Share2 from "lucide-solid/icons/share-2";
@@ -78,10 +77,9 @@ function Header(props: HeaderProps) {
           <Icon icon={Share2} class="mr-1" />
           Share
         </Button>
-        <SplitButton
+        <Button
           variant={core.engine.engineStatus() === "running" ? "outline" : "primary"}
-          onMainClick={handleRunClick}
-          dropdownLabel="Run options"
+          onClick={handleRunClick}
         >
           <Show
             when={core.engine.engineStatus() === "running"}
@@ -89,7 +87,7 @@ function Header(props: HeaderProps) {
           >
             <Icon icon={Square} class="mr-1" /> Stop
           </Show>
-        </SplitButton>
+        </Button>
       </div>
     </header>
   );
