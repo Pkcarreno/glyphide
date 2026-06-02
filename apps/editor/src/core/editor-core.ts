@@ -102,6 +102,12 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
   );
 
   unsubscribers.push(
+    dispatcher.on("RENAME_PROJECT", (action) => {
+      project.setName(action.name);
+    }),
+  );
+
+  unsubscribers.push(
     dispatcher.on("OPEN_OVERLAY", (action) => {
       overlays.open(action.overlayId);
     }),
@@ -116,6 +122,12 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
   unsubscribers.push(
     dispatcher.on("TOGGLE_OVERLAY", (action) => {
       overlays.toggle(action.overlayId);
+    }),
+  );
+
+  unsubscribers.push(
+    dispatcher.on("CLOSE_ALL_OVERLAYS", () => {
+      overlays.closeAll();
     }),
   );
 

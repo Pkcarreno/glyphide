@@ -11,9 +11,11 @@ export type EditorAction =
   | { type: "CLEAR_OUTPUT" }
   | { type: "SELECT_ENGINE"; engineId: EngineId }
   | { type: "UPDATE_BUFFER"; content: string }
+  | { type: "RENAME_PROJECT"; name: string }
   | { type: "OPEN_OVERLAY"; overlayId: OverlayId }
   | { type: "CLOSE_OVERLAY"; overlayId: OverlayId }
-  | { type: "TOGGLE_OVERLAY"; overlayId: OverlayId };
+  | { type: "TOGGLE_OVERLAY"; overlayId: OverlayId }
+  | { type: "CLOSE_ALL_OVERLAYS" };
 
 /** Uniquely identifies an overlay (modal, menu, etc). */
 export type OverlayId = string;

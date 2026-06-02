@@ -50,7 +50,7 @@ export function EditorProvider(props: { children: JSX.Element }) {
   onMount(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const combo = parseKeyCombo(e);
-      const action = core.shortcuts.matchShortcut(combo);
+      const action = core.shortcuts.matchShortcut(combo, core);
 
       if (action) {
         e.preventDefault();

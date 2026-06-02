@@ -1,4 +1,5 @@
 import type { EditorAction } from "../actions/types";
+import type { EditorCore } from "../editor-core";
 
 /**
  * Platform-agnostic representation of a keyboard combination.
@@ -19,12 +20,14 @@ export interface ShortcutBinding {
   action: EditorAction;
   /** Human-readable label for tooltips (e.g. "Ctrl+Enter"). */
   label: string;
+  /** Optional predicate to check if the shortcut is active in the current state. */
+  when?: (core: EditorCore) => boolean;
 }
 
 /** Lookup table that resolves key combos to editor actions. */
 export interface ShortcutRegistry {
   /** Returns the matching action for a key combo, or `null`. */
-  matchShortcut(combo: KeyCombo): EditorAction | null;
+  matchShortcut(combo: KeyCombo, core?: EditorCore): EditorAction | null;
   /** All registered bindings (for rendering in UI tooltips). */
   bindings: readonly ShortcutBinding[];
 }
@@ -36,7 +39,7 @@ export interface ShortcutRegistry {
 export function createShortcutRegistry(
   bindings: ShortcutBinding[],
 ): ShortcutRegistry {
-  function matchShortcut(combo: KeyCombo): EditorAction | null {
+  function matchShortcut(combo: KeyCombo, core?: EditorCore): EditorAction | null {
     for (const binding of bindings) {
       const target = binding.combo;
       if (
@@ -45,7 +48,9 @@ export function createShortcutRegistry(
         combo.shift === target.shift &&
         combo.alt === target.alt
       ) {
-        return binding.action;
+        if (!binding.when || (core && binding.when(core))) {
+          return binding.action;
+        }
       }
     }
     return null;
@@ -79,8 +84,15 @@ export const defaultShortcutBindings: ShortcutBinding[] = [
   },
   {
     combo: { key: "Escape", ctrlOrMeta: false, shift: false, alt: false },
+    action: { type: "CLOSE_ALL_OVERLAYS" },
+    label: "Escape",
+    when: (core) => core.overlays.hasActiveOverlays(),
+  },
+  {
+    combo: { key: "Escape", ctrlOrMeta: false, shift: false, alt: false },
     action: { type: "INTERRUPT_EXECUTION" },
     label: "Escape",
+    when: (core) => !core.overlays.hasActiveOverlays(),
   },
   {
     combo: { key: ",", ctrlOrMeta: true, shift: false, alt: false },

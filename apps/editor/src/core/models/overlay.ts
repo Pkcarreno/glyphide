@@ -14,6 +14,10 @@ export interface OverlayModel {
   close(overlayId: OverlayId): void;
   /** Toggles the specified overlay's state. */
   toggle(overlayId: OverlayId): void;
+  /** Returns true if there is at least one active overlay. */
+  hasActiveOverlays(): boolean;
+  /** Closes all active overlays. */
+  closeAll(): void;
 }
 
 /** Creates an `OverlayModel` instance. */
@@ -54,5 +58,13 @@ export function createOverlayModel(): OverlayModel {
     });
   }
 
-  return { isOpen, open, close, toggle };
+  function hasActiveOverlays(): boolean {
+    return activeOverlays().size > 0;
+  }
+
+  function closeAll(): void {
+    setActiveOverlays(new Set<OverlayId>());
+  }
+
+  return { isOpen, open, close, toggle, hasActiveOverlays, closeAll };
 }
