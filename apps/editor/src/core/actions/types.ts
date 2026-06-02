@@ -9,7 +9,9 @@ export type EditorAction =
   | { type: "RUN_CODE" }
   | { type: "INTERRUPT_EXECUTION" }
   | { type: "CLEAR_OUTPUT" }
-  | { type: "SELECT_ENGINE"; engineId: EngineId }
+  | { type: "SELECT_ENGINE_ENTRY"; engineId: EngineId; language: string }
+  | { type: "UPDATE_ENGINE_CONFIG"; patch: Record<string, unknown> }
+  | { type: "RETRY_ENGINE_INIT" }
   | { type: "UPDATE_BUFFER"; content: string }
   | { type: "RENAME_PROJECT"; name: string }
   | { type: "OPEN_OVERLAY"; overlayId: OverlayId }

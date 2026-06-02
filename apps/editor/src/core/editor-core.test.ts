@@ -42,9 +42,9 @@ describe("EditorCore", () => {
     core.dispatcher.dispatch({ type: "CLEAR_OUTPUT" });
     expect(clearEntriesSpy).toHaveBeenCalled();
 
-    const selectEngineSpy = vi.spyOn(core.engine, "selectEngine");
-    core.dispatcher.dispatch({ type: "SELECT_ENGINE", engineId: "mock" });
-    expect(selectEngineSpy).toHaveBeenCalledWith("mock");
+    const selectEngineEntrySpy = vi.spyOn(core.engine, "selectEngineEntry");
+    core.dispatcher.dispatch({ type: "SELECT_ENGINE_ENTRY", engineId: "mock", language: "plaintext" });
+    expect(selectEngineEntrySpy).toHaveBeenCalledWith({ engineId: "mock", language: "plaintext", label: "" });
 
     const onBufferUpdatedSpy = vi.spyOn(core.engine, "onBufferUpdated");
     core.dispatcher.dispatch({ type: "UPDATE_BUFFER", content: "const a = 1;" });

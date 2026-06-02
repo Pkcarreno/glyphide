@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createEngineRegistry } from "./registry";
+import { createEngineRegistry, getEngineEntries } from "./registry";
 
 describe("EngineRegistry", () => {
   it("initializes with default engines", () => {
@@ -13,7 +13,7 @@ describe("EngineRegistry", () => {
     const registry = createEngineRegistry();
     const def = registry.getDefinition("mock");
     expect(def.id).toBe("mock");
-    expect(def.label).toBe("Mock Engine");
+    expect(def.label).toBe("Mock Test Engine");
   });
 
   it("throws when getting an unknown definition", () => {
@@ -25,5 +25,13 @@ describe("EngineRegistry", () => {
     const registry = createEngineRegistry();
     const factory = await registry.loadFactory("mock");
     expect(typeof factory).toBe("function");
+  });
+
+  it("expands engines into entries", () => {
+    const registry = createEngineRegistry();
+    const entries = getEngineEntries(registry);
+    expect(entries.length).toBeGreaterThanOrEqual(2);
+    expect(entries.some(e => e.engineId === "quickjs" && e.language === "javascript")).toBe(true);
+    expect(entries.some(e => e.engineId === "mock" && e.language === "plaintext")).toBe(true);
   });
 });

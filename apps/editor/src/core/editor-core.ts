@@ -89,8 +89,20 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
   );
 
   unsubscribers.push(
-    dispatcher.on("SELECT_ENGINE", (action) => {
-      engine.selectEngine(action.engineId);
+    dispatcher.on("SELECT_ENGINE_ENTRY", (action) => {
+      engine.selectEngineEntry({ engineId: action.engineId, language: action.language, label: "" });
+    }),
+  );
+
+  unsubscribers.push(
+    dispatcher.on("UPDATE_ENGINE_CONFIG", (action) => {
+      engine.updateEngineConfig(action.patch);
+    }),
+  );
+
+  unsubscribers.push(
+    dispatcher.on("RETRY_ENGINE_INIT", () => {
+      engine.retryInit();
     }),
   );
 
@@ -137,6 +149,13 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
       unsubscribe();
     }
   }
+
+  const initialDef = engineRegistry.getDefinition(engine.activeEngineId());
+  engine.selectEngineEntry({
+    engineId: engine.activeEngineId(),
+    language: engine.activeLanguage(),
+    label: initialDef.label
+  });
 
   return {
     buffer,

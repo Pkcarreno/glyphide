@@ -1,17 +1,35 @@
 import type { EngineWorkerFactory } from "@glyphide/orchestrator";
+import type { EngineInitParams } from "@glyphide/rpc-protocol/types";
 
-/** Unique identifier for a registered engine. */
-export type EngineId = "quickjs" | "mock";
+/** Engine identifiers are now strings, validated at runtime. */
+export type EngineId = string;
 
-/**
- * Descriptor for a lazily-loadable execution engine.
- * The factory is loaded on demand to avoid bundling heavy WASM upfront.
- */
+/** Selectable combination of an engine and a specific language. */
+export interface EngineEntry {
+  engineId: EngineId;
+  language: string;
+  /** Human-readable label shown in the selector (e.g., "QuickJS — JavaScript"). */
+  label: string;
+}
+
+/** Descriptor for an engine-specific configuration parameter. */
+export interface EngineParamDescriptor {
+  key: string;
+  label: string;
+  isEditable: boolean;
+}
+
+/** Static definition of a lazily-loadable execution engine. */
 export interface EngineDefinition {
   id: EngineId;
-  /** Human-readable label shown in the UI. */
+  /** Human-readable engine name. */
   label: string;
-  /** Dynamically imports the engine's worker factory. */
+  /** Languages this engine can execute. Declared statically. */
+  supportedLanguages: readonly string[];
+  /** Default INIT params sent to this engine (language is overridden per entry). */
+  defaultInitParams: Omit<EngineInitParams, "language">;
+  /** Metadata describing each configurable parameter. */
+  paramDescriptors: readonly EngineParamDescriptor[];
   loadFactory: () => Promise<EngineWorkerFactory>;
 }
 
@@ -33,7 +51,12 @@ export function createEngineRegistry(): EngineRegistry {
   const definitions: EngineDefinition[] = [
     {
       id: "quickjs",
-      label: "QuickJS",
+      label: "QuickJS Engine",
+      supportedLanguages: ["javascript"],
+      defaultInitParams: { timeout: 30_000 },
+      paramDescriptors: [
+        { key: "timeout", label: "Execution Timeout (ms)", isEditable: true },
+      ],
       loadFactory: async () => {
         const { createQuickJSWorker } = await import(
           "@glyphide/quickjs-engine/adapter"
@@ -43,7 +66,12 @@ export function createEngineRegistry(): EngineRegistry {
     },
     {
       id: "mock",
-      label: "Mock Engine",
+      label: "Mock Test Engine",
+      supportedLanguages: ["plaintext"],
+      defaultInitParams: { timeout: 30_000 },
+      paramDescriptors: [
+        { key: "timeout", label: "Execution Timeout (ms)", isEditable: true },
+      ],
       loadFactory: async () => {
         const { createMockWorker } = await import(
           "@glyphide/mock-engine/adapter"
@@ -69,4 +97,21 @@ export function createEngineRegistry(): EngineRegistry {
   }
 
   return { engines: definitions, getDefinition, loadFactory };
+}
+
+/**
+ * Expands all engine definitions into selectable entries,
+ * one per supported language.
+ */
+export function getEngineEntries(registry: EngineRegistry): EngineEntry[] {
+  return registry.engines.flatMap((def) =>
+    def.supportedLanguages.map((language) => {
+      const langLabel = language.charAt(0).toUpperCase() + language.slice(1);
+      return {
+        engineId: def.id,
+        language,
+        label: `${def.label} - ${langLabel}`,
+      };
+    })
+  );
 }
