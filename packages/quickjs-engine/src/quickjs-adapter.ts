@@ -129,7 +129,7 @@ export class QuickJSEngineAdapter {
       this.#sendResponse({
         jsonrpc: "2.0",
         id,
-        result: { timeout: 30_000, ...defaultCapabilities },
+        result: { id: "quickjs", timeout: 30_000, ...defaultCapabilities },
       });
     } catch (error) {
       this.#sendResponse({

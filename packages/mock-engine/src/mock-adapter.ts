@@ -124,6 +124,7 @@ export class MockEngineAdapter {
         jsonrpc: "2.0",
         id,
         result: {
+          id: "mock",
           timeout: 30_000,
           ...this.#config.capabilities,
         },

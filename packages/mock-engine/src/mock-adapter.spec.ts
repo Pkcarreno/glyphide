@@ -41,9 +41,11 @@ describe("MockEngineAdapter", () => {
       expect(responses).toHaveLength(1);
       expect(responses[0].id).toBe(1);
       expect(responses[0].result).toMatchObject({
+        id: "mock",
         timeout: 30_000,
-        stateful: true,
-        interruptible: true,
+        supportedLanguages: ["plaintext"],
+        isStateful: true,
+        isInterruptible: true,
         outputTypes: ["print", "log", "warn"],
       });
 
@@ -81,8 +83,9 @@ describe("MockEngineAdapter", () => {
     it("uses custom capabilities when provided", async () => {
       const adapter = new MockEngineAdapter({
         capabilities: {
-          stateful: false,
-          interruptible: false,
+          supportedLanguages: ["plaintext"],
+          isStateful: false,
+          isInterruptible: false,
           outputTypes: ["print"],
         },
       });
@@ -104,8 +107,9 @@ describe("MockEngineAdapter", () => {
       await new Promise((r) => setTimeout(r, 10));
 
       expect(responses[0].result).toMatchObject({
-        stateful: false,
-        interruptible: false,
+        supportedLanguages: ["plaintext"],
+        isStateful: false,
+        isInterruptible: false,
         outputTypes: ["print"],
       });
 

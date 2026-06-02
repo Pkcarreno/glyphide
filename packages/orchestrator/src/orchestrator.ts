@@ -15,8 +15,20 @@ import type {
 import { MessageBus } from "./message-bus";
 import { PromiseRegistry } from "./promise-registry";
 
-export interface EngineConfig {
-  timeout?: number;
+/**
+ * Result returned by the engine after a successful INIT handshake.
+ * The orchestrator extracts `timeout` for internal use and forwards
+ * the full result to consumers via `onEngineReady`.
+ *
+ * This is a re-export alias — the canonical definition lives in
+ * `@glyphide/rpc-protocol/types` as `EngineInitResult`.
+ */
+export interface EngineInitResult {
+  id: string;
+  isInterruptible: boolean;
+  isStateful: boolean;
+  supportedLanguages: readonly string[];
+  timeout: number;
 }
 
 /**
@@ -37,7 +49,7 @@ export type InferEnginePayload<TFactory> =
 export interface OrchestratorEvents<
   TPayload extends EngineOutputPayload = EngineOutputPayload,
 > {
-  onInit?: (config: EngineConfig) => void;
+  onEngineReady?: (result: EngineInitResult) => void;
   onOutput?: (payload: TPayload) => void;
 }
 
@@ -80,7 +92,7 @@ export class EngineOrchestrator<
    * Initializes the engine worker and performs handshake.
    * @param configParams Optional configuration to pass to the engine during initialization.
    */
-  async init(configParams?: unknown): Promise<EngineConfig> {
+  async init(configParams?: unknown): Promise<EngineInitResult> {
     this.#lastInitParams = configParams;
 
     if (this.#config.useWorker) {
@@ -92,11 +104,11 @@ export class EngineOrchestrator<
       params: configParams,
     });
 
-    const config = response.result as EngineConfig;
-    this.#timeout = config.timeout ?? 30_000;
-    this.#config.events.onInit?.(config);
+    const result = response.result as EngineInitResult;
+    this.#timeout = result.timeout ?? 30_000;
+    this.#config.events.onEngineReady?.(result);
 
-    return config;
+    return result;
   }
 
   /**

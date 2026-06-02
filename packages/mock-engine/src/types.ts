@@ -3,9 +3,11 @@
  */
 
 export interface MockCapabilities {
-  interruptible: boolean;
+  isInterruptible: boolean;
+  isStateful: boolean;
   outputTypes: readonly string[];
-  stateful: boolean;
+  /** Languages this mock engine can simulate. */
+  supportedLanguages: readonly string[];
 }
 
 /** Discriminated output payload for the mock engine. */
@@ -25,7 +27,8 @@ export interface MockEngineConfig {
 }
 
 export const defaultCapabilities: MockCapabilities = {
-  stateful: true,
-  interruptible: true,
+  supportedLanguages: ["plaintext"],
+  isStateful: true,
+  isInterruptible: true,
   outputTypes: ["print", "log", "warn"] as const,
 };

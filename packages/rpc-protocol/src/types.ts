@@ -53,3 +53,39 @@ export interface EngineOutputPayload {
   data?: unknown;
   type: string;
 }
+
+/**
+ * Parameters sent to the engine in an INIT request.
+ * The host passes these to configure engine behavior before execution.
+ */
+export interface EngineInitParams {
+  /** Language the engine should activate for this session. */
+  language: string;
+  /** Maximum execution time in milliseconds before timeout. */
+  timeout?: number;
+}
+
+/**
+ * Capabilities reported by an engine in its INIT response.
+ * Engines self-report what they support; the host uses this
+ * to adapt the UI and available operations.
+ */
+export interface EngineCapabilities {
+  /** Engine's self-reported canonical identifier. */
+  id: string;
+  /** Whether the engine supports mid-execution interruption. */
+  isInterruptible: boolean;
+  /** Whether the engine retains state between RUN calls. */
+  isStateful: boolean;
+  /** Languages this engine can execute. */
+  supportedLanguages: readonly string[];
+}
+
+/**
+ * Full result returned by the engine after a successful INIT handshake.
+ * Combines confirmed runtime config with engine capabilities.
+ */
+export interface EngineInitResult extends EngineCapabilities {
+  /** Confirmed execution timeout in milliseconds. */
+  timeout: number;
+}

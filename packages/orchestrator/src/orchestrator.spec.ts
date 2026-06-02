@@ -18,12 +18,12 @@ describe("EngineOrchestrator", () => {
       const onOutput = () => {
         /* noop */
       };
-      const onInit = () => {
+      const onEngineReady = () => {
         /* noop */
       };
 
       const orchestrator = new EngineOrchestrator({
-        events: { onOutput, onInit },
+        events: { onOutput, onEngineReady },
       });
 
       expect(orchestrator).toBeDefined();
@@ -68,7 +68,13 @@ describe("EngineOrchestrator", () => {
                   data: {
                     jsonrpc: "2.0",
                     id: data.id,
-                    result: { timeout: 30_000 },
+                    result: {
+                      id: "test",
+                      timeout: 30_000,
+                      supportedLanguages: ["javascript"],
+                      isStateful: true,
+                      isInterruptible: true,
+                    },
                   },
                 });
               }, 10);

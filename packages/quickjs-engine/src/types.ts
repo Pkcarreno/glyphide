@@ -22,7 +22,8 @@ export type QuickJSOutputPayload =
   | { data: string; type: "system" };
 
 export const defaultCapabilities = {
-  stateful: true,
-  interruptible: true,
+  supportedLanguages: ["javascript"] as const,
+  isStateful: true,
+  isInterruptible: true,
   outputTypes: ["log", "warn", "error", "info"] as const,
 };

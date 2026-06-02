@@ -57,9 +57,11 @@ describe("QuickJSEngineAdapter", () => {
       expect(responses[0].id).toBe(1);
       expect(responses[0].error).toBeUndefined();
       expect(responses[0].result).toMatchObject({
+        id: "quickjs",
         timeout: 30_000,
-        stateful: true,
-        interruptible: true,
+        supportedLanguages: ["javascript"],
+        isStateful: true,
+        isInterruptible: true,
         outputTypes: ["log", "warn", "error", "info"],
       });
     });

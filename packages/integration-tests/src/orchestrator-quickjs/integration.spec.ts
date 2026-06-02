@@ -20,8 +20,8 @@ describe("Orchestrator + QuickJS Engine Integration", () => {
       const config = await orchestrator.init();
 
       expect(config).toHaveProperty("timeout", 30_000);
-      expect(config).toHaveProperty("stateful", true);
-      expect(config).toHaveProperty("interruptible", true);
+      expect(config).toHaveProperty("isStateful", true);
+      expect(config).toHaveProperty("isInterruptible", true);
       expect((config as any).outputTypes).toContain("log");
     });
   });

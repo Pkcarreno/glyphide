@@ -30,24 +30,25 @@ describe("Orchestrator + Mock Engine Integration", () => {
       const config = await orchestrator.init();
 
       expect(config).toHaveProperty("timeout", 30_000);
-      expect(config).toHaveProperty("stateful", true);
-      expect(config).toHaveProperty("interruptible", true);
+      expect(config).toHaveProperty("isStateful", true);
+      expect(config).toHaveProperty("isInterruptible", true);
       expect((config as any).outputTypes).toContain("print");
     });
 
     it("accepts and applies configuration overrides via init parameters", async () => {
       const customConfig = createMockConfig({
         capabilities: {
-          stateful: false,
-          interruptible: false,
+          isStateful: false,
+          isInterruptible: false,
+          supportedLanguages: ["plaintext"],
           outputTypes: ["log"],
         },
       });
 
       const config = (await orchestrator.init(customConfig)) as any;
 
-      expect(config.stateful).toBe(false);
-      expect(config.interruptible).toBe(false);
+      expect(config.isStateful).toBe(false);
+      expect(config.isInterruptible).toBe(false);
       expect(config.outputTypes).toEqual(["log"]);
     });
 
@@ -174,8 +175,9 @@ describe("Orchestrator + Mock Engine Integration", () => {
         runDelay: 300,
         capabilities: {
           timeout: 50,
-          stateful: true,
-          interruptible: true,
+          isStateful: true,
+          isInterruptible: true,
+          supportedLanguages: ["plaintext"],
           outputTypes: ["print"],
         } as any,
       });
