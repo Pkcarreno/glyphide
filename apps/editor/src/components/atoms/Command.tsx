@@ -13,6 +13,7 @@ import { cn } from "../../helpers/cn";
 import SearchIcon from "lucide-solid/icons/search";
 import { Icon } from "./Icon";
 import { Dialog, useDialog } from "./Dialog";
+import { Input, type InputProps } from "./Input";
 
 /* ---------- Context ---------- */
 
@@ -146,9 +147,7 @@ export function CommandRoot(props: CommandRootProps) {
 
 /* ---------- Input ---------- */
 
-interface CommandInputProps extends JSX.InputHTMLAttributes<HTMLInputElement> {
-  wrapperClass?: string;
-}
+export interface CommandInputProps extends InputProps {}
 
 /**
  * Input field for filtering the command menu items.
@@ -165,20 +164,17 @@ export function CommandInput(props: CommandInputProps) {
   });
 
   return (
-    <div class={cn("flex items-center px-3 border-b border-outline-variant", local.wrapperClass)}>
-      <Icon icon={SearchIcon} size={16} class="text-on-surface-variant mr-2 shrink-0" />
-      <input
-        ref={inputRef}
-        class={cn(
-          "flex h-10 w-full bg-transparent py-3 text-sm outline-none placeholder:text-on-surface-variant/40 text-on-surface disabled:cursor-not-allowed disabled:opacity-50",
-          local.class
-        )}
-        placeholder={local.placeholder ?? "Search..."}
-        value={ctx.search()}
-        onInput={(e) => ctx.setSearch(e.currentTarget.value)}
-        {...rest}
-      />
-    </div>
+    <Input
+      ref={inputRef}
+      variant="bottomBorder"
+      class={local.class}
+      wrapperClass={local.wrapperClass}
+      placeholder={local.placeholder ?? "Search..."}
+      value={ctx.search()}
+      onInput={(e) => ctx.setSearch(e.currentTarget.value)}
+      startIcon={<Icon icon={SearchIcon} size={16} />}
+      {...rest}
+    />
   );
 }
 
