@@ -39,14 +39,30 @@ describe("SettingsModal", () => {
     expect(getByText("Settings")).toBeTruthy();
   });
 
-  it("when rendered, contains settings sections and switches", () => {
+  it("when rendered, displays the Appearance tab and its components by default", () => {
     setMockIsOpen(true);
-    const { getAllByText, getAllByRole } = render(() => <SettingsModal />);
+    const { getAllByText, getByRole, queryByText } = render(() => <SettingsModal />);
+
     expect(getAllByText("Appearance").length).toBeGreaterThan(0);
-    expect(getAllByText("Execution").length).toBeGreaterThan(0);
-    
-    // 3 switches total (Word Wrap, Auto-run, Clear console)
-    expect(getAllByRole("switch")).toHaveLength(3);
+
+    expect(getByRole("switch", { name: "Word Wrap" })).toBeTruthy();
+
+    expect(getByRole("combobox")).toBeTruthy();
+
+    expect(queryByText("Auto-run on type")).toBeNull();
+  });
+
+  it("changes tab when navigation buttons are clicked", () => {
+    setMockIsOpen(true);
+    const { getByRole, queryByText } = render(() => <SettingsModal />);
+
+    const executionTab = getByRole("button", { name: "Execution" });
+    executionTab.click();
+
+    expect(getByRole("switch", { name: "Auto-run on type" })).toBeTruthy();
+    expect(getByRole("switch", { name: "Clear console on run" })).toBeTruthy();
+
+    expect(queryByText("Theme Preference")).toBeNull();
   });
 
   it("when close button clicked, fires dispatcher CLOSE_OVERLAY", () => {
@@ -60,7 +76,7 @@ describe("SettingsModal", () => {
   it("when controlled via core state, opens and closes", () => {
     setMockIsOpen(false);
     const { queryByRole } = render(() => <SettingsModal />);
-    
+
     expect(queryByRole("dialog")).toBeNull();
     setMockIsOpen(true);
     expect(queryByRole("dialog")).not.toBeNull();
