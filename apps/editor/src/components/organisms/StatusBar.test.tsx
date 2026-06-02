@@ -10,8 +10,9 @@ vi.mock("../../core/context", () => ({
   useEditor: () => ({
     buffer: { content: () => "line1\nline2" },
     engine: {
-      status: () => mockStatus,
-      activeEngineId: () => mockEngineId
+      engineStatus: () => mockStatus,
+      activeEngineId: () => mockEngineId,
+      activeLanguage: () => "javascript"
     },
     dispatcher: { dispatch: dispatchMock }
   })
@@ -38,7 +39,7 @@ describe("StatusBar", () => {
 
   it("when rendered, displays hardcoded environment info", () => {
     const { getByText } = render(() => <StatusBar />);
-    expect(getByText("JavaScript")).toBeTruthy();
+    expect(getByText(/javascript/i)).toBeTruthy();
     expect(getByText("2 Lines")).toBeTruthy();
   });
 

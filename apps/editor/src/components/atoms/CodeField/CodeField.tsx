@@ -7,7 +7,7 @@ export interface CodeFieldProps {
 	/** Default or current value of the editor */
 	value?: string;
 	/** Programming language for syntax highlighting */
-	language?: "javascript" | "python";
+	language?: "javascript" | "python" | "plaintext" | string;
 	/** Whether the dark theme should be enforced in CodeMirror internals */
 	isDark?: boolean;
 	/** Callback fired when the document changes */
@@ -75,6 +75,10 @@ export function CodeField(props: CodeFieldProps) {
 				if (languageExtension) {
 					view?.dispatch({
 						effects: languageCompartment.reconfigure(languageExtension),
+					});
+				} else {
+					view?.dispatch({
+						effects: languageCompartment.reconfigure([]),
 					});
 				}
 			} catch (error) {

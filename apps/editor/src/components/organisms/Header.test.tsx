@@ -8,7 +8,7 @@ const dispatchMock = vi.fn();
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
     project: { name: () => "TEST_PROJECT" },
-    engine: { status: () => "idle" },
+    engine: { engineStatus: () => "idle" },
     dispatcher: { dispatch: dispatchMock }
   })
 }));

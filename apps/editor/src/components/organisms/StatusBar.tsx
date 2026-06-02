@@ -1,8 +1,10 @@
 import { splitProps, Show } from "solid-js";
 import type { JSX } from "solid-js";
 import { Icon } from "../atoms/Icon";
-import ChevronDown from "lucide-solid/icons/chevron-down";
 import Settings2 from "lucide-solid/icons/settings-2";
+import RefreshCcw from "lucide-solid/icons/refresh-ccw";
+import Loader2 from "lucide-solid/icons/loader-2";
+import Play from "lucide-solid/icons/play";
 import { cn } from "../../helpers/cn";
 import { useEditor } from "../../core/context";
 import {
@@ -155,7 +157,7 @@ function StatusBar(props: StatusBarProps) {
           <span>{core.buffer.content().split("\n").length} Lines</span>
         </StatusBarItem>
         <StatusBarItem>
-          <span>JavaScript</span>
+          <span class="capitalize">{core.engine.activeLanguage()}</span>
         </StatusBarItem>
       </div>
 
@@ -164,12 +166,31 @@ function StatusBar(props: StatusBarProps) {
           <span>{core.engine.activeEngineId()}</span>
         </StatusBarButton>
 
-        <StatusBarButton tooltip="Engine Settings" aria-label="Engine settings">
-          <Icon icon={Settings2} size={12} />
-        </StatusBarButton>
+        {core.engine.engineStatus() === "error" ? (
+          <StatusBarButton
+            tooltip="Retry Initialization"
+            aria-label="Retry engine initialization"
+            onClick={() => core.dispatcher.dispatch({ type: "RETRY_ENGINE_INIT" })}
+          >
+            <Icon icon={RefreshCcw} size={12} class="text-red-500" />
+          </StatusBarButton>
+        ) : (
+          <StatusBarButton tooltip="Engine Settings" aria-label="Engine settings">
+            <Icon icon={Settings2} size={12} />
+          </StatusBarButton>
+        )}
 
         <StatusBarButton tooltip="System Status">
-          <span>{core.engine.status()}</span>
+          {core.engine.engineStatus() === "running" ? (
+            <Loader2 class="size-3 animate-spin text-blue-500" />
+          ) : core.engine.engineStatus() === "initializing" ? (
+            <Loader2 class="size-3 animate-spin text-orange-500" />
+          ) : core.engine.engineStatus() === "error" ? (
+            <span class="size-2 rounded-full bg-red-500" />
+          ) : (
+            <Play class="size-3 text-green-500" />
+          )}
+          <span class="capitalize ml-1">{core.engine.engineStatus()}</span>
         </StatusBarButton>
       </div>
     </footer>

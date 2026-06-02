@@ -25,7 +25,7 @@ function Header(props: HeaderProps) {
   const core = useEditor();
 
   function handleRunClick() {
-    if (core.engine.status() === "running") {
+    if (core.engine.engineStatus() === "running") {
       core.dispatcher.dispatch({ type: "INTERRUPT_EXECUTION" });
     } else {
       core.dispatcher.dispatch({ type: "RUN_CODE" });
@@ -79,12 +79,12 @@ function Header(props: HeaderProps) {
           Share
         </Button>
         <SplitButton
-          variant={core.engine.status() === "running" ? "outline" : "primary"}
+          variant={core.engine.engineStatus() === "running" ? "outline" : "primary"}
           onMainClick={handleRunClick}
           dropdownLabel="Run options"
         >
           <Show
-            when={core.engine.status() === "running"}
+            when={core.engine.engineStatus() === "running"}
             fallback={<><Icon icon={Play} class="mr-1" /> Run</>}
           >
             <Icon icon={Square} class="mr-1" /> Stop

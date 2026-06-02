@@ -11,6 +11,8 @@ import { useEditor } from "../../core/context";
 import { Icon } from "../atoms/Icon";
 import Zap from "lucide-solid/icons/zap";
 import Beaker from "lucide-solid/icons/beaker";
+import { For } from "solid-js";
+import { getEngineEntries } from "../../core/engine/registry";
 
 /**
  * Command menu for selecting the active execution engine.
@@ -25,11 +27,6 @@ export function EngineSelectorCommand() {
     });
   };
 
-  const selectEngine = (engineId: "quickjs" | "mock") => {
-    core.dispatcher.dispatch({ type: "SELECT_ENGINE", engineId });
-    handleOpenChange(false);
-  };
-
   return (
     <CommandDialog
       isOpen={core.overlays.isOpen("engine-selector")}
@@ -40,18 +37,26 @@ export function EngineSelectorCommand() {
         <CommandList>
           <CommandEmpty>No engine found.</CommandEmpty>
           <CommandGroup>
-            <CommandItem
-              value="QuickJS Engine"
-              onSelect={() => selectEngine("quickjs")}
-            >
-              QuickJS Engine
-            </CommandItem>
-            <CommandItem
-              value="Mock Test Engine"
-              onSelect={() => selectEngine("mock")}
-            >
-              Mock Test Engine
-            </CommandItem>
+            <For each={getEngineEntries(core.engineRegistry)}>
+              {(entry) => (
+                <CommandItem
+                  value={entry.label}
+                  onSelect={() => {
+                    core.dispatcher.dispatch({
+                      type: "SELECT_ENGINE_ENTRY",
+                      engineId: entry.engineId,
+                      language: entry.language,
+                    });
+                    core.dispatcher.dispatch({
+                      type: "CLOSE_OVERLAY",
+                      overlayId: "engine-selector",
+                    });
+                  }}
+                >
+                  {entry.label}
+                </CommandItem>
+              )}
+            </For>
           </CommandGroup>
         </CommandList>
       </CommandRoot>

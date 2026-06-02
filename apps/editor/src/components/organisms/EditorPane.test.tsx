@@ -6,6 +6,7 @@ vi.mock("../../core/context", () => ({
   useEditor: () => ({
     buffer: { content: () => "" },
     settings: { settings: { theme: "system", isWordWrapEnabled: false } },
+    engine: { activeLanguage: () => "javascript" },
     dispatcher: { dispatch: vi.fn() }
   })
 }));

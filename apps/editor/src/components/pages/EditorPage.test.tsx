@@ -13,7 +13,7 @@ vi.mock("../../core/context", () => ({
   useEditor: () => ({
     buffer: { content: () => "" },
     project: { name: () => "TEST_PROJECT" },
-    engine: { status: () => mockStatus, activeEngineId: () => "quickjs" },
+    engine: { engineStatus: () => mockStatus, activeEngineId: () => "quickjs", activeLanguage: () => "javascript" },
     output: { entries: () => [] },
     settings: { settings: { theme: "system", isWordWrapEnabled: false, isAutoRunEnabled: false, isClearOnRunEnabled: true } },
     dispatcher: { dispatch: dispatchMock },

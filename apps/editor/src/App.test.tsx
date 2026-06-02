@@ -6,7 +6,7 @@ vi.mock("./core/context", () => ({
   useEditor: () => ({
     buffer: { content: () => "" },
     project: { name: () => "TEST_PROJECT" },
-    engine: { status: () => "idle", activeEngineId: () => "quickjs" },
+    engine: { engineStatus: () => "idle", activeEngineId: () => "quickjs", activeLanguage: () => "javascript" },
     output: { entries: () => [] },
     settings: { settings: { theme: "system", isWordWrapEnabled: false, isAutoRunEnabled: false, isClearOnRunEnabled: true } },
     dispatcher: { dispatch: vi.fn() },

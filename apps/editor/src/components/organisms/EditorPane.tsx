@@ -33,7 +33,7 @@ function EditorPane(props: EditorPaneProps) {
     >
       <CodeField
         value={core.buffer.content()}
-        language="javascript"
+        language={core.engine.activeLanguage()}
         isDark={isDark()}
         onValueChange={handleValueChange}
       />
