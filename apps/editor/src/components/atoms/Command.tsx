@@ -301,7 +301,7 @@ function CommandDialogContent(props: { children: JSX.Element; class?: string }) 
   const { isOpen } = useDialog();
   return (
     <Show when={isOpen()}>
-      <div class="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]">
+      <div class="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] px-4">
         <CommandDialogOverlay />
         <div
           role="dialog"
