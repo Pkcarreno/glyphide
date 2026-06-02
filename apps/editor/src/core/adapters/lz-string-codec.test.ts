@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createLzStringCodecAdapter } from "./lz-string-codec";
+import { createLzStringCodecAdapter } from "./lz-string-codec.ts";
 
 describe("LzStringCodecAdapter", () => {
   const codec = createLzStringCodecAdapter();
@@ -22,7 +22,7 @@ describe("LzStringCodecAdapter", () => {
   });
 
   it("returns null or unreadable for invalid inputs if not compressed", () => {
-    const decoded = codec.decode("not-valid-base64");
+    const _decoded = codec.decode("not-valid-base64");
     expect(() => codec.decode("invalid")).not.toThrow();
   });
 });

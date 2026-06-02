@@ -1,6 +1,6 @@
 import { EngineOrchestrator } from "@glyphide/orchestrator";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { createQuickJSWorker } from "./setup/quickjs-worker-factory";
+import { createQuickJSWorker } from "./setup/quickjs-worker-factory.ts";
 
 describe("Orchestrator + QuickJS Engine Integration", () => {
   let orchestrator: EngineOrchestrator;

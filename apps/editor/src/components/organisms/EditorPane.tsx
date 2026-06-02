@@ -1,10 +1,11 @@
-import { splitProps } from "solid-js";
 import type { JSX } from "solid-js";
-import { cn } from "../../helpers/cn";
-import { CodeField } from "../atoms/CodeField/CodeField";
-import { useEditor } from "../../core/context";
+import { splitProps } from "solid-js";
+import { useEditor } from "../../core/context.tsx";
+import { cn } from "../../helpers/cn.ts";
+import { CodeField } from "../atoms/CodeField/CodeField.tsx";
 
-interface EditorPaneProps extends Omit<JSX.HTMLAttributes<HTMLElement>, "onChange"> {
+interface EditorPaneProps
+  extends Omit<JSX.HTMLAttributes<HTMLElement>, "onChange"> {
   class?: string;
 }
 
@@ -21,21 +22,25 @@ function EditorPane(props: EditorPaneProps) {
 
   const isDark = () => {
     const theme = core.settings.settings.theme;
-    if (theme === "dark") return true;
-    if (theme === "light") return false;
+    if (theme === "dark") {
+      return true;
+    }
+    if (theme === "light") {
+      return false;
+    }
     return window.matchMedia("(prefers-color-scheme: dark)").matches;
   };
 
   return (
     <section
-      class={cn("flex-1 h-full overflow-hidden flex flex-col", local.class)}
+      class={cn("flex h-full flex-1 flex-col overflow-hidden", local.class)}
       {...rest}
     >
       <CodeField
-        value={core.buffer.content()}
-        language={core.engine.activeLanguage()}
         isDark={isDark()}
+        language={core.engine.activeLanguage()}
         onValueChange={handleValueChange}
+        value={core.buffer.content()}
       />
     </section>
   );

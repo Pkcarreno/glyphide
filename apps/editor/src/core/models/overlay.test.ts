@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createOverlayModel } from "./overlay";
+import { createOverlayModel } from "./overlay.ts";
 
 describe("OverlayModel", () => {
   it("when initialized, has no open overlays", () => {

@@ -1,23 +1,23 @@
-import type { EditorAction } from "../actions/types";
-import type { EditorCore } from "../editor-core";
+import type { EditorAction } from "../actions/types.ts";
+import type { EditorCore } from "../editor-core.ts";
 
 /**
  * Platform-agnostic representation of a keyboard combination.
  * UI adapters convert native keyboard events into this shape.
  */
 export interface KeyCombo {
-  /** The key value (e.g. "Enter", "s", "Escape"). */
-  key: string;
+  alt: boolean;
   /** Whether Ctrl (Windows/Linux) or Cmd (macOS) is held. */
   ctrlOrMeta: boolean;
+  /** The key value (e.g. "Enter", "s", "Escape"). */
+  key: string;
   shift: boolean;
-  alt: boolean;
 }
 
 /** A declarative binding between a key combination and an action. */
 export interface ShortcutBinding {
-  combo: KeyCombo;
   action: EditorAction;
+  combo: KeyCombo;
   /** Human-readable label for tooltips (e.g. "Ctrl+Enter"). */
   label: string;
   /** Optional predicate to check if the shortcut is active in the current state. */
@@ -26,10 +26,10 @@ export interface ShortcutBinding {
 
 /** Lookup table that resolves key combos to editor actions. */
 export interface ShortcutRegistry {
-  /** Returns the matching action for a key combo, or `null`. */
-  matchShortcut(combo: KeyCombo, core?: EditorCore): EditorAction | null;
   /** All registered bindings (for rendering in UI tooltips). */
   bindings: readonly ShortcutBinding[];
+  /** Returns the matching action for a key combo, or `null`. */
+  matchShortcut(combo: KeyCombo, core?: EditorCore): EditorAction | null;
 }
 
 /**
@@ -37,20 +37,22 @@ export interface ShortcutRegistry {
  * Matching is exact: all modifier flags must match.
  */
 export function createShortcutRegistry(
-  bindings: ShortcutBinding[],
+  bindings: ShortcutBinding[]
 ): ShortcutRegistry {
-  function matchShortcut(combo: KeyCombo, core?: EditorCore): EditorAction | null {
+  function matchShortcut(
+    combo: KeyCombo,
+    core?: EditorCore
+  ): EditorAction | null {
     for (const binding of bindings) {
       const target = binding.combo;
       if (
         combo.key === target.key &&
         combo.ctrlOrMeta === target.ctrlOrMeta &&
         combo.shift === target.shift &&
-        combo.alt === target.alt
+        combo.alt === target.alt &&
+        (!binding.when || (core && binding.when(core)))
       ) {
-        if (!binding.when || (core && binding.when(core))) {
-          return binding.action;
-        }
+        return binding.action;
       }
     }
     return null;

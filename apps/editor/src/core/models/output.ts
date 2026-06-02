@@ -1,19 +1,19 @@
-import { createSignal } from "solid-js";
 import type { Accessor } from "solid-js";
+import { createSignal } from "solid-js";
 
 /**
  * A single output entry emitted by the execution engine.
  * The `data` field is engine-defined; views decide how to render it.
  */
 export interface OutputEntry {
-  /** Auto-incrementing identifier for keyed rendering. */
-  id: number;
-  /** Output category (e.g. "log", "warn", "error", "system"). */
-  type: string;
   /** Engine-defined payload. */
   data: unknown;
+  /** Auto-incrementing identifier for keyed rendering. */
+  id: number;
   /** Millisecond timestamp of when the entry was received. */
   timestamp: number;
+  /** Output category (e.g. "log", "warn", "error", "system"). */
+  type: string;
 }
 
 /**
@@ -21,12 +21,12 @@ export interface OutputEntry {
  * Accumulates `OutputEntry` items that the console view subscribes to.
  */
 export interface OutputModel {
-  /** Reactive accessor for the full list of output entries. */
-  entries: Accessor<readonly OutputEntry[]>;
   /** Appends a new entry to the log. */
   appendEntry(type: string, data: unknown): void;
   /** Removes all entries from the log. */
   clearEntries(): void;
+  /** Reactive accessor for the full list of output entries. */
+  entries: Accessor<readonly OutputEntry[]>;
 }
 
 /** Creates a new `OutputModel`. */

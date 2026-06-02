@@ -1,6 +1,6 @@
-import { render, fireEvent, screen, cleanup } from "@solidjs/testing-library";
+import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { StatusBar } from "./StatusBar";
+import { StatusBar } from "./StatusBar.tsx";
 
 const dispatchMock = vi.fn();
 let mockStatus = "idle";
@@ -12,10 +12,10 @@ vi.mock("../../core/context", () => ({
     engine: {
       engineStatus: () => mockStatus,
       activeEngineId: () => mockEngineId,
-      activeLanguage: () => "javascript"
+      activeLanguage: () => "javascript",
     },
-    dispatcher: { dispatch: dispatchMock }
-  })
+    dispatcher: { dispatch: dispatchMock },
+  }),
 }));
 
 afterEach(() => {
@@ -24,6 +24,8 @@ afterEach(() => {
   mockEngineId = "quickjs";
   dispatchMock.mockClear();
 });
+
+const JS_REGEX = /javascript/i;
 
 describe("StatusBar", () => {
   it("when rendered with defaults, shows idle status and 'idle'", () => {
@@ -39,7 +41,7 @@ describe("StatusBar", () => {
 
   it("when rendered, displays hardcoded environment info", () => {
     const { getByText } = render(() => <StatusBar />);
-    expect(getByText(/javascript/i)).toBeTruthy();
+    expect(getByText(JS_REGEX)).toBeTruthy();
     expect(getByText("2 Lines")).toBeTruthy();
   });
 
@@ -61,19 +63,21 @@ describe("StatusBar.Item", () => {
     const { container } = render(() => (
       <StatusBar.Item>Content</StatusBar.Item>
     ));
-    const el = container.firstElementChild!;
-    expect(el.className).toContain("flex");
-    expect(el.className).toContain("items-center");
-    expect(el.className).toContain("px-1.5");
+    const el = container.firstElementChild;
+    expect(el).not.toBeNull();
+    expect(el?.className).toContain("flex");
+    expect(el?.className).toContain("items-center");
+    expect(el?.className).toContain("px-1.5");
   });
 
   it("when custom class is provided, merges with defaults", () => {
     const { container } = render(() => (
       <StatusBar.Item class="ml-2">Content</StatusBar.Item>
     ));
-    const el = container.firstElementChild!;
-    expect(el.className).toContain("ml-2");
-    expect(el.className).toContain("flex");
+    const el = container.firstElementChild;
+    expect(el).not.toBeNull();
+    expect(el?.className).toContain("ml-2");
+    expect(el?.className).toContain("flex");
   });
 });
 
@@ -108,7 +112,7 @@ describe("StatusBar.Button", () => {
     expect(screen.queryByRole("tooltip")).toBeNull();
     fireEvent.mouseEnter(getByRole("button"));
     expect(screen.queryByRole("tooltip")).not.toBeNull();
-    expect(screen.queryByRole("tooltip")!.textContent).toContain("Help text");
+    expect(screen.queryByRole("tooltip")?.textContent).toContain("Help text");
   });
 
   it("when rendered with tooltip and shortcut, shows shortcut in popup", () => {
@@ -120,7 +124,7 @@ describe("StatusBar.Button", () => {
     fireEvent.mouseEnter(getByRole("button"));
     const popup = screen.queryByRole("tooltip");
     expect(popup).not.toBeNull();
-    expect(popup!.textContent).toContain("⌘S");
+    expect(popup?.textContent).toContain("⌘S");
   });
 
   it("when rendered with tooltip and description, shows description in popup", () => {
@@ -135,7 +139,7 @@ describe("StatusBar.Button", () => {
     fireEvent.mouseEnter(getByRole("button"));
     const popup = screen.queryByRole("tooltip");
     expect(popup).not.toBeNull();
-    expect(popup!.textContent).toContain("Select the execution engine");
+    expect(popup?.textContent).toContain("Select the execution engine");
   });
 
   it("when rendered with hover classes, applies them", () => {

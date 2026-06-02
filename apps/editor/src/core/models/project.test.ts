@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { createProjectModel } from "./project";
-import type { UrlStatePort } from "../ports/url-state";
+import type { UrlStatePort } from "../ports/url-state.ts";
+import { createProjectModel } from "./project.ts";
 
-function createMockUrlState(initialData: Record<string, string> = {}): UrlStatePort {
+function createMockUrlState(
+  initialData: Record<string, string> = {}
+): UrlStatePort {
   const data = new Map(Object.entries(initialData));
   return {
     get: (key) => data.get(key) ?? null,

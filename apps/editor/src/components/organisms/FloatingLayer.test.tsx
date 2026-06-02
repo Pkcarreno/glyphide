@@ -1,7 +1,7 @@
-import { render, cleanup } from "@solidjs/testing-library";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { FloatingLayer } from "./FloatingLayer";
+import { cleanup, render } from "@solidjs/testing-library";
 import { createSignal } from "solid-js";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { FloatingLayer } from "./FloatingLayer.tsx";
 
 const [mockIsOpen, setMockIsOpen] = createSignal(false);
 
@@ -12,15 +12,15 @@ vi.mock("../../core/context", () => ({
         theme: "system",
         isWordWrapEnabled: false,
         isAutoRunEnabled: false,
-        isClearOnRunEnabled: true
+        isClearOnRunEnabled: true,
       },
-      updateSettings: vi.fn()
+      updateSettings: vi.fn(),
     },
     dispatcher: { dispatch: vi.fn() },
     overlays: {
-      isOpen: (id: string) => id === "settings" && mockIsOpen()
-    }
-  })
+      isOpen: (id: string) => id === "settings" && mockIsOpen(),
+    },
+  }),
 }));
 
 describe("FloatingLayer", () => {

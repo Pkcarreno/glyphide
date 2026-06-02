@@ -1,7 +1,7 @@
-import { render, fireEvent, cleanup } from "@solidjs/testing-library";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { ProjectRenameModal } from "./ProjectRenameModal";
+import { cleanup, fireEvent, render } from "@solidjs/testing-library";
 import { createSignal } from "solid-js";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ProjectRenameModal } from "./ProjectRenameModal.tsx";
 
 const dispatchMock = vi.fn();
 const [mockIsOpen, setMockIsOpen] = createSignal(false);
@@ -10,12 +10,12 @@ vi.mock("../../core/context", () => ({
   useEditor: () => ({
     dispatcher: { dispatch: dispatchMock },
     project: {
-      name: () => "TestProject"
+      name: () => "TestProject",
     },
     overlays: {
-      isOpen: (id: string) => id === "project-rename" && mockIsOpen()
-    }
-  })
+      isOpen: (id: string) => id === "project-rename" && mockIsOpen(),
+    },
+  }),
 }));
 
 describe("ProjectRenameModal", () => {
@@ -35,7 +35,9 @@ describe("ProjectRenameModal", () => {
 
   it("when core.overlays is true, dialog is rendered with input", () => {
     setMockIsOpen(true);
-    const { getByRole, getByPlaceholderText } = render(() => <ProjectRenameModal />);
+    const { getByRole, getByPlaceholderText } = render(() => (
+      <ProjectRenameModal />
+    ));
     expect(getByRole("dialog")).toBeTruthy();
     expect(getByPlaceholderText("Enter project name...")).toBeTruthy();
   });
@@ -44,21 +46,26 @@ describe("ProjectRenameModal", () => {
     setMockIsOpen(true);
     const { getByPlaceholderText } = render(() => <ProjectRenameModal />);
     const input = getByPlaceholderText("Enter project name...");
-    
+
     fireEvent.input(input, { target: { value: "NewProjectName" } });
     fireEvent.keyDown(input, { key: "Enter" });
 
-    expect(dispatchMock).toHaveBeenCalledWith({ type: "RENAME_PROJECT", name: "NewProjectName" });
+    expect(dispatchMock).toHaveBeenCalledWith({
+      type: "RENAME_PROJECT",
+      name: "NewProjectName",
+    });
   });
 
   it("does not dispatch if name is empty spaces", () => {
     setMockIsOpen(true);
     const { getByPlaceholderText } = render(() => <ProjectRenameModal />);
     const input = getByPlaceholderText("Enter project name...");
-    
+
     fireEvent.input(input, { target: { value: "   " } });
     fireEvent.keyDown(input, { key: "Enter" });
 
-    expect(dispatchMock).not.toHaveBeenCalledWith(expect.objectContaining({ type: "RENAME_PROJECT" }));
+    expect(dispatchMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: "RENAME_PROJECT" })
+    );
   });
 });

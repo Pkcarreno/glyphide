@@ -7,7 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTrigger,
-} from "./Dialog";
+} from "./Dialog.tsx";
 
 function renderDialog(defaultOpen = false) {
   return render(() => (

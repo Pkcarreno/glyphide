@@ -1,7 +1,6 @@
-import { createSignal, splitProps } from "solid-js";
-import type { JSX } from "solid-js";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "../../helpers/cn";
+import { createSignal, splitProps } from "solid-js";
+import { cn } from "../../helpers/cn.ts";
 
 const switchVariants = cva(
   "relative inline-flex h-4 w-7 shrink-0 cursor-pointer items-center rounded-sm border border-transparent transition-colors disabled:cursor-not-allowed disabled:opacity-50",
@@ -37,19 +36,19 @@ const thumbVariants = cva(
  * Props for the Switch component.
  */
 interface SwitchProps extends VariantProps<typeof switchVariants> {
-  /** Controlled checked state. */
-  checked?: boolean;
-  /** Default checked state for uncontrolled usage. */
-  defaultChecked?: boolean;
-  /** Fires when toggle state changes. */
-  onCheckedChange?: (checked: boolean) => void;
-  /** Disables the switch. */
-  disabled?: boolean;
-  /** Additional CSS classes. */
-  class?: string;
   /** Accessible label for screen readers. */
   "aria-label"?: string;
+  /** Controlled checked state. */
+  checked?: boolean;
+  /** Additional CSS classes. */
+  class?: string;
+  /** Default checked state for uncontrolled usage. */
+  defaultChecked?: boolean;
+  /** Disables the switch. */
+  disabled?: boolean;
   id?: string;
+  /** Fires when toggle state changes. */
+  onCheckedChange?: (checked: boolean) => void;
 }
 
 /**
@@ -67,14 +66,16 @@ function Switch(props: SwitchProps) {
 
   const isControlled = () => local.checked !== undefined;
   const [internalChecked, setInternalChecked] = createSignal(
-    local.defaultChecked ?? false,
+    local.defaultChecked ?? false
   );
 
   const isChecked = () =>
-    isControlled() ? local.checked! : internalChecked();
+    isControlled() ? (local.checked ?? false) : internalChecked();
 
   function handleToggle() {
-    if (local.disabled) return;
+    if (local.disabled) {
+      return;
+    }
     const next = !isChecked();
     if (!isControlled()) {
       setInternalChecked(next);
@@ -84,17 +85,15 @@ function Switch(props: SwitchProps) {
 
   return (
     <button
-      role="switch"
-      type="button"
       aria-checked={isChecked()}
+      class={cn(switchVariants({ checked: isChecked(), class: local.class }))}
       disabled={local.disabled}
       onClick={handleToggle}
-      class={cn(switchVariants({ checked: isChecked(), class: local.class }))}
+      role="switch"
+      type="button"
       {...rest}
     >
-      <span
-        class={cn(thumbVariants({ checked: isChecked() }))}
-      />
+      <span class={cn(thumbVariants({ checked: isChecked() }))} />
     </button>
   );
 }

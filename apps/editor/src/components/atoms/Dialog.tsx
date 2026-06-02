@@ -1,19 +1,19 @@
+import type { Accessor, JSX } from "solid-js";
 import {
-  createSignal,
-  splitProps,
   createContext,
-  useContext,
+  createSignal,
   Show,
+  splitProps,
+  useContext,
 } from "solid-js";
-import type { JSX, Accessor } from "solid-js";
-import { cn } from "../../helpers/cn";
+import { cn } from "../../helpers/cn.ts";
 
 /* ---------- Context ---------- */
 
 interface DialogContextValue {
+  close: () => void;
   isOpen: Accessor<boolean>;
   open: () => void;
-  close: () => void;
 }
 
 const DialogContext = createContext<DialogContextValue>();
@@ -29,13 +29,13 @@ function useDialog(): DialogContextValue {
 /* ---------- Root ---------- */
 
 interface DialogProps {
-  /** Controlled open state. */
-  isOpen?: boolean;
+  children: JSX.Element;
   /** Default open state for uncontrolled usage. */
   defaultOpen?: boolean;
+  /** Controlled open state. */
+  isOpen?: boolean;
   /** Fires when open state changes. */
   onOpenChange?: (isOpen: boolean) => void;
-  children: JSX.Element;
 }
 
 /**
@@ -52,18 +52,23 @@ function Dialog(props: DialogProps) {
 
   const isControlled = () => local.isOpen !== undefined;
   const [internalOpen, setInternalOpen] = createSignal(
-    local.defaultOpen ?? false,
+    local.defaultOpen ?? false
   );
 
-  const isOpen = () => (isControlled() ? local.isOpen! : internalOpen());
+  const isOpen = () =>
+    isControlled() ? (local.isOpen ?? false) : internalOpen();
 
   function open() {
-    if (!isControlled()) setInternalOpen(true);
+    if (!isControlled()) {
+      setInternalOpen(true);
+    }
     local.onOpenChange?.(true);
   }
 
   function close() {
-    if (!isControlled()) setInternalOpen(false);
+    if (!isControlled()) {
+      setInternalOpen(false);
+    }
     local.onOpenChange?.(false);
   }
 
@@ -86,12 +91,7 @@ function DialogTrigger(props: DialogTriggerProps) {
   const { open } = useDialog();
 
   return (
-    <button
-      type="button"
-      onClick={open}
-      class={cn(local.class)}
-      {...rest}
-    >
+    <button class={cn(local.class)} onClick={open} type="button" {...rest}>
       {local.children}
     </button>
   );
@@ -99,7 +99,7 @@ function DialogTrigger(props: DialogTriggerProps) {
 
 /* ---------- Overlay ---------- */
 
-interface DialogOverlayProps extends JSX.HTMLAttributes<HTMLDivElement> {
+interface DialogOverlayProps extends JSX.HTMLAttributes<HTMLButtonElement> {
   class?: string;
 }
 
@@ -109,12 +109,15 @@ function DialogOverlay(props: DialogOverlayProps) {
   const { close } = useDialog();
 
   return (
-    <div
+    <button
+      aria-hidden="true"
       class={cn(
-        "fixed inset-0 z-50 bg-transparent",
-        local.class,
+        "fixed inset-0 z-50 m-0 cursor-default border-none bg-transparent p-0",
+        local.class
       )}
       onClick={close}
+      tabIndex={-1}
+      type="button"
       {...rest}
     />
   );
@@ -136,16 +139,16 @@ function DialogContent(props: DialogContentProps) {
       <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <DialogOverlay />
         <div
-          role="dialog"
           aria-modal="true"
           class={cn(
             "relative z-50",
-            "bg-surface border border-outline-variant",
-            "rounded-xl shadow-2xl overflow-hidden",
+            "border border-outline-variant bg-surface",
+            "overflow-hidden rounded-xl shadow-2xl",
             "w-full max-w-sm",
             "flex flex-col text-on-surface",
-            local.class,
+            local.class
           )}
+          role="dialog"
           {...rest}
         >
           {local.children}
@@ -168,9 +171,9 @@ function DialogHeader(props: DialogHeaderProps) {
   return (
     <div
       class={cn(
-        "flex justify-between items-center p-3",
-        "border-b border-outline-variant",
-        local.class,
+        "flex items-center justify-between p-3",
+        "border-outline-variant border-b",
+        local.class
       )}
       {...rest}
     >
@@ -191,12 +194,7 @@ function DialogClose(props: DialogCloseProps) {
   const { close } = useDialog();
 
   return (
-    <button
-      type="button"
-      onClick={close}
-      class={cn(local.class)}
-      {...rest}
-    >
+    <button class={cn(local.class)} onClick={close} type="button" {...rest}>
       {local.children}
     </button>
   );
@@ -204,15 +202,15 @@ function DialogClose(props: DialogCloseProps) {
 
 export {
   Dialog,
-  DialogTrigger,
-  DialogOverlay,
-  DialogContent,
-  DialogHeader,
   DialogClose,
-  useDialog,
-  type DialogProps,
-  type DialogTriggerProps,
-  type DialogContentProps,
-  type DialogHeaderProps,
   type DialogCloseProps,
+  DialogContent,
+  type DialogContentProps,
+  DialogHeader,
+  type DialogHeaderProps,
+  DialogOverlay,
+  type DialogProps,
+  DialogTrigger,
+  type DialogTriggerProps,
+  useDialog,
 };

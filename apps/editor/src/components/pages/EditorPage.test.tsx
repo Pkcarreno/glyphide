@@ -1,9 +1,9 @@
 import { render } from "@solidjs/testing-library";
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import EditorPage from "./EditorPage";
 import { createSignal } from "solid-js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import EditorPage from "./EditorPage.tsx";
 
-vi.stubGlobal("alert", vi.fn());
+vi.stubGlobal("console", { info: vi.fn() });
 
 const dispatchMock = vi.fn();
 let mockStatus = "idle";
@@ -13,13 +13,26 @@ vi.mock("../../core/context", () => ({
   useEditor: () => ({
     buffer: { content: () => "" },
     project: { name: () => "TEST_PROJECT" },
-    engine: { engineStatus: () => mockStatus, activeEngineId: () => "quickjs", activeLanguage: () => "javascript" },
+    engine: {
+      engineStatus: () => mockStatus,
+      activeEngineId: () => "quickjs",
+      activeLanguage: () => "javascript",
+    },
     output: { entries: () => [] },
-    settings: { settings: { theme: "system", isWordWrapEnabled: false, isAutoRunEnabled: false, isClearOnRunEnabled: true } },
+    settings: {
+      settings: {
+        theme: "system",
+        isWordWrapEnabled: false,
+        isAutoRunEnabled: false,
+        isClearOnRunEnabled: true,
+      },
+    },
     dispatcher: { dispatch: dispatchMock },
-    overlays: { isOpen: (id: string) => id === "settings" && mockIsOpen() }
-  })
+    overlays: { isOpen: (id: string) => id === "settings" && mockIsOpen() },
+  }),
 }));
+
+const TEST_PROJECT_REGEX = /TEST_PROJECT/;
 
 describe("EditorPage", () => {
   beforeEach(() => {
@@ -31,9 +44,9 @@ describe("EditorPage", () => {
         setMockIsOpen(!mockIsOpen());
       }
     });
-    Object.defineProperty(window, 'matchMedia', {
+    Object.defineProperty(window, "matchMedia", {
       writable: true,
-      value: vi.fn().mockImplementation(query => ({
+      value: vi.fn().mockImplementation((query) => ({
         matches: false,
         media: query,
         onchange: null,
@@ -49,7 +62,7 @@ describe("EditorPage", () => {
   it("when rendered, displays the full application layout", () => {
     const { getByText, getByRole } = render(() => <EditorPage />);
 
-    expect(getByText(/TEST_PROJECT/)).toBeTruthy();
+    expect(getByText(TEST_PROJECT_REGEX)).toBeTruthy();
     expect(getByText("Output")).toBeTruthy();
     expect(getByText("idle")).toBeTruthy();
     expect(getByRole("main")).toBeTruthy();

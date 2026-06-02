@@ -1,11 +1,11 @@
-import { createSignal, createEffect } from "solid-js";
-import { Header } from "../organisms/Header";
-import { StatusBar } from "../organisms/StatusBar";
-import { EditorPane } from "../organisms/EditorPane";
-import { ConsolePane } from "../organisms/ConsolePane";
-import { FloatingLayer } from "../organisms/FloatingLayer";
-import { WorkspaceLayout } from "../templates/WorkspaceLayout";
-import { useEditor } from "../../core/context";
+import { createEffect } from "solid-js";
+import { useEditor } from "../../core/context.tsx";
+import { ConsolePane } from "../organisms/ConsolePane.tsx";
+import { EditorPane } from "../organisms/EditorPane.tsx";
+import { FloatingLayer } from "../organisms/FloatingLayer.tsx";
+import { Header } from "../organisms/Header.tsx";
+import { StatusBar } from "../organisms/StatusBar.tsx";
+import { WorkspaceLayout } from "../templates/WorkspaceLayout.tsx";
 
 /**
  * Main application page component.
@@ -36,9 +36,9 @@ function EditorPage() {
   return (
     <>
       <WorkspaceLayout
-        header={<Header />}
-        editorPane={<EditorPane />}
         consolePane={<ConsolePane />}
+        editorPane={<EditorPane />}
+        header={<Header />}
         statusBar={<StatusBar />}
       />
       <FloatingLayer />

@@ -1,6 +1,10 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "extends": ["ultracite/biome/core"],
+  "extends": [
+    "ultracite/biome/core",
+    "ultracite/biome/type-aware",
+    "ultracite/biome/vitest"
+  ],
   "vcs": {
     "enabled": false,
     "clientKind": "git",
@@ -8,13 +12,18 @@
     "defaultBranch": "master"
   },
   "files": {
-    "ignoreUnknown": true,
     "includes": [
-      "!**/.vercel",
-      "!**/.turbo",
-      "!**/.astro",
-      "!**/dist",
-      "!**/dev-dist"
+      "./**",
+      "!!**/dist",
+      "!!**/build",
+      "!!**/.turbo",
+      "!!**/.vite",
+      "!!**/.astro",
+      "!!**/_astro",
+      "!!**/pnpm-lock.yaml",
+      "!!**/.atl",
+      "!!**/apps/glyphide",
+      "!!**/packages/quickjs"
     ]
   }
 }

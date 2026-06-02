@@ -1,17 +1,17 @@
 import type { LucideProps } from "lucide-solid";
-import { splitProps } from "solid-js";
 import type { JSX } from "solid-js";
-import { cn } from "../../helpers/cn";
+import { splitProps } from "solid-js";
+import { cn } from "../../helpers/cn.ts";
 
 interface IconProps {
-  /** The Lucide icon component to render. */
-  icon: (props: LucideProps) => JSX.Element;
-  /** Icon size in pixels. Defaults to 14. */
-  size?: number;
   /** Additional CSS classes. */
   class?: string;
+  /** The Lucide icon component to render. */
+  icon: (props: LucideProps) => JSX.Element;
   /** Accessible label. If omitted, icon is decorative (aria-hidden). */
   label?: string;
+  /** Icon size in pixels. Defaults to 14. */
+  size?: number;
 }
 
 /**
@@ -23,10 +23,10 @@ function Icon(props: IconProps) {
 
   return (
     <local.icon
-      size={local.size ?? 14}
-      class={cn("shrink-0", local.class)}
       aria-hidden={!local.label}
       aria-label={local.label}
+      class={cn("shrink-0", local.class)}
+      size={local.size ?? 14}
     />
   );
 }

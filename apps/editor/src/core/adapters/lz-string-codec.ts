@@ -1,5 +1,6 @@
-import type { CodecPort } from "../ports/codec";
+// biome-ignore lint/correctness/noUnresolvedImports: lz-string lacks exports field
 import LZString from "lz-string";
+import type { CodecPort } from "../ports/codec.ts";
 
 /**
  * Adapter that implements `CodecPort` using `lz-string`.

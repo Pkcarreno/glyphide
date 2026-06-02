@@ -1,6 +1,6 @@
-import { SettingsModal } from "./SettingsModal";
-import { EngineSelectorCommand } from "./EngineSelectorCommand";
-import { ProjectRenameModal } from "./ProjectRenameModal";
+import { EngineSelectorCommand } from "./EngineSelectorCommand.tsx";
+import { ProjectRenameModal } from "./ProjectRenameModal.tsx";
+import { SettingsModal } from "./SettingsModal.tsx";
 
 /**
  * Orchestrates all application-level floating elements.

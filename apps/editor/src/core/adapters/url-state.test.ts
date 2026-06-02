@@ -1,8 +1,15 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { createBrowserUrlStateAdapter } from "./url-state";
+import {
+  beforeEach,
+  describe,
+  expect,
+  it,
+  type MockInstance,
+  vi,
+} from "vitest";
+import { createBrowserUrlStateAdapter } from "./url-state.ts";
 
 describe("UrlStateAdapter", () => {
-  let replaceStateSpy: any;
+  let replaceStateSpy: MockInstance;
 
   beforeEach(() => {
     window.history.replaceState(null, "", "/");

@@ -1,16 +1,15 @@
+import type { Accessor, JSX } from "solid-js";
 import {
+  createContext,
   createSignal,
-  Show,
-  splitProps,
   onCleanup,
   onMount,
-  createContext,
+  Show,
+  splitProps,
   useContext,
 } from "solid-js";
-import type { JSX, Accessor } from "solid-js";
-import { Portal } from "solid-js/web";
-import { Dynamic } from "solid-js/web";
-import { cn } from "../../helpers/cn";
+import { Dynamic, Portal } from "solid-js/web";
+import { cn } from "../../helpers/cn.ts";
 
 /* ---------- Types ---------- */
 
@@ -19,14 +18,14 @@ export type TooltipPosition = "top" | "bottom" | "left" | "right";
 /* ---------- Context ---------- */
 
 interface TooltipContextValue {
-  isOpen: Accessor<boolean>;
-  position: Accessor<TooltipPosition>;
-  offset: Accessor<number>;
   coords: Accessor<{ top: number; left: number }>;
-  transform: Accessor<string>;
-  setTriggerRef: (el: HTMLElement) => void;
   handleMouseEnter: () => void;
   handleMouseLeave: () => void;
+  isOpen: Accessor<boolean>;
+  offset: Accessor<number>;
+  position: Accessor<TooltipPosition>;
+  setTriggerRef: (el: HTMLElement) => void;
+  transform: Accessor<string>;
 }
 
 const TooltipContext = createContext<TooltipContextValue>();
@@ -35,7 +34,7 @@ function useTooltip(): TooltipContextValue {
   const ctx = useContext(TooltipContext);
   if (!ctx) {
     throw new Error(
-      "Tooltip compound components must be used within <TooltipRoot>",
+      "Tooltip compound components must be used within <TooltipRoot>"
     );
   }
   return ctx;
@@ -44,11 +43,11 @@ function useTooltip(): TooltipContextValue {
 /* ---------- Root ---------- */
 
 interface TooltipRootProps {
-  /** Where the tooltip appears relative to the trigger. Default: 'top' */
-  position?: TooltipPosition;
+  children: JSX.Element;
   /** Distance from the trigger element in pixels. Default: 4 */
   offset?: number;
-  children: JSX.Element;
+  /** Where the tooltip appears relative to the trigger. Default: 'top' */
+  position?: TooltipPosition;
 }
 
 /**
@@ -56,11 +55,7 @@ interface TooltipRootProps {
  * Provides context to compound children (Trigger, Portal, Positioner, Popup).
  */
 function TooltipRoot(props: TooltipRootProps) {
-  const [local] = splitProps(props, [
-    "position",
-    "offset",
-    "children",
-  ]);
+  const [local] = splitProps(props, ["position", "offset", "children"]);
 
   const position = () => local.position ?? "top";
   const offset = () => local.offset ?? 4;
@@ -76,7 +71,9 @@ function TooltipRoot(props: TooltipRootProps) {
   };
 
   const updatePosition = () => {
-    if (!triggerEl) return;
+    if (!triggerEl) {
+      return;
+    }
     const rect = triggerEl.getBoundingClientRect();
     const pos = position();
     const off = offset();
@@ -105,6 +102,8 @@ function TooltipRoot(props: TooltipRootProps) {
         top = rect.top + rect.height / 2;
         left = rect.right + off;
         trans = "translate(0, -50%)";
+        break;
+      default:
         break;
     }
 
@@ -159,8 +158,8 @@ function TooltipRoot(props: TooltipRootProps) {
 interface TooltipTriggerProps {
   /** The element type to render. Default: 'div' */
   as?: string | ((...args: unknown[]) => JSX.Element);
-  class?: string;
   children?: JSX.Element;
+  class?: string;
   [key: string]: unknown;
 }
 
@@ -169,23 +168,19 @@ interface TooltipTriggerProps {
  * handlers and the positioning ref without injecting a wrapper div.
  */
 function TooltipTrigger(props: TooltipTriggerProps) {
-  const [local, rest] = splitProps(props, [
-    "as",
-    "class",
-    "children",
-  ]);
+  const [local, rest] = splitProps(props, ["as", "class", "children"]);
 
   const ctx = useTooltip();
 
   return (
     <Dynamic
+      class={cn(local.class)}
       component={local.as ?? "div"}
-      ref={(el: HTMLElement) => ctx.setTriggerRef(el)}
+      onBlur={ctx.handleMouseLeave}
+      onFocus={ctx.handleMouseEnter}
       onMouseEnter={ctx.handleMouseEnter}
       onMouseLeave={ctx.handleMouseLeave}
-      onFocus={ctx.handleMouseEnter}
-      onBlur={ctx.handleMouseLeave}
-      class={cn(local.class)}
+      ref={(el: HTMLElement) => ctx.setTriggerRef(el)}
       {...rest}
     >
       {local.children}
@@ -213,8 +208,8 @@ function TooltipPortal(props: TooltipPortalProps) {
 /* ---------- Positioner ---------- */
 
 interface TooltipPositionerProps extends JSX.HTMLAttributes<HTMLDivElement> {
-  class?: string;
   children?: JSX.Element;
+  class?: string;
 }
 
 /** Applies calculated fixed positioning to the tooltip content. */
@@ -224,7 +219,7 @@ function TooltipPositioner(props: TooltipPositionerProps) {
 
   return (
     <div
-      class={cn("fixed z-50 pointer-events-none", local.class)}
+      class={cn("pointer-events-none fixed z-50", local.class)}
       style={{
         top: `${ctx.coords().top}px`,
         left: `${ctx.coords().left}px`,
@@ -240,8 +235,8 @@ function TooltipPositioner(props: TooltipPositionerProps) {
 /* ---------- Popup ---------- */
 
 interface TooltipPopupProps extends JSX.HTMLAttributes<HTMLDivElement> {
-  class?: string;
   children?: JSX.Element;
+  class?: string;
 }
 
 /** The visible tooltip panel with base styling. */
@@ -250,13 +245,13 @@ function TooltipPopup(props: TooltipPopupProps) {
 
   return (
     <div
-      role="tooltip"
       class={cn(
-        "flex flex-col max-w-64 py-1 px-2",
-        "bg-surface border border-outline-variant rounded shadow-md",
+        "flex max-w-64 flex-col px-2 py-1",
+        "rounded border border-outline-variant bg-surface shadow-md",
         "text-ui-label",
-        local.class,
+        local.class
       )}
+      role="tooltip"
       {...rest}
     >
       {local.children}
@@ -265,15 +260,15 @@ function TooltipPopup(props: TooltipPopupProps) {
 }
 
 export {
-  TooltipRoot,
-  TooltipTrigger,
-  TooltipPortal,
-  TooltipPositioner,
   TooltipPopup,
-  useTooltip,
-  type TooltipRootProps,
-  type TooltipTriggerProps,
+  type TooltipPopupProps,
+  TooltipPortal,
   type TooltipPortalProps,
+  TooltipPositioner,
   type TooltipPositionerProps,
-  type TooltipPopupProps
+  TooltipRoot,
+  type TooltipRootProps,
+  TooltipTrigger,
+  type TooltipTriggerProps,
+  useTooltip,
 };

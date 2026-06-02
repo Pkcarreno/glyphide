@@ -1,4 +1,4 @@
-import type { UrlStatePort } from "../ports/url-state";
+import type { UrlStatePort } from "../ports/url-state.ts";
 
 /**
  * Decorator that intercepts `set` operations to ensure the resulting
@@ -9,7 +9,7 @@ import type { UrlStatePort } from "../ports/url-state";
 export function composeSizeLimitedUrlState(
   base: UrlStatePort,
   maxLength: number,
-  onShareabilityChange: (isShareable: boolean) => void,
+  onShareabilityChange: (isShareable: boolean) => void
 ): UrlStatePort {
   return {
     get: base.get,
@@ -20,7 +20,7 @@ export function composeSizeLimitedUrlState(
 
       if (url.toString().length > maxLength) {
         console.warn(
-          `URL length limit exceeded (>${maxLength} chars). Project state might not be completely shareable.`,
+          `URL length limit exceeded (>${maxLength} chars). Project state might not be completely shareable.`
         );
         onShareabilityChange(false);
         window.history.replaceState(null, "", window.location.pathname);

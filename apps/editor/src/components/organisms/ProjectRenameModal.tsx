@@ -1,14 +1,17 @@
-import { createSignal, createEffect, Show } from "solid-js";
-import { useEditor } from "../../core/context";
-import { Dialog, useDialog } from "../atoms/Dialog";
-import { Input } from "../atoms/Input";
+import { createEffect, createSignal, Show } from "solid-js";
+import { useEditor } from "../../core/context.tsx";
+import { Dialog, useDialog } from "../atoms/Dialog.tsx";
+import { Input } from "../atoms/Input.tsx";
 
 function ProjectRenameOverlay() {
   const { close } = useDialog();
   return (
-    <div
-      class="fixed inset-0 z-50 bg-transparent"
+    <button
+      aria-hidden="true"
+      class="fixed inset-0 z-50 m-0 cursor-default border-none bg-transparent p-0"
       onClick={close}
+      tabIndex={-1}
+      type="button"
     />
   );
 }
@@ -17,7 +20,7 @@ function ProjectRenameContent() {
   const core = useEditor();
   const { isOpen, close } = useDialog();
   const [name, setName] = createSignal("");
-  let inputRef!: HTMLInputElement;
+  let inputRef: HTMLInputElement | undefined;
 
   createEffect(() => {
     if (isOpen()) {
@@ -43,20 +46,22 @@ function ProjectRenameContent() {
 
   return (
     <Show when={isOpen()}>
-      <div class="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] px-4">
+      <div class="fixed inset-0 z-50 flex items-start justify-center px-4 pt-[15vh]">
         <ProjectRenameOverlay />
         <div
-          role="dialog"
           aria-modal="true"
-          class="relative z-50 w-full max-w-lg flex flex-col overflow-hidden bg-surface rounded-xl border border-outline-variant shadow-2xl"
+          class="relative z-50 flex w-full max-w-lg flex-col overflow-hidden rounded-xl border border-outline-variant bg-surface shadow-2xl"
+          role="dialog"
         >
           <Input
-            ref={inputRef}
-            variant="ghost"
-            placeholder="Enter project name..."
-            value={name()}
             onInput={(e) => setName(e.currentTarget.value)}
             onKeyDown={handleKeyDown}
+            placeholder="Enter project name..."
+            ref={(el) => {
+              inputRef = el;
+            }}
+            value={name()}
+            variant="ghost"
           />
         </div>
       </div>

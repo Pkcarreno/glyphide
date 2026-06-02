@@ -7,30 +7,30 @@ export type EngineId = string;
 /** Selectable combination of an engine and a specific language. */
 export interface EngineEntry {
   engineId: EngineId;
-  language: string;
   /** Human-readable label shown in the selector (e.g., "QuickJS — JavaScript"). */
   label: string;
+  language: string;
 }
 
 /** Descriptor for an engine-specific configuration parameter. */
 export interface EngineParamDescriptor {
+  isEditable: boolean;
   key: string;
   label: string;
-  isEditable: boolean;
 }
 
 /** Static definition of a lazily-loadable execution engine. */
 export interface EngineDefinition {
+  /** Default INIT params sent to this engine (language is overridden per entry). */
+  defaultInitParams: Omit<EngineInitParams, "language">;
   id: EngineId;
   /** Human-readable engine name. */
   label: string;
-  /** Languages this engine can execute. Declared statically. */
-  supportedLanguages: readonly string[];
-  /** Default INIT params sent to this engine (language is overridden per entry). */
-  defaultInitParams: Omit<EngineInitParams, "language">;
+  loadFactory: () => Promise<EngineWorkerFactory>;
   /** Metadata describing each configurable parameter. */
   paramDescriptors: readonly EngineParamDescriptor[];
-  loadFactory: () => Promise<EngineWorkerFactory>;
+  /** Languages this engine can execute. Declared statically. */
+  supportedLanguages: readonly string[];
 }
 
 /**
@@ -91,7 +91,7 @@ export function createEngineRegistry(): EngineRegistry {
     return definition;
   }
 
-  async function loadFactory(id: EngineId): Promise<EngineWorkerFactory> {
+  function loadFactory(id: EngineId): Promise<EngineWorkerFactory> {
     const definition = getDefinition(id);
     return definition.loadFactory();
   }

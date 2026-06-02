@@ -4,7 +4,7 @@
 
 import { EngineMethod, RpcErrorCode } from "@glyphide/rpc-protocol/constants";
 import { describe, expect, it } from "vitest";
-import { MockEngineAdapter } from "./mock-adapter";
+import { MockEngineAdapter } from "./mock-adapter.ts";
 
 interface CapturedResponse {
   error?: { code: number; message: string };

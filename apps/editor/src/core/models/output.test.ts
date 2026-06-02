@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createOutputModel } from "./output";
+import { createOutputModel } from "./output.ts";
 
 describe("OutputModel", () => {
   it("initializes empty", () => {

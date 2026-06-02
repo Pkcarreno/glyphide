@@ -4,8 +4,8 @@
 
 import { EngineMethod } from "@glyphide/rpc-protocol/constants";
 import { describe, expect, it, vi } from "vitest";
-import { EngineOrchestrator } from "./orchestrator";
-import { PromiseRegistry } from "./promise-registry";
+import { EngineOrchestrator } from "./orchestrator.ts";
+import { PromiseRegistry } from "./promise-registry.ts";
 
 describe("EngineOrchestrator", () => {
   describe("constructor", () => {

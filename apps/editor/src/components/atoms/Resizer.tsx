@@ -1,13 +1,13 @@
-import { splitProps, onCleanup, onMount } from "solid-js";
 import type { JSX } from "solid-js";
-import { cn } from "../../helpers/cn";
+import { splitProps } from "solid-js";
+import { cn } from "../../helpers/cn.ts";
 
-interface ResizerProps extends JSX.HTMLAttributes<HTMLDivElement> {
+interface ResizerProps extends JSX.HTMLAttributes<HTMLHRElement> {
+  class?: string;
   /** Fires continuously during drag with the delta in pixels. */
   onResizeDelta?: (deltaX: number) => void;
   /** Fires when drag ends. */
   onResizeEnd?: () => void;
-  class?: string;
 }
 
 /**
@@ -24,21 +24,21 @@ function Resizer(props: ResizerProps) {
 
   function handlePointerDown(e: PointerEvent) {
     e.preventDefault();
-    const el = e.currentTarget as HTMLDivElement;
+    const el = e.currentTarget as HTMLHRElement;
     el.setPointerCapture(e.pointerId);
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
   }
 
   function handlePointerMove(e: PointerEvent) {
-    const el = e.currentTarget as HTMLDivElement;
+    const el = e.currentTarget as HTMLHRElement;
     if (el.hasPointerCapture(e.pointerId)) {
       local.onResizeDelta?.(e.movementX);
     }
   }
 
   function handlePointerUp(e: PointerEvent) {
-    const el = e.currentTarget as HTMLDivElement;
+    const el = e.currentTarget as HTMLHRElement;
     if (el.hasPointerCapture(e.pointerId)) {
       el.releasePointerCapture(e.pointerId);
     }
@@ -49,20 +49,20 @@ function Resizer(props: ResizerProps) {
   }
 
   return (
-    <div
-      role="separator"
+    <hr
       aria-orientation="vertical"
-      tabIndex={0}
+      aria-valuenow={0}
       class={cn(
-        "shrink-0 cursor-col-resize touch-none",
-        "w-1 md:hover:w-1", // Keep it 1px visual, maybe expand hit area? 
-        "bg-outline-variant hover:bg-primary active:bg-primary transition-colors delay-75",
-        local.class,
+        "m-0 shrink-0 cursor-col-resize touch-none border-none",
+        "h-full w-1 md:hover:w-1", // Keep it 1px visual, maybe expand hit area?
+        "bg-outline-variant transition-colors delay-75 hover:bg-primary active:bg-primary",
+        local.class
       )}
+      onPointerCancel={handlePointerUp}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
+      tabIndex={0}
       {...rest}
     />
   );

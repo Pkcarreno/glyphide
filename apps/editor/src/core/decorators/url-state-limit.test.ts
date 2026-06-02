@@ -1,6 +1,13 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { composeSizeLimitedUrlState } from "./url-state-limit";
-import type { UrlStatePort } from "../ports/url-state";
+import {
+  beforeEach,
+  describe,
+  expect,
+  it,
+  type MockInstance,
+  vi,
+} from "vitest";
+import type { UrlStatePort } from "../ports/url-state.ts";
+import { composeSizeLimitedUrlState } from "./url-state-limit.ts";
 
 describe("composeSizeLimitedUrlState", () => {
   const mockBasePort: UrlStatePort = {
@@ -15,10 +22,10 @@ describe("composeSizeLimitedUrlState", () => {
   const decorator = composeSizeLimitedUrlState(
     mockBasePort,
     maxLength,
-    onShareabilityChange,
+    onShareabilityChange
   );
 
-  let replaceStateSpy: any;
+  let replaceStateSpy: MockInstance;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -39,7 +46,11 @@ describe("composeSizeLimitedUrlState", () => {
 
     expect(mockBasePort.set).not.toHaveBeenCalled();
     expect(onShareabilityChange).toHaveBeenCalledWith(false);
-    expect(replaceStateSpy).toHaveBeenCalledWith(null, "", window.location.pathname);
+    expect(replaceStateSpy).toHaveBeenCalledWith(
+      null,
+      "",
+      window.location.pathname
+    );
   });
 
   it("passes get and remove transparently", () => {

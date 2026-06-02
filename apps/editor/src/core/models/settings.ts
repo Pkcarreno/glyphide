@@ -1,5 +1,5 @@
 import { createStore } from "solid-js/store";
-import type { PersistencePort } from "../ports/persistence";
+import type { PersistencePort } from "../ports/persistence.ts";
 
 const SETTINGS_STORAGE_KEY = "settings";
 
@@ -11,10 +11,10 @@ export type ThemePreference = "light" | "dark" | "system";
  * Treated as an immutable snapshot per reactive update cycle.
  */
 export interface EditorSettings {
-  theme: ThemePreference;
-  isWordWrapEnabled: boolean;
   isAutoRunEnabled: boolean;
   isClearOnRunEnabled: boolean;
+  isWordWrapEnabled: boolean;
+  theme: ThemePreference;
 }
 
 /** Safe defaults when no persisted settings exist. */
@@ -39,7 +39,7 @@ export interface SettingsModel {
 
 /** Creates a `SettingsModel` backed by the given persistence port. */
 export function createSettingsModel(
-  persistence: PersistencePort,
+  persistence: PersistencePort
 ): SettingsModel {
   const initial = loadSettings(persistence);
   const [settings, setSettings] = createStore<EditorSettings>(initial);
@@ -54,7 +54,9 @@ export function createSettingsModel(
 
 function loadSettings(persistence: PersistencePort): EditorSettings {
   const raw = persistence.get(SETTINGS_STORAGE_KEY);
-  if (!raw) return { ...DEFAULT_SETTINGS };
+  if (!raw) {
+    return { ...DEFAULT_SETTINGS };
+  }
 
   try {
     const parsed = JSON.parse(raw) as Partial<EditorSettings>;
@@ -66,7 +68,7 @@ function loadSettings(persistence: PersistencePort): EditorSettings {
 
 function persistSettings(
   persistence: PersistencePort,
-  settings: EditorSettings,
+  settings: EditorSettings
 ): void {
   persistence.set(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
 }

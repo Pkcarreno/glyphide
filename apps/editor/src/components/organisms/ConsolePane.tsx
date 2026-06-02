@@ -1,11 +1,11 @@
-import { splitProps, For } from "solid-js";
-import type { JSX } from "solid-js";
-import { ConsoleMessage } from "../molecules/ConsoleMessage";
-import { Icon } from "../atoms/Icon";
-import Trash2 from "lucide-solid/icons/trash-2";
 import Pin from "lucide-solid/icons/pin";
-import { cn } from "../../helpers/cn";
-import { useEditor } from "../../core/context";
+import Trash2 from "lucide-solid/icons/trash-2";
+import type { JSX } from "solid-js";
+import { For, splitProps } from "solid-js";
+import { useEditor } from "../../core/context.tsx";
+import { cn } from "../../helpers/cn.ts";
+import { Icon } from "../atoms/Icon.tsx";
+import { ConsoleMessage } from "../molecules/ConsoleMessage.tsx";
 
 /**
  * Props for the ConsolePane component.
@@ -29,23 +29,27 @@ function ConsolePane(props: ConsolePaneProps) {
   return (
     <section
       class={cn(
-        "bg-surface flex flex-col h-full overflow-hidden w-full",
-        local.class,
+        "flex h-full w-full flex-col overflow-hidden bg-surface",
+        local.class
       )}
       {...rest}
     >
-      <div class="flex items-center justify-between px-4 py-1.5 border-b border-outline-variant shrink-0">
-        <h2 class="font-mono text-section-header text-on-surface-variant select-none uppercase tracking-widest">
+      <div class="flex shrink-0 items-center justify-between border-outline-variant border-b px-4 py-1.5">
+        <h2 class="select-none font-mono text-on-surface-variant text-section-header uppercase tracking-widest">
           Output
         </h2>
         <div class="flex items-center gap-1">
-          <button class="flex items-center gap-1 px-1.5 py-0.5 rounded-sm text-status-bar uppercase tracking-wider font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors cursor-pointer border border-transparent hover:border-outline-variant">
+          <button
+            class="flex cursor-pointer items-center gap-1 rounded-sm border border-transparent px-1.5 py-0.5 font-medium text-on-surface-variant text-status-bar uppercase tracking-wider transition-colors hover:border-outline-variant hover:bg-surface-variant hover:text-on-surface"
+            type="button"
+          >
             <Icon icon={Pin} size={10} />
             Persist
           </button>
-          <button 
-            class="flex items-center gap-1 px-1.5 py-0.5 rounded-sm text-status-bar uppercase tracking-wider font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors cursor-pointer border border-transparent hover:border-outline-variant"
+          <button
+            class="flex cursor-pointer items-center gap-1 rounded-sm border border-transparent px-1.5 py-0.5 font-medium text-on-surface-variant text-status-bar uppercase tracking-wider transition-colors hover:border-outline-variant hover:bg-surface-variant hover:text-on-surface"
             onClick={handleClear}
+            type="button"
           >
             <Icon icon={Trash2} size={10} />
             Clear
@@ -53,13 +57,21 @@ function ConsolePane(props: ConsolePaneProps) {
         </div>
       </div>
 
-      <div class="flex-1 overflow-auto py-2 flex flex-col">
+      <div class="flex flex-1 flex-col overflow-auto py-2">
         <For each={core.output.entries()}>
           {(entry) => (
             <ConsoleMessage
-              type={entry.type as "error" | "log" | "warn" | "system" | null | undefined}
-              message={String(entry.data)}
               class="whitespace-pre-wrap"
+              message={String(entry.data)}
+              type={
+                entry.type as
+                  | "error"
+                  | "log"
+                  | "warn"
+                  | "system"
+                  | null
+                  | undefined
+              }
             />
           )}
         </For>

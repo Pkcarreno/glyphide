@@ -1,18 +1,15 @@
+import { For } from "solid-js";
+import { useEditor } from "../../core/context.tsx";
+import { getEngineEntries } from "../../core/engine/registry.ts";
 import {
   CommandDialog,
-  CommandRoot,
-  CommandInput,
-  CommandList,
   CommandEmpty,
   CommandGroup,
+  CommandInput,
   CommandItem,
-} from "../atoms/Command";
-import { useEditor } from "../../core/context";
-import { Icon } from "../atoms/Icon";
-import Zap from "lucide-solid/icons/zap";
-import Beaker from "lucide-solid/icons/beaker";
-import { For } from "solid-js";
-import { getEngineEntries } from "../../core/engine/registry";
+  CommandList,
+  CommandRoot,
+} from "../atoms/Command.tsx";
 
 /**
  * Command menu for selecting the active execution engine.
@@ -40,7 +37,6 @@ export function EngineSelectorCommand() {
             <For each={getEngineEntries(core.engineRegistry)}>
               {(entry) => (
                 <CommandItem
-                  value={entry.label}
                   onSelect={() => {
                     core.dispatcher.dispatch({
                       type: "SELECT_ENGINE_ENTRY",
@@ -52,6 +48,7 @@ export function EngineSelectorCommand() {
                       overlayId: "engine-selector",
                     });
                   }}
+                  value={entry.label}
                 >
                   {entry.label}
                 </CommandItem>

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { composeCompressedUrlState } from "./url-state-compression";
-import type { UrlStatePort } from "../ports/url-state";
-import type { CodecPort } from "../ports/codec";
+import type { CodecPort } from "../ports/codec.ts";
+import type { UrlStatePort } from "../ports/url-state.ts";
+import { composeCompressedUrlState } from "./url-state-compression.ts";
 
 describe("composeCompressedUrlState", () => {
   const mockBasePort: UrlStatePort = {
@@ -19,7 +19,7 @@ describe("composeCompressedUrlState", () => {
   const decorator = composeCompressedUrlState(
     mockBasePort,
     mockCodec,
-    keysToCompress,
+    keysToCompress
   );
 
   it("encodes only specified keys when setting", () => {
@@ -33,8 +33,12 @@ describe("composeCompressedUrlState", () => {
 
   it("decodes only specified keys when getting", () => {
     vi.mocked(mockBasePort.get).mockImplementation((key) => {
-      if (key === "code") return "ENCODED_myCode";
-      if (key === "uncompressed") return "plain";
+      if (key === "code") {
+        return "ENCODED_myCode";
+      }
+      if (key === "uncompressed") {
+        return "plain";
+      }
       return null;
     });
 

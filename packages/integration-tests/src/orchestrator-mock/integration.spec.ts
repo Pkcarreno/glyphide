@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   createMockConfig,
   createMockWorker,
-} from "./setup/mock-worker-factory";
+} from "./setup/mock-worker-factory.ts";
 
 describe("Orchestrator + Mock Engine Integration", () => {
   let orchestrator: EngineOrchestrator;

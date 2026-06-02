@@ -1,18 +1,18 @@
-import { splitProps, Show, JSX } from "solid-js";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "../../helpers/cn";
+import { type JSX, Show, splitProps } from "solid-js";
+import { cn } from "../../helpers/cn.ts";
 
 const inputWrapperVariants = cva(
-  "flex items-center transition-colors text-on-surface",
+  "flex items-center text-on-surface transition-colors",
   {
     variants: {
       variant: {
         default:
-          "px-3 bg-surface border border-outline-variant rounded-lg focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20",
+          "rounded-lg border border-outline-variant bg-surface px-3 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20",
         ghost:
-          "px-3 bg-transparent border-none focus-within:bg-surface-variant/30 rounded-lg",
+          "rounded-lg border-none bg-transparent px-3 focus-within:bg-surface-variant/30",
         bottomBorder:
-          "px-3 bg-transparent border-b border-outline-variant rounded-none",
+          "rounded-none border-outline-variant border-b bg-transparent px-3",
       },
       size: {
         sm: "h-8 text-xs",
@@ -29,25 +29,25 @@ const inputWrapperVariants = cva(
 
 export interface InputProps extends JSX.InputHTMLAttributes<HTMLInputElement> {
   /**
-   * The variant of the input.
+   * Icon or element to render at the end of the input.
    */
-  variant?: VariantProps<typeof inputWrapperVariants>["variant"];
+  endIcon?: JSX.Element;
   /**
    * The size of the input.
    */
   inputSize?: VariantProps<typeof inputWrapperVariants>["size"];
   /**
-   * Additional classes for the input wrapper element.
-   */
-  wrapperClass?: string;
-  /**
    * Icon or element to render at the start of the input.
    */
   startIcon?: JSX.Element;
   /**
-   * Icon or element to render at the end of the input.
+   * The variant of the input.
    */
-  endIcon?: JSX.Element;
+  variant?: VariantProps<typeof inputWrapperVariants>["variant"];
+  /**
+   * Additional classes for the input wrapper element.
+   */
+  wrapperClass?: string;
 }
 
 /**
@@ -72,7 +72,7 @@ export function Input(props: InputProps) {
       )}
     >
       <Show when={local.startIcon}>
-        <div class="mr-2 flex items-center justify-center shrink-0 text-on-surface-variant">
+        <div class="mr-2 flex shrink-0 items-center justify-center text-on-surface-variant">
           {local.startIcon}
         </div>
       </Show>
@@ -84,7 +84,7 @@ export function Input(props: InputProps) {
         {...rest}
       />
       <Show when={local.endIcon}>
-        <div class="ml-2 flex items-center justify-center shrink-0 text-on-surface-variant">
+        <div class="ml-2 flex shrink-0 items-center justify-center text-on-surface-variant">
           {local.endIcon}
         </div>
       </Show>

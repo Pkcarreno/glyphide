@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createActionDispatcher } from "./dispatcher";
+import { createActionDispatcher } from "./dispatcher.ts";
 
 describe("ActionDispatcher", () => {
   it("routes actions to registered handlers", () => {
@@ -21,7 +21,10 @@ describe("ActionDispatcher", () => {
     dispatcher.dispatch({ type: "TOGGLE_OVERLAY", overlayId: "settings" });
 
     expect(handler).toHaveBeenCalledOnce();
-    expect(handler).toHaveBeenCalledWith({ type: "TOGGLE_OVERLAY", overlayId: "settings" });
+    expect(handler).toHaveBeenCalledWith({
+      type: "TOGGLE_OVERLAY",
+      overlayId: "settings",
+    });
   });
 
   it("does not call handlers of other types", () => {

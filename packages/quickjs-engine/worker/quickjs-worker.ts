@@ -1,4 +1,4 @@
-import { QuickJSEngineAdapter } from "../src/quickjs-adapter";
+import { QuickJSEngineAdapter } from "../src/quickjs-adapter.ts";
 
 const adapter = new QuickJSEngineAdapter();
 

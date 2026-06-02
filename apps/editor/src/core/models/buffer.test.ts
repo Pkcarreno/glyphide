@@ -1,13 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { createBufferModel } from "./buffer";
-import type { UrlStatePort } from "../ports/url-state";
+import type { UrlStatePort } from "../ports/url-state.ts";
+import { createBufferModel } from "./buffer.ts";
 
-const createMockUrlState = (initialValues: Record<string, string> = {}): UrlStatePort => {
+const createMockUrlState = (
+  initialValues: Record<string, string> = {}
+): UrlStatePort => {
   const store = new Map(Object.entries(initialValues));
   return {
     get: (key) => store.get(key) ?? null,
-    set: (key, val) => { store.set(key, val); },
-    remove: (key) => { store.delete(key); },
+    set: (key, val) => {
+      store.set(key, val);
+    },
+    remove: (key) => {
+      store.delete(key);
+    },
   };
 };
 
@@ -18,7 +24,10 @@ describe("BufferModel", () => {
   });
 
   it("initializes with provided content", () => {
-    const buffer = createBufferModel(createMockUrlState(), "console.log('hello');");
+    const buffer = createBufferModel(
+      createMockUrlState(),
+      "console.log('hello');"
+    );
     expect(buffer.content()).toBe("console.log('hello');");
   });
 

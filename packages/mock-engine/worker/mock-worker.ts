@@ -3,7 +3,7 @@
  * Runs inside a Web Worker context and communicates via postMessage.
  */
 
-import { MockEngineAdapter } from "../src/mock-adapter";
+import { MockEngineAdapter } from "../src/mock-adapter.ts";
 
 const adapter = new MockEngineAdapter();
 

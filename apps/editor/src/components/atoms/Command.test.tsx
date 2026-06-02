@@ -1,12 +1,12 @@
-import { render, screen, fireEvent } from "@solidjs/testing-library";
-import { describe, it, expect, vi } from "vitest";
+import { fireEvent, render, screen } from "@solidjs/testing-library";
+import { describe, expect, it, vi } from "vitest";
 import {
-  CommandRoot,
-  CommandInput,
-  CommandList,
-  CommandItem,
   CommandEmpty,
-} from "./Command";
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandRoot,
+} from "./Command.tsx";
 
 describe("Command", () => {
   it("renders and filters items correctly", async () => {
@@ -18,10 +18,10 @@ describe("Command", () => {
         <CommandInput placeholder="Search test..." />
         <CommandList>
           <CommandEmpty>No results</CommandEmpty>
-          <CommandItem value="apple" onSelect={handleSelect1}>
+          <CommandItem onSelect={handleSelect1} value="apple">
             Apple
           </CommandItem>
-          <CommandItem value="banana" onSelect={handleSelect2}>
+          <CommandItem onSelect={handleSelect2} value="banana">
             Banana
           </CommandItem>
         </CommandList>

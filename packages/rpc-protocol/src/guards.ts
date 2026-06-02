@@ -9,7 +9,7 @@ import type {
   JsonRpcOkResponse,
   JsonRpcRequest,
   JsonRpcResponse,
-} from "./types.js";
+} from "./types.ts";
 
 export function isJsonRpcMessage(value: unknown): value is JsonRpcResponse {
   return (

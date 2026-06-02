@@ -1,7 +1,7 @@
 import { render } from "@solidjs/testing-library";
 import { createSignal } from "solid-js";
 import { describe, expect, it, vi } from "vitest";
-import { Switch } from "./Switch";
+import { Switch } from "./Switch.tsx";
 
 describe("Switch", () => {
   it("when rendered with defaults, is unchecked", () => {
@@ -12,7 +12,7 @@ describe("Switch", () => {
 
   it("when defaultChecked is true, starts checked", () => {
     const { getByRole } = render(() => (
-      <Switch defaultChecked aria-label="Toggle" />
+      <Switch aria-label="Toggle" defaultChecked />
     ));
     expect(getByRole("switch").getAttribute("aria-checked")).toBe("true");
   });
@@ -30,7 +30,7 @@ describe("Switch", () => {
   it("when clicked, fires onCheckedChange with new value", () => {
     const handler = vi.fn();
     const { getByRole } = render(() => (
-      <Switch onCheckedChange={handler} aria-label="Toggle" />
+      <Switch aria-label="Toggle" onCheckedChange={handler} />
     ));
     getByRole("switch").click();
     expect(handler).toHaveBeenCalledWith(true);
@@ -42,9 +42,9 @@ describe("Switch", () => {
     const [checked, setChecked] = createSignal(false);
     const { getByRole } = render(() => (
       <Switch
+        aria-label="Toggle"
         checked={checked()}
         onCheckedChange={setChecked}
-        aria-label="Toggle"
       />
     ));
     const sw = getByRole("switch");
@@ -56,29 +56,27 @@ describe("Switch", () => {
   it("when disabled, does not toggle on click", () => {
     const handler = vi.fn();
     const { getByRole } = render(() => (
-      <Switch disabled onCheckedChange={handler} aria-label="Toggle" />
+      <Switch aria-label="Toggle" disabled onCheckedChange={handler} />
     ));
     getByRole("switch").click();
     expect(handler).not.toHaveBeenCalled();
   });
 
   it("when disabled, has disabled attribute", () => {
-    const { getByRole } = render(() => (
-      <Switch disabled aria-label="Toggle" />
-    ));
+    const { getByRole } = render(() => <Switch aria-label="Toggle" disabled />);
     expect(getByRole("switch")).toHaveProperty("disabled", true);
   });
 
   it("when custom class is provided, merges it", () => {
     const { getByRole } = render(() => (
-      <Switch class="ml-2" aria-label="Toggle" />
+      <Switch aria-label="Toggle" class="ml-2" />
     ));
     expect(getByRole("switch").className).toContain("ml-2");
   });
 
   it("when checked, applies primary background", () => {
     const { getByRole } = render(() => (
-      <Switch defaultChecked aria-label="Toggle" />
+      <Switch aria-label="Toggle" defaultChecked />
     ));
     expect(getByRole("switch").className).toContain("bg-primary");
   });

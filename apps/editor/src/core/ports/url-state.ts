@@ -5,8 +5,8 @@
 export interface UrlStatePort {
   /** Retrieves a query parameter value. Returns `null` if absent. */
   get(key: string): string | null;
-  /** Sets a query parameter without triggering navigation. */
-  set(key: string, value: string): void;
   /** Removes a query parameter. */
   remove(key: string): void;
+  /** Sets a query parameter without triggering navigation. */
+  set(key: string, value: string): void;
 }

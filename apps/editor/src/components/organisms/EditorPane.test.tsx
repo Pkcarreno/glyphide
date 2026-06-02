@@ -1,33 +1,45 @@
 import { render } from "@solidjs/testing-library";
-import { describe, expect, it, beforeAll, vi } from "vitest";
-import { EditorPane } from "./EditorPane";
+import { beforeAll, describe, expect, it, vi } from "vitest";
+import { EditorPane } from "./EditorPane.tsx";
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
     buffer: { content: () => "" },
     settings: { settings: { theme: "system", isWordWrapEnabled: false } },
     engine: { activeLanguage: () => "javascript" },
-    dispatcher: { dispatch: vi.fn() }
-  })
+    dispatcher: { dispatch: vi.fn() },
+  }),
 }));
 
 beforeAll(() => {
   if (typeof window !== "undefined") {
     if (typeof window.Range !== "undefined") {
       window.Range.prototype.getBoundingClientRect = () => ({
-        bottom: 0, height: 0, left: 0, right: 0, top: 0, width: 0, x: 0, y: 0, toJSON: () => { }
+        bottom: 0,
+        height: 0,
+        left: 0,
+        right: 0,
+        top: 0,
+        width: 0,
+        x: 0,
+        y: 0,
+        toJSON: () => {
+          /* mock */
+        },
       });
-      window.Range.prototype.getClientRects = () => ({
-        item: () => null,
-        length: 0,
-        [Symbol.iterator]: function* () { },
-      } as any);
+      window.Range.prototype.getClientRects = () =>
+        ({
+          item: () => null,
+          *[Symbol.iterator]() {
+            /* mock */
+          },
+        }) as unknown as DOMRectList;
     }
-    
+
     // Mock matchMedia
-    Object.defineProperty(window, 'matchMedia', {
+    Object.defineProperty(window, "matchMedia", {
       writable: true,
-      value: vi.fn().mockImplementation(query => ({
+      value: vi.fn().mockImplementation((query) => ({
         matches: false,
         media: query,
         onchange: null,

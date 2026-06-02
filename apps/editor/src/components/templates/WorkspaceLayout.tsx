@@ -1,18 +1,18 @@
-import { createSignal, onMount } from "solid-js";
 import type { JSX } from "solid-js";
-import { Resizer } from "../atoms/Resizer";
-import { cn } from "../../helpers/cn";
+import { createSignal } from "solid-js";
+import { cn } from "../../helpers/cn.ts";
+import { Resizer } from "../atoms/Resizer.tsx";
 
 interface WorkspaceLayoutProps {
-  /** Top header slot */
-  header: JSX.Element;
-  /** Main editor slot */
-  editorPane: JSX.Element;
+  class?: string;
   /** Output console slot */
   consolePane: JSX.Element;
+  /** Main editor slot */
+  editorPane: JSX.Element;
+  /** Top header slot */
+  header: JSX.Element;
   /** Bottom status bar slot */
   statusBar: JSX.Element;
-  class?: string;
 }
 
 /**
@@ -20,12 +20,14 @@ interface WorkspaceLayoutProps {
  * Handles the responsive resizer logic between the Editor and Console panes via CSS and DOM updates.
  */
 function WorkspaceLayout(props: WorkspaceLayoutProps) {
-  let containerRef!: HTMLDivElement;
+  let containerRef: HTMLElement | undefined;
   const [editorSize, setEditorSize] = createSignal<number>(50); // 50% by default
 
   // Handle resizing directly (using movementX from the new Resizer)
   function handleResize(deltaX: number) {
-    if (!containerRef || window.innerWidth < 768) return;
+    if (!containerRef || window.innerWidth < 768) {
+      return;
+    }
 
     // Calculate percentage change
     const containerWidth = containerRef.clientWidth;
@@ -40,21 +42,24 @@ function WorkspaceLayout(props: WorkspaceLayoutProps) {
 
   return (
     <div
-      class={cn("flex flex-col h-screen w-screen overflow-hidden bg-background", props.class)}
+      class={cn(
+        "flex h-screen w-screen flex-col overflow-hidden bg-background",
+        props.class
+      )}
       style={{ "--editor-size": `${editorSize()}%` }}
     >
-      <div class="shrink-0 z-20 relative">
-        {props.header}
-      </div>
+      <div class="relative z-20 shrink-0">{props.header}</div>
 
       <main
-        ref={containerRef}
-        class="flex flex-1 overflow-hidden relative z-0 flex-col md:flex-row"
+        class="relative z-0 flex flex-1 flex-col overflow-hidden md:flex-row"
+        ref={(el) => {
+          containerRef = el;
+        }}
       >
         {/* Editor Wrapper */}
         <div
           class={cn(
-            "flex flex-col overflow-hidden transition-none border-b md:border-b-0 border-outline-variant",
+            "flex flex-col overflow-hidden border-outline-variant border-b transition-none md:border-b-0",
             "flex-1 md:flex-none md:basis-(--editor-size)"
           )}
         >
@@ -76,9 +81,7 @@ function WorkspaceLayout(props: WorkspaceLayoutProps) {
         </div>
       </main>
 
-      <div class="shrink-0 z-20 relative">
-        {props.statusBar}
-      </div>
+      <div class="relative z-20 shrink-0">{props.statusBar}</div>
     </div>
   );
 }

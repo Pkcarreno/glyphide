@@ -3,7 +3,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { EngineMethod } from "./constants.js";
+import { EngineMethod } from "./constants.ts";
 import {
   isJsonRpcFail,
   isJsonRpcMessage,
@@ -11,7 +11,7 @@ import {
   isJsonRpcOk,
   isJsonRpcRequest,
   isJsonRpcResponse,
-} from "./guards.js";
+} from "./guards.ts";
 
 describe("JSON-RPC Type Guards", () => {
   describe("isJsonRpcMessage", () => {

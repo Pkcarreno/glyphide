@@ -1,13 +1,11 @@
-import { describe, expect, it } from "vitest";
 import { render, screen } from "@solidjs/testing-library";
-import { EditorProvider, useEditor } from "./context";
+import { describe, expect, it } from "vitest";
+import { EditorProvider, useEditor } from "./context.tsx";
 
 function TestComponent() {
   const core = useEditor();
   return (
-    <div data-testid="test-comp">
-      {core ? "Core Injected" : "No Core"}
-    </div>
+    <div data-testid="test-comp">{core ? "Core Injected" : "No Core"}</div>
   );
 }
 

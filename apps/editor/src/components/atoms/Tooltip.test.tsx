@@ -1,13 +1,13 @@
-import { render, fireEvent, screen, cleanup } from "@solidjs/testing-library";
+import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  TooltipRoot,
-  TooltipTrigger,
+  TooltipPopup,
   TooltipPortal,
   TooltipPositioner,
-  TooltipPopup,
+  TooltipRoot,
+  TooltipTrigger,
   useTooltip,
-} from "./Tooltip";
+} from "./Tooltip.tsx";
 
 afterEach(() => cleanup());
 
@@ -81,8 +81,8 @@ describe("Tooltip", () => {
     fireEvent.mouseEnter(getByTestId("trigger"));
     const popup = screen.queryByRole("tooltip");
     expect(popup).not.toBeNull();
-    expect(popup!.className).toContain("custom-class");
-    expect(popup!.className).toContain("bg-surface");
+    expect(popup?.className).toContain("custom-class");
+    expect(popup?.className).toContain("bg-surface");
   });
 
   it("when useTooltip is used outside TooltipRoot, throws error", () => {
@@ -101,6 +101,6 @@ describe("Tooltip", () => {
     fireEvent.mouseEnter(getByTestId("trigger"));
     const popup = screen.queryByRole("tooltip");
     expect(popup).not.toBeNull();
-    expect(popup!.getAttribute("role")).toBe("tooltip");
+    expect(popup?.getAttribute("role")).toBe("tooltip");
   });
 });

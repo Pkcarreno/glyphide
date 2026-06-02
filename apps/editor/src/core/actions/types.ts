@@ -1,4 +1,4 @@
-import type { EngineId } from "../engine/registry";
+import type { EngineId } from "../engine/registry.ts";
 
 /**
  * Discriminated union of all editor actions.

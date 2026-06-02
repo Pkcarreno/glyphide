@@ -1,7 +1,8 @@
-import { render, cleanup } from "@solidjs/testing-library";
-import { describe, expect, it, vi, afterEach } from "vitest";
-import { SettingsModal } from "./SettingsModal";
+import { cleanup, render } from "@solidjs/testing-library";
 import { createSignal } from "solid-js";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { SettingsModal } from "./SettingsModal.tsx";
+
 const updateSettingsMock = vi.fn();
 const dispatchMock = vi.fn();
 
@@ -14,15 +15,15 @@ vi.mock("../../core/context", () => ({
         theme: "system",
         isWordWrapEnabled: false,
         isAutoRunEnabled: false,
-        isClearOnRunEnabled: true
+        isClearOnRunEnabled: true,
       },
-      updateSettings: updateSettingsMock
+      updateSettings: updateSettingsMock,
     },
     dispatcher: { dispatch: dispatchMock },
     overlays: {
-      isOpen: (id: string) => id === "settings" && mockIsOpen()
-    }
-  })
+      isOpen: (id: string) => id === "settings" && mockIsOpen(),
+    },
+  }),
 }));
 
 describe("SettingsModal", () => {
@@ -45,7 +46,9 @@ describe("SettingsModal", () => {
 
   it("when rendered, displays the Appearance tab and its components by default", () => {
     setMockIsOpen(true);
-    const { getAllByText, getByRole, queryByText } = render(() => <SettingsModal />);
+    const { getAllByText, getByRole, queryByText } = render(() => (
+      <SettingsModal />
+    ));
 
     expect(getAllByText("Appearance").length).toBeGreaterThan(0);
 
@@ -74,7 +77,10 @@ describe("SettingsModal", () => {
     dispatchMock.mockClear();
     const { getAllByRole } = render(() => <SettingsModal />);
     getAllByRole("button", { name: "Close settings" })[0].click();
-    expect(dispatchMock).toHaveBeenCalledWith({ type: "CLOSE_OVERLAY", overlayId: "settings" });
+    expect(dispatchMock).toHaveBeenCalledWith({
+      type: "CLOSE_OVERLAY",
+      overlayId: "settings",
+    });
   });
 
   it("when controlled via core state, opens and closes", () => {

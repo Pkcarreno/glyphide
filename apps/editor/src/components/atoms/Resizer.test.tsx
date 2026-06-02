@@ -1,6 +1,6 @@
 import { render } from "@solidjs/testing-library";
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { Resizer } from "./Resizer";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { Resizer } from "./Resizer.tsx";
 
 describe("Resizer", () => {
   beforeEach(() => {
@@ -18,9 +18,9 @@ describe("Resizer", () => {
 
   it("when rendered, has vertical orientation", () => {
     const { getByRole } = render(() => <Resizer />);
-    expect(
-      getByRole("separator").getAttribute("aria-orientation"),
-    ).toBe("vertical");
+    expect(getByRole("separator").getAttribute("aria-orientation")).toBe(
+      "vertical"
+    );
   });
 
   it("when rendered, is focusable via tabIndex", () => {
@@ -48,46 +48,46 @@ describe("Resizer", () => {
         pointerId: 1,
         clientX: 100,
         bubbles: true,
-      }),
+      })
     );
     expect(document.body.style.cursor).toBe("col-resize");
 
     sep.dispatchEvent(
-      new PointerEvent("pointerup", { pointerId: 1, bubbles: true }),
+      new PointerEvent("pointerup", { pointerId: 1, bubbles: true })
     );
     expect(document.body.style.cursor).toBe("");
   });
 
   it("when dragged, fires onResizeDelta with movementX", () => {
     const onResizeDelta = vi.fn();
-    const { getByRole } = render(() => <Resizer onResizeDelta={onResizeDelta} />);
+    const { getByRole } = render(() => (
+      <Resizer onResizeDelta={onResizeDelta} />
+    ));
     const sep = getByRole("separator");
 
     sep.dispatchEvent(
       new PointerEvent("pointerdown", {
         pointerId: 1,
         bubbles: true,
-      }),
+      })
     );
     sep.dispatchEvent(
       new PointerEvent("pointermove", {
         pointerId: 1,
         movementX: 50,
         bubbles: true,
-      }),
+      })
     );
     expect(onResizeDelta).toHaveBeenCalledWith(50);
 
     sep.dispatchEvent(
-      new PointerEvent("pointerup", { pointerId: 1, bubbles: true }),
+      new PointerEvent("pointerup", { pointerId: 1, bubbles: true })
     );
   });
 
   it("when drag ends, fires onResizeEnd", () => {
     const onResizeEnd = vi.fn();
-    const { getByRole } = render(() => (
-      <Resizer onResizeEnd={onResizeEnd} />
-    ));
+    const { getByRole } = render(() => <Resizer onResizeEnd={onResizeEnd} />);
     const sep = getByRole("separator");
 
     sep.dispatchEvent(
@@ -95,10 +95,10 @@ describe("Resizer", () => {
         pointerId: 1,
         clientX: 100,
         bubbles: true,
-      }),
+      })
     );
     sep.dispatchEvent(
-      new PointerEvent("pointerup", { pointerId: 1, bubbles: true }),
+      new PointerEvent("pointerup", { pointerId: 1, bubbles: true })
     );
     expect(onResizeEnd).toHaveBeenCalledOnce();
   });

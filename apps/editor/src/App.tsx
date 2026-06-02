@@ -1,4 +1,4 @@
-import EditorPage from "./components/pages/EditorPage";
+import EditorPage from "./components/pages/EditorPage.tsx";
 
 function App() {
   return <EditorPage />;

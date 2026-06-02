@@ -1,17 +1,21 @@
 import { render } from "@solidjs/testing-library";
 import { describe, expect, it, vi } from "vitest";
-import { ConsolePane } from "./ConsolePane";
+import { ConsolePane } from "./ConsolePane.tsx";
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
     output: {
       entries: () => [
         { id: "1", type: "system", data: "Engine initialized in 42ms" },
-        { id: "2", type: "log", data: "Server running at http://localhost:3000" }
-      ]
+        {
+          id: "2",
+          type: "log",
+          data: "Server running at http://localhost:3000",
+        },
+      ],
     },
-    dispatcher: { dispatch: vi.fn() }
-  })
+    dispatcher: { dispatch: vi.fn() },
+  }),
 }));
 
 describe("ConsolePane", () => {

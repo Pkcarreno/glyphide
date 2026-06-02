@@ -1,4 +1,4 @@
-import type { PersistencePort } from "../ports/persistence";
+import type { PersistencePort } from "../ports/persistence.ts";
 
 const STORAGE_PREFIX = "glyphide:";
 

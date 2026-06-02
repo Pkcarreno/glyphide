@@ -3,8 +3,8 @@
  * Allows the core to be agnostic of specific compression algorithms.
  */
 export interface CodecPort {
-  /** Encodes a string value into a safe transport format. */
-  encode(value: string): string;
   /** Decodes a string back to its original format. Returns null if decoding fails. */
   decode(value: string): string | null;
+  /** Encodes a string value into a safe transport format. */
+  encode(value: string): string;
 }

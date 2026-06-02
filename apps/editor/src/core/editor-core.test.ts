@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { createEditorCore } from "./editor-core";
-import type { PersistencePort } from "./ports/persistence";
-import type { UrlStatePort } from "./ports/url-state";
+import { createEditorCore } from "./editor-core.ts";
+import type { PersistencePort } from "./ports/persistence.ts";
+import type { UrlStatePort } from "./ports/url-state.ts";
 
 function createMockPersistence(): PersistencePort {
   return { get: vi.fn(), set: vi.fn(), remove: vi.fn() };
@@ -43,11 +43,22 @@ describe("EditorCore", () => {
     expect(clearEntriesSpy).toHaveBeenCalled();
 
     const selectEngineEntrySpy = vi.spyOn(core.engine, "selectEngineEntry");
-    core.dispatcher.dispatch({ type: "SELECT_ENGINE_ENTRY", engineId: "mock", language: "plaintext" });
-    expect(selectEngineEntrySpy).toHaveBeenCalledWith({ engineId: "mock", language: "plaintext", label: "" });
+    core.dispatcher.dispatch({
+      type: "SELECT_ENGINE_ENTRY",
+      engineId: "mock",
+      language: "plaintext",
+    });
+    expect(selectEngineEntrySpy).toHaveBeenCalledWith({
+      engineId: "mock",
+      language: "plaintext",
+      label: "",
+    });
 
     const onBufferUpdatedSpy = vi.spyOn(core.engine, "onBufferUpdated");
-    core.dispatcher.dispatch({ type: "UPDATE_BUFFER", content: "const a = 1;" });
+    core.dispatcher.dispatch({
+      type: "UPDATE_BUFFER",
+      content: "const a = 1;",
+    });
     expect(onBufferUpdatedSpy).toHaveBeenCalledWith("const a = 1;");
 
     const openSpy = vi.spyOn(core.overlays, "open");

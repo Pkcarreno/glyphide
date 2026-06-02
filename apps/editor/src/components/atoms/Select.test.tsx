@@ -1,6 +1,6 @@
-import { render, fireEvent } from "@solidjs/testing-library";
+import { fireEvent, render } from "@solidjs/testing-library";
 import { describe, expect, it, vi } from "vitest";
-import { Select } from "./Select";
+import { Select } from "./Select.tsx";
 
 describe("Select", () => {
   it("renders a select element with options", () => {
@@ -13,7 +13,7 @@ describe("Select", () => {
 
     const select = getByRole("combobox");
     expect(select).toBeTruthy();
-    
+
     const options = getAllByRole("option");
     expect(options).toHaveLength(2);
     expect(options[0].textContent).toBe("Light");
@@ -42,7 +42,7 @@ describe("Select", () => {
 
     const select = getByRole("combobox");
     fireEvent.change(select, { target: { value: "dark" } });
-    
+
     expect(handleChange).toHaveBeenCalled();
   });
 

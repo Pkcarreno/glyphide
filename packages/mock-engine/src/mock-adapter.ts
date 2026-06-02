@@ -15,8 +15,8 @@ import type {
   JsonRpcRequest,
 } from "@glyphide/rpc-protocol/types";
 
-import type { MockEngineConfig } from "./types";
-import { defaultCapabilities } from "./types";
+import type { MockEngineConfig } from "./types.ts";
+import { defaultCapabilities } from "./types.ts";
 
 type NotificationHandler = (method: string, params?: object) => void;
 

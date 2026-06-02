@@ -4,7 +4,7 @@
 
 import { EngineMethod } from "@glyphide/rpc-protocol/constants";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { QuickJSEngineAdapter } from "./quickjs-adapter";
+import { QuickJSEngineAdapter } from "./quickjs-adapter.ts";
 
 interface CapturedResponse {
   error?: { code: number; message: string };

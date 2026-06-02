@@ -1,10 +1,12 @@
 import { render } from "@solidjs/testing-library";
 import { describe, expect, it } from "vitest";
-import { ConsoleMessage } from "./ConsoleMessage";
+import { ConsoleMessage } from "./ConsoleMessage.tsx";
 
 describe("ConsoleMessage", () => {
   it("when rendered with defaults, uses log styling", () => {
-    const { getByText } = render(() => <ConsoleMessage message="Hello world" />);
+    const { getByText } = render(() => (
+      <ConsoleMessage message="Hello world" />
+    ));
     const msg = getByText("Hello world");
     expect(msg.className).toContain("text-on-surface");
     expect(msg.className).toContain("border-transparent");
@@ -39,7 +41,7 @@ describe("ConsoleMessage", () => {
 
   it("when custom class is provided, merges it", () => {
     const { getByText } = render(() => (
-      <ConsoleMessage message="Styled" class="mt-2" />
+      <ConsoleMessage class="mt-2" message="Styled" />
     ));
     const msg = getByText("Styled");
     expect(msg.className).toContain("mt-2");

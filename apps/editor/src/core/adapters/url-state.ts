@@ -1,4 +1,4 @@
-import type { UrlStatePort } from "../ports/url-state";
+import type { UrlStatePort } from "../ports/url-state.ts";
 
 /**
  * Browser URL-backed implementation of `UrlStatePort`.

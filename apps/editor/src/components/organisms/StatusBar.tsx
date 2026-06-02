@@ -1,19 +1,19 @@
-import { splitProps, Show } from "solid-js";
-import type { JSX } from "solid-js";
-import { Icon } from "../atoms/Icon";
-import Settings2 from "lucide-solid/icons/settings-2";
-import RefreshCcw from "lucide-solid/icons/refresh-ccw";
 import Loader2 from "lucide-solid/icons/loader-2";
 import Play from "lucide-solid/icons/play";
-import { cn } from "../../helpers/cn";
-import { useEditor } from "../../core/context";
+import RefreshCcw from "lucide-solid/icons/refresh-ccw";
+import Settings2 from "lucide-solid/icons/settings-2";
+import type { JSX } from "solid-js";
+import { Match, Show, Switch, splitProps } from "solid-js";
+import { useEditor } from "../../core/context.tsx";
+import { cn } from "../../helpers/cn.ts";
+import { Icon } from "../atoms/Icon.tsx";
 import {
-  TooltipRoot,
-  TooltipTrigger,
+  TooltipPopup,
   TooltipPortal,
   TooltipPositioner,
-  TooltipPopup,
-} from "../atoms/Tooltip";
+  TooltipRoot,
+  TooltipTrigger,
+} from "../atoms/Tooltip.tsx";
 
 /**
  * Props for the StatusBar root component.
@@ -26,8 +26,8 @@ interface StatusBarProps extends JSX.HTMLAttributes<HTMLElement> {
  * Props for the StatusBarItem component.
  */
 interface StatusBarItemProps extends JSX.HTMLAttributes<HTMLDivElement> {
-  class?: string;
   children: JSX.Element;
+  class?: string;
 }
 
 /**
@@ -39,7 +39,7 @@ function StatusBarItem(props: StatusBarItemProps) {
 
   return (
     <div
-      class={cn("flex items-center gap-1 h-full px-1.5", local.class)}
+      class={cn("flex h-full items-center gap-1 px-1.5", local.class)}
       {...rest}
     >
       {local.children}
@@ -52,11 +52,11 @@ function StatusBarItem(props: StatusBarItemProps) {
  */
 interface StatusBarButtonProps
   extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
+  children: JSX.Element;
   class?: string;
   tooltip?: string;
-  tooltipShortcut?: string;
   tooltipDescription?: string;
-  children: JSX.Element;
+  tooltipShortcut?: string;
 }
 
 /**
@@ -73,26 +73,22 @@ function StatusBarButton(props: StatusBarButtonProps) {
   ]);
 
   const buttonClass = cn(
-    "flex items-center rounded-md gap-1 h-full px-1",
-    "cursor-pointer hover:bg-surface-variant hover:text-on-surface transition-colors",
-    local.class,
+    "flex h-full items-center gap-1 rounded-md px-1",
+    "cursor-pointer transition-colors hover:bg-surface-variant hover:text-on-surface",
+    local.class
   );
 
   return (
     <Show
-      when={local.tooltip}
       fallback={
         <button class={buttonClass} {...rest}>
           {local.children}
         </button>
       }
+      when={local.tooltip}
     >
       <TooltipRoot position="top">
-        <TooltipTrigger
-          as="button"
-          class={buttonClass}
-          {...rest}
-        >
+        <TooltipTrigger as="button" class={buttonClass} {...rest}>
           {local.children}
         </TooltipTrigger>
         <TooltipPortal>
@@ -103,19 +99,19 @@ function StatusBarButton(props: StatusBarButtonProps) {
                   class={cn(
                     local.tooltipDescription || local.tooltipShortcut
                       ? "text-on-surface-variant"
-                      : "text-on-surface",
+                      : "text-on-surface"
                   )}
                 >
                   {local.tooltip}
                 </span>
                 <Show when={local.tooltipShortcut}>
-                  <span class="text-on-surface-variant font-mono text-section-header mt-0.5 whitespace-nowrap">
+                  <span class="mt-0.5 whitespace-nowrap font-mono text-on-surface-variant text-section-header">
                     {local.tooltipShortcut}
                   </span>
                 </Show>
               </div>
               <Show when={local.tooltipDescription}>
-                <span class="text-on-surface-variant mt-1">
+                <span class="mt-1 text-on-surface-variant">
                   {local.tooltipDescription}
                 </span>
               </Show>
@@ -126,7 +122,6 @@ function StatusBarButton(props: StatusBarButtonProps) {
     </Show>
   );
 }
-
 
 /**
  * Bottom status bar compound organism.
@@ -139,20 +134,23 @@ function StatusBar(props: StatusBarProps) {
   const core = useEditor();
 
   function openEngineSelector() {
-    core.dispatcher.dispatch({ type: "OPEN_OVERLAY", overlayId: "engine-selector" });
+    core.dispatcher.dispatch({
+      type: "OPEN_OVERLAY",
+      overlayId: "engine-selector",
+    });
   }
 
   return (
     <footer
       class={cn(
         "flex h-status-bar-height items-center justify-between",
-        "border-t border-outline-variant bg-background px-padding-x",
-        "font-mono text-status-bar text-on-surface-variant select-none uppercase opacity-80",
-        local.class,
+        "border-outline-variant border-t bg-background px-padding-x",
+        "select-none font-mono text-on-surface-variant text-status-bar uppercase opacity-80",
+        local.class
       )}
       {...rest}
     >
-      <div class="flex items-center gap-1 h-full">
+      <div class="flex h-full items-center gap-1">
         <StatusBarItem>
           <span>{core.buffer.content().split("\n").length} Lines</span>
         </StatusBarItem>
@@ -161,36 +159,43 @@ function StatusBar(props: StatusBarProps) {
         </StatusBarItem>
       </div>
 
-      <div class="flex items-center gap-1 h-full">
-        <StatusBarButton tooltip="Select Engine" onClick={openEngineSelector}>
+      <div class="flex h-full items-center gap-1">
+        <StatusBarButton onClick={openEngineSelector} tooltip="Select Engine">
           <span>{core.engine.activeEngineId()}</span>
         </StatusBarButton>
 
         {core.engine.engineStatus() === "error" ? (
           <StatusBarButton
-            tooltip="Retry Initialization"
             aria-label="Retry engine initialization"
-            onClick={() => core.dispatcher.dispatch({ type: "RETRY_ENGINE_INIT" })}
+            onClick={() =>
+              core.dispatcher.dispatch({ type: "RETRY_ENGINE_INIT" })
+            }
+            tooltip="Retry Initialization"
           >
-            <Icon icon={RefreshCcw} size={12} class="text-red-500" />
+            <Icon class="text-red-500" icon={RefreshCcw} size={12} />
           </StatusBarButton>
         ) : (
-          <StatusBarButton tooltip="Engine Settings" aria-label="Engine settings">
+          <StatusBarButton
+            aria-label="Engine settings"
+            tooltip="Engine Settings"
+          >
             <Icon icon={Settings2} size={12} />
           </StatusBarButton>
         )}
 
         <StatusBarButton tooltip="System Status">
-          {core.engine.engineStatus() === "running" ? (
-            <Loader2 class="size-3 animate-spin text-blue-500" />
-          ) : core.engine.engineStatus() === "initializing" ? (
-            <Loader2 class="size-3 animate-spin text-orange-500" />
-          ) : core.engine.engineStatus() === "error" ? (
-            <span class="size-2 rounded-full bg-red-500" />
-          ) : (
-            <Play class="size-3 text-green-500" />
-          )}
-          <span class="capitalize ml-1">{core.engine.engineStatus()}</span>
+          <Switch fallback={<Play class="size-3 text-green-500" />}>
+            <Match when={core.engine.engineStatus() === "running"}>
+              <Loader2 class="size-3 animate-spin text-blue-500" />
+            </Match>
+            <Match when={core.engine.engineStatus() === "initializing"}>
+              <Loader2 class="size-3 animate-spin text-orange-500" />
+            </Match>
+            <Match when={core.engine.engineStatus() === "error"}>
+              <span class="size-2 rounded-full bg-red-500" />
+            </Match>
+          </Switch>
+          <span class="ml-1 capitalize">{core.engine.engineStatus()}</span>
         </StatusBarButton>
       </div>
     </footer>
@@ -202,7 +207,7 @@ StatusBar.Button = StatusBarButton;
 
 export {
   StatusBar,
-  type StatusBarProps,
-  type StatusBarItemProps,
   type StatusBarButtonProps,
+  type StatusBarItemProps,
+  type StatusBarProps,
 };

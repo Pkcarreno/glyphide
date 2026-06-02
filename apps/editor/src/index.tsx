@@ -1,22 +1,24 @@
 import { render } from "solid-js/web";
 import "./index.css";
 
-import App from "./App";
-import { EditorProvider } from "./core/context";
+import App from "./App.tsx";
+import { EditorProvider } from "./core/context.tsx";
 
 const root = document.getElementById("root");
 
 if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
   throw new Error(
-    "Root element not found. Did you forget to add it to your index.html? Or maybe the id attribute got misspelled?",
+    "Root element not found. Did you forget to add it to your index.html? Or maybe the id attribute got misspelled?"
   );
 }
 
-render(
-  () => (
-    <EditorProvider>
-      <App />
-    </EditorProvider>
-  ),
-  root!
-);
+if (root) {
+  render(
+    () => (
+      <EditorProvider>
+        <App />
+      </EditorProvider>
+    ),
+    root
+  );
+}

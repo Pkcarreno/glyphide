@@ -1,5 +1,5 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { createLocalStorageAdapter } from "./local-storage";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createLocalStorageAdapter } from "./local-storage.ts";
 
 describe("LocalStorageAdapter", () => {
   beforeEach(() => {
@@ -30,15 +30,21 @@ describe("LocalStorageAdapter", () => {
   });
 
   it("fails silently if localStorage throws", () => {
-    const setSpy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
-      throw new Error("Quota exceeded");
-    });
-    const getSpy = vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
-      throw new Error("Access denied");
-    });
-    const removeSpy = vi.spyOn(Storage.prototype, "removeItem").mockImplementation(() => {
-      throw new Error("Access denied");
-    });
+    const setSpy = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new Error("Quota exceeded");
+      });
+    const getSpy = vi
+      .spyOn(Storage.prototype, "getItem")
+      .mockImplementation(() => {
+        throw new Error("Access denied");
+      });
+    const removeSpy = vi
+      .spyOn(Storage.prototype, "removeItem")
+      .mockImplementation(() => {
+        throw new Error("Access denied");
+      });
 
     const adapter = createLocalStorageAdapter();
 

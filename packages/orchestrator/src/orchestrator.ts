@@ -12,8 +12,8 @@ import type {
   JsonRpcOkResponse,
   JsonRpcRequest,
 } from "@glyphide/rpc-protocol/types";
-import { MessageBus } from "./message-bus";
-import { PromiseRegistry } from "./promise-registry";
+import { MessageBus } from "./message-bus.ts";
+import { PromiseRegistry } from "./promise-registry.ts";
 
 /**
  * Result returned by the engine after a successful INIT handshake.

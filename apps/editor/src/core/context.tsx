@@ -1,18 +1,13 @@
-import {
-  createContext,
-  useContext,
-  onCleanup,
-  onMount,
-} from "solid-js";
 import type { JSX } from "solid-js";
-import type { EditorCore } from "./editor-core";
-import { createEditorCore } from "./editor-core";
-import { createLocalStorageAdapter } from "./adapters/local-storage";
-import { createBrowserUrlStateAdapter } from "./adapters/url-state";
-import { createLzStringCodecAdapter } from "./adapters/lz-string-codec";
-import { composeSizeLimitedUrlState } from "./decorators/url-state-limit";
-import { composeCompressedUrlState } from "./decorators/url-state-compression";
-import { parseKeyCombo } from "./shortcuts/registry";
+import { createContext, onCleanup, onMount, useContext } from "solid-js";
+import { createLocalStorageAdapter } from "./adapters/local-storage.ts";
+import { createLzStringCodecAdapter } from "./adapters/lz-string-codec.ts";
+import { createBrowserUrlStateAdapter } from "./adapters/url-state.ts";
+import { composeCompressedUrlState } from "./decorators/url-state-compression.ts";
+import { composeSizeLimitedUrlState } from "./decorators/url-state-limit.ts";
+import type { EditorCore } from "./editor-core.ts";
+import { createEditorCore } from "./editor-core.ts";
+import { parseKeyCombo } from "./shortcuts/registry.ts";
 
 const EditorContext = createContext<EditorCore>();
 
@@ -33,14 +28,14 @@ export function EditorProvider(props: { children: JSX.Element }) {
     8000,
     (isShareable) => {
       core?.project.setShareableState(isShareable);
-    },
+    }
   );
 
-  const finalUrlState = composeCompressedUrlState(
-    safeUrlState,
-    codecAdapter,
-    ["code", "name", "engine"],
-  );
+  const finalUrlState = composeCompressedUrlState(safeUrlState, codecAdapter, [
+    "code",
+    "name",
+    "engine",
+  ]);
 
   core = createEditorCore({
     persistence: createLocalStorageAdapter(),
@@ -82,9 +77,7 @@ export function EditorProvider(props: { children: JSX.Element }) {
 export function useEditor(): EditorCore {
   const context = useContext(EditorContext);
   if (!context) {
-    throw new Error(
-      "useEditor must be called within an <EditorProvider>.",
-    );
+    throw new Error("useEditor must be called within an <EditorProvider>.");
   }
   return context;
 }

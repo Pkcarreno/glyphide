@@ -16,13 +16,13 @@ import {
   type QuickJSHandle,
   type QuickJSRuntime,
 } from "quickjs-emscripten";
-import { consoleAstSource } from "./console-ast-builder";
+import { consoleAstSource } from "./console-ast-builder.ts";
 import {
   type ConsoleToken,
   defaultCapabilities,
   type QuickJSEngineConfig,
   type QuickJSOutputPayload,
-} from "./types";
+} from "./types.ts";
 
 type NotificationHandler = (method: string, params?: object) => void;
 type ResponseSender = (

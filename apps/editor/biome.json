@@ -1,4 +1,23 @@
 {
-	"root": false,
-	"extends": ["../../biome.json", "ultracite/biome/solid"]
+  "root": false,
+  "extends": [
+    "../../biome.json",
+    "ultracite/biome/core",
+    "ultracite/biome/type-aware",
+    "ultracite/biome/vitest",
+    "ultracite/biome/solid"
+  ],
+  "linter": {
+    "rules": {
+      "style": {
+        "useFilenamingConvention": {
+          "level": "error",
+          "options": {
+            "requireAscii": true,
+            "filenameCases": ["kebab-case", "PascalCase"]
+          }
+        }
+      }
+    }
+  }
 }

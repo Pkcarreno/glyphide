@@ -11,7 +11,8 @@
     "noEmit": true,
     "isolatedModules": true,
     "strict": true,
-    "lib": ["es2022", "DOM", "DOM.Iterable"]
+    "lib": ["es2022", "DOM", "DOM.Iterable"],
+    "allowImportingTsExtensions": true
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]

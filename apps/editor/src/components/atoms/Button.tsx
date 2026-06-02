@@ -1,12 +1,12 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type { JSX } from "solid-js";
 import { splitProps } from "solid-js";
-import { cn } from "../../helpers/cn";
+import { cn } from "../../helpers/cn.ts";
 
 const buttonVariants = cva(
   [
     "inline-flex items-center justify-center rounded-sm",
-    "font-sans text-ui-label font-medium",
+    "font-medium font-sans text-ui-label",
     "transition-colors duration-200",
     "cursor-pointer select-none",
     "disabled:pointer-events-none disabled:opacity-50",
@@ -16,7 +16,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary: [
-          "bg-surface-variant border border-outline-variant",
+          "border border-outline-variant bg-surface-variant",
           "text-on-surface",
           "hover:bg-outline-variant",
         ],
@@ -26,7 +26,7 @@ const buttonVariants = cva(
           "hover:bg-surface-variant hover:text-on-surface",
         ],
         outline: [
-          "bg-transparent border border-outline-variant",
+          "border border-outline-variant bg-transparent",
           "text-on-surface-variant",
           "hover:bg-surface-variant hover:text-on-surface",
         ],
@@ -42,7 +42,7 @@ const buttonVariants = cva(
       variant: "ghost",
       size: "md",
     },
-  },
+  }
 );
 
 type ButtonVariants = VariantProps<typeof buttonVariants>;
@@ -70,7 +70,7 @@ function Button(props: ButtonProps) {
     <button
       class={cn(
         buttonVariants({ variant: local.variant, size: local.size }),
-        local.class,
+        local.class
       )}
       {...rest}
     >
@@ -79,4 +79,4 @@ function Button(props: ButtonProps) {
   );
 }
 
-export { Button, buttonVariants, type ButtonProps };
+export { Button, type ButtonProps, buttonVariants };

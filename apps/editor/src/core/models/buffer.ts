@@ -1,6 +1,6 @@
-import { createSignal } from "solid-js";
 import type { Accessor } from "solid-js";
-import type { UrlStatePort } from "../ports/url-state";
+import { createSignal } from "solid-js";
+import type { UrlStatePort } from "../ports/url-state.ts";
 
 /**
  * Pure model for the single code buffer.
@@ -18,7 +18,7 @@ export interface BufferModel {
 /** Creates a new `BufferModel` synced with URL state. */
 export function createBufferModel(
   urlState: UrlStatePort,
-  initialContent = "",
+  initialContent = ""
 ): BufferModel {
   const startContent = urlState.get("code") ?? initialContent;
   const [content, setContentSignal] = createSignal(startContent);

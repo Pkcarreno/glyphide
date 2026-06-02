@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { createSettingsModel } from "./settings";
-import type { PersistencePort } from "../ports/persistence";
+import type { PersistencePort } from "../ports/persistence.ts";
+import { createSettingsModel } from "./settings.ts";
 
-function createMockPersistence(initialData: Record<string, string> = {}): PersistencePort {
+function createMockPersistence(
+  initialData: Record<string, string> = {}
+): PersistencePort {
   const data = new Map(Object.entries(initialData));
   return {
     get: (key) => data.get(key) ?? null,
@@ -39,7 +41,8 @@ describe("SettingsModel", () => {
     model.updateSettings({ theme: "light" });
 
     expect(model.settings.theme).toBe("light");
-    const saved = JSON.parse(persistence.get("settings")!);
+    const raw = persistence.get("settings");
+    const saved = JSON.parse(raw ?? "{}");
     expect(saved.theme).toBe("light");
   });
 });

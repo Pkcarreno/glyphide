@@ -1,6 +1,6 @@
 import { render } from "@solidjs/testing-library";
 import { describe, expect, it, vi } from "vitest";
-import { Button } from "./Button";
+import { Button } from "./Button.tsx";
 
 describe("Button", () => {
   it("when rendered with defaults, applies ghost variant classes", () => {
@@ -12,9 +12,7 @@ describe("Button", () => {
   });
 
   it("when rendered with primary variant, applies primary classes", () => {
-    const { getByRole } = render(() => (
-      <Button variant="primary">Run</Button>
-    ));
+    const { getByRole } = render(() => <Button variant="primary">Run</Button>);
     const btn = getByRole("button");
     expect(btn.className).toContain("bg-surface-variant");
     expect(btn.className).toContain("border");
@@ -29,25 +27,19 @@ describe("Button", () => {
   });
 
   it("when rendered with icon size, applies icon padding", () => {
-    const { getByRole } = render(() => (
-      <Button size="icon">X</Button>
-    ));
+    const { getByRole } = render(() => <Button size="icon">X</Button>);
     const btn = getByRole("button");
     expect(btn.className).toContain("px-1");
   });
 
   it("when rendered with sm size, applies small padding", () => {
-    const { getByRole } = render(() => (
-      <Button size="sm">S</Button>
-    ));
+    const { getByRole } = render(() => <Button size="sm">S</Button>);
     const btn = getByRole("button");
     expect(btn.className).toContain("px-1.5");
   });
 
   it("when custom class is provided, merges with defaults", () => {
-    const { getByRole } = render(() => (
-      <Button class="mt-4">Custom</Button>
-    ));
+    const { getByRole } = render(() => <Button class="mt-4">Custom</Button>);
     const btn = getByRole("button");
     expect(btn.className).toContain("mt-4");
     expect(btn.className).toContain("inline-flex");
@@ -55,7 +47,7 @@ describe("Button", () => {
 
   it("when custom class conflicts with variant, custom wins", () => {
     const { getByRole } = render(() => (
-      <Button variant="primary" class="bg-red-500">
+      <Button class="bg-red-500" variant="primary">
         Override
       </Button>
     ));
