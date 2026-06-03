@@ -1,9 +1,13 @@
-import Loader2 from "lucide-solid/icons/loader-2";
-import Play from "lucide-solid/icons/play";
 import RefreshCcw from "lucide-solid/icons/refresh-ccw";
 import Settings2 from "lucide-solid/icons/settings-2";
 import type { JSX } from "solid-js";
-import { Match, Show, Switch, splitProps } from "solid-js";
+import {
+  createEffect,
+  createSignal,
+  onCleanup,
+  Show,
+  splitProps,
+} from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { cn } from "../../helpers/cn.ts";
 import { Icon } from "../atoms/Icon.tsx";
@@ -123,6 +127,32 @@ function StatusBarButton(props: StatusBarButtonProps) {
   );
 }
 
+function TerminalStatusIndicator(props: { status: string }) {
+  const [frame, setFrame] = createSignal(0);
+  const brailleFrames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+
+  createEffect(() => {
+    if (props.status === "running" || props.status === "initializing") {
+      const timer = setInterval(
+        () => setFrame((f) => (f + 1) % brailleFrames.length),
+        80
+      );
+      onCleanup(() => clearInterval(timer));
+    }
+  });
+
+  return (
+    <div class="flex items-center gap-1.5">
+      <span>{props.status}</span>
+      <Show
+        when={props.status === "running" || props.status === "initializing"}
+      >
+        <span class="w-3 text-center">{brailleFrames[frame()]}</span>
+      </Show>
+    </div>
+  );
+}
+
 /**
  * Bottom status bar compound organism.
  * Shows system state on the left and layout controls on the right.
@@ -184,18 +214,7 @@ function StatusBar(props: StatusBarProps) {
         )}
 
         <StatusBarButton tooltip="System Status">
-          <Switch fallback={<Play class="size-3 text-green-500" />}>
-            <Match when={core.engine.engineStatus() === "running"}>
-              <Loader2 class="size-3 animate-spin text-blue-500" />
-            </Match>
-            <Match when={core.engine.engineStatus() === "initializing"}>
-              <Loader2 class="size-3 animate-spin text-orange-500" />
-            </Match>
-            <Match when={core.engine.engineStatus() === "error"}>
-              <span class="size-2 rounded-full bg-red-500" />
-            </Match>
-          </Switch>
-          <span class="ml-1 capitalize">{core.engine.engineStatus()}</span>
+          <TerminalStatusIndicator status={core.engine.engineStatus()} />
         </StatusBarButton>
       </div>
     </footer>
