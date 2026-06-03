@@ -30,6 +30,11 @@ vi.mock("./core/context", () => ({
     },
     dispatcher: { dispatch: vi.fn() },
     overlays: { isOpen: () => false },
+    notifications: {
+      unreadCount: () => 0,
+      items: () => [],
+      activeToasts: () => [],
+    },
   }),
 }));
 

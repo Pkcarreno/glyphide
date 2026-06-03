@@ -24,7 +24,15 @@ export type EditorAction =
   | { type: "OPEN_OVERLAY"; overlayId: OverlayId }
   | { type: "CLOSE_OVERLAY"; overlayId: OverlayId }
   | { type: "TOGGLE_OVERLAY"; overlayId: OverlayId }
-  | { type: "CLOSE_ALL_OVERLAYS" };
+  | { type: "CLOSE_ALL_OVERLAYS" }
+  | {
+      type: "DISPATCH_NOTIFICATION";
+      action?: { label: string; onClick: () => void };
+      title: string;
+      description?: string;
+      notificationType?: "info" | "success" | "warning" | "error";
+    }
+  | { type: "DISMISS_TOAST"; id: string };
 
 /** Uniquely identifies an overlay (modal, menu, etc). */
 export type OverlayId = string;

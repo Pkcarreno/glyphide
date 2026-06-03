@@ -24,6 +24,7 @@ describe("EditorCore", () => {
     expect(core.output).toBeDefined();
     expect(core.engine).toBeDefined();
     expect(core.engineRegistry).toBeDefined();
+    expect(core.notifications).toBeDefined();
     expect(core.dispatcher).toBeDefined();
     expect(core.shortcuts).toBeDefined();
   });
@@ -72,6 +73,21 @@ describe("EditorCore", () => {
     const toggleSpy = vi.spyOn(core.overlays, "toggle");
     core.dispatcher.dispatch({ type: "TOGGLE_OVERLAY", overlayId: "settings" });
     expect(toggleSpy).toHaveBeenCalledWith("settings");
+
+    const dispatchNotificationSpy = vi.spyOn(
+      core.notifications,
+      "dispatchNotification"
+    );
+    core.dispatcher.dispatch({
+      type: "DISPATCH_NOTIFICATION",
+      title: "Test",
+      notificationType: "success",
+    });
+    expect(dispatchNotificationSpy).toHaveBeenCalledWith({
+      title: "Test",
+      description: undefined,
+      type: "success",
+    });
   });
 
   it("cleans up resources on dispose", () => {
@@ -81,8 +97,10 @@ describe("EditorCore", () => {
     });
 
     const terminateSpy = vi.spyOn(core.engine, "terminate");
+    const disposeNotificationsSpy = vi.spyOn(core.notifications, "dispose");
     core.dispose();
 
     expect(terminateSpy).toHaveBeenCalled();
+    expect(disposeNotificationsSpy).toHaveBeenCalled();
   });
 });

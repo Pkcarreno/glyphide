@@ -20,6 +20,11 @@ vi.mock("../../core/context", () => ({
     overlays: {
       isOpen: (id: string) => id === "settings" && mockIsOpen(),
     },
+    notifications: {
+      unreadCount: () => 0,
+      items: () => [],
+      activeToasts: () => [],
+    },
   }),
 }));
 

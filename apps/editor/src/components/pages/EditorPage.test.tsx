@@ -37,6 +37,11 @@ vi.mock("../../core/context", () => ({
     },
     dispatcher: { dispatch: dispatchMock },
     overlays: { isOpen: (id: string) => id === "settings" && mockIsOpen() },
+    notifications: {
+      unreadCount: () => 0,
+      items: () => [],
+      activeToasts: () => [],
+    },
   }),
 }));
 

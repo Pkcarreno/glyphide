@@ -26,6 +26,11 @@ vi.mock("../../core/context.tsx", () => ({
       activeEngineId: () => mockEngineId,
       activeLanguage: () => "javascript",
     },
+    notifications: {
+      unreadCount: () => 0,
+      items: () => [],
+      activeToasts: () => [],
+    },
     dispatcher: { dispatch: dispatchMock },
   }),
 }));

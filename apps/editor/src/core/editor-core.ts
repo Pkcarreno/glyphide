@@ -6,6 +6,8 @@ import type { BufferModel } from "./models/buffer.ts";
 import { createBufferModel } from "./models/buffer.ts";
 import type { EngineModel } from "./models/engine.ts";
 import { createEngineModel } from "./models/engine.ts";
+import type { NotificationModel } from "./models/notifications.ts";
+import { createNotificationModel } from "./models/notifications.ts";
 import type { OutputModel } from "./models/output.ts";
 import { createOutputModel } from "./models/output.ts";
 import type { OverlayModel } from "./models/overlay.ts";
@@ -40,6 +42,7 @@ export interface EditorCore {
   dispose(): void;
   engine: EngineModel;
   engineRegistry: EngineRegistry;
+  notifications: NotificationModel;
   output: OutputModel;
   overlays: OverlayModel;
   project: ProjectModel;
@@ -59,6 +62,7 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
   const project = createProjectModel(deps.urlState);
   const output = createOutputModel();
   const overlays = createOverlayModel();
+  const notifications = createNotificationModel();
   const engineRegistry = createEngineRegistry();
   const engine = createEngineModel({
     buffer,
@@ -158,8 +162,26 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
     })
   );
 
+  unsubscribers.push(
+    dispatcher.on("DISPATCH_NOTIFICATION", (action) => {
+      notifications.dispatchNotification({
+        action: action.action,
+        title: action.title,
+        description: action.description,
+        type: action.notificationType,
+      });
+    })
+  );
+
+  unsubscribers.push(
+    dispatcher.on("DISMISS_TOAST", (action) => {
+      notifications.dismissToast(action.id);
+    })
+  );
+
   function dispose(): void {
     engine.terminate();
+    notifications.dispose();
     for (const unsubscribe of unsubscribers) {
       unsubscribe();
     }
@@ -179,6 +201,7 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
     output,
     engine,
     engineRegistry,
+    notifications,
     overlays,
     dispatcher,
     shortcuts,
