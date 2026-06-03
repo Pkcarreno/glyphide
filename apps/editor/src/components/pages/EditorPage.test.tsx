@@ -11,7 +11,15 @@ const [mockIsOpen, setMockIsOpen] = createSignal(false);
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    buffer: { content: () => "" },
+    buffer: {
+      content: () => "",
+      cursorPosition: () => ({
+        line: 1,
+        column: 1,
+        selectionLength: 0,
+        selectionLines: 0,
+      }),
+    },
     project: { name: () => "TEST_PROJECT" },
     engine: {
       engineStatus: () => mockStatus,

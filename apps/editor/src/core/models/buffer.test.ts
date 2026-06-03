@@ -45,4 +45,22 @@ describe("BufferModel", () => {
     expect(buffer.content()).toBe("new content");
     expect(mockState.get("code")).toBe("new content");
   });
+
+  it("initializes cursor position and updates it correctly", () => {
+    const mockState = createMockUrlState();
+    const buffer = createBufferModel(mockState);
+    expect(buffer.cursorPosition()).toEqual({
+      line: 1,
+      column: 1,
+      selectionLength: 0,
+      selectionLines: 0,
+    });
+    buffer.setCursorPosition(5, 10, 15, 2);
+    expect(buffer.cursorPosition()).toEqual({
+      line: 5,
+      column: 10,
+      selectionLength: 15,
+      selectionLines: 2,
+    });
+  });
 });

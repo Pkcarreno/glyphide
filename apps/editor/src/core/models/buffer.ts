@@ -11,8 +11,22 @@ import type { UrlStatePort } from "../ports/url-state.ts";
 export interface BufferModel {
   /** Reactive accessor for the current code content. */
   content: Accessor<string>;
+  /** Reactive accessor for the current cursor position. */
+  cursorPosition: Accessor<{
+    line: number;
+    column: number;
+    selectionLength: number;
+    selectionLines: number;
+  }>;
   /** Replaces the buffer content entirely. */
   setContent(code: string): void;
+  /** Updates the cursor position. */
+  setCursorPosition(
+    line: number,
+    column: number,
+    selectionLength: number,
+    selectionLines: number
+  ): void;
 }
 
 /** Creates a new `BufferModel` synced with URL state. */
@@ -22,11 +36,26 @@ export function createBufferModel(
 ): BufferModel {
   const startContent = urlState.get("code") ?? initialContent;
   const [content, setContentSignal] = createSignal(startContent);
+  const [cursorPosition, setCursorPositionSignal] = createSignal({
+    line: 1,
+    column: 1,
+    selectionLength: 0,
+    selectionLines: 0,
+  });
 
   function setContent(code: string): void {
     setContentSignal(code);
     urlState.set("code", code);
   }
 
-  return { content, setContent };
+  function setCursorPosition(
+    line: number,
+    column: number,
+    selectionLength: number,
+    selectionLines: number
+  ): void {
+    setCursorPositionSignal({ line, column, selectionLength, selectionLines });
+  }
+
+  return { content, cursorPosition, setContent, setCursorPosition };
 }

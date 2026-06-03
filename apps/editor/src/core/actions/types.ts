@@ -13,6 +13,13 @@ export type EditorAction =
   | { type: "UPDATE_ENGINE_CONFIG"; patch: Record<string, unknown> }
   | { type: "RETRY_ENGINE_INIT" }
   | { type: "UPDATE_BUFFER"; content: string }
+  | {
+      type: "UPDATE_CURSOR_POSITION";
+      line: number;
+      column: number;
+      selectionLength: number;
+      selectionLines: number;
+    }
   | { type: "RENAME_PROJECT"; name: string }
   | { type: "OPEN_OVERLAY"; overlayId: OverlayId }
   | { type: "CLOSE_OVERLAY"; overlayId: OverlayId }

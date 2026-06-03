@@ -8,6 +8,13 @@ export interface CodeFieldProps {
   isDark?: boolean;
   /** Programming language for syntax highlighting */
   language?: "javascript" | "python" | "plaintext" | string;
+  /** Callback fired when the cursor position changes */
+  onCursorChange?: (
+    line: number,
+    column: number,
+    selectionLength: number,
+    selectionLines: number
+  ) => void;
   /** Callback fired when the document changes */
   onValueChange?: (value: string) => void;
   /** Default or current value of the editor */
@@ -31,6 +38,22 @@ export function CodeField(props: CodeFieldProps) {
     const updateListener = EditorView.updateListener.of((update) => {
       if (update.docChanged && props.onValueChange) {
         props.onValueChange(update.state.doc.toString());
+      }
+      if ((update.docChanged || update.selectionSet) && props.onCursorChange) {
+        const main = update.state.selection.main;
+        const line = update.state.doc.lineAt(main.head);
+        const column = main.head - line.from + 1;
+        const selectionLength = Math.abs(main.to - main.from);
+        const selectionLines =
+          update.state.doc.lineAt(main.to).number -
+          update.state.doc.lineAt(main.from).number +
+          1;
+        props.onCursorChange(
+          line.number,
+          column,
+          selectionLength,
+          selectionLines
+        );
       }
     });
 

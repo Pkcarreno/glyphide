@@ -2,12 +2,14 @@ import { render } from "@solidjs/testing-library";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { EditorPane } from "./EditorPane.tsx";
 
+const dispatchMock = vi.fn();
+
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
     buffer: { content: () => "" },
     settings: { settings: { theme: "system", isWordWrapEnabled: false } },
     engine: { activeLanguage: () => "javascript" },
-    dispatcher: { dispatch: vi.fn() },
+    dispatcher: { dispatch: dispatchMock },
   }),
 }));
 

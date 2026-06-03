@@ -2,13 +2,25 @@ import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { StatusBar } from "./StatusBar.tsx";
 
-const dispatchMock = vi.fn();
+const { mockCursorPositionFn, dispatchMock } = vi.hoisted(() => ({
+  mockCursorPositionFn: vi.fn(() => ({
+    line: 1,
+    column: 5,
+    selectionLength: 0,
+    selectionLines: 0,
+  })),
+  dispatchMock: vi.fn(),
+}));
+
 let mockStatus = "idle";
 let mockEngineId = "quickjs";
 
-vi.mock("../../core/context", () => ({
+vi.mock("../../core/context.tsx", () => ({
   useEditor: () => ({
-    buffer: { content: () => "line1\nline2" },
+    buffer: {
+      content: () => "line1\nline2",
+      cursorPosition: mockCursorPositionFn,
+    },
     engine: {
       engineStatus: () => mockStatus,
       activeEngineId: () => mockEngineId,
@@ -22,6 +34,12 @@ afterEach(() => {
   cleanup();
   mockStatus = "idle";
   mockEngineId = "quickjs";
+  mockCursorPositionFn.mockReturnValue({
+    line: 1,
+    column: 5,
+    selectionLength: 0,
+    selectionLines: 0,
+  });
   dispatchMock.mockClear();
 });
 
@@ -42,7 +60,20 @@ describe("StatusBar", () => {
   it("when rendered, displays hardcoded environment info", () => {
     const { getByText } = render(() => <StatusBar />);
     expect(getByText(JS_REGEX)).toBeTruthy();
-    expect(getByText("2 Lines")).toBeTruthy();
+    expect(getByText("1:5", { exact: false })).toBeTruthy();
+  });
+
+  it("when there is a selection, displays the selection lines and length", () => {
+    mockCursorPositionFn.mockReturnValue({
+      line: 2,
+      column: 10,
+      selectionLength: 42,
+      selectionLines: 4,
+    });
+
+    const { getByText } = render(() => <StatusBar />);
+    expect(getByText("2:10", { exact: false })).toBeTruthy();
+    expect(getByText("(4l, 42c)", { exact: false })).toBeTruthy();
   });
 
   it("when custom class is provided, merges it", () => {

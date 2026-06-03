@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@solidjs/testing-library";
+import { createSignal } from "solid-js";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { CodeField } from "./CodeField.tsx";
 
@@ -43,6 +44,20 @@ describe("CodeField", () => {
     const onValueChange = vi.fn();
     render(() => <CodeField onValueChange={onValueChange} value="test" />);
     expect(screen.queryByText("test")).not.toBeNull();
+  });
+
+  it("fires onCursorChange when editor updates", async () => {
+    const onCursorChange = vi.fn();
+    const [val, setVal] = createSignal("test");
+    render(() => <CodeField onCursorChange={onCursorChange} value={val()} />);
+
+    setVal("new test");
+    await waitFor(() => {
+      expect(onCursorChange).toHaveBeenCalled();
+      const callArgs = onCursorChange.mock.calls[0];
+      // Expected to be called with at least line and column
+      expect(callArgs[0]).toBe(1);
+    });
   });
 
   it("applies syntax highlighting correctly", async () => {

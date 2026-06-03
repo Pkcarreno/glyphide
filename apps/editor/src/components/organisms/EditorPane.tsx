@@ -20,6 +20,21 @@ function EditorPane(props: EditorPaneProps) {
     core.dispatcher.dispatch({ type: "UPDATE_BUFFER", content: value });
   }
 
+  function handleCursorChange(
+    line: number,
+    column: number,
+    selectionLength: number,
+    selectionLines: number
+  ) {
+    core.dispatcher.dispatch({
+      type: "UPDATE_CURSOR_POSITION",
+      line,
+      column,
+      selectionLength,
+      selectionLines,
+    });
+  }
+
   const isDark = () => {
     const theme = core.settings.settings.theme;
     if (theme === "dark") {
@@ -39,6 +54,7 @@ function EditorPane(props: EditorPaneProps) {
       <CodeField
         isDark={isDark()}
         language={core.engine.activeLanguage()}
+        onCursorChange={handleCursorChange}
         onValueChange={handleValueChange}
         value={core.buffer.content()}
       />

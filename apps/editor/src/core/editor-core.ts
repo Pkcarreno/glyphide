@@ -118,6 +118,17 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
   );
 
   unsubscribers.push(
+    dispatcher.on("UPDATE_CURSOR_POSITION", (action) => {
+      buffer.setCursorPosition(
+        action.line,
+        action.column,
+        action.selectionLength,
+        action.selectionLines
+      );
+    })
+  );
+
+  unsubscribers.push(
     dispatcher.on("RENAME_PROJECT", (action) => {
       project.setName(action.name);
     })
