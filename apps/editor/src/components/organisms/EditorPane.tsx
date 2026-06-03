@@ -53,6 +53,7 @@ function EditorPane(props: EditorPaneProps) {
     >
       <CodeField
         isDark={isDark()}
+        isWordWrapEnabled={core.settings.settings.isWordWrapEnabled}
         language={core.engine.activeLanguage()}
         onCursorChange={handleCursorChange}
         onValueChange={handleValueChange}

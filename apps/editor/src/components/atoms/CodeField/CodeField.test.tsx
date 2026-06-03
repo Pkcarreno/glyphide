@@ -72,4 +72,22 @@ describe("CodeField", () => {
       expect(highlightSpans.length).toBeGreaterThan(0);
     });
   });
+
+  it("enables word wrap when isWordWrapEnabled is true", async () => {
+    const { container } = render(() => (
+      <CodeField isWordWrapEnabled={true} value="long text" />
+    ));
+    await waitFor(() => {
+      expect(container.querySelector(".cm-lineWrapping")).not.toBeNull();
+    });
+  });
+
+  it("disables word wrap when isWordWrapEnabled is false", async () => {
+    const { container } = render(() => (
+      <CodeField isWordWrapEnabled={false} value="long text" />
+    ));
+    await waitFor(() => {
+      expect(container.querySelector(".cm-lineWrapping")).toBeNull();
+    });
+  });
 });

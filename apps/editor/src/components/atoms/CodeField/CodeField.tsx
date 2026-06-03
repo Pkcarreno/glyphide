@@ -6,6 +6,8 @@ import { getEditorAppearance, glyphideSyntaxHighlight } from "./theme.ts";
 export interface CodeFieldProps {
   /** Whether the dark theme should be enforced in CodeMirror internals */
   isDark?: boolean;
+  /** Whether lines should wrap when they exceed the editor width */
+  isWordWrapEnabled?: boolean;
   /** Programming language for syntax highlighting */
   language?: "javascript" | "python" | "plaintext" | string;
   /** Callback fired when the cursor position changes */
@@ -33,6 +35,7 @@ export function CodeField(props: CodeFieldProps) {
 
   const languageCompartment = new Compartment();
   const appearanceCompartment = new Compartment();
+  const wordWrapCompartment = new Compartment();
 
   onMount(() => {
     const updateListener = EditorView.updateListener.of((update) => {
@@ -65,6 +68,9 @@ export function CodeField(props: CodeFieldProps) {
         glyphideSyntaxHighlight,
         appearanceCompartment.of(getEditorAppearance(!!props.isDark)),
         languageCompartment.of([]),
+        wordWrapCompartment.of(
+          props.isWordWrapEnabled ? EditorView.lineWrapping : []
+        ),
       ],
     });
 
@@ -76,6 +82,17 @@ export function CodeField(props: CodeFieldProps) {
     if (view) {
       view.dispatch({
         effects: appearanceCompartment.reconfigure(getEditorAppearance(isDark)),
+      });
+    }
+  });
+
+  createEffect(() => {
+    const isWrap = !!props.isWordWrapEnabled;
+    if (view) {
+      view.dispatch({
+        effects: wordWrapCompartment.reconfigure(
+          isWrap ? EditorView.lineWrapping : []
+        ),
       });
     }
   });
