@@ -1,7 +1,7 @@
 import type { JSX } from "solid-js";
 import { createContext, onCleanup, onMount, useContext } from "solid-js";
+import { createFflateCodecAdapter } from "./adapters/fflate-codec.ts";
 import { createLocalStorageAdapter } from "./adapters/local-storage.ts";
-import { createLzStringCodecAdapter } from "./adapters/lz-string-codec.ts";
 import { createBrowserUrlStateAdapter } from "./adapters/url-state.ts";
 import { composeCompressedUrlState } from "./decorators/url-state-compression.ts";
 import { composeSizeLimitedUrlState } from "./decorators/url-state-limit.ts";
@@ -21,7 +21,7 @@ export function EditorProvider(props: { children: JSX.Element }) {
   let core: EditorCore;
 
   const browserUrlAdapter = createBrowserUrlStateAdapter();
-  const codecAdapter = createLzStringCodecAdapter();
+  const codecAdapter = createFflateCodecAdapter();
 
   const safeUrlState = composeSizeLimitedUrlState(
     browserUrlAdapter,
