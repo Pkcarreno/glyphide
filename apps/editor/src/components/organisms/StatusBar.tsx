@@ -182,6 +182,16 @@ function StatusBar(props: StatusBarProps) {
     >
       <div class="flex h-full items-center gap-1">
         <StatusBarItem>
+          <span class="capitalize">{core.engine.activeLanguage()}</span>
+        </StatusBarItem>
+
+        <StatusBarItem class="lowercase">
+          <TerminalStatusIndicator status={core.engine.engineStatus()} />
+        </StatusBarItem>
+      </div>
+
+      <div class="flex h-full items-center gap-1">
+        <StatusBarItem>
           <span>
             {core.buffer.cursorPosition().line}:
             {core.buffer.cursorPosition().column}
@@ -192,12 +202,7 @@ function StatusBar(props: StatusBarProps) {
             </Show>
           </span>
         </StatusBarItem>
-        <StatusBarItem>
-          <span class="capitalize">{core.engine.activeLanguage()}</span>
-        </StatusBarItem>
-      </div>
 
-      <div class="flex h-full items-center gap-1">
         <StatusBarButton onClick={openEngineSelector} tooltip="Select Engine">
           <span>{core.engine.activeEngineId()}</span>
         </StatusBarButton>
@@ -220,10 +225,6 @@ function StatusBar(props: StatusBarProps) {
             <Icon icon={Settings2} size={12} />
           </StatusBarButton>
         )}
-
-        <StatusBarButton tooltip="System Status">
-          <TerminalStatusIndicator status={core.engine.engineStatus()} />
-        </StatusBarButton>
       </div>
     </footer>
   );
