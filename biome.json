@@ -22,8 +22,8 @@
       "!!**/_astro",
       "!!**/pnpm-lock.yaml",
       "!!**/.atl",
-      "!!**/apps/glyphide",
-      "!!**/packages/quickjs"
+      "!!**/legacy/glyphide",
+      "!!**/legacy/quickjs"
     ]
   }
 }
