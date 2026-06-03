@@ -71,7 +71,6 @@ Always run these commands from the root directory using `pnpm`.
 - **Fix Format & Linting**: `pnpm lint:fix`
 - **Testing**: `pnpm test`
 - **Typecheck All**: `pnpm typecheck`
-- **Full Check**: `pnpm check` (format + lint:fix + typecheck + build)
 
 ### 2. Code Style Guidelines
 

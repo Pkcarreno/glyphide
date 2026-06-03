@@ -22,7 +22,6 @@
     "format:fix": {
       "cache": false
     },
-    "check": {},
     "typecheck": {
       "dependsOn": ["^build"],
       "outputs": ["node_modules/.cache/tsbuildinfo.json"]

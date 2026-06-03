@@ -5,8 +5,6 @@ pre-commit:
       stage_fixed: true
     - run: pnpm typecheck
       glob: "*.{js,jsx,ts,tsx,astro}"
-    - run: pnpm check
-      glob: "*.{js,jsx,ts,tsx,json,jsonc,css,astro}"
     - run: pnpm test
       glob: "*.{js,jsx,ts,tsx,json,jsonc,css,astro}"
 
