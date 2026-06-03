@@ -1,3 +1,9 @@
+allowBuilds:
+  '@swc/core': false
+  esbuild: true
+  lefthook: true
+  sharp: false
+
 onlyBuiltDependencies:
   - lefthook
 

@@ -21,7 +21,7 @@
     "knip": "turbo run root:knip",
     "clean": "node scripts/clean.js"
   },
-  "packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184",
+  "packageManager": "pnpm@11.5.1+sha512.93f7b57422ea7068257235b4c16eb60762eb68e1dc23723199cc739043ea9be2c4143274a399d8c6defa2b1176226d9ca1c4b63482d6200c1a8fbaa78c1d1485",
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
     "@commitlint/cli": "^20.5.0",
@@ -38,10 +38,5 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pkcarreno/glyphide.git"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "lefthook"
-    ]
   }
 }
