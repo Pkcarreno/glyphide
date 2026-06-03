@@ -35,12 +35,13 @@ describe("Header", () => {
     });
   });
 
-  it("when share button clicked, shows alert", () => {
+  it("when share button clicked, dispatches OPEN_OVERLAY action for share", () => {
     const { getByRole } = render(() => <Header />);
     getByRole("button", { name: "Share workspace" }).click();
-    expect(console.info).toHaveBeenCalledWith(
-      "Share functionality coming soon!"
-    );
+    expect(dispatchMock).toHaveBeenCalledWith({
+      type: "OPEN_OVERLAY",
+      overlayId: "share",
+    });
   });
 
   it("when run button clicked, dispatches RUN_CODE action", () => {

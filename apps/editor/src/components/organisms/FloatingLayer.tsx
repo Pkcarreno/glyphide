@@ -1,6 +1,7 @@
 import { EngineSelectorCommand } from "./EngineSelectorCommand.tsx";
 import { ProjectRenameModal } from "./ProjectRenameModal.tsx";
 import { SettingsModal } from "./SettingsModal.tsx";
+import { ShareModal } from "./ShareModal.tsx";
 
 /**
  * Orchestrates all application-level floating elements.
@@ -12,6 +13,7 @@ export function FloatingLayer() {
       <SettingsModal />
       <EngineSelectorCommand />
       <ProjectRenameModal />
+      <ShareModal />
     </>
   );
 }

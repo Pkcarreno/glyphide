@@ -40,7 +40,7 @@ function Header(props: HeaderProps) {
   }
 
   function handleShareClick() {
-    console.info("Share functionality coming soon!");
+    core.dispatcher.dispatch({ type: "OPEN_OVERLAY", overlayId: "share" });
   }
 
   return (
