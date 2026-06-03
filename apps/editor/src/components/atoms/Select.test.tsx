@@ -57,4 +57,16 @@ describe("Select", () => {
     expect(select.disabled).toBe(true);
     expect(select.className).toContain("disabled:opacity-50");
   });
+
+  it("reflects the selected value", () => {
+    const { getByRole } = render(() => (
+      <Select value="dark">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </Select>
+    ));
+
+    const select = getByRole("combobox") as HTMLSelectElement;
+    expect(select.value).toBe("dark");
+  });
 });

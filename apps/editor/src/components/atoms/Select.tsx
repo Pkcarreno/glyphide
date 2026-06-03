@@ -19,7 +19,7 @@ export interface SelectProps
  * whilst overriding the default appearance to match the application's aesthetic.
  */
 export function Select(props: SelectProps) {
-  const [local, rest] = splitProps(props, ["class", "children"]);
+  const [local, rest] = splitProps(props, ["class", "children", "value"]);
 
   return (
     <div class="relative w-full">
@@ -32,6 +32,8 @@ export function Select(props: SelectProps) {
           "cursor-pointer transition-colors hover:bg-surface-variant/80",
           local.class
         )}
+        // @ts-expect-error: SolidJS requires prop:value for select elements to bind correctly before children render, but TS doesn't type namespaces natively.
+        prop:value={local.value}
         {...rest}
       >
         {local.children}
