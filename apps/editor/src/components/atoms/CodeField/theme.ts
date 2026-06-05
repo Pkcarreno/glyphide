@@ -32,9 +32,11 @@ const editorBaseStyles = {
     height: "100%",
     caretColor: themeTokens.accent,
   },
-  ".cm-editor, .cm-content": { height: "100%" },
-  ".cm-content": {
+  ".cm-scroller": {
+    overflow: "auto",
     fontFamily: "var(--font-mono)",
+  },
+  ".cm-content": {
     caretColor: themeTokens.accent,
   },
   ".cm-panels": {
