@@ -99,6 +99,13 @@ Adhere to the `.editorconfig` configuration:
 - **Component-Driven Styling**: Visual structures must be defined directly in the components using Tailwind utilities, rather than creating external `.css` class names.
 - **Variant Authority**: The use of the `cn` (clsx + tailwind-merge) helper and `class-variance-authority` (CVA) is **mandatory** for managing UI component variants.
 
+#### Typography & Text Consistency
+
+- **Sans vs Mono**: Sans-serif typography is for UI (status bar, menus, tabs). Monospace typography is STRICTLY for code, buffers, terminal, and exact-alignment inputs. No creative exceptions.
+- **Size Scale**: Base UI text is `14px` (`0.875rem`). Small metadata/shortcuts are `12px` (`0.75rem`). Rarely go smaller.
+- **Hierarchy via Weight/Color**: Do not rely purely on size changes for hierarchy. Compensate small text (like 12px) with `SemiBold` weight or muted color tokens instead of making it smaller.
+- **Line Heights**: Use tight but consistent line-heights to perfectly center text within fixed-height containers and avoid vertical bleeding.
+
 #### TypeScript & Types
 
 - **Strict Mode**: `strict: true` is enabled. Avoid `any` unless absolutely necessary.

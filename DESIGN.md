@@ -57,29 +57,29 @@ colors:
   border-low-contrast: rgba(255, 255, 255, 0.1)
 typography:
   code-desktop:
-    fontFamily: IBM Plex Mono
-    fontSize: 12px
+    fontFamily: Monospace
+    fontSize: 14px
     fontWeight: '400'
     lineHeight: '1.5'
   code-mobile:
-    fontFamily: IBM Plex Mono
+    fontFamily: Monospace
     fontSize: 14px
     fontWeight: '400'
     lineHeight: '1.5'
   ui-label-desktop:
-    fontFamily: IBM Plex Sans
-    fontSize: 11px
+    fontFamily: Sans-serif
+    fontSize: 14px
     fontWeight: '500'
     lineHeight: '1'
   status-bar:
-    fontFamily: IBM Plex Sans
-    fontSize: 10px
+    fontFamily: Sans-serif
+    fontSize: 12px
     fontWeight: '400'
     lineHeight: '1'
   section-header:
-    fontFamily: IBM Plex Sans
-    fontSize: 9px
-    fontWeight: '700'
+    fontFamily: Sans-serif
+    fontSize: 12px
+    fontWeight: '600'
     lineHeight: '1'
     letterSpacing: 0.1em
 rounded:
@@ -115,12 +115,12 @@ The palette is rooted in a deep, high-contrast dark mode.
 
 ## Typography
 
-This system uses **IBM Plex Sans** for UI and **IBM Plex Mono** for code to maintain a consistent technical feel. 
+The division is strict and binary: **Sans-serif** typography is used for all UI structure, and **Monospace** typography is strictly for code and inputs. 
 
-The typography system is optimized for **High Density**. Vertical space is aggressively conserved through tight line heights. 
-- **Code levels** are the most prominent, using a 12px/1.5 ratio for optimal readability during long sessions.
-- **UI Labels** are slightly smaller and bolder to distinguish interface controls from content.
-- **Metadata** (Status bar, timestamps) is reduced to 10px or 9px, often with increased letter-spacing for uppercase variants to maintain legibility at micro-scales.
+The typography system is optimized for **High Density** legibility. Vertical space is aggressively conserved through tight line heights. 
+- **Size Scale**: Base UI text is 14px (0.875rem), while metadata (status bar, timestamps, shortcuts) descends to 12px (0.75rem) at minimum.
+- **Visual Hierarchy**: Do not rely purely on size changes for hierarchy. Compensate small text (like 12px) with `SemiBold` weight or muted colors to maintain prominence without shrinking.
+- **Line Heights**: Uses tight but consistent line-heights to perfectly center text within fixed-height containers and avoid vertical bleeding.
 
 ## Layout & Spacing
 
