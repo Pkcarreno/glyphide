@@ -48,4 +48,21 @@ describe("SettingsModel", () => {
     const saved = JSON.parse(raw ?? "{}");
     expect(saved.theme).toBe("light");
   });
+
+  it("resets a specific setting to its default value", () => {
+    const persistence = createMockPersistence();
+    const model = createSettingsModel(persistence);
+
+    model.updateSettings({ theme: "dark", uiFontSize: 20 });
+    expect(model.settings.theme).toBe("dark");
+    expect(model.settings.uiFontSize).toBe(20);
+
+    model.resetSetting("theme");
+    expect(model.settings.theme).toBe("system");
+    expect(model.settings.uiFontSize).toBe(20);
+
+    const raw = persistence.get("settings");
+    const saved = JSON.parse(raw ?? "{}");
+    expect(saved.theme).toBe("system");
+  });
 });

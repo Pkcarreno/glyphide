@@ -4,20 +4,28 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { SettingsModal } from "./SettingsModal.tsx";
 
 const updateSettingsMock = vi.fn();
+const resetSettingMock = vi.fn();
 const dispatchMock = vi.fn();
 
 const [mockIsOpen, setMockIsOpen] = createSignal(false);
+const [mockSettings, setMockSettings] = createSignal({
+  theme: "system",
+  isWordWrapEnabled: false,
+  isAutoRunEnabled: false,
+  isClearOnRunEnabled: true,
+  uiFontSize: 14,
+  bufferFontSize: 15,
+  bufferLineHeight: 1.3,
+});
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
     settings: {
-      settings: {
-        theme: "system",
-        isWordWrapEnabled: false,
-        isAutoRunEnabled: false,
-        isClearOnRunEnabled: true,
+      get settings() {
+        return mockSettings();
       },
       updateSettings: updateSettingsMock,
+      resetSetting: resetSettingMock,
     },
     dispatcher: { dispatch: dispatchMock },
     overlays: {
@@ -90,5 +98,21 @@ describe("SettingsModal", () => {
     expect(queryByRole("dialog")).toBeNull();
     setMockIsOpen(true);
     expect(queryByRole("dialog")).not.toBeNull();
+  });
+
+  it("when setting is modified, displays reset button and calls resetSetting on click", () => {
+    setMockSettings((prev) => ({ ...prev, theme: "dark" as const }));
+    setMockIsOpen(true);
+    resetSettingMock.mockClear();
+
+    const { getByRole } = render(() => <SettingsModal />);
+
+    const resetButton = getByRole("button", {
+      name: "Reset Theme Preference to default",
+    });
+    expect(resetButton).toBeTruthy();
+
+    resetButton.click();
+    expect(resetSettingMock).toHaveBeenCalledWith("theme");
   });
 });

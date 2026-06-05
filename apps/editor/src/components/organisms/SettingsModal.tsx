@@ -1,7 +1,9 @@
+import Undo from "lucide-solid/icons/undo-2";
 import X from "lucide-solid/icons/x";
 import type { JSX } from "solid-js";
 import { createSignal, createUniqueId, For, Show, splitProps } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
+import { DEFAULT_SETTINGS } from "../../core/models/settings.ts";
 import { cn } from "../../helpers/cn.ts";
 import {
   Dialog,
@@ -20,7 +22,9 @@ interface SettingsItemProps {
   class?: string;
   description?: string;
   forId?: string;
+  isModified?: boolean;
   label: string;
+  onReset?: () => void;
 }
 
 function SettingsItem(props: SettingsItemProps) {
@@ -32,12 +36,25 @@ function SettingsItem(props: SettingsItemProps) {
       )}
     >
       <div class="flex flex-col gap-1.5 pr-4">
-        <label
-          class="cursor-pointer font-medium text-on-surface text-sm"
-          for={props.forId}
-        >
-          {props.label}
-        </label>
+        <div class="flex items-center gap-2">
+          <label
+            class="cursor-pointer font-medium text-on-surface text-sm"
+            for={props.forId}
+          >
+            {props.label}
+          </label>
+          <Show when={props.isModified}>
+            <button
+              aria-label={`Reset ${props.label} to default`}
+              class="flex h-5 w-5 items-center justify-center rounded-md text-on-surface-variant/50 transition-colors hover:bg-surface-variant hover:text-on-surface"
+              onClick={props.onReset}
+              title="Reset to default"
+              type="button"
+            >
+              <Icon icon={Undo} size={12} />
+            </button>
+          </Show>
+        </div>
         <Show when={props.description}>
           <span class="text-on-surface-variant text-sm leading-relaxed">
             {props.description}
@@ -54,6 +71,8 @@ function SettingsSwitchItem(props: {
   description?: string;
   checked: boolean;
   onCheckedChange: (c: boolean) => void;
+  isModified?: boolean;
+  onReset?: () => void;
   class?: string;
 }) {
   const id = createUniqueId();
@@ -62,7 +81,9 @@ function SettingsSwitchItem(props: {
       class={props.class}
       description={props.description}
       forId={id}
+      isModified={props.isModified}
       label={props.label}
+      onReset={props.onReset}
     >
       <Switch
         aria-label={props.label}
@@ -82,6 +103,8 @@ function SettingsNumberItem(props: {
   min?: number;
   max?: number;
   onValueChange: (v: number) => void;
+  isModified?: boolean;
+  onReset?: () => void;
   class?: string;
 }) {
   const id = createUniqueId();
@@ -116,7 +139,9 @@ function SettingsNumberItem(props: {
       class={props.class}
       description={props.description}
       forId={id}
+      isModified={props.isModified}
       label={props.label}
+      onReset={props.onReset}
     >
       <div class="flex items-center overflow-hidden rounded-lg border border-outline-variant bg-surface-variant">
         <button
@@ -238,7 +263,11 @@ function SettingsModal(props: SettingsModalProps) {
                     <SettingsItem
                       description="Select the color theme for the editor interface."
                       forId="theme-select"
+                      isModified={
+                        core.settings.settings.theme !== DEFAULT_SETTINGS.theme
+                      }
                       label="Theme Preference"
+                      onReset={() => core.settings.resetSetting("theme")}
                     >
                       <div class="w-40">
                         <Select
@@ -262,9 +291,14 @@ function SettingsModal(props: SettingsModalProps) {
 
                     <SettingsNumberItem
                       description="Base font size for the editor interface (px)."
+                      isModified={
+                        core.settings.settings.uiFontSize !==
+                        DEFAULT_SETTINGS.uiFontSize
+                      }
                       label="Interface Font Size"
                       max={24}
                       min={10}
+                      onReset={() => core.settings.resetSetting("uiFontSize")}
                       onValueChange={(val) =>
                         core.settings.updateSettings({ uiFontSize: val })
                       }
@@ -275,11 +309,18 @@ function SettingsModal(props: SettingsModalProps) {
                     <SettingsSwitchItem
                       checked={core.settings.settings.isWordWrapEnabled}
                       description="Wrap long lines to fit the editor width."
+                      isModified={
+                        core.settings.settings.isWordWrapEnabled !==
+                        DEFAULT_SETTINGS.isWordWrapEnabled
+                      }
                       label="Word Wrap"
                       onCheckedChange={(checked) =>
                         core.settings.updateSettings({
                           isWordWrapEnabled: checked,
                         })
+                      }
+                      onReset={() =>
+                        core.settings.resetSetting("isWordWrapEnabled")
                       }
                     />
                   </div>
@@ -293,9 +334,16 @@ function SettingsModal(props: SettingsModalProps) {
                   <div class="flex flex-col divide-y divide-outline-variant/50 border-outline-variant/50 border-y">
                     <SettingsNumberItem
                       description="Base font size for the code editor (px)."
+                      isModified={
+                        core.settings.settings.bufferFontSize !==
+                        DEFAULT_SETTINGS.bufferFontSize
+                      }
                       label="Buffer Font Size"
                       max={32}
                       min={8}
+                      onReset={() =>
+                        core.settings.resetSetting("bufferFontSize")
+                      }
                       onValueChange={(val) =>
                         core.settings.updateSettings({ bufferFontSize: val })
                       }
@@ -304,9 +352,16 @@ function SettingsModal(props: SettingsModalProps) {
                     />
                     <SettingsNumberItem
                       description="Line height multiplier for the code editor."
+                      isModified={
+                        core.settings.settings.bufferLineHeight !==
+                        DEFAULT_SETTINGS.bufferLineHeight
+                      }
                       label="Buffer Line Height"
                       max={2.5}
                       min={1}
+                      onReset={() =>
+                        core.settings.resetSetting("bufferLineHeight")
+                      }
                       onValueChange={(val) =>
                         core.settings.updateSettings({ bufferLineHeight: val })
                       }
@@ -325,21 +380,35 @@ function SettingsModal(props: SettingsModalProps) {
                     <SettingsSwitchItem
                       checked={core.settings.settings.isAutoRunEnabled}
                       description="Execute code automatically after a short delay."
+                      isModified={
+                        core.settings.settings.isAutoRunEnabled !==
+                        DEFAULT_SETTINGS.isAutoRunEnabled
+                      }
                       label="Auto-run on type"
                       onCheckedChange={(checked) =>
                         core.settings.updateSettings({
                           isAutoRunEnabled: checked,
                         })
                       }
+                      onReset={() =>
+                        core.settings.resetSetting("isAutoRunEnabled")
+                      }
                     />
                     <SettingsSwitchItem
                       checked={core.settings.settings.isClearOnRunEnabled}
                       description="Wipe previous output before executing."
+                      isModified={
+                        core.settings.settings.isClearOnRunEnabled !==
+                        DEFAULT_SETTINGS.isClearOnRunEnabled
+                      }
                       label="Clear console on run"
                       onCheckedChange={(checked) =>
                         core.settings.updateSettings({
                           isClearOnRunEnabled: checked,
                         })
+                      }
+                      onReset={() =>
+                        core.settings.resetSetting("isClearOnRunEnabled")
                       }
                     />
                   </div>

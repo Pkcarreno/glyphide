@@ -21,7 +21,7 @@ export interface EditorSettings {
 }
 
 /** Safe defaults when no persisted settings exist. */
-const DEFAULT_SETTINGS: EditorSettings = {
+export const DEFAULT_SETTINGS: EditorSettings = {
   theme: "system",
   isWordWrapEnabled: false,
   isAutoRunEnabled: false,
@@ -37,6 +37,8 @@ const DEFAULT_SETTINGS: EditorSettings = {
  * writes back on every update. Views pull from this reactively.
  */
 export interface SettingsModel {
+  /** Resets a specific setting to its default value. */
+  resetSetting<K extends keyof EditorSettings>(key: K): void;
   /** Reactive store — read any property reactively. */
   settings: EditorSettings;
   /** Applies a partial patch and persists the result. */
@@ -55,7 +57,11 @@ export function createSettingsModel(
     persistSettings(persistence, { ...settings, ...patch });
   }
 
-  return { settings, updateSettings };
+  function resetSetting<K extends keyof EditorSettings>(key: K): void {
+    updateSettings({ [key]: DEFAULT_SETTINGS[key] } as Partial<EditorSettings>);
+  }
+
+  return { settings, updateSettings, resetSetting };
 }
 
 function loadSettings(persistence: PersistencePort): EditorSettings {
