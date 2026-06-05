@@ -77,11 +77,11 @@ export function Toast(props: ToastProps) {
             </Show>
 
             <div class="ml-3 flex w-0 flex-1 flex-col gap-1.5">
-              <p class="font-mono font-semibold text-on-surface text-xs">
+              <p class="font-sans font-semibold text-on-surface text-xs">
                 {props.notification.title}
               </p>
               <Show when={props.notification.description}>
-                <p class="wrap-break-word whitespace-pre-wrap font-mono text-[11px] text-on-surface-variant leading-relaxed">
+                <p class="wrap-break-word whitespace-pre-wrap font-sans text-on-surface-variant text-xs leading-snug">
                   {props.notification.description}
                 </p>
               </Show>

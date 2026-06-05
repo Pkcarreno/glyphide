@@ -67,7 +67,9 @@ export function ShareModal(props: ShareModalProps) {
         {...rest}
       >
         <DialogHeader class="border-outline-variant border-b bg-surface px-5 py-4">
-          <h2 class="font-semibold text-lg text-on-surface">Share Project</h2>
+          <h2 class="font-semibold text-on-surface text-sm tracking-wide">
+            Share Project
+          </h2>
           <DialogClose
             aria-label="Close share dialog"
             class="rounded-lg p-1.5 text-on-surface-variant transition-colors hover:bg-surface-variant hover:text-on-surface"

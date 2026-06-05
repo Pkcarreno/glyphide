@@ -6,7 +6,7 @@ import { cn } from "../../helpers/cn.ts";
 const buttonVariants = cva(
   [
     "inline-flex items-center justify-center rounded-sm",
-    "font-medium font-sans text-ui-label",
+    "font-medium font-sans",
     "transition-colors duration-200",
     "cursor-pointer select-none",
     "disabled:pointer-events-none disabled:opacity-50",
@@ -32,10 +32,10 @@ const buttonVariants = cva(
         ],
       },
       size: {
-        sm: "gap-1 px-1.5",
-        md: "gap-1 px-2",
-        lg: "gap-1.5 px-3",
-        icon: "px-1",
+        sm: "gap-1 px-1.5 text-xs",
+        md: "gap-1 px-2 text-xs",
+        lg: "gap-1.5 px-3 py-2 text-sm",
+        icon: "px-1 text-xs",
       },
     },
     defaultVariants: {

@@ -62,7 +62,7 @@ function Header(props: HeaderProps) {
         />
         <Button
           aria-label="Rename Project"
-          class="font-mono text-on-surface uppercase tracking-widest"
+          class="font-sans font-semibold text-on-surface uppercase tracking-widest"
           onClick={() =>
             core.dispatcher.dispatch({
               type: "OPEN_OVERLAY",

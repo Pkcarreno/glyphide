@@ -163,11 +163,15 @@
   --text-code--line-height: var(--buffer-line-height);
   --text-code--font-weight: 400;
 
+  /* text-ui-label and text-section-header intentionally drop below the 12px
+     legibility floor defined in the typography rules. Readability is recovered
+     via font-weight, letter-spacing, and uppercase treatment. These tokens are
+     reserved for ambient zone labels only — never for body or interactive text. */
   --text-ui-label: calc(11px * var(--ui-scale));
   --text-ui-label--line-height: 1;
   --text-ui-label--font-weight: 500;
 
-  --text-status-bar: calc(10px * var(--ui-scale));
+  --text-status-bar: calc(12px * var(--ui-scale));
   --text-status-bar--line-height: 1;
   --text-status-bar--font-weight: 500;
   --text-status-bar--letter-spacing: 0.05em;
@@ -179,6 +183,7 @@
 
   --text-xs: calc(0.75rem * var(--ui-scale));
   --text-sm: calc(0.875rem * var(--ui-scale));
+  --text-base: calc(1rem * var(--ui-scale));
 
   /* Spacing */
   --spacing-header-height: 36px;

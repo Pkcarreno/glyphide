@@ -109,7 +109,7 @@ function StatusBarButton(props: StatusBarButtonProps) {
                   {local.tooltip}
                 </span>
                 <Show when={local.tooltipShortcut}>
-                  <span class="mt-0.5 whitespace-nowrap font-mono text-on-surface-variant text-section-header">
+                  <span class="mt-0.5 whitespace-nowrap font-medium font-sans text-on-surface-variant text-xs">
                     {local.tooltipShortcut}
                   </span>
                 </Show>
@@ -175,7 +175,7 @@ function StatusBar(props: StatusBarProps) {
       class={cn(
         "flex h-status-bar-height items-center justify-between",
         "border-outline-variant border-t bg-background px-padding-x",
-        "select-none font-mono text-on-surface-variant text-status-bar uppercase opacity-80",
+        "select-none font-sans text-on-surface-variant text-status-bar uppercase opacity-80",
         local.class
       )}
       {...rest}

@@ -35,7 +35,7 @@ function ConsolePane(props: ConsolePaneProps) {
       {...rest}
     >
       <div class="flex shrink-0 items-center justify-between border-outline-variant border-b px-4 py-1.5">
-        <h2 class="select-none font-mono text-on-surface-variant text-section-header uppercase tracking-widest">
+        <h2 class="select-none font-bold font-sans text-on-surface-variant text-section-header uppercase tracking-widest">
           Output
         </h2>
         <div class="flex items-center gap-1">

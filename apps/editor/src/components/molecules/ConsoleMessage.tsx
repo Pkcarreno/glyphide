@@ -3,22 +3,19 @@ import type { JSX } from "solid-js";
 import { splitProps } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
-const consoleMessageVariants = cva(
-  "border-l-2 px-2 py-1 font-mono text-code-mobile md:text-code-desktop",
-  {
-    variants: {
-      type: {
-        log: "border-transparent text-on-surface",
-        warn: "border-log-warn bg-log-warn/10 text-log-warn",
-        error: "border-error bg-error/10 text-error",
-        system: "border-transparent text-on-surface-variant italic",
-      },
+const consoleMessageVariants = cva("border-l-2 px-2 py-1 font-mono text-sm", {
+  variants: {
+    type: {
+      log: "border-transparent text-on-surface",
+      warn: "border-log-warn bg-log-warn/10 text-log-warn",
+      error: "border-error bg-error/10 text-error",
+      system: "border-transparent text-on-surface-variant italic",
     },
-    defaultVariants: {
-      type: "log",
-    },
-  }
-);
+  },
+  defaultVariants: {
+    type: "log",
+  },
+});
 
 type ConsoleMessageVariants = VariantProps<typeof consoleMessageVariants>;
 
