@@ -35,6 +35,8 @@ const editorBaseStyles = {
   ".cm-scroller": {
     overflow: "auto",
     fontFamily: "var(--font-mono)",
+    lineHeight: "var(--buffer-line-height)",
+    fontSize: "var(--text-code)",
   },
   ".cm-content": {
     caretColor: themeTokens.accent,

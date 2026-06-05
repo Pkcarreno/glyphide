@@ -33,6 +33,25 @@ function EditorPage() {
     }
   });
 
+  createEffect(() => {
+    const { uiFontSize, bufferFontSize, bufferLineHeight } =
+      core.settings.settings;
+    const uiScale = uiFontSize / 14;
+    const bufferScale = bufferFontSize / 15;
+    document.documentElement.style.setProperty(
+      "--ui-scale",
+      uiScale.toString()
+    );
+    document.documentElement.style.setProperty(
+      "--buffer-scale",
+      bufferScale.toString()
+    );
+    document.documentElement.style.setProperty(
+      "--buffer-line-height",
+      bufferLineHeight.toString()
+    );
+  });
+
   return (
     <>
       <WorkspaceLayout

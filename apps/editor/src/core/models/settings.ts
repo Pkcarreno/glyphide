@@ -11,10 +11,13 @@ export type ThemePreference = "light" | "dark" | "system";
  * Treated as an immutable snapshot per reactive update cycle.
  */
 export interface EditorSettings {
+  bufferFontSize: number;
+  bufferLineHeight: number;
   isAutoRunEnabled: boolean;
   isClearOnRunEnabled: boolean;
   isWordWrapEnabled: boolean;
   theme: ThemePreference;
+  uiFontSize: number;
 }
 
 /** Safe defaults when no persisted settings exist. */
@@ -23,6 +26,9 @@ const DEFAULT_SETTINGS: EditorSettings = {
   isWordWrapEnabled: false,
   isAutoRunEnabled: false,
   isClearOnRunEnabled: true,
+  uiFontSize: 14,
+  bufferFontSize: 15,
+  bufferLineHeight: 1.3,
 };
 
 /**

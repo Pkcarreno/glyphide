@@ -74,6 +74,82 @@ function SettingsSwitchItem(props: {
   );
 }
 
+function SettingsNumberItem(props: {
+  label: string;
+  description?: string;
+  value: number;
+  step?: number;
+  min?: number;
+  max?: number;
+  onValueChange: (v: number) => void;
+  class?: string;
+}) {
+  const id = createUniqueId();
+  const step = props.step ?? 1;
+
+  const handleDecrement = () => {
+    const next = Number((props.value - step).toFixed(2));
+    if (props.min !== undefined && next < props.min) {
+      return;
+    }
+    props.onValueChange(next);
+  };
+
+  const handleIncrement = () => {
+    const next = Number((props.value + step).toFixed(2));
+    if (props.max !== undefined && next > props.max) {
+      return;
+    }
+    props.onValueChange(next);
+  };
+
+  const handleChange = (e: Event) => {
+    const target = e.target as HTMLInputElement;
+    const val = Number.parseFloat(target.value);
+    if (!Number.isNaN(val)) {
+      props.onValueChange(val);
+    }
+  };
+
+  return (
+    <SettingsItem
+      class={props.class}
+      description={props.description}
+      forId={id}
+      label={props.label}
+    >
+      <div class="flex items-center overflow-hidden rounded-lg border border-outline-variant bg-surface-variant">
+        <button
+          aria-label="Decrease"
+          class="flex h-8 w-8 items-center justify-center text-on-surface-variant transition-colors hover:bg-surface hover:text-on-surface"
+          onClick={handleDecrement}
+          type="button"
+        >
+          -
+        </button>
+        <input
+          class="h-8 w-16 bg-transparent text-center text-on-surface text-sm outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          id={id}
+          max={props.max}
+          min={props.min}
+          onChange={handleChange}
+          step={step}
+          type="number"
+          value={props.value}
+        />
+        <button
+          aria-label="Increase"
+          class="flex h-8 w-8 items-center justify-center text-on-surface-variant transition-colors hover:bg-surface hover:text-on-surface"
+          onClick={handleIncrement}
+          type="button"
+        >
+          +
+        </button>
+      </div>
+    </SettingsItem>
+  );
+}
+
 /* ---------- Main Component ---------- */
 
 interface SettingsModalProps {
@@ -184,6 +260,18 @@ function SettingsModal(props: SettingsModalProps) {
                       </div>
                     </SettingsItem>
 
+                    <SettingsNumberItem
+                      description="Base font size for the editor interface (px)."
+                      label="Interface Font Size"
+                      max={24}
+                      min={10}
+                      onValueChange={(val) =>
+                        core.settings.updateSettings({ uiFontSize: val })
+                      }
+                      step={1}
+                      value={core.settings.settings.uiFontSize}
+                    />
+
                     <SettingsSwitchItem
                       checked={core.settings.settings.isWordWrapEnabled}
                       description="Wrap long lines to fit the editor width."
@@ -202,8 +290,29 @@ function SettingsModal(props: SettingsModalProps) {
             <Show when={activeTab() === "Editor"}>
               <div class="fade-in flex max-w-xl animate-in flex-col gap-8 duration-300">
                 <section>
-                  <div class="rounded-lg border border-outline-variant bg-surface-variant/50 p-4 text-on-surface-variant text-sm">
-                    Editor settings coming soon...
+                  <div class="flex flex-col divide-y divide-outline-variant/50 border-outline-variant/50 border-y">
+                    <SettingsNumberItem
+                      description="Base font size for the code editor (px)."
+                      label="Buffer Font Size"
+                      max={32}
+                      min={8}
+                      onValueChange={(val) =>
+                        core.settings.updateSettings({ bufferFontSize: val })
+                      }
+                      step={1}
+                      value={core.settings.settings.bufferFontSize}
+                    />
+                    <SettingsNumberItem
+                      description="Line height multiplier for the code editor."
+                      label="Buffer Line Height"
+                      max={2.5}
+                      min={1}
+                      onValueChange={(val) =>
+                        core.settings.updateSettings({ bufferLineHeight: val })
+                      }
+                      step={0.1}
+                      value={core.settings.settings.bufferLineHeight}
+                    />
                   </div>
                 </section>
               </div>
