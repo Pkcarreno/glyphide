@@ -1,6 +1,7 @@
 {
   "name": "@glyphide/mock-engine",
   "version": "0.1.0",
+  "private": true,
   "description": "Mock engine for testing RPC protocol and orchestrator behavior",
   "type": "module",
   "exports": {
