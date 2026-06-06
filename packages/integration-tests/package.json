@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Integration tests for the Glyphide Execution System.",
   "scripts": {
+    "clean": "rm -rf .turbo node_modules dist",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"

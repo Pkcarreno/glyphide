@@ -25,6 +25,7 @@
   ],
   "scripts": {
     "build": "tsdown",
+    "clean": "rm -rf .turbo node_modules dist",
     "dev": "tsdown --watch",
     "test": "vitest run",
     "test:watch": "vitest",

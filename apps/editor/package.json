@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "clean": "rm -rf .turbo node_modules dist",
     "build": "vite build",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",

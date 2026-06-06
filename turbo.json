@@ -25,6 +25,9 @@
     "typecheck": {
       "dependsOn": ["^build"],
       "outputs": ["node_modules/.cache/tsbuildinfo.json"]
+    },
+    "clean": {
+      "cache": false
     }
   }
 }
