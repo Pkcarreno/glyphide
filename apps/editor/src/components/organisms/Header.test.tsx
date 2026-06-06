@@ -7,7 +7,7 @@ vi.stubGlobal("console", { info: vi.fn() });
 const dispatchMock = vi.fn();
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    project: { name: () => "TEST_PROJECT" },
+    project: { name: () => "TEST_PROJECT", displayName: () => "TEST_PROJECT" },
     engine: { engineStatus: () => "idle" },
     dispatcher: { dispatch: dispatchMock },
   }),

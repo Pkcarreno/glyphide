@@ -10,6 +10,8 @@ const DEFAULT_PROJECT_NAME = "untitled_project";
  * Reads the initial name from URL state and syncs changes back.
  */
 export interface ProjectModel {
+  /** Reactive accessor that returns a human-readable name, defaulting to 'Untitled'. */
+  displayName: Accessor<string>;
   /** Indicates whether the project state is small enough to be shared via URL. */
   isUrlShareable: Accessor<boolean>;
   /** Reactive accessor for the project name. */
@@ -26,6 +28,9 @@ export function createProjectModel(urlState: UrlStatePort): ProjectModel {
   const [name, setNameSignal] = createSignal(initialName);
   const [isUrlShareable, setIsUrlShareableSignal] = createSignal(true);
 
+  const displayName = () =>
+    name() === DEFAULT_PROJECT_NAME ? "Untitled" : name();
+
   function setName(newName: string): void {
     const sanitized = newName.trim() || DEFAULT_PROJECT_NAME;
     setNameSignal(sanitized);
@@ -36,5 +41,5 @@ export function createProjectModel(urlState: UrlStatePort): ProjectModel {
     setIsUrlShareableSignal(isShareable);
   }
 
-  return { name, isUrlShareable, setName, setShareableState };
+  return { name, displayName, isUrlShareable, setName, setShareableState };
 }

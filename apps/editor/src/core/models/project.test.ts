@@ -60,4 +60,15 @@ describe("ProjectModel", () => {
     model.setShareableState(true);
     expect(model.isUrlShareable()).toBe(true);
   });
+  it("returns 'Untitled' as displayName when name is default", () => {
+    const urlState = createMockUrlState();
+    const model = createProjectModel(urlState);
+    expect(model.displayName()).toBe("Untitled");
+  });
+
+  it("returns the custom name as displayName when name is not default", () => {
+    const urlState = createMockUrlState({ name: "my_cool_script" });
+    const model = createProjectModel(urlState);
+    expect(model.displayName()).toBe("my_cool_script");
+  });
 });

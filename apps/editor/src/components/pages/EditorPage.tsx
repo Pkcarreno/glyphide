@@ -52,6 +52,10 @@ function EditorPage() {
     );
   });
 
+  createEffect(() => {
+    document.title = `${core.project.displayName()} - Glyphide`;
+  });
+
   return (
     <>
       <WorkspaceLayout

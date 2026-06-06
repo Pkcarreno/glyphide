@@ -3,7 +3,7 @@ import { createSignal } from "solid-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import EditorPage from "./EditorPage.tsx";
 
-vi.stubGlobal("console", { info: vi.fn() });
+vi.spyOn(console, "info").mockImplementation(() => undefined);
 
 const dispatchMock = vi.fn();
 let mockStatus = "idle";
@@ -20,7 +20,7 @@ vi.mock("../../core/context", () => ({
         selectionLines: 0,
       }),
     },
-    project: { name: () => "TEST_PROJECT" },
+    project: { name: () => "TEST_PROJECT", displayName: () => "TEST_PROJECT" },
     engine: {
       engineStatus: () => mockStatus,
       activeEngineId: () => "quickjs",

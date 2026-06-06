@@ -65,7 +65,7 @@ function Header(props: HeaderProps) {
           action={{ type: "OPEN_OVERLAY", overlayId: "project-rename" }}
           aria-label="Rename Project"
           as={Button}
-          class="font-sans font-semibold text-on-surface uppercase tracking-widest"
+          class="font-sans font-semibold text-on-surface tracking-wide"
           onClick={() =>
             core.dispatcher.dispatch({
               type: "OPEN_OVERLAY",
@@ -76,7 +76,7 @@ function Header(props: HeaderProps) {
           text="Rename Project"
           variant="ghost"
         >
-          {core.project.name() || "UNTITLED_PROJECT"}
+          {core.project.displayName()}
         </Tooltip>
       </div>
 

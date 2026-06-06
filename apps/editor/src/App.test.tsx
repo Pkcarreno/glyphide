@@ -13,7 +13,7 @@ vi.mock("./core/context", () => ({
         selectionLines: 0,
       }),
     },
-    project: { name: () => "TEST_PROJECT" },
+    project: { name: () => "TEST_PROJECT", displayName: () => "TEST_PROJECT" },
     engine: {
       engineStatus: () => "idle",
       activeEngineId: () => "quickjs",
