@@ -8,16 +8,11 @@ import {
   Show,
   splitProps,
 } from "solid-js";
+import type { EditorAction } from "../../core/actions/types.ts";
 import { useEditor } from "../../core/context.tsx";
 import { cn } from "../../helpers/cn.ts";
 import { Icon } from "../atoms/Icon.tsx";
-import {
-  TooltipPopup,
-  TooltipPortal,
-  TooltipPositioner,
-  TooltipRoot,
-  TooltipTrigger,
-} from "../atoms/Tooltip.tsx";
+import { Tooltip } from "../molecules/Tooltip.tsx";
 
 /**
  * Props for the StatusBar root component.
@@ -40,7 +35,6 @@ interface StatusBarItemProps extends JSX.HTMLAttributes<HTMLDivElement> {
  */
 function StatusBarItem(props: StatusBarItemProps) {
   const [local, rest] = splitProps(props, ["class", "children"]);
-
   return (
     <div
       class={cn("flex h-full items-center gap-1 px-1.5", local.class)}
@@ -51,17 +45,23 @@ function StatusBarItem(props: StatusBarItemProps) {
   );
 }
 
-/**
- * Props for the StatusBarButton component.
- */
-interface StatusBarButtonProps
+type TooltipConfig =
+  | { tooltipAction: EditorAction; tooltipShortcut?: never }
+  | { tooltipAction?: never; tooltipShortcut?: string }
+  | { tooltipAction?: never; tooltipShortcut?: never };
+
+interface StatusBarButtonBaseProps
   extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
   children: JSX.Element;
   class?: string;
   tooltip?: string;
   tooltipDescription?: string;
-  tooltipShortcut?: string;
 }
+
+/**
+ * Props for the StatusBarButton component.
+ */
+type StatusBarButtonProps = StatusBarButtonBaseProps & TooltipConfig;
 
 /**
  * Interactive button for the StatusBar.
@@ -73,6 +73,7 @@ function StatusBarButton(props: StatusBarButtonProps) {
     "tooltip",
     "tooltipShortcut",
     "tooltipDescription",
+    "tooltipAction",
     "children",
   ]);
 
@@ -91,38 +92,19 @@ function StatusBarButton(props: StatusBarButtonProps) {
       }
       when={local.tooltip}
     >
-      <TooltipRoot position="top">
-        <TooltipTrigger as="button" class={buttonClass} {...rest}>
-          {local.children}
-        </TooltipTrigger>
-        <TooltipPortal>
-          <TooltipPositioner>
-            <TooltipPopup>
-              <div class="flex items-start justify-between gap-2">
-                <span
-                  class={cn(
-                    local.tooltipDescription || local.tooltipShortcut
-                      ? "text-on-surface-variant"
-                      : "text-on-surface"
-                  )}
-                >
-                  {local.tooltip}
-                </span>
-                <Show when={local.tooltipShortcut}>
-                  <span class="mt-0.5 whitespace-nowrap font-medium font-sans text-on-surface-variant text-xs">
-                    {local.tooltipShortcut}
-                  </span>
-                </Show>
-              </div>
-              <Show when={local.tooltipDescription}>
-                <span class="mt-1 text-on-surface-variant">
-                  {local.tooltipDescription}
-                </span>
-              </Show>
-            </TooltipPopup>
-          </TooltipPositioner>
-        </TooltipPortal>
-      </TooltipRoot>
+      <Tooltip
+        as="button"
+        class={buttonClass}
+        meta={local.tooltipDescription}
+        position="top"
+        text={local.tooltip ?? ""}
+        {...(local.tooltipAction
+          ? { action: local.tooltipAction }
+          : { shortcut: local.tooltipShortcut })}
+        {...rest}
+      >
+        {local.children}
+      </Tooltip>
     </Show>
   );
 }
@@ -203,7 +185,15 @@ function StatusBar(props: StatusBarProps) {
           </span>
         </StatusBarItem>
 
-        <StatusBarButton onClick={openEngineSelector} tooltip="Select Engine">
+        <StatusBarButton
+          onClick={openEngineSelector}
+          tooltip="Select Engine"
+          tooltipAction={{
+            type: "OPEN_OVERLAY",
+            overlayId: "engine-selector",
+          }}
+          tooltipDescription="Switch the active execution engine."
+        >
           <span>{core.engine.activeEngineId()}</span>
         </StatusBarButton>
 

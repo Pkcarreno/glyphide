@@ -181,6 +181,13 @@
   --text-section-header--font-weight: 700;
   --text-section-header--letter-spacing: 0.15em;
 
+  --text-tooltip-shortcut: calc(10px * var(--ui-scale));
+  --text-tooltip-shortcut--line-height: 1;
+  --text-tooltip-shortcut--letter-spacing: -0.025em;
+
+  --text-tooltip-meta: calc(11px * var(--ui-scale));
+  --text-tooltip-meta--line-height: 1.25;
+
   --text-xs: calc(0.75rem * var(--ui-scale));
   --text-sm: calc(0.875rem * var(--ui-scale));
   --text-base: calc(1rem * var(--ui-scale));

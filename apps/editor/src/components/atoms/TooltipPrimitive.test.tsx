@@ -4,10 +4,11 @@ import {
   TooltipPopup,
   TooltipPortal,
   TooltipPositioner,
+  TooltipPrimitive,
   TooltipRoot,
   TooltipTrigger,
   useTooltip,
-} from "./Tooltip.tsx";
+} from "./TooltipPrimitive.tsx";
 
 afterEach(() => cleanup());
 
@@ -102,5 +103,43 @@ describe("Tooltip", () => {
     const popup = screen.queryByRole("tooltip");
     expect(popup).not.toBeNull();
     expect(popup?.getAttribute("role")).toBe("tooltip");
+  });
+});
+
+describe("TooltipPrimitive", () => {
+  it("renders text, shortcut, and meta correctly", () => {
+    const { getByTestId } = render(() => (
+      <TooltipPrimitive
+        as="button"
+        data-testid="trigger"
+        meta="Copies the selection"
+        shortcut="Ctrl+C"
+        text="Copy"
+      >
+        Trigger
+      </TooltipPrimitive>
+    ));
+
+    fireEvent.mouseEnter(getByTestId("trigger"));
+    const popup = screen.queryByRole("tooltip");
+    expect(popup).not.toBeNull();
+
+    expect(popup?.textContent).toContain("Copy");
+    expect(popup?.textContent).toContain("Ctrl+C");
+    expect(popup?.textContent).toContain("Copies the selection");
+  });
+
+  it("renders only text if shortcut and meta are absent", () => {
+    const { getByTestId } = render(() => (
+      <TooltipPrimitive data-testid="trigger" text="Paste">
+        Trigger
+      </TooltipPrimitive>
+    ));
+
+    fireEvent.mouseEnter(getByTestId("trigger"));
+    const popup = screen.queryByRole("tooltip");
+
+    expect(popup?.textContent).toContain("Paste");
+    expect(popup?.textContent).not.toContain("Ctrl+");
   });
 });
