@@ -3,15 +3,15 @@ import { createSignal, createUniqueId, splitProps } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { cn } from "../../helpers/cn.ts";
 import { Button } from "../atoms/Button.tsx";
+import { Icon } from "../atoms/Icon.tsx";
+import { Input } from "../atoms/Input.tsx";
+import { Switch } from "../atoms/Switch.tsx";
 import {
   Dialog,
   DialogClose,
   DialogContent,
   DialogHeader,
-} from "../atoms/Dialog.tsx";
-import { Icon } from "../atoms/Icon.tsx";
-import { Input } from "../atoms/Input.tsx";
-import { Switch } from "../atoms/Switch.tsx";
+} from "../molecules/Dialog.tsx";
 
 interface ShareModalProps {
   class?: string;

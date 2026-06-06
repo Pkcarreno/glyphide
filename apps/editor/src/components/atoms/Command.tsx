@@ -11,7 +11,7 @@ import {
   useContext,
 } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
-import { Dialog, useDialog } from "./Dialog.tsx";
+import { Dialog, useDialog } from "../molecules/Dialog.tsx";
 import { Icon } from "./Icon.tsx";
 import { Input, type InputProps } from "./Input.tsx";
 

@@ -7,6 +7,7 @@ import {
   useContext,
 } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
+import { Tooltip } from "./Tooltip.tsx";
 
 /* ---------- Context ---------- */
 
@@ -194,9 +195,18 @@ function DialogClose(props: DialogCloseProps) {
   const { close } = useDialog();
 
   return (
-    <button class={cn(local.class)} onClick={close} type="button" {...rest}>
+    <Tooltip
+      action={{ type: "CLOSE_ALL_OVERLAYS" }}
+      as="button"
+      class={cn(local.class)}
+      onClick={close}
+      position="bottom"
+      text="Close"
+      type="button"
+      {...rest}
+    >
       {local.children}
-    </button>
+    </Tooltip>
   );
 }
 

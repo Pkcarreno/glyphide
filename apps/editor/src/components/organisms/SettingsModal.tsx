@@ -5,15 +5,15 @@ import { createSignal, createUniqueId, For, Show, splitProps } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { DEFAULT_SETTINGS } from "../../core/models/settings.ts";
 import { cn } from "../../helpers/cn.ts";
+import { Icon } from "../atoms/Icon.tsx";
+import { Select } from "../atoms/Select.tsx";
+import { Switch } from "../atoms/Switch.tsx";
 import {
   Dialog,
   DialogClose,
   DialogContent,
   DialogHeader,
-} from "../atoms/Dialog.tsx";
-import { Icon } from "../atoms/Icon.tsx";
-import { Select } from "../atoms/Select.tsx";
-import { Switch } from "../atoms/Switch.tsx";
+} from "../molecules/Dialog.tsx";
 
 /* ---------- Internal Composables ---------- */
 

@@ -9,6 +9,12 @@ import {
   DialogTrigger,
 } from "./Dialog.tsx";
 
+vi.mock("../../core/context", () => ({
+  useEditor: () => ({
+    shortcuts: { bindings: [] },
+  }),
+}));
+
 function renderDialog(defaultOpen = false) {
   return render(() => (
     <Dialog defaultOpen={defaultOpen}>

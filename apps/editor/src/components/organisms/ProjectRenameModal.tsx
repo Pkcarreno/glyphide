@@ -1,7 +1,7 @@
 import { createEffect, createSignal, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
-import { Dialog, useDialog } from "../atoms/Dialog.tsx";
 import { Input } from "../atoms/Input.tsx";
+import { Dialog, useDialog } from "../molecules/Dialog.tsx";
 
 function ProjectRenameOverlay() {
   const { close } = useDialog();

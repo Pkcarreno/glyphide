@@ -9,6 +9,7 @@ import { useEditor } from "../../core/context.tsx";
 import { cn } from "../../helpers/cn.ts";
 import { Button } from "../atoms/Button.tsx";
 import { Icon } from "../atoms/Icon.tsx";
+import { Tooltip } from "../molecules/Tooltip.tsx";
 
 interface HeaderProps
   extends Omit<
@@ -60,8 +61,10 @@ function Header(props: HeaderProps) {
           src={logo}
           width="24"
         />
-        <Button
+        <Tooltip
+          action={{ type: "OPEN_OVERLAY", overlayId: "project-rename" }}
           aria-label="Rename Project"
+          as={Button}
           class="font-sans font-semibold text-on-surface uppercase tracking-widest"
           onClick={() =>
             core.dispatcher.dispatch({
@@ -69,31 +72,53 @@ function Header(props: HeaderProps) {
               overlayId: "project-rename",
             })
           }
+          position="bottom"
+          text="Rename Project"
           variant="ghost"
         >
           {core.project.name() || "UNTITLED_PROJECT"}
-        </Button>
+        </Tooltip>
       </div>
 
       <div class="flex items-center gap-gap-compact">
-        <Button
+        <Tooltip
+          action={{ type: "TOGGLE_OVERLAY", overlayId: "settings" }}
           aria-label="Settings"
+          as={Button}
           onClick={handleSettingsClick}
+          position="bottom"
           size="icon"
+          text="Settings"
           variant="ghost"
         >
           <Icon icon={Settings} />
-        </Button>
-        <Button
+        </Tooltip>
+        <Tooltip
+          action={{ type: "OPEN_OVERLAY", overlayId: "share" }}
           aria-label="Share workspace"
+          as={Button}
           onClick={handleShareClick}
+          position="bottom"
+          text="Share"
           variant="outline"
         >
           <Icon class="mr-1" icon={Share2} />
           Share
-        </Button>
-        <Button
+        </Tooltip>
+        <Tooltip
+          action={
+            core.engine.engineStatus() === "running"
+              ? { type: "INTERRUPT_EXECUTION" }
+              : { type: "RUN_CODE" }
+          }
+          as={Button}
           onClick={handleRunClick}
+          position="bottom"
+          text={
+            core.engine.engineStatus() === "running"
+              ? "Stop Execution"
+              : "Run Code"
+          }
           variant={
             core.engine.engineStatus() === "running" ? "outline" : "primary"
           }
@@ -108,7 +133,7 @@ function Header(props: HeaderProps) {
           >
             <Icon class="mr-1" icon={Square} /> Stop
           </Show>
-        </Button>
+        </Tooltip>
       </div>
     </header>
   );
