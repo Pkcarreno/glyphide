@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createEditorCore } from "./editor-core.ts";
 import type { PersistencePort } from "./ports/persistence.ts";
 import type { UrlStatePort } from "./ports/url-state.ts";
@@ -102,5 +102,76 @@ describe("EditorCore", () => {
 
     expect(terminateSpy).toHaveBeenCalled();
     expect(disposeNotificationsSpy).toHaveBeenCalled();
+  });
+
+  describe("Auto-run logic", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("triggers executeCode after debounce when autoRun is enabled", () => {
+      const core = createEditorCore({
+        persistence: createMockPersistence(),
+        urlState: createMockUrlState(),
+      });
+      core.settings.updateSettings({
+        isAutoRunEnabled: true,
+        autoRunDelay: 500,
+      });
+      vi.spyOn(core.engine, "engineStatus").mockReturnValue("ready");
+      const executeCodeSpy = vi
+        .spyOn(core.engine, "executeCode")
+        .mockResolvedValue(undefined);
+
+      core.dispatcher.dispatch({ type: "UPDATE_BUFFER", content: "code" });
+
+      expect(executeCodeSpy).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(500);
+      expect(executeCodeSpy).toHaveBeenCalled();
+    });
+
+    it("does not trigger executeCode when autoRun is disabled", () => {
+      const core = createEditorCore({
+        persistence: createMockPersistence(),
+        urlState: createMockUrlState(),
+      });
+      core.settings.updateSettings({
+        isAutoRunEnabled: false,
+        autoRunDelay: 500,
+      });
+      vi.spyOn(core.engine, "engineStatus").mockReturnValue("ready");
+      const executeCodeSpy = vi
+        .spyOn(core.engine, "executeCode")
+        .mockResolvedValue(undefined);
+
+      core.dispatcher.dispatch({ type: "UPDATE_BUFFER", content: "code" });
+
+      vi.advanceTimersByTime(500);
+      expect(executeCodeSpy).not.toHaveBeenCalled();
+    });
+
+    it("ignores autoRun if engine is running", () => {
+      const core = createEditorCore({
+        persistence: createMockPersistence(),
+        urlState: createMockUrlState(),
+      });
+      core.settings.updateSettings({
+        isAutoRunEnabled: true,
+        autoRunDelay: 500,
+      });
+      vi.spyOn(core.engine, "engineStatus").mockReturnValue("running");
+      const executeCodeSpy = vi
+        .spyOn(core.engine, "executeCode")
+        .mockResolvedValue(undefined);
+
+      core.dispatcher.dispatch({ type: "UPDATE_BUFFER", content: "code" });
+
+      vi.advanceTimersByTime(500);
+      expect(executeCodeSpy).not.toHaveBeenCalled();
+    });
   });
 });

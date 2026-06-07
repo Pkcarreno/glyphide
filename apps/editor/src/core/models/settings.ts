@@ -11,6 +11,7 @@ export type ThemePreference = "light" | "dark" | "system";
  * Treated as an immutable snapshot per reactive update cycle.
  */
 export interface EditorSettings {
+  autoRunDelay: number;
   bufferFontSize: number;
   bufferLineHeight: number;
   isAutoRunEnabled: boolean;
@@ -25,6 +26,7 @@ export const DEFAULT_SETTINGS: EditorSettings = {
   theme: "system",
   isWordWrapEnabled: false,
   isAutoRunEnabled: false,
+  autoRunDelay: 750,
   isClearOnRunEnabled: true,
   uiFontSize: 14,
   bufferFontSize: 15,

@@ -73,6 +73,7 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
   });
 
   const unsubscribers: (() => void)[] = [];
+  let autoRunTimer: ReturnType<typeof setTimeout> | undefined;
 
   unsubscribers.push(
     dispatcher.on("RUN_CODE", () => {
@@ -118,6 +119,22 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
     dispatcher.on("UPDATE_BUFFER", (action) => {
       buffer.setContent(action.content);
       engine.onBufferUpdated(action.content);
+
+      if (autoRunTimer) {
+        clearTimeout(autoRunTimer);
+      }
+
+      if (settings.settings.isAutoRunEnabled) {
+        autoRunTimer = setTimeout(() => {
+          const status = engine.engineStatus();
+          if (
+            settings.settings.isAutoRunEnabled &&
+            (status === "ready" || status === "idle")
+          ) {
+            engine.executeCode().catch(() => undefined);
+          }
+        }, settings.settings.autoRunDelay);
+      }
     })
   );
 
@@ -180,6 +197,9 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
   );
 
   function dispose(): void {
+    if (autoRunTimer) {
+      clearTimeout(autoRunTimer);
+    }
     engine.terminate();
     notifications.dispose();
     for (const unsubscribe of unsubscribers) {

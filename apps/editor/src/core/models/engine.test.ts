@@ -278,4 +278,46 @@ describe("EngineModel (Integration)", () => {
     // Output should only contain the run logs, old logs are cleared
     expect(output.entries().some((e) => e.data === "old logs")).toBe(false);
   });
+
+  it("updates isDirty state only if modified while running", async () => {
+    const model = createEngineModel({
+      buffer,
+      output,
+      settings,
+      registry,
+      urlState,
+    });
+
+    await model.selectEngineEntry({
+      engineId: "mock",
+      language: "javascript",
+      label: "",
+    });
+
+    expect(model.isDirty()).toBe(false);
+
+    // Buffer update should NOT set isDirty to true if not running
+    model.onBufferUpdated("new code");
+    expect(model.isDirty()).toBe(false);
+
+    // Start execution but don't wait for it to finish yet
+    buffer.setContent("new code");
+    const execPromise = model.executeCode();
+
+    // Wait until the engine actually enters the running state
+    while (model.engineStatus() !== "running") {
+      await sleep(2);
+    }
+
+    // Modifying the buffer now should mark it as dirty
+    model.onBufferUpdated("modified while running");
+    expect(model.isDirty()).toBe(true);
+
+    // Wait for execution to finish
+    await execPromise;
+    await sleep(20);
+
+    // isDirty should reset to false once execution completes
+    expect(model.isDirty()).toBe(false);
+  });
 });

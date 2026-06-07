@@ -52,6 +52,8 @@ export interface EngineModel {
   executeCode(): Promise<void>;
   /** Forcefully interrupts the running execution. */
   interruptExecution(): Promise<void>;
+  /** Indicates if the buffer was modified while an execution is in progress. */
+  isDirty: Accessor<boolean>;
   /** Syncs engine state based on buffer updates. */
   onBufferUpdated(newCode: string): void;
   /** Retries initialization for the current entry. */
@@ -67,6 +69,7 @@ export interface EngineModel {
 /** Creates an `EngineModel` wired to the given dependencies. */
 export function createEngineModel(deps: EngineModelDeps): EngineModel {
   const [engineStatus, setEngineStatus] = createSignal<EngineStatus>("idle");
+  const [isDirty, setIsDirty] = createSignal<boolean>(false);
 
   const initialEngineState = deps.urlState.get("engine") as string | null;
 
@@ -224,6 +227,8 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     }
 
     try {
+      setIsDirty(false);
+
       if (isInitialized && orchestrator) {
         await orchestrator.reset();
       } else {
@@ -238,10 +243,12 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
       setEngineStatus("running");
       await orchestrator?.run(code);
       setEngineStatus("ready");
+      setIsDirty(false);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       deps.output.appendEntry("error", message);
       setEngineStatus("ready"); // Ready to try again
+      setIsDirty(false);
     }
   }
 
@@ -257,6 +264,7 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
       deps.output.appendEntry("error", `Interrupt failed: ${message}`);
     }
     setEngineStatus("ready");
+    setIsDirty(false);
   }
 
   function terminate(): void {
@@ -264,6 +272,7 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     orchestrator = null;
     isInitialized = false;
     setEngineStatus("idle");
+    setIsDirty(false);
     setActiveInitParams(null);
     setActiveCapabilities(null);
   }
@@ -277,6 +286,9 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
         deps.urlState.set("engine", activeEngineId());
       }
     }
+    if (engineStatus() === "running") {
+      setIsDirty(true);
+    }
   }
 
   return {
@@ -285,6 +297,7 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     activeLanguage,
     activeInitParams,
     activeCapabilities,
+    isDirty,
     executeCode,
     interruptExecution,
     selectEngineEntry,
