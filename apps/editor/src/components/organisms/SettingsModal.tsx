@@ -305,24 +305,6 @@ function SettingsModal(props: SettingsModalProps) {
                       step={1}
                       value={core.settings.settings.uiFontSize}
                     />
-
-                    <SettingsSwitchItem
-                      checked={core.settings.settings.isWordWrapEnabled}
-                      description="Wrap long lines to fit the editor width."
-                      isModified={
-                        core.settings.settings.isWordWrapEnabled !==
-                        DEFAULT_SETTINGS.isWordWrapEnabled
-                      }
-                      label="Word Wrap"
-                      onCheckedChange={(checked) =>
-                        core.settings.updateSettings({
-                          isWordWrapEnabled: checked,
-                        })
-                      }
-                      onReset={() =>
-                        core.settings.resetSetting("isWordWrapEnabled")
-                      }
-                    />
                   </div>
                 </section>
               </div>
@@ -368,6 +350,23 @@ function SettingsModal(props: SettingsModalProps) {
                       step={0.1}
                       value={core.settings.settings.bufferLineHeight}
                     />
+                    <SettingsSwitchItem
+                      checked={core.settings.settings.isWordWrapEnabled}
+                      description="Wrap long lines to fit the editor width."
+                      isModified={
+                        core.settings.settings.isWordWrapEnabled !==
+                        DEFAULT_SETTINGS.isWordWrapEnabled
+                      }
+                      label="Word Wrap"
+                      onCheckedChange={(checked) =>
+                        core.settings.updateSettings({
+                          isWordWrapEnabled: checked,
+                        })
+                      }
+                      onReset={() =>
+                        core.settings.resetSetting("isWordWrapEnabled")
+                      }
+                    />
                   </div>
                 </section>
               </div>
@@ -393,6 +392,22 @@ function SettingsModal(props: SettingsModalProps) {
                       onReset={() =>
                         core.settings.resetSetting("isAutoRunEnabled")
                       }
+                    />
+                    <SettingsNumberItem
+                      description="Delay in milliseconds before executing auto-run."
+                      isModified={
+                        core.settings.settings.autoRunDelay !==
+                        DEFAULT_SETTINGS.autoRunDelay
+                      }
+                      label="Auto-run delay (ms)"
+                      max={5000}
+                      min={100}
+                      onReset={() => core.settings.resetSetting("autoRunDelay")}
+                      onValueChange={(val) =>
+                        core.settings.updateSettings({ autoRunDelay: val })
+                      }
+                      step={50}
+                      value={core.settings.settings.autoRunDelay}
                     />
                     <SettingsSwitchItem
                       checked={core.settings.settings.isClearOnRunEnabled}

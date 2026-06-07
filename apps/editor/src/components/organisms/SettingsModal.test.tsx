@@ -16,6 +16,7 @@ const [mockSettings, setMockSettings] = createSignal({
   uiFontSize: 14,
   bufferFontSize: 15,
   bufferLineHeight: 1.3,
+  autoRunDelay: 750,
 });
 
 vi.mock("../../core/context", () => ({
@@ -60,11 +61,21 @@ describe("SettingsModal", () => {
 
     expect(getAllByText("Appearance").length).toBeGreaterThan(0);
 
-    expect(getByRole("switch", { name: "Word Wrap" })).toBeTruthy();
-
     expect(getByRole("combobox")).toBeTruthy();
 
+    expect(queryByText("Word Wrap")).toBeNull();
     expect(queryByText("Auto-run on type")).toBeNull();
+  });
+
+  it("changes tab to Editor when clicked", () => {
+    setMockIsOpen(true);
+    const { getByRole, queryByText } = render(() => <SettingsModal />);
+
+    const editorTab = getByRole("button", { name: "Editor" });
+    editorTab.click();
+
+    expect(getByRole("switch", { name: "Word Wrap" })).toBeTruthy();
+    expect(queryByText("Theme Preference")).toBeNull();
   });
 
   it("changes tab when navigation buttons are clicked", () => {
@@ -76,6 +87,7 @@ describe("SettingsModal", () => {
 
     expect(getByRole("switch", { name: "Auto-run on type" })).toBeTruthy();
     expect(getByRole("switch", { name: "Clear console on run" })).toBeTruthy();
+    expect(queryByText("Auto-run delay (ms)")).toBeTruthy();
 
     expect(queryByText("Theme Preference")).toBeNull();
   });
