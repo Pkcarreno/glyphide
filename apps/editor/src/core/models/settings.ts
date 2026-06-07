@@ -25,10 +25,10 @@ export interface EditorSettings {
 export const DEFAULT_SETTINGS: EditorSettings = {
   theme: "system",
   isWordWrapEnabled: false,
-  isAutoRunEnabled: false,
+  isAutoRunEnabled: true,
   autoRunDelay: 750,
   isClearOnRunEnabled: true,
-  uiFontSize: 14,
+  uiFontSize: 16,
   bufferFontSize: 15,
   bufferLineHeight: 1.3,
 };

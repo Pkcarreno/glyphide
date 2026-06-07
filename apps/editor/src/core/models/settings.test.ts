@@ -20,7 +20,7 @@ describe("SettingsModel", () => {
 
     expect(model.settings.theme).toBe("system");
     expect(model.settings.isWordWrapEnabled).toBe(false);
-    expect(model.settings.uiFontSize).toBe(14);
+    expect(model.settings.uiFontSize).toBe(16);
     expect(model.settings.bufferFontSize).toBe(15);
     expect(model.settings.bufferLineHeight).toBe(1.3);
     expect(model.settings.autoRunDelay).toBe(750);
