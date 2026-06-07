@@ -109,7 +109,7 @@ function StatusBarButton(props: StatusBarButtonProps) {
   );
 }
 
-function TerminalStatusIndicator(props: { status: string }) {
+function TerminalStatusIndicator(props: { status: string; isDirty?: boolean }) {
   const [frame, setFrame] = createSignal(0);
   const brailleFrames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 
@@ -130,6 +130,11 @@ function TerminalStatusIndicator(props: { status: string }) {
         when={props.status === "running" || props.status === "initializing"}
       >
         <span class="w-3 text-center">{brailleFrames[frame()]}</span>
+      </Show>
+      <Show when={props.isDirty}>
+        <span class="rounded bg-amber-500/20 px-1 font-bold text-[10px] text-amber-500 uppercase tracking-wider">
+          Execution Stale
+        </span>
       </Show>
     </div>
   );
@@ -168,7 +173,10 @@ function StatusBar(props: StatusBarProps) {
         </StatusBarItem>
 
         <StatusBarItem class="lowercase">
-          <TerminalStatusIndicator status={core.engine.engineStatus()} />
+          <TerminalStatusIndicator
+            isDirty={core.engine.isDirty()}
+            status={core.engine.engineStatus()}
+          />
         </StatusBarItem>
       </div>
 

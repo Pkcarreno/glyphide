@@ -25,6 +25,7 @@ vi.mock("../../core/context", () => ({
       engineStatus: () => mockStatus,
       activeEngineId: () => "quickjs",
       activeLanguage: () => "javascript",
+      isDirty: () => false,
     },
     output: { entries: () => [] },
     settings: {

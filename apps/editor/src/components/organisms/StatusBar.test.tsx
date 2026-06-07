@@ -14,6 +14,7 @@ const { mockCursorPositionFn, dispatchMock } = vi.hoisted(() => ({
 
 let mockStatus = "idle";
 let mockEngineId = "quickjs";
+let mockIsDirty = false;
 
 vi.mock("../../core/context.tsx", () => ({
   useEditor: () => ({
@@ -25,6 +26,7 @@ vi.mock("../../core/context.tsx", () => ({
       engineStatus: () => mockStatus,
       activeEngineId: () => mockEngineId,
       activeLanguage: () => "javascript",
+      isDirty: () => mockIsDirty,
     },
     notifications: {
       unreadCount: () => 0,
@@ -39,6 +41,7 @@ afterEach(() => {
   cleanup();
   mockStatus = "idle";
   mockEngineId = "quickjs";
+  mockIsDirty = false;
   mockCursorPositionFn.mockReturnValue({
     line: 1,
     column: 5,
@@ -60,6 +63,12 @@ describe("StatusBar", () => {
     mockStatus = "running";
     const { getByText } = render(() => <StatusBar />);
     expect(getByText("running")).toBeTruthy();
+  });
+
+  it("when isDirty is true, displays the EXECUTION STALE badge", () => {
+    mockIsDirty = true;
+    const { getByText } = render(() => <StatusBar />);
+    expect(getByText("Execution Stale")).toBeTruthy();
   });
 
   it("when rendered, displays hardcoded environment info", () => {
