@@ -4,7 +4,9 @@
 
 import { isJsonRpcFail, isJsonRpcOk } from "@glyphide/rpc-protocol/guards";
 import type {
+  JsonRpcId,
   JsonRpcNotification,
+  JsonRpcOkResponse,
   JsonRpcRequest,
   JsonRpcResponse,
 } from "@glyphide/rpc-protocol/types";
@@ -85,6 +87,20 @@ export class MessageBus {
     if (typeof data === "object" && data !== null && "method" in data) {
       this.#onMessage(data as JsonRpcNotification);
     }
+  }
+
+  /**
+   * Sends a JSON-RPC success response back to the worker.
+   * Used by the orchestrator to reply to engine requests
+   * (e.g., ENGINE.INPUT_REQUEST).
+   */
+  sendResponse(id: JsonRpcId, result: unknown): void {
+    const response: JsonRpcOkResponse = {
+      jsonrpc: "2.0",
+      id,
+      result,
+    };
+    this.#worker.postMessage(response);
   }
 
   /** Terminates the message bus listener. */

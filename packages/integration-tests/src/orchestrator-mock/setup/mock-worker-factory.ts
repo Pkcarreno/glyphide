@@ -60,6 +60,15 @@ export const createMockWorker: EngineWorkerFactory<MockOutputPayload> = () => {
           } as MessageEvent);
         }
       }, 0);
+    },
+    (method, id, params) => {
+      setTimeout(() => {
+        if (worker.onmessage) {
+          worker.onmessage({
+            data: { jsonrpc: "2.0", method, id, params },
+          } as MessageEvent);
+        }
+      }, 0);
     }
   );
 
@@ -75,6 +84,7 @@ export function createMockConfig(
 ): MockEngineConfig {
   return {
     initDelay: config?.initDelay ?? 0,
+    inputPrompts: config?.inputPrompts,
     runDelay: config?.runDelay ?? 0,
     runError: config?.runError ?? null,
     capabilities: config?.capabilities,

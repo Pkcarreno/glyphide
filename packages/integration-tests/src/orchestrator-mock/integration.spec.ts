@@ -168,6 +168,120 @@ describe("Orchestrator + Mock Engine Integration", () => {
     });
   });
 
+  describe("input request", () => {
+    it("engine emits input request and orchestrator forwards to handler", async () => {
+      const outputs: Array<{ content: string; type: string }> = [];
+      let capturedPrompt: string | undefined;
+
+      orchestrator = new EngineOrchestrator({
+        createWorker: createMockWorker,
+        events: {
+          onOutput: (payload) =>
+            outputs.push({
+              content: String(payload.data ?? ""),
+              type: payload.type,
+            }),
+          onInputRequest: (prompt, reply) => {
+            capturedPrompt = prompt;
+            setTimeout(() => reply("Alice"), 10);
+          },
+        },
+      });
+
+      const mockConfig = createMockConfig({
+        inputPrompts: ["Name: "],
+      });
+
+      await orchestrator.init(mockConfig);
+      await orchestrator.run("hello code");
+
+      expect(capturedPrompt).toBe("Name: ");
+      expect(outputs).toContainEqual({
+        content: "hello code",
+        type: "print",
+      });
+      expect(outputs).toContainEqual({
+        content: "Alice",
+        type: "print",
+      });
+    });
+
+    it("multiple sequential input requests are handled in order", async () => {
+      const outputs: Array<{ content: string; type: string }> = [];
+      const prompts: string[] = [];
+
+      orchestrator = new EngineOrchestrator({
+        createWorker: createMockWorker,
+        events: {
+          onOutput: (payload) =>
+            outputs.push({
+              content: String(payload.data ?? ""),
+              type: payload.type,
+            }),
+          onInputRequest: (prompt, reply) => {
+            prompts.push(prompt);
+            setTimeout(() => {
+              if (prompt === "First: ") {
+                reply("A");
+              } else if (prompt === "Second: ") {
+                reply("B");
+              } else {
+                reply("?");
+              }
+            }, 10);
+          },
+        },
+      });
+
+      const mockConfig = createMockConfig({
+        inputPrompts: ["First: ", "Second: "],
+      });
+
+      await orchestrator.init(mockConfig);
+      await orchestrator.run("done");
+
+      expect(prompts).toEqual(["First: ", "Second: "]);
+      expect(outputs).toContainEqual({
+        content: "A, B",
+        type: "print",
+      });
+    });
+
+    it("input request without handler auto-replies with empty string", async () => {
+      const outputs: Array<{ content: string; type: string }> = [];
+
+      // NO onInputRequest handler registered
+      orchestrator = new EngineOrchestrator({
+        createWorker: createMockWorker,
+        events: {
+          onOutput: (payload) =>
+            outputs.push({
+              content: String(payload.data ?? ""),
+              type: payload.type,
+            }),
+        },
+      });
+
+      const mockConfig = createMockConfig({
+        inputPrompts: ["Name: "],
+      });
+
+      await orchestrator.init(mockConfig);
+      // Execution shouldn't block
+      await orchestrator.run("code");
+
+      expect(outputs).toContainEqual({
+        content: "code",
+        type: "print",
+      });
+      // Should have output the auto-reply "" (empty string)
+      expect(outputs).toContainEqual({
+        content: "",
+        type: "print",
+      });
+    });
+  });
+
   describe("timeout", () => {
     it("rejects execution if engine exceeds timeout", async () => {
       // Override timeout capability to 100ms via any casting

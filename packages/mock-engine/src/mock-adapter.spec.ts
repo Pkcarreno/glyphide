@@ -493,4 +493,140 @@ describe("MockEngineAdapter", () => {
       adapter.dispose();
     });
   });
+
+  describe("input request", () => {
+    it("emits INPUT_REQUEST for each configured prompt during run", async () => {
+      const adapter = new MockEngineAdapter({
+        inputPrompts: ["Name: ", "Age: "],
+      });
+      const requests: Array<{ method: string; id: unknown; params?: object }> =
+        [];
+
+      adapter.setup(
+        () => {
+          /* noop */
+        },
+        () => {
+          /* noop */
+        },
+        (method, id, params) => requests.push({ method, id, params })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: "test" },
+        id: 1,
+      });
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      // First input request should be emitted
+      expect(requests).toHaveLength(1);
+      expect(requests[0].method).toBe(EngineMethod.InputRequest);
+      expect(requests[0].params).toEqual({ prompt: "Name: " });
+
+      // Reply to first input request
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        id: requests[0].id,
+        result: { value: "Alice" },
+      } as never);
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      // Second input request should be emitted
+      expect(requests).toHaveLength(2);
+      expect(requests[1].params).toEqual({ prompt: "Age: " });
+
+      // Reply to second
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        id: requests[1].id,
+        result: { value: "25" },
+      } as never);
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      adapter.dispose();
+    });
+
+    it("includes collected input values in output notification", async () => {
+      const adapter = new MockEngineAdapter({
+        inputPrompts: ["Name: "],
+      });
+      const notifications: CapturedNotification[] = [];
+      const requests: Array<{ method: string; id: unknown; params?: object }> =
+        [];
+      const responses: CapturedResponse[] = [];
+
+      adapter.setup(
+        (r) => responses.push({ id: r.id, result: r.result as object }),
+        (m, p) =>
+          notifications.push({
+            method: m,
+            params: p as { type?: string; data?: unknown },
+          }),
+        (method, id, params) => requests.push({ method, id, params })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: "hello" },
+        id: 2,
+      });
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      // Reply to input request
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        id: requests[0].id,
+        result: { value: "World" },
+      } as never);
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      // Should have code output + input values output
+      expect(notifications).toHaveLength(2);
+      expect(notifications[0].params?.data).toBe("hello");
+      expect(notifications[1].params?.data).toBe("World");
+
+      // Run should complete
+      expect(responses).toHaveLength(1);
+      expect(responses[0].result).toEqual({ executed: true });
+
+      adapter.dispose();
+    });
+
+    it("works normally when inputPrompts is not set", async () => {
+      const adapter = new MockEngineAdapter();
+      const responses: CapturedResponse[] = [];
+      const requests: Array<{ method: string; id: unknown }> = [];
+
+      adapter.setup(
+        (r) => responses.push({ id: r.id, result: r.result as object }),
+        () => {
+          /* noop */
+        },
+        (method, id) => requests.push({ method, id })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: "test" },
+        id: 3,
+      });
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      expect(requests).toHaveLength(0);
+      expect(responses).toHaveLength(1);
+      expect(responses[0].result).toEqual({ executed: true });
+
+      adapter.dispose();
+    });
+  });
 });

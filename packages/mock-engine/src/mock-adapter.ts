@@ -6,10 +6,12 @@
 import { EngineMethod, RpcErrorCode } from "@glyphide/rpc-protocol/constants";
 import {
   isJsonRpcNotification,
+  isJsonRpcOk,
   isJsonRpcRequest,
 } from "@glyphide/rpc-protocol/guards";
 import type {
   JsonRpcFailResponse,
+  JsonRpcId,
   JsonRpcMessage,
   JsonRpcOkResponse,
   JsonRpcRequest,
@@ -24,6 +26,8 @@ type ResponseSender = (
   response: JsonRpcOkResponse | JsonRpcFailResponse
 ) => void;
 
+type RequestSender = (method: string, id: JsonRpcId, params?: object) => void;
+
 /**
  * Mock engine that responds to RPC protocol messages.
  * Used for testing orchestrator behavior and validating the RPC contract.
@@ -37,10 +41,14 @@ export class MockEngineAdapter {
   #timers: ReturnType<typeof setTimeout>[] = [];
   #sendResponse: ResponseSender;
   #onNotification: NotificationHandler;
+  #sendRequest: RequestSender;
+  #nextInputId = 0;
+  readonly #pendingInputs = new Map<JsonRpcId, (value: string) => void>();
 
   constructor(config: MockEngineConfig = {}) {
     this.#config = {
       initDelay: config.initDelay ?? 0,
+      inputPrompts: config.inputPrompts ?? [],
       runDelay: config.runDelay ?? 0,
       runError: config.runError ?? null,
       capabilities: config.capabilities ?? defaultCapabilities,
@@ -51,18 +59,25 @@ export class MockEngineAdapter {
     this.#onNotification = () => {
       /* noop */
     };
+    this.#sendRequest = () => {
+      throw new Error("Request sender not configured");
+    };
   }
 
   /**
-   * Configures the response sender and notification handler.
+   * Configures the response sender, notification handler, and request sender.
    * Must be called before handling messages.
    */
   setup(
     sendResponse: ResponseSender,
-    onNotification: NotificationHandler
+    onNotification: NotificationHandler,
+    sendRequest?: RequestSender
   ): void {
     this.#sendResponse = sendResponse;
     this.#onNotification = onNotification;
+    if (sendRequest) {
+      this.#sendRequest = sendRequest;
+    }
   }
 
   /**
@@ -75,12 +90,25 @@ export class MockEngineAdapter {
       clearTimeout(timer);
     }
     this.#timers = [];
+    // Reject all pending input requests
+    for (const resolver of this.#pendingInputs.values()) {
+      resolver("");
+    }
+    this.#pendingInputs.clear();
   }
 
   /**
    * Handles incoming JSON-RPC messages.
+   * Processes requests, notifications, and responses
+   * (responses are used for ENGINE.INPUT_REQUEST replies).
    */
   handleMessage(message: JsonRpcMessage): void {
+    // Handle incoming responses (for INPUT_REQUEST replies)
+    if (isJsonRpcOk(message)) {
+      this.#handleInputReply(message);
+      return;
+    }
+
     if (!(isJsonRpcRequest(message) || isJsonRpcNotification(message))) {
       return;
     }
@@ -169,6 +197,12 @@ export class MockEngineAdapter {
       const payload = params as { code?: string } | undefined;
       const code = payload?.code ?? "";
 
+      // If input prompts configured, handle them asynchronously
+      if (this.#config.inputPrompts.length > 0) {
+        this.#handleInputSequence(id, code);
+        return;
+      }
+
       this.#onNotification(EngineMethod.Output, {
         type: "print",
         data: code,
@@ -180,6 +214,68 @@ export class MockEngineAdapter {
       });
     }, this.#config.runDelay);
     this.#timers.push(timer);
+  }
+
+  /**
+   * Handles sequential input prompts during execution.
+   * Sends ENGINE.INPUT_REQUEST for each prompt, waits for reply,
+   * and emits collected values as output.
+   */
+  async #handleInputSequence(runId: JsonRpcId, code: string): Promise<void> {
+    const values: string[] = [];
+    for (const prompt of this.#config.inputPrompts) {
+      if (this.#disposed) {
+        return;
+      }
+      const value = await this.#requestInput(prompt);
+      values.push(value);
+    }
+
+    if (this.#disposed) {
+      return;
+    }
+
+    this.#onNotification(EngineMethod.Output, {
+      type: "print",
+      data: code,
+    });
+
+    if (values.length > 0) {
+      this.#onNotification(EngineMethod.Output, {
+        type: "print",
+        data: values.join(", "),
+      });
+    }
+
+    this.#sendResponse({
+      jsonrpc: "2.0",
+      id: runId,
+      result: { executed: true },
+    });
+  }
+
+  /**
+   * Sends an ENGINE.INPUT_REQUEST and returns a Promise
+   * that resolves with the user's reply value.
+   */
+  #requestInput(prompt: string): Promise<string> {
+    return new Promise<string>((resolve) => {
+      const id = `input-${this.#nextInputId++}`;
+      this.#pendingInputs.set(id, resolve);
+      this.#sendRequest(EngineMethod.InputRequest, id, { prompt });
+    });
+  }
+
+  /**
+   * Handles an incoming response that resolves a pending input request.
+   */
+  #handleInputReply(response: JsonRpcOkResponse): void {
+    const resolver = this.#pendingInputs.get(response.id);
+    if (resolver) {
+      this.#pendingInputs.delete(response.id);
+      const result = response.result as { value?: string } | undefined;
+      resolver(result?.value ?? "");
+    }
   }
 
   #handleInterrupt(): void {

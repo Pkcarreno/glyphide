@@ -4,8 +4,13 @@
  */
 
 import { EngineMethod } from "@glyphide/rpc-protocol/constants";
-import { isJsonRpcFail, isJsonRpcOk } from "@glyphide/rpc-protocol/guards";
+import {
+  isJsonRpcFail,
+  isJsonRpcOk,
+  isJsonRpcRequest,
+} from "@glyphide/rpc-protocol/guards";
 import type {
+  EngineInputRequestParams,
   EngineOutputPayload,
   JsonRpcFailResponse,
   JsonRpcNotification,
@@ -28,6 +33,8 @@ export interface EngineInitResult {
   isInterruptible: boolean;
   isStateful: boolean;
   supportedLanguages: readonly string[];
+  /** Whether the engine may emit ENGINE.INPUT_REQUEST during execution. */
+  supportsInput?: boolean;
   timeout: number;
 }
 
@@ -50,6 +57,13 @@ export interface OrchestratorEvents<
   TPayload extends EngineOutputPayload = EngineOutputPayload,
 > {
   onEngineReady?: (result: EngineInitResult) => void;
+  /**
+   * Called when the engine requests user input during execution.
+   * The `reply` function must be called with the user's value to unblock
+   * the engine. If this handler is not registered, the orchestrator
+   * auto-replies with an empty string.
+   */
+  onInputRequest?: (prompt: string, reply: (value: string) => void) => void;
   onOutput?: (payload: TPayload) => void;
 }
 
@@ -222,10 +236,31 @@ export class EngineOrchestrator<
       this.#registry.resolve(message.id, message.result);
     } else if (isJsonRpcFail(message)) {
       this.#registry.reject(message.id, message.error);
-    } else if ("method" in message && "id" in message) {
-      // Request from engine (future use)
+    } else if (isJsonRpcRequest(message)) {
+      this.#handleEngineRequest(message);
     } else if ("method" in message) {
       this.#handleNotification(message as JsonRpcNotification);
+    }
+  }
+
+  /**
+   * Handles incoming JSON-RPC requests from the engine.
+   * Currently supports ENGINE.INPUT_REQUEST for stdin prompts.
+   */
+  #handleEngineRequest(request: JsonRpcRequest): void {
+    if (request.method === EngineMethod.InputRequest) {
+      const params = request.params as EngineInputRequestParams | undefined;
+      const prompt = params?.prompt ?? "";
+
+      const reply = (value: string): void => {
+        this.#bus?.sendResponse(request.id, { value });
+      };
+
+      if (this.#config.events.onInputRequest) {
+        this.#config.events.onInputRequest(prompt, reply);
+      } else {
+        reply("");
+      }
     }
   }
 

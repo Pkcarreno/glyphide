@@ -56,6 +56,16 @@ describe("JSON-RPC Type Guards", () => {
       const msg = { jsonrpc: "2.0", method: EngineMethod.Run, id: undefined };
       expect(isJsonRpcRequest(msg)).toBe(false);
     });
+
+    it("returns true for ENGINE.INPUT_REQUEST", () => {
+      const msg = {
+        jsonrpc: "2.0",
+        method: EngineMethod.InputRequest,
+        params: { prompt: "Name: " },
+        id: 42,
+      };
+      expect(isJsonRpcRequest(msg)).toBe(true);
+    });
   });
 
   describe("isJsonRpcNotification", () => {

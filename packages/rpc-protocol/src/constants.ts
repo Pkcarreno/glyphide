@@ -7,6 +7,7 @@ export const EngineMethod = {
   Interrupt: "ENGINE.INTERRUPT",
   Reset: "ENGINE.RESET",
   Output: "ENGINE.OUTPUT",
+  InputRequest: "ENGINE.INPUT_REQUEST",
 } as const;
 
 export type EngineMethod = (typeof EngineMethod)[keyof typeof EngineMethod];

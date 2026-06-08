@@ -5,13 +5,14 @@
 
 import type {
   JsonRpcFailResponse,
+  JsonRpcMessage,
   JsonRpcNotification,
   JsonRpcOkResponse,
   JsonRpcRequest,
   JsonRpcResponse,
 } from "./types.ts";
 
-export function isJsonRpcMessage(value: unknown): value is JsonRpcResponse {
+export function isJsonRpcMessage(value: unknown): value is JsonRpcMessage {
   return (
     value !== null &&
     typeof value === "object" &&

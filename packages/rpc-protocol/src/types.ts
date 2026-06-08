@@ -55,6 +55,24 @@ export interface EngineOutputPayload {
 }
 
 /**
+ * Payload sent by the engine when it needs user input (e.g., Python's input()).
+ * Delivered as the `params` of an ENGINE.INPUT_REQUEST JSON-RPC request.
+ */
+export interface EngineInputRequestParams {
+  /** Prompt string shown to the user. */
+  prompt: string;
+}
+
+/**
+ * Result sent by the host in response to an ENGINE.INPUT_REQUEST.
+ * Delivered as the `result` of a standard JsonRpcOkResponse.
+ */
+export interface EngineInputResult {
+  /** Value entered by the user. */
+  value: string;
+}
+
+/**
  * Parameters sent to the engine in an INIT request.
  * The host passes these to configure engine behavior before execution.
  */
@@ -79,6 +97,8 @@ export interface EngineCapabilities {
   isStateful: boolean;
   /** Languages this engine can execute. */
   supportedLanguages: readonly string[];
+  /** Whether the engine may emit ENGINE.INPUT_REQUEST during execution. */
+  supportsInput?: boolean;
 }
 
 /**
