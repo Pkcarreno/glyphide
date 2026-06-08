@@ -14,6 +14,7 @@ import {
   type MicroPythonInstance,
 } from "@micropython/micropython-webassembly-pyscript/micropython.mjs";
 import wasmUrl from "@micropython/micropython-webassembly-pyscript/micropython.wasm?url";
+import { installHttpClient } from "./http-client.ts";
 import { defaultCapabilities, type MicropythonEngineConfig } from "./types.ts";
 
 const resolvedWasmUrl =
@@ -113,6 +114,8 @@ export class MicropythonEngineAdapter {
           });
         },
       });
+
+      installHttpClient(this.#mp);
 
       this.#sendResponse({
         jsonrpc: "2.0",
