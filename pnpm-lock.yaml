@@ -75,6 +75,9 @@ importers:
       '@fontsource/ibm-plex-sans':
         specifier: ^5.2.8
         version: 5.2.8
+      '@glyphide/micropython-engine':
+        specifier: workspace:*
+        version: link:../../packages/micropython-engine
       '@glyphide/mock-engine':
         specifier: workspace:*
         version: link:../../packages/mock-engine

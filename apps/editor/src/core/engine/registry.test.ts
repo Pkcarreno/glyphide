@@ -4,7 +4,8 @@ import { createEngineRegistry, getEngineEntries } from "./registry.ts";
 describe("EngineRegistry", () => {
   it("initializes with default engines", () => {
     const registry = createEngineRegistry();
-    expect(registry.engines.length).toBe(2);
+    expect(registry.engines.length).toBe(3);
+    expect(registry.engines.some((e) => e.id === "micropython")).toBe(true);
     expect(registry.engines.some((e) => e.id === "quickjs")).toBe(true);
     expect(registry.engines.some((e) => e.id === "mock")).toBe(true);
   });
@@ -32,7 +33,12 @@ describe("EngineRegistry", () => {
   it("expands engines into entries", () => {
     const registry = createEngineRegistry();
     const entries = getEngineEntries(registry);
-    expect(entries.length).toBeGreaterThanOrEqual(2);
+    expect(entries.length).toBeGreaterThanOrEqual(3);
+    expect(
+      entries.some(
+        (e) => e.engineId === "micropython" && e.language === "python"
+      )
+    ).toBe(true);
     expect(
       entries.some(
         (e) => e.engineId === "quickjs" && e.language === "javascript"

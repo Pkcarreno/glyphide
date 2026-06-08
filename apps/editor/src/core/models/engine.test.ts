@@ -34,7 +34,7 @@ function createTestRegistry(): ReturnType<typeof createEngineRegistry> {
   return {
     engines: [],
     getDefinition: (id) => {
-      if (id !== "quickjs" && id !== "mock") {
+      if (id !== "quickjs" && id !== "mock" && id !== "micropython") {
         throw new Error(`Unknown engine: "${id}"`);
       }
       return {

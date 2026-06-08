@@ -20,6 +20,7 @@
     "@floating-ui/dom": "^1.7.6",
     "@fontsource/ibm-plex-mono": "^5.2.7",
     "@fontsource/ibm-plex-sans": "^5.2.8",
+    "@glyphide/micropython-engine": "workspace:*",
     "@glyphide/mock-engine": "workspace:*",
     "@glyphide/orchestrator": "workspace:*",
     "@glyphide/quickjs-engine": "workspace:*",

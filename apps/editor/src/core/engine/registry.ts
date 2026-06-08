@@ -46,9 +46,24 @@ export interface EngineRegistry {
   loadFactory(id: EngineId): Promise<EngineWorkerFactory>;
 }
 
-/** Creates the default `EngineRegistry` with QuickJS and Mock engines. */
+/** Creates the default `EngineRegistry` with QuickJS, MicroPython, and Mock engines. */
 export function createEngineRegistry(): EngineRegistry {
   const definitions: EngineDefinition[] = [
+    {
+      id: "micropython",
+      label: "MicroPython Engine",
+      supportedLanguages: ["python"],
+      defaultInitParams: { timeout: 30_000 },
+      paramDescriptors: [
+        { key: "timeout", label: "Execution Timeout (ms)", isEditable: true },
+      ],
+      loadFactory: async () => {
+        const { createMicropythonWorker } = await import(
+          "@glyphide/micropython-engine/adapter"
+        );
+        return createMicropythonWorker;
+      },
+    },
     {
       id: "quickjs",
       label: "QuickJS Engine",
