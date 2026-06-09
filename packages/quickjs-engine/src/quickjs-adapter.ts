@@ -333,12 +333,18 @@ export class QuickJSEngineAdapter {
     }
 
     const ctx = this.#context;
-    const fetchHandle = ctx.newFunction("fetch", (urlHandle) => {
+    const fetchHandle = ctx.newFunction("fetch", (urlHandle, initHandle) => {
       const url = ctx.getString(urlHandle);
+
+      const initObj =
+        initHandle && ctx.typeof(initHandle) === "object"
+          ? (ctx.dump(initHandle) as RequestInit)
+          : undefined;
+
       const promise = ctx.newPromise();
 
       globalThis
-        .fetch(url)
+        .fetch(url, initObj)
         .then(async (res) => {
           if (!(this.#context && this.#runtime)) {
             return; // Prevent memory access after dispose
