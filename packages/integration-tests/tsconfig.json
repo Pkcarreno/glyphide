@@ -15,6 +15,7 @@
     "sourceMap": true,
     "allowImportingTsExtensions": true,
     "emitDeclarationOnly": true,
+    "types": ["node"],
     "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo.json"
   },
   "include": ["src/**/*"],
