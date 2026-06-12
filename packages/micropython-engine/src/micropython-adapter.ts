@@ -104,23 +104,7 @@ export class MicropythonEngineAdapter {
         };
       }
 
-      this.#mp = await loadMicroPython({
-        url: resolvedWasmUrl,
-        stdout: (text: string) => {
-          this.#onNotification(EngineMethod.Output, {
-            type: "log",
-            data: text,
-          } satisfies MicropythonOutputPayload);
-        },
-        stderr: (text: string) => {
-          this.#onNotification(EngineMethod.Output, {
-            type: "error",
-            data: text,
-          } satisfies MicropythonOutputPayload);
-        },
-      });
-
-      installHttpClient(this.#mp);
+      await this.#initializeEngine();
 
       this.#sendResponse({
         jsonrpc: "2.0",
@@ -137,6 +121,28 @@ export class MicropythonEngineAdapter {
         },
       });
     }
+  }
+
+  async #initializeEngine(): Promise<void> {
+    this.dispose();
+
+    this.#mp = await loadMicroPython({
+      url: resolvedWasmUrl,
+      stdout: (text: string) => {
+        this.#onNotification(EngineMethod.Output, {
+          type: "log",
+          data: text,
+        } satisfies MicropythonOutputPayload);
+      },
+      stderr: (text: string) => {
+        this.#onNotification(EngineMethod.Output, {
+          type: "error",
+          data: text,
+        } satisfies MicropythonOutputPayload);
+      },
+    });
+
+    installHttpClient(this.#mp);
   }
 
   #handleRun(id: string | number | null, params?: unknown): void {
@@ -175,7 +181,7 @@ export class MicropythonEngineAdapter {
     }
   }
 
-  #handleReset(id: string | number | null): void {
+  async #handleReset(id: string | number | null): Promise<void> {
     if (!this.#mp) {
       this.#sendResponse({
         jsonrpc: "2.0",
@@ -189,6 +195,8 @@ export class MicropythonEngineAdapter {
     }
 
     try {
+      await this.#initializeEngine();
+
       this.#sendResponse({
         jsonrpc: "2.0",
         id,
