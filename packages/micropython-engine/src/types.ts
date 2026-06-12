@@ -9,7 +9,7 @@ export interface MicropythonEngineConfig {
 
 /** Discriminated output payload for Micropython engine. */
 export type MicropythonOutputPayload =
-  | { data: string; type: "error" | "log" }
+  | { data: string; type: "stderr" | "stdout" }
   | { data: string; type: "system" };
 
 export const defaultCapabilities = {
@@ -17,5 +17,5 @@ export const defaultCapabilities = {
   supportedLanguages: ["python"] as const,
   isStateful: true,
   isInterruptible: false,
-  outputTypes: ["log", "error", "system"] as const,
+  outputTypes: ["stderr", "stdout", "system"] as const,
 } satisfies EngineCapabilities;

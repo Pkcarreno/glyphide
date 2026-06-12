@@ -63,7 +63,7 @@ except Exception as e:
     print(f"Error: {e}")
     `);
 
-    const logOutputs = outputs.filter((o) => o.type === "log");
+    const logOutputs = outputs.filter((o) => o.type === "stdout");
     expect(logOutputs.length).toBeGreaterThan(0);
 
     const loggedValue = logOutputs[0].data as string;
@@ -88,7 +88,7 @@ except Exception as e:
     print(f"Error: {e}")
     `);
 
-    const logOutputs = outputs.filter((o) => o.type === "log");
+    const logOutputs = outputs.filter((o) => o.type === "stdout");
     expect(logOutputs.length).toBeGreaterThan(0);
 
     const loggedValue = logOutputs[0].data as string;
@@ -111,7 +111,7 @@ except Exception as e:
     print(f"Error: {e}")
     `);
 
-    const logOutputs = outputs.filter((o) => o.type === "log");
+    const logOutputs = outputs.filter((o) => o.type === "stdout");
     expect(logOutputs.length).toBeGreaterThan(0);
 
     const loggedValue = logOutputs[0].data as string;

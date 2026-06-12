@@ -60,7 +60,7 @@ describe("Orchestrator + Micropython Engine Integration", () => {
 
       // Micropython stdout adds a newline generally via print
       expect(outputs.length).toBeGreaterThan(0);
-      expect(outputs[0].type).toBe("log");
+      expect(outputs[0].type).toBe("stdout");
       expect(
         (outputs[0].data as string).includes("hello from micropython")
       ).toBe(true);

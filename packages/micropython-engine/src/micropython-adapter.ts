@@ -130,13 +130,13 @@ export class MicropythonEngineAdapter {
       url: resolvedWasmUrl,
       stdout: (text: string) => {
         this.#onNotification(EngineMethod.Output, {
-          type: "log",
+          type: "stdout",
           data: text,
         } satisfies MicropythonOutputPayload);
       },
       stderr: (text: string) => {
         this.#onNotification(EngineMethod.Output, {
-          type: "error",
+          type: "stderr",
           data: text,
         } satisfies MicropythonOutputPayload);
       },
