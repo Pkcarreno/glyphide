@@ -1,3 +1,4 @@
+import type { EngineWorkerFactory } from "@glyphide/orchestrator";
 import { EngineMethod, RpcErrorCode } from "@glyphide/rpc-protocol/constants";
 import {
   isJsonRpcNotification,
@@ -15,7 +16,11 @@ import {
 } from "@micropython/micropython-webassembly-pyscript/micropython.mjs";
 import wasmUrl from "@micropython/micropython-webassembly-pyscript/micropython.wasm?url";
 import { installHttpClient } from "./http-client.ts";
-import { defaultCapabilities, type MicropythonEngineConfig } from "./types.ts";
+import {
+  defaultCapabilities,
+  type MicropythonEngineConfig,
+  type MicropythonOutputPayload,
+} from "./types.ts";
 
 const resolvedWasmUrl =
   typeof process !== "undefined" &&
@@ -34,7 +39,7 @@ type ResponseSender = (
  * Integrates micropython to execute Python code safely in the browser.
  */
 export class MicropythonEngineAdapter {
-  readonly id = "micropython";
+  readonly id = defaultCapabilities.id;
   #config: Required<MicropythonEngineConfig>;
   #mp: MicroPythonInstance | null = null;
   #sendResponse: ResponseSender;
@@ -105,13 +110,13 @@ export class MicropythonEngineAdapter {
           this.#onNotification(EngineMethod.Output, {
             type: "log",
             data: text,
-          });
+          } satisfies MicropythonOutputPayload);
         },
         stderr: (text: string) => {
           this.#onNotification(EngineMethod.Output, {
             type: "error",
             data: text,
-          });
+          } satisfies MicropythonOutputPayload);
         },
       });
 
@@ -120,7 +125,7 @@ export class MicropythonEngineAdapter {
       this.#sendResponse({
         jsonrpc: "2.0",
         id,
-        result: { id: "micropython", timeout: 30_000, ...defaultCapabilities },
+        result: { timeout: 30_000, ...defaultCapabilities },
       });
     } catch (error) {
       this.#sendResponse({
@@ -202,7 +207,9 @@ export class MicropythonEngineAdapter {
   }
 }
 
-export const createMicropythonWorker = () =>
+export const createMicropythonWorker: EngineWorkerFactory<
+  MicropythonOutputPayload
+> = () =>
   new Worker(new URL("../worker/micropython-worker.mjs", import.meta.url), {
     type: "module",
   });

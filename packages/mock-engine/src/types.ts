@@ -1,16 +1,4 @@
-/**
- * Mock engine configuration types.
- */
-
-export interface MockCapabilities {
-  isInterruptible: boolean;
-  isStateful: boolean;
-  outputTypes: readonly string[];
-  /** Languages this mock engine can simulate. */
-  supportedLanguages: readonly string[];
-  /** Whether this engine may emit ENGINE.INPUT_REQUEST during RUN. */
-  supportsInput?: boolean;
-}
+import type { EngineCapabilities } from "@glyphide/rpc-protocol/types";
 
 /** Discriminated output payload for the mock engine. */
 export type MockOutputPayload =
@@ -19,7 +7,7 @@ export type MockOutputPayload =
 
 export interface MockEngineConfig {
   /** Capabilities exposed by the engine. Default: defaultCapabilities */
-  capabilities?: MockCapabilities;
+  capabilities?: Partial<EngineCapabilities>;
   /** Simulated init delay in ms. Default: 0 */
   initDelay?: number;
   /**
@@ -34,10 +22,11 @@ export interface MockEngineConfig {
   runError?: string | null;
 }
 
-export const defaultCapabilities: MockCapabilities = {
+export const defaultCapabilities = {
+  id: "mock",
   supportedLanguages: ["plaintext"],
   isStateful: true,
   isInterruptible: true,
   outputTypes: ["print", "log", "warn"] as const,
   supportsInput: false,
-};
+} satisfies EngineCapabilities;

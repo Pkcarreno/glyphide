@@ -1,3 +1,5 @@
+import type { EngineCapabilities } from "@glyphide/rpc-protocol/types";
+
 export interface QuickJSEngineConfig {
   /** Maximum memory allowed for the QuickJS runtime in bytes */
   memoryLimit?: number;
@@ -22,8 +24,9 @@ export type QuickJSOutputPayload =
   | { data: string; type: "system" };
 
 export const defaultCapabilities = {
+  id: "quickjs",
   supportedLanguages: ["javascript"] as const,
   isStateful: true,
   isInterruptible: true,
   outputTypes: ["log", "warn", "error", "info"] as const,
-};
+} satisfies EngineCapabilities;

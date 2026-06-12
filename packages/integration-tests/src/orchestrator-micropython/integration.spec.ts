@@ -21,7 +21,8 @@ describe("Orchestrator + Micropython Engine Integration", () => {
       const config = await orchestrator.init();
 
       expect(config).toHaveProperty("timeout", 30_000);
-      expect((config as any).syncExecution).toBe(false);
+      expect(config).toHaveProperty("id", "micropython");
+      expect(config).toHaveProperty("isStateful", true);
     });
   });
 

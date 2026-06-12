@@ -3,6 +3,7 @@
  * Simulates engine behavior without actual code execution.
  */
 
+import type { EngineWorkerFactory } from "@glyphide/orchestrator";
 import { EngineMethod, RpcErrorCode } from "@glyphide/rpc-protocol/constants";
 import {
   isJsonRpcNotification,
@@ -17,7 +18,7 @@ import type {
   JsonRpcRequest,
 } from "@glyphide/rpc-protocol/types";
 
-import type { MockEngineConfig } from "./types.ts";
+import type { MockEngineConfig, MockOutputPayload } from "./types.ts";
 import { defaultCapabilities } from "./types.ts";
 
 type NotificationHandler = (method: string, params?: object) => void;
@@ -33,7 +34,7 @@ type RequestSender = (method: string, id: JsonRpcId, params?: object) => void;
  * Used for testing orchestrator behavior and validating the RPC contract.
  */
 export class MockEngineAdapter {
-  readonly id = "mock";
+  readonly id = defaultCapabilities.id;
   #config: Required<MockEngineConfig>;
   #interrupted = false;
   #running = false;
@@ -152,8 +153,8 @@ export class MockEngineAdapter {
         jsonrpc: "2.0",
         id,
         result: {
-          id: "mock",
           timeout: 30_000,
+          ...defaultCapabilities,
           ...this.#config.capabilities,
         },
       });
@@ -206,7 +207,7 @@ export class MockEngineAdapter {
       this.#onNotification(EngineMethod.Output, {
         type: "print",
         data: code,
-      });
+      } satisfies MockOutputPayload);
       this.#sendResponse({
         jsonrpc: "2.0",
         id,
@@ -238,13 +239,13 @@ export class MockEngineAdapter {
     this.#onNotification(EngineMethod.Output, {
       type: "print",
       data: code,
-    });
+    } satisfies MockOutputPayload);
 
     if (values.length > 0) {
       this.#onNotification(EngineMethod.Output, {
         type: "print",
         data: values.join(", "),
-      });
+      } satisfies MockOutputPayload);
     }
 
     this.#sendResponse({
@@ -284,7 +285,7 @@ export class MockEngineAdapter {
       this.#onNotification(EngineMethod.Output, {
         type: "log",
         data: "Execution interrupted",
-      });
+      } satisfies MockOutputPayload);
     }
   }
 
@@ -303,7 +304,7 @@ export class MockEngineAdapter {
  * Factory function to create a new Web Worker running the Mock engine.
  * The worker file must be bundled or served correctly by the consumer.
  */
-export const createMockWorker = () =>
+export const createMockWorker: EngineWorkerFactory<MockOutputPayload> = () =>
   new Worker(new URL("../worker/mock-worker.mjs", import.meta.url), {
     type: "module",
   });

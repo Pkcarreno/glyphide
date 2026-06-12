@@ -34,7 +34,7 @@ type ResponseSender = (
  * Integrates quickjs-emscripten to execute arbitrary code safely.
  */
 export class QuickJSEngineAdapter {
-  readonly id = "quickjs";
+  readonly id = defaultCapabilities.id;
   #config: Required<QuickJSEngineConfig>;
   #runtime: QuickJSRuntime | null = null;
   #context: QuickJSContext | null = null;
@@ -129,7 +129,7 @@ export class QuickJSEngineAdapter {
       this.#sendResponse({
         jsonrpc: "2.0",
         id,
-        result: { id: "quickjs", timeout: 30_000, ...defaultCapabilities },
+        result: { timeout: 30_000, ...defaultCapabilities },
       });
     } catch (error) {
       this.#sendResponse({
@@ -311,7 +311,7 @@ export class QuickJSEngineAdapter {
         this.#onNotification(EngineMethod.Output, {
           type: method as "log" | "warn" | "error" | "info",
           data: tokens,
-        });
+        } satisfies QuickJSOutputPayload);
       }
     );
 

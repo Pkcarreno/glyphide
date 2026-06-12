@@ -95,6 +95,8 @@ export interface EngineCapabilities {
   isInterruptible: boolean;
   /** Whether the engine retains state between RUN calls. */
   isStateful: boolean;
+  /** Types of ENGINE.OUTPUT messages this engine can emit (e.g., 'log', 'error'). */
+  outputTypes?: readonly string[];
   /** Languages this engine can execute. */
   supportedLanguages: readonly string[];
   /** Whether the engine may emit ENGINE.INPUT_REQUEST during execution. */
