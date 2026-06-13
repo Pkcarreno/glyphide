@@ -52,4 +52,33 @@ describe("ConsoleMessage", () => {
     const { getByText } = render(() => <ConsoleMessage message="Code" />);
     expect(getByText("Code").className).toContain("font-mono");
   });
+
+  it("when children is provided, renders children instead of message", () => {
+    const { getByText } = render(() => (
+      <ConsoleMessage type="log">
+        <span>structured output</span>
+      </ConsoleMessage>
+    ));
+    expect(getByText("structured output")).toBeDefined();
+  });
+
+  it("when children is provided, applies variant styling to the wrapper", () => {
+    const { container } = render(() => (
+      <ConsoleMessage type="error">
+        <span>error content</span>
+      </ConsoleMessage>
+    ));
+    const wrapper = container.firstElementChild as HTMLElement;
+    expect(wrapper.className).toContain("text-error");
+    expect(wrapper.className).toContain("border-error");
+  });
+
+  it("when children is provided without message prop, renders without errors", () => {
+    const { getByText } = render(() => (
+      <ConsoleMessage>
+        <span>no message prop</span>
+      </ConsoleMessage>
+    ));
+    expect(getByText("no message prop")).toBeDefined();
+  });
 });

@@ -1,9 +1,14 @@
-import Pin from "lucide-solid/icons/pin";
 import Trash2 from "lucide-solid/icons/trash-2";
 import type { JSX } from "solid-js";
 import { For, splitProps } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
+import type { ConsoleVariant } from "../../core/engine/output-formatter.ts";
+import {
+  defaultFormat,
+  isConsoleTokenArray,
+} from "../../core/engine/output-formatter.ts";
 import { cn } from "../../helpers/cn.ts";
+import { ConsoleTokenView } from "../atoms/ConsoleTokenView/ConsoleTokenView.tsx";
 import { Icon } from "../atoms/Icon.tsx";
 import { ConsoleMessage } from "../molecules/ConsoleMessage.tsx";
 
@@ -16,7 +21,9 @@ interface ConsolePaneProps extends JSX.HTMLAttributes<HTMLElement> {
 
 /**
  * Output console organism.
- * Displays execution logs using ConsoleMessage molecules.
+ * Resolves the active engine's `outputFormatter` reactively and applies it to
+ * each `OutputEntry`. System and error entries emitted by the EngineModel or
+ * Orchestrator always bypass the engine formatter and use `defaultFormat`.
  */
 function ConsolePane(props: ConsolePaneProps) {
   const [local, rest] = splitProps(props, ["class"]);
@@ -24,6 +31,21 @@ function ConsolePane(props: ConsolePaneProps) {
 
   function handleClear() {
     core.dispatcher.dispatch({ type: "CLEAR_OUTPUT" });
+  }
+
+  /**
+   * Returns the formatter for the currently active engine, if any.
+   * Reading `activeEngineId()` inside a reactive context tracks updates.
+   */
+  function getFormatter() {
+    try {
+      const engineDefinition = core.engineRegistry.getDefinition(
+        core.engine.activeEngineId()
+      );
+      return engineDefinition.outputFormatter;
+    } catch {
+      return;
+    }
   }
 
   return (
@@ -41,13 +63,6 @@ function ConsolePane(props: ConsolePaneProps) {
         <div class="flex items-center gap-1">
           <button
             class="flex cursor-pointer items-center gap-1 rounded-sm border border-transparent px-1.5 py-0.5 font-medium text-on-surface-variant text-status-bar uppercase tracking-wider transition-colors hover:border-outline-variant hover:bg-surface-variant hover:text-on-surface"
-            type="button"
-          >
-            <Icon icon={Pin} size={10} />
-            Persist
-          </button>
-          <button
-            class="flex cursor-pointer items-center gap-1 rounded-sm border border-transparent px-1.5 py-0.5 font-medium text-on-surface-variant text-status-bar uppercase tracking-wider transition-colors hover:border-outline-variant hover:bg-surface-variant hover:text-on-surface"
             onClick={handleClear}
             type="button"
           >
@@ -59,21 +74,35 @@ function ConsolePane(props: ConsolePaneProps) {
 
       <div class="flex flex-1 flex-col overflow-auto py-2">
         <For each={core.output.entries()}>
-          {(entry) => (
-            <ConsoleMessage
-              class="whitespace-pre-wrap"
-              message={String(entry.data)}
-              type={
-                entry.type as
-                  | "error"
-                  | "log"
-                  | "warn"
-                  | "system"
-                  | null
-                  | undefined
-              }
-            />
-          )}
+          {(entry) => {
+            // System and EngineModel-emitted error entries always use defaultFormat.
+            // These are emitted by the Orchestrator / EngineModel directly and
+            // always carry string data — never ConsoleToken[].
+            const isBypassEntry =
+              entry.type === "system" || entry.type === "error";
+
+            const result = isBypassEntry
+              ? defaultFormat(entry)
+              : (getFormatter()?.format(entry) ?? defaultFormat(entry));
+
+            const variant = result.variant as ConsoleVariant;
+
+            if (result.tokens && isConsoleTokenArray(result.tokens)) {
+              return (
+                <ConsoleMessage class="whitespace-pre-wrap" type={variant}>
+                  <ConsoleTokenView tokens={result.tokens} />
+                </ConsoleMessage>
+              );
+            }
+
+            return (
+              <ConsoleMessage
+                class="whitespace-pre-wrap"
+                message={result.text ?? ""}
+                type={variant}
+              />
+            );
+          }}
         </For>
       </div>
     </section>

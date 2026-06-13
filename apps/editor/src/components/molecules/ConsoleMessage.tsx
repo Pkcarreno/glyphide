@@ -22,24 +22,35 @@ type ConsoleMessageVariants = VariantProps<typeof consoleMessageVariants>;
 interface ConsoleMessageProps
   extends JSX.HTMLAttributes<HTMLDivElement>,
     ConsoleMessageVariants {
+  /** JSX children for structured output (e.g. ConsoleTokenView). When set, `message` is ignored. */
+  children?: JSX.Element;
   class?: string;
-  /** The message text to display. */
-  message: string;
+  /** Plain text message. Required when `children` is not provided. */
+  message?: string;
 }
 
 /**
  * A formatted log entry for the console pane.
  * Visually distinguishes logs, warnings, errors, and system messages.
+ *
+ * Accepts either a plain `message` string or `children` JSX for structured
+ * output such as `ConsoleTokenView`. When `children` is provided, it takes
+ * precedence over `message`.
  */
 function ConsoleMessage(props: ConsoleMessageProps) {
-  const [local, rest] = splitProps(props, ["type", "message", "class"]);
+  const [local, rest] = splitProps(props, [
+    "type",
+    "message",
+    "children",
+    "class",
+  ]);
 
   return (
     <div
       class={cn(consoleMessageVariants({ type: local.type }), local.class)}
       {...rest}
     >
-      {local.message}
+      {local.children ?? local.message}
     </div>
   );
 }
