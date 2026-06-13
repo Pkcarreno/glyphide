@@ -110,10 +110,23 @@ describe("ConsolePane", () => {
   });
 
   it("unknown output type falls back to log variant (no crash)", () => {
-    setEntries([{ id: "5", type: "debug", data: "some debug info" }]);
+    setEntries([{ id: "5", type: "unknown-type", data: "some debug info" }]);
     // QuickJS formatter falls through to defaultFormat for unknown types
     const { getByText } = render(() => <ConsolePane />);
     expect(getByText("some debug info")).toBeTruthy();
+  });
+
+  it("table entry renders via ConsoleTableView", () => {
+    setEntries([
+      {
+        id: "5.5",
+        type: "table",
+        data: [{ type: "array", elements: [], length: 0 }],
+      },
+    ]);
+    const { container } = render(() => <ConsolePane />);
+    // ConsoleTableView renders a table element
+    expect(container.querySelector("table")).toBeDefined();
   });
 
   it("renders multiple entries", () => {

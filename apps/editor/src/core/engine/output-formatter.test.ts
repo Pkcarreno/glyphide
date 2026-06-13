@@ -10,7 +10,9 @@ describe("defaultFormat", () => {
     it.each([
       ["log", "log"],
       ["print", "log"],
-      ["info", "log"],
+      ["info", "info"],
+      ["debug", "debug"],
+      ["table", "table"],
       ["stdout", "log"],
       ["warn", "warn"],
       ["error", "error"],
@@ -22,7 +24,7 @@ describe("defaultFormat", () => {
     });
 
     it("when type is unknown, falls back to log variant", () => {
-      const result = defaultFormat(makeEntry("debug", "msg"));
+      const result = defaultFormat(makeEntry("unknown_custom_type", "msg"));
       expect(result.variant).toBe("log");
     });
 

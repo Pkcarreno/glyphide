@@ -8,6 +8,7 @@ import {
   isConsoleTokenArray,
 } from "../../core/engine/output-formatter.ts";
 import { cn } from "../../helpers/cn.ts";
+import { ConsoleTableView } from "../atoms/ConsoleTableView.tsx";
 import { ConsoleTokenView } from "../atoms/ConsoleTokenView/ConsoleTokenView.tsx";
 import { Icon } from "../atoms/Icon.tsx";
 import { ConsoleMessage } from "../molecules/ConsoleMessage.tsx";
@@ -91,6 +92,17 @@ function ConsolePane(props: ConsolePaneProps) {
             const variant = result.variant as ConsoleVariant;
 
             if (result.tokens && isConsoleTokenArray(result.tokens)) {
+              if (variant === "table" && result.tokens.length > 0) {
+                return (
+                  <ConsoleMessage type={variant}>
+                    <ConsoleTableView token={result.tokens[0]} />
+                    {result.tokens.length > 1 && (
+                      <ConsoleTokenView tokens={result.tokens.slice(1)} />
+                    )}
+                  </ConsoleMessage>
+                );
+              }
+
               return (
                 <ConsoleMessage class="whitespace-pre-wrap" type={variant}>
                   <ConsoleTokenView tokens={result.tokens} />

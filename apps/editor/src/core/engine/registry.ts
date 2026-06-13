@@ -120,6 +120,12 @@ export function createEngineRegistry(): EngineRegistry {
               variant = "warn";
             } else if (entry.type === "error") {
               variant = "error";
+            } else if (entry.type === "info") {
+              variant = "info";
+            } else if (entry.type === "debug") {
+              variant = "debug";
+            } else if (entry.type === "table") {
+              variant = "table";
             }
             return { variant, tokens };
           }

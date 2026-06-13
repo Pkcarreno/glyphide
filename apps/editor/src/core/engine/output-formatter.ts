@@ -2,7 +2,14 @@ import type { ConsoleToken } from "@glyphide/quickjs-engine/types";
 import type { OutputEntry } from "../models/output.ts";
 
 /** Visual style variants for the ConsolePane. */
-export type ConsoleVariant = "error" | "log" | "system" | "warn";
+export type ConsoleVariant =
+  | "error"
+  | "log"
+  | "system"
+  | "warn"
+  | "debug"
+  | "info"
+  | "table";
 
 /**
  * The normalized output of a formatter.
@@ -51,9 +58,14 @@ function typeToVariant(type: string): ConsoleVariant {
   switch (type) {
     case "log":
     case "print":
-    case "info":
     case "stdout":
       return "log";
+    case "info":
+      return "info";
+    case "debug":
+      return "debug";
+    case "table":
+      return "table";
     case "warn":
       return "warn";
     case "error":

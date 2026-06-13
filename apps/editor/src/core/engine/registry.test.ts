@@ -141,7 +141,7 @@ describe("Engine output formatters", () => {
     });
 
     it("falls back to defaultFormat for unknown type", () => {
-      const result = formatter.format(makeEntry("debug", "msg"));
+      const result = formatter.format(makeEntry("unknown-type", "msg"));
       expect(result.variant).toBe("log");
     });
   });
