@@ -62,7 +62,7 @@ describe("QuickJSEngineAdapter", () => {
         supportedLanguages: ["javascript"],
         isStateful: true,
         isInterruptible: true,
-        outputTypes: ["log", "warn", "error", "info"],
+        outputTypes: ["log", "warn", "error", "info", "debug", "table"],
       });
     });
   });
@@ -443,6 +443,72 @@ describe("QuickJSEngineAdapter", () => {
       expect(responses[0].result).toEqual({ executed: true, value: null });
 
       globalThis.fetch = originalFetch;
+    });
+    it("emits debug notification with structured tokens", async () => {
+      const notifications: CapturedNotification[] = [];
+
+      adapter.setup(
+        () => {
+          /* noop */
+        },
+        (m, p) =>
+          notifications.push({ method: m, params: p as { content?: string } })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: "console.debug('debug message');" },
+        id: 8,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(notifications).toHaveLength(1);
+      expect(notifications[0].method).toBe(EngineMethod.Output);
+      expect(notifications[0].params?.type).toBe("debug");
+      expect(notifications[0].params?.data).toEqual([
+        { type: "string", value: "debug message" },
+      ]);
+    });
+
+    it("emits table notification with structured tokens", async () => {
+      const notifications: CapturedNotification[] = [];
+
+      adapter.setup(
+        () => {
+          /* noop */
+        },
+        (m, p) =>
+          notifications.push({ method: m, params: p as { content?: string } })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: "console.table([{a: 1}]);" },
+        id: 9,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(notifications).toHaveLength(1);
+      expect(notifications[0].method).toBe(EngineMethod.Output);
+      expect(notifications[0].params?.type).toBe("table");
+      expect(notifications[0].params?.data).toEqual([
+        {
+          type: "array",
+          elements: [
+            {
+              type: "object",
+              properties: {
+                a: { type: "number", value: 1 },
+              },
+            },
+          ],
+          length: 1,
+        },
+      ]);
     });
   });
 

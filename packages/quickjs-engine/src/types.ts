@@ -27,7 +27,10 @@ export type ConsoleToken =
 
 /** Discriminated output payload for QuickJS engine. */
 export type QuickJSOutputPayload =
-  | { data: ConsoleToken[]; type: "error" | "info" | "log" | "warn" }
+  | {
+      data: ConsoleToken[];
+      type: "error" | "info" | "log" | "warn" | "debug" | "table";
+    }
   | { data: string; type: "system" };
 
 export const defaultCapabilities = {
@@ -35,5 +38,5 @@ export const defaultCapabilities = {
   supportedLanguages: ["javascript"] as const,
   isStateful: true,
   isInterruptible: true,
-  outputTypes: ["log", "warn", "error", "info"] as const,
+  outputTypes: ["log", "warn", "error", "info", "debug", "table"] as const,
 } satisfies EngineCapabilities;

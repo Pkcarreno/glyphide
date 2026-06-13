@@ -192,6 +192,8 @@ export const consoleAstSource = `
     warn: createLogger("warn"),
     error: createLogger("error"),
     info: createLogger("info"),
+    debug: createLogger("debug"),
+    table: createLogger("table"),
   };
 
   globalThis.console = console;
