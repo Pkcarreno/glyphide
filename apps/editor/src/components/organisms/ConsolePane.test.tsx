@@ -138,4 +138,31 @@ describe("ConsolePane", () => {
     expect(getByText("first")).toBeTruthy();
     expect(getByText("second")).toBeTruthy();
   });
+
+  it("renders group and groupCollapsed nodes correctly", () => {
+    setEntries([
+      { id: "8", type: "group", data: [{ type: "string", value: "My Group" }] },
+      { id: "9", type: "log", data: "Inside group" },
+      { id: "10", type: "groupEnd", data: undefined },
+      {
+        id: "11",
+        type: "groupCollapsed",
+        data: [{ type: "string", value: "Hidden Group" }],
+      },
+      { id: "12", type: "log", data: "Inside collapsed" },
+    ]);
+    const { container, getByText } = render(() => <ConsolePane />);
+
+    // Group label visible
+    expect(getByText("My Group")).toBeTruthy();
+
+    // Inside group log visible because defaultExpanded is true for "group"
+    expect(getByText("Inside group")).toBeTruthy();
+
+    // Collapsed group label visible
+    expect(getByText("Hidden Group")).toBeTruthy();
+
+    // Inside collapsed log NOT visible because defaultExpanded is false for "groupCollapsed"
+    expect(container.textContent).not.toContain("Inside collapsed");
+  });
 });

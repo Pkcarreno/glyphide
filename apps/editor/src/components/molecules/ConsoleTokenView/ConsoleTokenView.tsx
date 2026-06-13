@@ -1,9 +1,6 @@
 import type { ConsoleToken } from "@glyphide/quickjs-engine/types";
-import ChevronDown from "lucide-solid/icons/chevron-down";
-import ChevronRight from "lucide-solid/icons/chevron-right";
-import type { JSX } from "solid-js";
-import { createSignal, For, Show } from "solid-js";
-import { Icon } from "../../atoms/Icon.tsx";
+import { For, Show } from "solid-js";
+import { ExpandableNode } from "../../atoms/ExpandableNode.tsx";
 
 interface ConsoleTokenViewProps {
   /** The token array to render. */
@@ -13,34 +10,6 @@ interface ConsoleTokenViewProps {
 /** Truncation marker rendered when inline preview has more items. */
 function Ellipsis() {
   return <span class="text-on-surface-variant opacity-50">…</span>;
-}
-
-/** Helper component for interactive expandable collections */
-function ExpandableNode(props: {
-  preview: JSX.Element;
-  expanded: JSX.Element;
-}) {
-  const [isExpanded, setIsExpanded] = createSignal(false);
-
-  return (
-    <span class="inline-flex flex-col align-top">
-      <button
-        class="-ml-1 inline-flex cursor-pointer items-center gap-1 rounded px-1 transition-colors hover:bg-surface-variant/50"
-        onClick={() => setIsExpanded(!isExpanded())}
-        type="button"
-      >
-        <span class="text-on-surface-variant opacity-70">
-          <Icon icon={isExpanded() ? ChevronDown : ChevronRight} size={12} />
-        </span>
-        {props.preview}
-      </button>
-      <Show when={isExpanded()}>
-        <span class="mt-1 ml-1.5 flex flex-col gap-1 border-outline-variant/30 border-l pl-4">
-          {props.expanded}
-        </span>
-      </Show>
-    </span>
-  );
 }
 
 /** Renders a single ConsoleToken with type-appropriate styling. */
@@ -191,21 +160,18 @@ function TokenArray(props: {
   }
 
   return (
-    <ExpandableNode
-      expanded={
-        <For each={token.elements}>
-          {(element, index) => (
-            <span class="flex items-baseline gap-2">
-              <span class="min-w-[20px] text-right text-on-surface-variant opacity-50">
-                {index()}:
-              </span>
-              <Token token={element} />
+    <ExpandableNode preview={inlinePreview}>
+      <For each={token.elements}>
+        {(element, index) => (
+          <span class="flex items-baseline gap-2">
+            <span class="min-w-[20px] text-right text-on-surface-variant opacity-50">
+              {index()}:
             </span>
-          )}
-        </For>
-      }
-      preview={inlinePreview}
-    />
+            <Token token={element} />
+          </span>
+        )}
+      </For>
+    </ExpandableNode>
   );
 }
 
@@ -248,19 +214,16 @@ function TokenObject(props: {
   }
 
   return (
-    <ExpandableNode
-      expanded={
-        <For each={Object.entries(token.properties)}>
-          {([key, value]) => (
-            <span class="flex items-baseline gap-2">
-              <span class="text-on-surface-variant opacity-80">{key}:</span>
-              <Token token={value} />
-            </span>
-          )}
-        </For>
-      }
-      preview={inlinePreview}
-    />
+    <ExpandableNode preview={inlinePreview}>
+      <For each={Object.entries(token.properties)}>
+        {([key, value]) => (
+          <span class="flex items-baseline gap-2">
+            <span class="text-on-surface-variant opacity-80">{key}:</span>
+            <Token token={value} />
+          </span>
+        )}
+      </For>
+    </ExpandableNode>
   );
 }
 
@@ -305,20 +268,17 @@ function TokenMap(props: {
   }
 
   return (
-    <ExpandableNode
-      expanded={
-        <For each={token.entries}>
-          {([key, value]) => (
-            <span class="flex items-baseline gap-2">
-              <Token token={key} />
-              <span class="text-on-surface-variant opacity-50">=&gt;</span>
-              <Token token={value} />
-            </span>
-          )}
-        </For>
-      }
-      preview={inlinePreview}
-    />
+    <ExpandableNode preview={inlinePreview}>
+      <For each={token.entries}>
+        {([key, value]) => (
+          <span class="flex items-baseline gap-2">
+            <Token token={key} />
+            <span class="text-on-surface-variant opacity-50">=&gt;</span>
+            <Token token={value} />
+          </span>
+        )}
+      </For>
+    </ExpandableNode>
   );
 }
 
@@ -361,18 +321,15 @@ function TokenSet(props: {
   }
 
   return (
-    <ExpandableNode
-      expanded={
-        <For each={token.elements}>
-          {(element) => (
-            <span class="flex items-baseline gap-2">
-              <Token token={element} />
-            </span>
-          )}
-        </For>
-      }
-      preview={inlinePreview}
-    />
+    <ExpandableNode preview={inlinePreview}>
+      <For each={token.elements}>
+        {(element) => (
+          <span class="flex items-baseline gap-2">
+            <Token token={element} />
+          </span>
+        )}
+      </For>
+    </ExpandableNode>
   );
 }
 

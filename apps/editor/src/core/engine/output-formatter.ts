@@ -9,7 +9,10 @@ export type ConsoleVariant =
   | "warn"
   | "debug"
   | "info"
-  | "table";
+  | "table"
+  | "group"
+  | "groupCollapsed"
+  | "groupEnd";
 
 /**
  * The normalized output of a formatter.
@@ -73,6 +76,12 @@ function typeToVariant(type: string): ConsoleVariant {
       return "error";
     case "system":
       return "system";
+    case "group":
+      return "group";
+    case "groupCollapsed":
+      return "groupCollapsed";
+    case "groupEnd":
+      return "groupEnd";
     default:
       return "log";
   }

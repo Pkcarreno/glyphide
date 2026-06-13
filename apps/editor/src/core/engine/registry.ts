@@ -115,18 +115,18 @@ export function createEngineRegistry(): EngineRegistry {
           // Guard: data must be ConsoleToken[] — falls back to string on mismatch
           if (isConsoleTokenArray(entry.data)) {
             const tokens = entry.data as ConsoleToken[];
-            let variant: ConsoleVariant = "log";
-            if (entry.type === "warn") {
-              variant = "warn";
-            } else if (entry.type === "error") {
-              variant = "error";
-            } else if (entry.type === "info") {
-              variant = "info";
-            } else if (entry.type === "debug") {
-              variant = "debug";
-            } else if (entry.type === "table") {
-              variant = "table";
-            }
+            const variantMap: Record<string, ConsoleVariant> = {
+              log: "log",
+              warn: "warn",
+              error: "error",
+              info: "info",
+              debug: "debug",
+              table: "table",
+              group: "group",
+              groupCollapsed: "groupCollapsed",
+              groupEnd: "groupEnd",
+            };
+            const variant: ConsoleVariant = variantMap[entry.type] ?? "log";
             return { variant, tokens };
           }
           return defaultFormat(entry);
