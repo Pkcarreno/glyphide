@@ -5,6 +5,7 @@
 import { EngineMethod } from "@glyphide/rpc-protocol/constants";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { QuickJSEngineAdapter } from "./quickjs-adapter.ts";
+import type { ConsoleToken } from "./types.ts";
 
 interface CapturedResponse {
   error?: { code: number; message: string };
@@ -62,7 +63,17 @@ describe("QuickJSEngineAdapter", () => {
         supportedLanguages: ["javascript"],
         isStateful: true,
         isInterruptible: true,
-        outputTypes: ["log", "warn", "error", "info", "debug", "table"],
+        outputTypes: [
+          "log",
+          "warn",
+          "error",
+          "info",
+          "debug",
+          "table",
+          "group",
+          "groupCollapsed",
+          "groupEnd",
+        ],
       });
     });
   });
@@ -238,7 +249,7 @@ describe("QuickJSEngineAdapter", () => {
       await new Promise((r) => setTimeout(r, 50));
 
       expect(notifications).toHaveLength(1);
-      const tokens = notifications[0].params?.data as any[];
+      const tokens = notifications[0].params?.data as ConsoleToken[];
       expect(tokens[0]).toEqual({
         type: "map",
         entries: [
@@ -972,6 +983,174 @@ describe("QuickJSEngineAdapter", () => {
         { type: "string", value: "step2" },
         { type: "number", value: 2 },
       ]);
+    });
+  });
+
+  describe("console.group / groupCollapsed / groupEnd", () => {
+    beforeEach(async () => {
+      adapter.setup(
+        () => {
+          /* noop */
+        },
+        () => {
+          /* noop */
+        }
+      );
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Init,
+        id: "init",
+      });
+      await new Promise((r) => setTimeout(r, 50));
+    });
+
+    it("console.group emits 'group' notification with label token", async () => {
+      const notifications: CapturedNotification[] = [];
+
+      adapter.setup(
+        () => {
+          /* noop */
+        },
+        (m, p) =>
+          notifications.push({
+            method: m,
+            params: p as { type?: string; data?: unknown },
+          })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: 'console.group("Outer");' },
+        id: 30,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(notifications).toHaveLength(1);
+      expect(notifications[0].method).toBe(EngineMethod.Output);
+      expect(notifications[0].params?.type).toBe("group");
+      expect(notifications[0].params?.data).toEqual([
+        { type: "string", value: "Outer" },
+      ]);
+    });
+
+    it("console.group with no arguments emits empty token array", async () => {
+      const notifications: CapturedNotification[] = [];
+
+      adapter.setup(
+        () => {
+          /* noop */
+        },
+        (m, p) =>
+          notifications.push({
+            method: m,
+            params: p as { type?: string; data?: unknown },
+          })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: "console.group();" },
+        id: 31,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(notifications[0].params?.type).toBe("group");
+      expect(notifications[0].params?.data).toEqual([]);
+    });
+
+    it("console.groupCollapsed emits 'groupCollapsed' notification", async () => {
+      const notifications: CapturedNotification[] = [];
+
+      adapter.setup(
+        () => {
+          /* noop */
+        },
+        (m, p) =>
+          notifications.push({
+            method: m,
+            params: p as { type?: string; data?: unknown },
+          })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: 'console.groupCollapsed("Collapsed");' },
+        id: 32,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(notifications[0].params?.type).toBe("groupCollapsed");
+      expect(notifications[0].params?.data).toEqual([
+        { type: "string", value: "Collapsed" },
+      ]);
+    });
+
+    it("console.groupEnd emits 'groupEnd' notification with empty token array", async () => {
+      const notifications: CapturedNotification[] = [];
+
+      adapter.setup(
+        () => {
+          /* noop */
+        },
+        (m, p) =>
+          notifications.push({
+            method: m,
+            params: p as { type?: string; data?: unknown },
+          })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: "console.groupEnd();" },
+        id: 33,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(notifications[0].params?.type).toBe("groupEnd");
+      expect(notifications[0].params?.data).toEqual([]);
+    });
+
+    it("group sequence emits expected notification types in order", async () => {
+      const notifications: CapturedNotification[] = [];
+
+      adapter.setup(
+        () => {
+          /* noop */
+        },
+        (m, p) =>
+          notifications.push({
+            method: m,
+            params: p as { type?: string; data?: unknown },
+          })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: {
+          code: [
+            'console.group("outer");',
+            'console.log("child");',
+            "console.groupEnd();",
+          ].join("\n"),
+        },
+        id: 34,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(notifications).toHaveLength(3);
+      expect(notifications[0].params?.type).toBe("group");
+      expect(notifications[1].params?.type).toBe("log");
+      expect(notifications[2].params?.type).toBe("groupEnd");
     });
   });
 });

@@ -194,6 +194,11 @@ export const consoleAstSource = `
     info: createLogger("info"),
     debug: createLogger("debug"),
     table: createLogger("table"),
+    group: createLogger("group"),
+    groupCollapsed: createLogger("groupCollapsed"),
+    groupEnd: function() {
+      __glyphide_emit__("groupEnd", "[]");
+    },
   };
 
   globalThis.console = console;

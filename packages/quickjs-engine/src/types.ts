@@ -29,7 +29,16 @@ export type ConsoleToken =
 export type QuickJSOutputPayload =
   | {
       data: ConsoleToken[];
-      type: "error" | "info" | "log" | "warn" | "debug" | "table";
+      type:
+        | "error"
+        | "info"
+        | "log"
+        | "warn"
+        | "debug"
+        | "table"
+        | "group"
+        | "groupCollapsed"
+        | "groupEnd";
     }
   | { data: string; type: "system" };
 
@@ -38,5 +47,15 @@ export const defaultCapabilities = {
   supportedLanguages: ["javascript"] as const,
   isStateful: true,
   isInterruptible: true,
-  outputTypes: ["log", "warn", "error", "info", "debug", "table"] as const,
+  outputTypes: [
+    "log",
+    "warn",
+    "error",
+    "info",
+    "debug",
+    "table",
+    "group",
+    "groupCollapsed",
+    "groupEnd",
+  ] as const,
 } satisfies EngineCapabilities;
