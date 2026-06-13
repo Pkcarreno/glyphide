@@ -19,12 +19,52 @@ export const consoleAstSource = `
     if (t === "string") return { type: "string", value: value };
     if (t === "number") return { type: "number", value: value };
     if (t === "boolean") return { type: "boolean", value: value };
-    if (t === "function") return { type: "function", name: value.name || "" };
+    if (t === "bigint") return { type: "bigint", value: String(value) };
+    if (t === "function") {
+      var src = "";
+      try { src = String(value); } catch(e) {}
+      return { type: "function", name: value.name || "", source: src };
+    }
     if (t === "symbol") return { type: "symbol", description: String(value) };
 
     // Object or array — check for circular references
     if (seen.has(value)) return { type: "circular" };
     seen.add(value);
+
+    var classTag = Object.prototype.toString.call(value);
+
+    if (classTag === "[object Date]") {
+      seen.delete(value);
+      return { type: "date", value: value.toISOString ? value.toISOString() : String(value) };
+    }
+    if (classTag === "[object RegExp]") {
+      seen.delete(value);
+      return { type: "regexp", source: value.source, flags: value.flags };
+    }
+    if (classTag === "[object Error]") {
+      seen.delete(value);
+      return { type: "error", name: value.name, message: value.message, stack: value.stack };
+    }
+    if (classTag === "[object Promise]") {
+      seen.delete(value);
+      return { type: "promise" };
+    }
+    if (classTag === "[object Map]") {
+      var entries = [];
+      value.forEach(function(v, k) {
+        entries.push([tokenize(k, seen), tokenize(v, seen)]);
+      });
+      seen.delete(value);
+      return { type: "map", entries: entries, size: value.size };
+    }
+    if (classTag === "[object Set]") {
+      var elements = [];
+      value.forEach(function(v) {
+        elements.push(tokenize(v, seen));
+      });
+      seen.delete(value);
+      return { type: "set", elements: elements, size: value.size };
+    }
 
     if (Array.isArray(value)) {
       var elements = [];
@@ -96,6 +136,12 @@ export const consoleAstSource = `
             current = "";
           }
           result.push(substitutions[subIndex]);
+          subIndex++;
+          i += 2;
+          continue;
+        }
+        if (spec === "c") {
+          // Ignore CSS styling
           subIndex++;
           i += 2;
           continue;

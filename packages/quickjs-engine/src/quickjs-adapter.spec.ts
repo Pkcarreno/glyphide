@@ -205,6 +205,68 @@ describe("QuickJSEngineAdapter", () => {
       ]);
     });
 
+    it("tokenizes complex native objects (Map, Set, Error, RegExp, Date, BigInt, Promise)", async () => {
+      const notifications: CapturedNotification[] = [];
+
+      adapter.setup(
+        () => {
+          /* noop */
+        },
+        (m, p) =>
+          notifications.push({ method: m, params: p as { data?: unknown } })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: {
+          code: `
+            console.log(
+              new Map([["k", "v"]]),
+              new Set([1]),
+              new Error("test error"),
+              /abc/g,
+              new Date("2020-01-01T00:00:00.000Z"),
+              123n,
+              new Promise(() => {})
+            );
+          `,
+        },
+        id: 5,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(notifications).toHaveLength(1);
+      const tokens = notifications[0].params?.data as any[];
+      expect(tokens[0]).toEqual({
+        type: "map",
+        entries: [
+          [
+            { type: "string", value: "k" },
+            { type: "string", value: "v" },
+          ],
+        ],
+        size: 1,
+      });
+      expect(tokens[1]).toEqual({
+        type: "set",
+        elements: [{ type: "number", value: 1 }],
+        size: 1,
+      });
+      expect(tokens[2].type).toBe("error");
+      expect(tokens[2].name).toBe("Error");
+      expect(tokens[2].message).toBe("test error");
+      expect(typeof tokens[2].stack).toBe("string");
+      expect(tokens[3]).toEqual({ type: "regexp", source: "abc", flags: "g" });
+      expect(tokens[4]).toEqual({
+        type: "date",
+        value: "2020-01-01T00:00:00.000Z",
+      });
+      expect(tokens[5]).toEqual({ type: "bigint", value: "123" });
+      expect(tokens[6]).toEqual({ type: "promise" });
+    });
+
     it("handles circular references without crashing", async () => {
       const notifications: CapturedNotification[] = [];
 
@@ -257,7 +319,7 @@ describe("QuickJSEngineAdapter", () => {
       await new Promise((r) => setTimeout(r, 50));
 
       expect(notifications[0].params?.data).toEqual([
-        { type: "function", name: "myFn" },
+        { type: "function", name: "myFn", source: "function myFn() {}" },
       ]);
     });
 
