@@ -182,4 +182,107 @@ describe("ConsoleTokenView", () => {
       expect(container.textContent?.trim()).toBe("");
     });
   });
+  describe("map token", () => {
+    it("renders Map with size and entries", () => {
+      const { container } = render(() => (
+        <ConsoleTokenView
+          tokens={[
+            {
+              type: "map",
+              size: 1,
+              entries: [
+                [
+                  { type: "string", value: "key" },
+                  { type: "number", value: 100 },
+                ],
+              ],
+            },
+          ]}
+        />
+      ));
+      expect(container.textContent).toContain("Map(1)");
+      expect(container.textContent).toContain("key");
+      expect(container.textContent).toContain("=>");
+      expect(container.textContent).toContain("100");
+    });
+  });
+
+  describe("set token", () => {
+    it("renders Set with size and elements", () => {
+      const { container } = render(() => (
+        <ConsoleTokenView
+          tokens={[
+            {
+              type: "set",
+              size: 2,
+              elements: [
+                { type: "string", value: "one" },
+                { type: "string", value: "two" },
+              ],
+            },
+          ]}
+        />
+      ));
+      expect(container.textContent).toContain("Set(2)");
+      expect(container.textContent).toContain("one");
+      expect(container.textContent).toContain("two");
+    });
+  });
+
+  describe("date token", () => {
+    it("renders Date value", () => {
+      const { container } = render(() => (
+        <ConsoleTokenView
+          tokens={[{ type: "date", value: "2020-01-01T00:00:00.000Z" }]}
+        />
+      ));
+      expect(container.textContent).toContain("2020-01-01T00:00:00.000Z");
+    });
+  });
+
+  describe("regexp token", () => {
+    it("renders RegExp source and flags", () => {
+      const { container } = render(() => (
+        <ConsoleTokenView
+          tokens={[{ type: "regexp", source: "abc", flags: "gi" }]}
+        />
+      ));
+      expect(container.textContent).toContain("/abc/gi");
+    });
+  });
+
+  describe("bigint token", () => {
+    it("renders BigInt value with 'n' suffix", () => {
+      const { container } = render(() => (
+        <ConsoleTokenView
+          tokens={[{ type: "bigint", value: "9007199254740991" }]}
+        />
+      ));
+      expect(container.textContent).toContain("9007199254740991n");
+    });
+  });
+
+  describe("promise token", () => {
+    it("renders Promise placeholder", () => {
+      const { container } = render(() => (
+        <ConsoleTokenView tokens={[{ type: "promise" }]} />
+      ));
+      expect(container.textContent).toContain("Promise");
+      expect(container.textContent).toContain("{<pending>}");
+    });
+  });
+
+  describe("error token", () => {
+    it("renders Error name and message", () => {
+      const { container } = render(() => (
+        <ConsoleTokenView
+          tokens={[
+            { type: "error", name: "TypeError", message: "invalid operation" },
+          ]}
+        />
+      ));
+      expect(container.textContent).toContain("TypeError");
+      expect(container.textContent).toContain("invalid operation");
+    });
+  });
 });

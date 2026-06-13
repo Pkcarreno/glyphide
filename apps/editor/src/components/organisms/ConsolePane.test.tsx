@@ -17,9 +17,9 @@ const quickjsFormatter = {
     data: unknown;
   }) {
     if (Array.isArray(entry.data)) {
-      return { variant: "log" as const, tokens: entry.data };
+      return { variant: entry.type as any, tokens: entry.data };
     }
-    return { variant: "log" as const, text: String(entry.data ?? "") };
+    return { variant: entry.type as any, text: String(entry.data ?? "") };
   },
 };
 
@@ -73,13 +73,27 @@ describe("ConsolePane", () => {
     expect(messageElement.className).toContain("italic");
   });
 
-  it("engine error entry renders with error styling (bypasses engine formatter)", () => {
+  it("system error entry renders with error styling (bypasses engine formatter)", () => {
     setEntries([
       { id: "3", type: "error", data: "ReferenceError: x is not defined" },
     ]);
     const { getByText } = render(() => <ConsolePane />);
     const messageElement = getByText("ReferenceError: x is not defined");
     expect(messageElement.className).toContain("text-error");
+  });
+
+  it("engine error entry renders via ConsoleTokenView using formatter", () => {
+    setEntries([
+      {
+        id: "3.5",
+        type: "error",
+        data: [{ type: "error", name: "TypeError", message: "Engine error" }],
+      },
+    ]);
+    const { container } = render(() => <ConsolePane />);
+    // ConsoleTokenView should render the Error token
+    expect(container.textContent).toContain("TypeError");
+    expect(container.textContent).toContain("Engine error");
   });
 
   it("token entry (ConsoleToken array) renders via ConsoleTokenView", () => {

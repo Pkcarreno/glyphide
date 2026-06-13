@@ -49,13 +49,28 @@ function Token(props: { depth: number; token: ConsoleToken }) {
         <span class="text-on-surface-variant italic opacity-70">undefined</span>
       );
 
-    case "function":
+    case "function": {
+      const isArrow =
+        token.source?.includes("=>") && !token.source?.startsWith("function");
+      const isAsync = token.source?.startsWith("async ");
+      const isGenerator = token.source?.includes("function*");
+
+      let prefix = "ƒ";
+      if (isAsync) {
+        prefix = "async ƒ";
+      } else if (isGenerator) {
+        prefix = "ƒ*";
+      }
+
+      const name = token.name || (isArrow ? "" : "(anonymous)");
+
       return (
         <span class="text-on-surface-variant">
-          <span class="mr-0.5 opacity-70">ƒ</span>
-          {token.name}
+          <span class="mr-0.5 italic opacity-70">{prefix}</span>
+          {name}
         </span>
       );
+    }
 
     case "symbol":
       return (
@@ -108,6 +123,87 @@ function Token(props: { depth: number; token: ConsoleToken }) {
                 <span class="opacity-50">: </span>
                 <Token depth={depth + 1} token={val} />
                 <Show when={i() < entries.length - 1 || hasMore}>
+                  <span class="opacity-50">, </span>
+                </Show>
+              </>
+            )}
+          </For>
+          <Show when={hasMore}>
+            <Ellipsis />
+          </Show>
+          <span class="opacity-50">{"}"}</span>
+        </span>
+      );
+    }
+
+    case "bigint":
+      return <span class="text-log-warn">{String(token.value)}n</span>;
+
+    case "date":
+      return <span class="text-on-surface">{token.value}</span>;
+
+    case "regexp":
+      return (
+        <span class="text-log-error">
+          /{token.source}/{token.flags}
+        </span>
+      );
+
+    case "error":
+      return (
+        <span class="font-semibold text-log-error">
+          {token.name}: {token.message}
+        </span>
+      );
+
+    case "promise":
+      return (
+        <span class="text-on-surface-variant italic">
+          Promise <span class="opacity-70">{"{<pending>}"}</span>
+        </span>
+      );
+
+    case "map": {
+      const preview = token.entries.slice(0, 5);
+      const hasMore = token.entries.length > 5;
+      return (
+        <span class="text-on-surface">
+          <span class="opacity-50">
+            Map({token.size}) {"{"}
+          </span>
+          <For each={preview}>
+            {([k, v], i) => (
+              <>
+                <Token depth={depth + 1} token={k} />
+                <span class="opacity-50"> =&gt; </span>
+                <Token depth={depth + 1} token={v} />
+                <Show when={i() < preview.length - 1 || hasMore}>
+                  <span class="opacity-50">, </span>
+                </Show>
+              </>
+            )}
+          </For>
+          <Show when={hasMore}>
+            <Ellipsis />
+          </Show>
+          <span class="opacity-50">{"}"}</span>
+        </span>
+      );
+    }
+
+    case "set": {
+      const preview = token.elements.slice(0, 5);
+      const hasMore = token.elements.length > 5;
+      return (
+        <span class="text-on-surface">
+          <span class="opacity-50">
+            Set({token.size}) {"{"}
+          </span>
+          <For each={preview}>
+            {(el, i) => (
+              <>
+                <Token depth={depth + 1} token={el} />
+                <Show when={i() < preview.length - 1 || hasMore}>
                   <span class="opacity-50">, </span>
                 </Show>
               </>

@@ -78,8 +78,11 @@ function ConsolePane(props: ConsolePaneProps) {
             // System and EngineModel-emitted error entries always use defaultFormat.
             // These are emitted by the Orchestrator / EngineModel directly and
             // always carry string data — never ConsoleToken[].
+            // System entries are always bypassed. For errors, we only bypass if the data is a string
+            // (meaning it came from the Orchestrator/EngineModel directly) rather than from the engine's console.error.
             const isBypassEntry =
-              entry.type === "system" || entry.type === "error";
+              entry.type === "system" ||
+              (entry.type === "error" && typeof entry.data === "string");
 
             const result = isBypassEntry
               ? defaultFormat(entry)
