@@ -37,7 +37,7 @@ function ConsoleGroupView(props: ConsoleGroupViewProps) {
   );
 
   return (
-    <div class="border-transparent border-l-2 px-2 py-0.5">
+    <div class="shrink-0 border-transparent border-l-2 px-2 py-0.5">
       <ExpandableNode defaultExpanded={!props.node.collapsed} preview={preview}>
         <For each={props.node.children}>
           {(child) => props.renderNode(child)}

@@ -106,7 +106,7 @@ function ConsoleTableView(props: ConsoleTableViewProps) {
         const cols = () => getColumns(resolvedRows());
 
         return (
-          <div class="my-2 max-w-full overflow-x-auto rounded-md border border-outline-variant shadow-sm">
+          <div class="my-2 w-full overflow-x-auto rounded-md border border-outline-variant shadow-sm">
             <table class="w-full min-w-max table-auto border-collapse text-left text-sm">
               <thead class="bg-surface-variant font-medium text-on-surface-variant">
                 <tr>
