@@ -187,6 +187,9 @@ export const consoleAstSource = `
     };
   }
 
+  var timers = new Map();
+  var counters = new Map();
+
   var console = {
     log: createLogger("log"),
     warn: createLogger("warn"),
@@ -198,6 +201,100 @@ export const consoleAstSource = `
     groupCollapsed: createLogger("groupCollapsed"),
     groupEnd: function() {
       __glyphide_emit__("groupEnd", "[]");
+    },
+    time: function(label) {
+      label = label === undefined ? "default" : String(label);
+      if (timers.has(label)) {
+        createLogger("warn")("Timer '" + label + "' already exists");
+        return;
+      }
+      timers.set(label, Date.now());
+    },
+    timeLog: function(label) {
+      label = label === undefined ? "default" : String(label);
+      if (!timers.has(label)) {
+        createLogger("warn")("Timer '" + label + "' does not exist");
+        return;
+      }
+      var duration = Date.now() - timers.get(label);
+      var args = [label + ": " + duration + " ms"];
+      for (var a = 1; a < arguments.length; a++) args.push(arguments[a]);
+      var formatted = applyFormatting(args);
+      var tokens = [];
+      var seen = new WeakSet();
+      for (var i = 0; i < formatted.length; i++) tokens.push(tokenize(formatted[i], seen));
+      __glyphide_emit__("timeLog", JSON.stringify(tokens));
+    },
+    timeEnd: function(label) {
+      label = label === undefined ? "default" : String(label);
+      if (!timers.has(label)) {
+        createLogger("warn")("Timer '" + label + "' does not exist");
+        return;
+      }
+      var duration = Date.now() - timers.get(label);
+      timers.delete(label);
+      var formatted = applyFormatting([label + ": " + duration + " ms"]);
+      var tokens = [];
+      var seen = new WeakSet();
+      for (var i = 0; i < formatted.length; i++) tokens.push(tokenize(formatted[i], seen));
+      __glyphide_emit__("timeEnd", JSON.stringify(tokens));
+    },
+    count: function(label) {
+      label = label === undefined ? "default" : String(label);
+      var current = (counters.get(label) || 0) + 1;
+      counters.set(label, current);
+      var formatted = applyFormatting([label + ": " + current]);
+      var tokens = [];
+      var seen = new WeakSet();
+      for (var i = 0; i < formatted.length; i++) tokens.push(tokenize(formatted[i], seen));
+      __glyphide_emit__("count", JSON.stringify(tokens));
+    },
+    countReset: function(label) {
+      label = label === undefined ? "default" : String(label);
+      if (!counters.has(label)) {
+        createLogger("warn")("Count for '" + label + "' does not exist");
+        return;
+      }
+      counters.delete(label);
+    },
+    assert: function(condition) {
+      if (condition) return;
+      var args = ["Assertion failed"];
+      if (arguments.length > 1) {
+        var first = arguments[1];
+        if (typeof first !== "string") {
+          for (var a = 1; a < arguments.length; a++) args.push(arguments[a]);
+        } else {
+          args[0] += ": " + first;
+          for (var a = 2; a < arguments.length; a++) args.push(arguments[a]);
+        }
+      }
+      var formatted = applyFormatting(args);
+      var tokens = [];
+      var seen = new WeakSet();
+      for (var i = 0; i < formatted.length; i++) tokens.push(tokenize(formatted[i], seen));
+      __glyphide_emit__("assert", JSON.stringify(tokens));
+    },
+    trace: function() {
+      var args = [];
+      for (var a = 0; a < arguments.length; a++) args.push(arguments[a]);
+      var err = new Error();
+      if (args.length === 0) args.push("console.trace");
+      
+      var stack = err.stack || "";
+      var lines = stack.split("\\n");
+      if (lines.length > 0 && lines[0].indexOf("at trace") !== -1) {
+        lines.shift();
+      }
+      stack = lines.join("\\n").trimEnd();
+      
+      console.groupCollapsed.apply(console, args);
+      var formatted = applyFormatting([stack]);
+      var tokens = [];
+      var seen = new WeakSet();
+      for (var i = 0; i < formatted.length; i++) tokens.push(tokenize(formatted[i], seen));
+      __glyphide_emit__("trace", JSON.stringify(tokens));
+      console.groupEnd();
     },
   };
 

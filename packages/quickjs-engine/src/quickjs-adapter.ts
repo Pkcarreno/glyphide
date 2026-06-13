@@ -309,7 +309,7 @@ export class QuickJSEngineAdapter {
         }
 
         this.#onNotification(EngineMethod.Output, {
-          type: method as "log" | "warn" | "error" | "info",
+          type: method as Exclude<QuickJSOutputPayload["type"], "system">,
           data: tokens,
         } satisfies QuickJSOutputPayload);
       }

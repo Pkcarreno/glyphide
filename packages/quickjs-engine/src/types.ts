@@ -38,7 +38,12 @@ export type QuickJSOutputPayload =
         | "table"
         | "group"
         | "groupCollapsed"
-        | "groupEnd";
+        | "groupEnd"
+        | "timeLog"
+        | "timeEnd"
+        | "count"
+        | "assert"
+        | "trace";
     }
   | { data: string; type: "system" };
 
@@ -57,5 +62,10 @@ export const defaultCapabilities = {
     "group",
     "groupCollapsed",
     "groupEnd",
+    "timeLog",
+    "timeEnd",
+    "count",
+    "assert",
+    "trace",
   ] as const,
 } satisfies EngineCapabilities;

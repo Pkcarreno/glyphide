@@ -18,6 +18,8 @@ interface CapturedNotification {
   params?: { type?: string; data?: unknown };
 }
 
+const TIME_LOG_REGEX = /^foo: \d+ ms$/;
+
 describe("QuickJSEngineAdapter", () => {
   let adapter: QuickJSEngineAdapter;
 
@@ -73,6 +75,11 @@ describe("QuickJSEngineAdapter", () => {
           "group",
           "groupCollapsed",
           "groupEnd",
+          "timeLog",
+          "timeEnd",
+          "count",
+          "assert",
+          "trace",
         ],
       });
     });
@@ -1150,6 +1157,191 @@ describe("QuickJSEngineAdapter", () => {
       expect(notifications).toHaveLength(3);
       expect(notifications[0].params?.type).toBe("group");
       expect(notifications[1].params?.type).toBe("log");
+      expect(notifications[2].params?.type).toBe("groupEnd");
+    });
+  });
+
+  describe("console extended methods (trace, time, count, assert)", () => {
+    beforeEach(async () => {
+      adapter.setup(
+        () => {
+          /* noop */
+        },
+        () => {
+          /* noop */
+        }
+      );
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Init,
+        id: "init",
+      });
+      await new Promise((r) => setTimeout(r, 50));
+    });
+
+    it("console.assert emits 'assert' notification with formatted error message when condition is false", async () => {
+      const notifications: CapturedNotification[] = [];
+      adapter.setup(
+        () => undefined,
+        (m, p) =>
+          notifications.push({
+            method: m,
+            params: p as { type?: string; data?: unknown },
+          })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: 'console.assert(false, "Expected %d", 42);' },
+        id: 40,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+      expect(notifications).toHaveLength(1);
+      expect(notifications[0].params?.type).toBe("assert");
+      expect(notifications[0].params?.data).toEqual([
+        { type: "string", value: "Assertion failed: Expected 42" },
+      ]);
+    });
+
+    it("console.assert does not emit when condition is true", async () => {
+      const notifications: CapturedNotification[] = [];
+      adapter.setup(
+        () => undefined,
+        (m, p) =>
+          notifications.push({
+            method: m,
+            params: p as { type?: string; data?: unknown },
+          })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: 'console.assert(true, "Expected %d", 42);' },
+        id: 41,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+      expect(notifications).toHaveLength(0);
+    });
+
+    it("console.time, timeLog, timeEnd emit appropriate notifications", async () => {
+      const notifications: CapturedNotification[] = [];
+      adapter.setup(
+        () => undefined,
+        (m, p) =>
+          notifications.push({
+            method: m,
+            params: p as { type?: string; data?: unknown },
+          })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: {
+          code: [
+            'console.time("foo");',
+            'console.timeLog("foo", "step");',
+            'console.timeEnd("foo");',
+          ].join("\n"),
+        },
+        id: 42,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+      // time() doesn't emit unless it warns
+      expect(notifications).toHaveLength(2);
+      expect(notifications[0].params?.type).toBe("timeLog");
+      const logData = notifications[0].params?.data as any[];
+      expect(logData[0].type).toBe("string");
+      expect(logData[0].value).toMatch(TIME_LOG_REGEX);
+      expect(logData[1]).toEqual({ type: "string", value: "step" });
+
+      expect(notifications[1].params?.type).toBe("timeEnd");
+      const endData = notifications[1].params?.data as any[];
+      expect(endData[0].type).toBe("string");
+      expect(endData[0].value).toMatch(TIME_LOG_REGEX);
+    });
+
+    it("console.count emits incremental values", async () => {
+      const notifications: CapturedNotification[] = [];
+      adapter.setup(
+        () => undefined,
+        (m, p) =>
+          notifications.push({
+            method: m,
+            params: p as { type?: string; data?: unknown },
+          })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: {
+          code: [
+            "console.count();",
+            'console.count("foo");',
+            'console.count("foo");',
+            'console.countReset("foo");',
+            'console.count("foo");',
+          ].join("\n"),
+        },
+        id: 43,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+      expect(notifications).toHaveLength(4);
+      expect(notifications[0].params?.type).toBe("count");
+      expect(notifications[0].params?.data).toEqual([
+        { type: "string", value: "default: 1" },
+      ]);
+      expect(notifications[1].params?.data).toEqual([
+        { type: "string", value: "foo: 1" },
+      ]);
+      expect(notifications[2].params?.data).toEqual([
+        { type: "string", value: "foo: 2" },
+      ]);
+      // countReset does not emit
+      expect(notifications[3].params?.data).toEqual([
+        { type: "string", value: "foo: 1" },
+      ]);
+    });
+
+    it("console.trace emits groupCollapsed, trace, and groupEnd", async () => {
+      const notifications: CapturedNotification[] = [];
+      adapter.setup(
+        () => undefined,
+        (m, p) =>
+          notifications.push({
+            method: m,
+            params: p as { type?: string; data?: unknown },
+          })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: {
+          code: 'function myTrace() { console.trace("here"); } myTrace();',
+        },
+        id: 44,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+      expect(notifications).toHaveLength(3);
+      expect(notifications[0].params?.type).toBe("groupCollapsed");
+      expect(notifications[0].params?.data).toEqual([
+        { type: "string", value: "here" },
+      ]);
+
+      expect(notifications[1].params?.type).toBe("trace");
+      const traceData = notifications[1].params?.data as any[];
+      expect(traceData[0].type).toBe("string");
+      expect(traceData[0].value).toContain("myTrace");
+
       expect(notifications[2].params?.type).toBe("groupEnd");
     });
   });
