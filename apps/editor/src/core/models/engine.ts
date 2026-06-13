@@ -167,6 +167,7 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
       return;
     }
 
+    deps.output.clearEntries();
     terminate();
     setActiveEngineId(entry.engineId);
     setActiveLanguage(entry.language);

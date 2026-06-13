@@ -1,5 +1,12 @@
 import type { EngineWorkerFactory } from "@glyphide/orchestrator";
+import type { ConsoleToken } from "@glyphide/quickjs-engine/types";
 import type { EngineInitParams } from "@glyphide/rpc-protocol/types";
+import {
+  type ConsoleVariant,
+  defaultFormat,
+  isConsoleTokenArray,
+  type OutputFormatter,
+} from "./output-formatter.ts";
 
 /** Engine identifiers are now strings, validated at runtime. */
 export type EngineId = string;
@@ -27,6 +34,13 @@ export interface EngineDefinition {
   /** Human-readable engine name. */
   label: string;
   loadFactory: () => Promise<EngineWorkerFactory>;
+  /**
+   * Optional engine-specific output formatter.
+   * When absent, the ConsolePane falls back to `defaultFormat`.
+   * Formatters receive `OutputEntry` with `data: unknown` and MUST
+   * assert the concrete payload type internally with a runtime guard.
+   */
+  outputFormatter?: OutputFormatter;
   /** Metadata describing each configurable parameter. */
   paramDescriptors: readonly EngineParamDescriptor[];
   /** Languages this engine can execute. Declared statically. */
@@ -63,6 +77,21 @@ export function createEngineRegistry(): EngineRegistry {
         );
         return createMicropythonWorker;
       },
+      outputFormatter: {
+        format(entry) {
+          const text = String(entry.data ?? "");
+          switch (entry.type) {
+            case "stdout":
+              return { variant: "log", text };
+            case "stderr":
+              return { variant: "error", text };
+            case "system":
+              return { variant: "system", text };
+            default:
+              return defaultFormat(entry);
+          }
+        },
+      },
     },
     {
       id: "quickjs",
@@ -78,6 +107,25 @@ export function createEngineRegistry(): EngineRegistry {
         );
         return createQuickJSWorker;
       },
+      outputFormatter: {
+        format(entry) {
+          if (entry.type === "system") {
+            return { variant: "system", text: String(entry.data ?? "") };
+          }
+          // Guard: data must be ConsoleToken[] — falls back to string on mismatch
+          if (isConsoleTokenArray(entry.data)) {
+            const tokens = entry.data as ConsoleToken[];
+            let variant: ConsoleVariant = "log";
+            if (entry.type === "warn") {
+              variant = "warn";
+            } else if (entry.type === "error") {
+              variant = "error";
+            }
+            return { variant, tokens };
+          }
+          return defaultFormat(entry);
+        },
+      },
     },
     {
       id: "mock",
@@ -92,6 +140,22 @@ export function createEngineRegistry(): EngineRegistry {
           "@glyphide/mock-engine/adapter"
         );
         return createMockWorker;
+      },
+      outputFormatter: {
+        format(entry) {
+          const text = String(entry.data ?? "");
+          switch (entry.type) {
+            case "log":
+            case "print":
+              return { variant: "log", text };
+            case "warn":
+              return { variant: "warn", text };
+            case "system":
+              return { variant: "system", text };
+            default:
+              return defaultFormat(entry);
+          }
+        },
       },
     },
   ];

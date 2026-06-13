@@ -320,4 +320,94 @@ describe("EngineModel (Integration)", () => {
     // isDirty should reset to false once execution completes
     expect(model.isDirty()).toBe(false);
   });
+
+  it("clears output when switching to a different engine", async () => {
+    const model = createEngineModel({
+      buffer,
+      output,
+      settings,
+      registry,
+      urlState,
+    });
+    await model.selectEngineEntry({
+      engineId: "mock",
+      language: "javascript",
+      label: "",
+    });
+
+    // Manually add an output entry simulating prior engine output
+    output.appendEntry("log", "previous engine log");
+    expect(output.entries().length).toBeGreaterThan(0);
+
+    // Switch to a different engine
+    await model.selectEngineEntry({
+      engineId: "quickjs",
+      language: "javascript",
+      label: "",
+    });
+
+    // Output must be cleared before the new engine initializes
+    // The "Initializing engine…" system entry comes after the clear
+    expect(output.entries().some((e) => e.data === "previous engine log")).toBe(
+      false
+    );
+  });
+
+  it("does not clear output when re-selecting the same engine and language", async () => {
+    const model = createEngineModel({
+      buffer,
+      output,
+      settings,
+      registry,
+      urlState,
+    });
+    await model.selectEngineEntry({
+      engineId: "mock",
+      language: "javascript",
+      label: "",
+    });
+
+    output.appendEntry("log", "important log");
+    expect(output.entries().some((e) => e.data === "important log")).toBe(true);
+
+    // Re-select the same engine and language
+    await model.selectEngineEntry({
+      engineId: "mock",
+      language: "javascript",
+      label: "",
+    });
+
+    // Entry should still be present (same-entry path does not clear)
+    expect(output.entries().some((e) => e.data === "important log")).toBe(true);
+  });
+
+  it("clears output on engine switch regardless of isClearOnRunEnabled", async () => {
+    // isClearOnRunEnabled is false (set in beforeEach)
+    expect(settings.settings.isClearOnRunEnabled).toBe(false);
+
+    const model = createEngineModel({
+      buffer,
+      output,
+      settings,
+      registry,
+      urlState,
+    });
+    await model.selectEngineEntry({
+      engineId: "mock",
+      language: "javascript",
+      label: "",
+    });
+
+    output.appendEntry("log", "pre-switch log");
+
+    await model.selectEngineEntry({
+      engineId: "micropython",
+      language: "python",
+      label: "",
+    });
+
+    expect(output.entries().some((e) => e.data === "pre-switch log")).toBe(
+      false
+    );
+  });
 });

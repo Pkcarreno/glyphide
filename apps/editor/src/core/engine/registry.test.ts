@@ -49,3 +49,133 @@ describe("EngineRegistry", () => {
     ).toBe(true);
   });
 });
+
+function makeEntry(type: string, data: unknown) {
+  return { id: 0, timestamp: 0, type, data };
+}
+
+describe("Engine output formatters", () => {
+  const registry = createEngineRegistry();
+
+  describe("each engine has an outputFormatter defined", () => {
+    it.each([
+      "quickjs",
+      "micropython",
+      "mock",
+    ])("%s engine has outputFormatter", (engineId) => {
+      const engineDefinition = registry.getDefinition(engineId);
+      expect(engineDefinition.outputFormatter).toBeDefined();
+    });
+  });
+
+  describe("QuickJS formatter", () => {
+    const quickjsDefinition = registry.getDefinition("quickjs");
+    if (!quickjsDefinition.outputFormatter) {
+      throw new Error("QuickJS outputFormatter missing");
+    }
+    const formatter = quickjsDefinition.outputFormatter;
+
+    it("returns tokens when data is a ConsoleToken array", () => {
+      const tokens = [{ type: "number", value: 42 }];
+      const result = formatter.format(makeEntry("log", tokens));
+      expect(result.variant).toBe("log");
+      expect(result.tokens).toEqual(tokens);
+      expect(result.text).toBeUndefined();
+    });
+
+    it("maps warn type to warn variant with tokens", () => {
+      const tokens = [{ type: "string", value: "oops" }];
+      const result = formatter.format(makeEntry("warn", tokens));
+      expect(result.variant).toBe("warn");
+    });
+
+    it("maps error type to error variant with tokens", () => {
+      const tokens = [{ type: "string", value: "fail" }];
+      const result = formatter.format(makeEntry("error", tokens));
+      expect(result.variant).toBe("error");
+    });
+
+    it("falls back to text when data is a plain string (not ConsoleToken[])", () => {
+      const result = formatter.format(makeEntry("log", "plain string"));
+      expect(result.variant).toBe("log");
+      expect(result.text).toBe("plain string");
+      expect(result.tokens).toBeUndefined();
+    });
+
+    it("falls back to text when data is null", () => {
+      const result = formatter.format(makeEntry("log", null));
+      expect(result.text).toBeDefined();
+      expect(result.tokens).toBeUndefined();
+    });
+
+    it("renders system entry as system variant with text", () => {
+      const result = formatter.format(makeEntry("system", "Engine ready."));
+      expect(result.variant).toBe("system");
+      expect(result.text).toBe("Engine ready.");
+      expect(result.tokens).toBeUndefined();
+    });
+  });
+
+  describe("MicroPython formatter", () => {
+    const micropythonDefinition = registry.getDefinition("micropython");
+    if (!micropythonDefinition.outputFormatter) {
+      throw new Error("MicroPython outputFormatter missing");
+    }
+    const formatter = micropythonDefinition.outputFormatter;
+
+    it("maps stdout to log variant", () => {
+      const result = formatter.format(makeEntry("stdout", "hello"));
+      expect(result.variant).toBe("log");
+      expect(result.text).toBe("hello");
+    });
+
+    it("maps stderr to error variant", () => {
+      const result = formatter.format(makeEntry("stderr", "TypeError"));
+      expect(result.variant).toBe("error");
+      expect(result.text).toBe("TypeError");
+    });
+
+    it("maps system to system variant", () => {
+      const result = formatter.format(makeEntry("system", "Initializing..."));
+      expect(result.variant).toBe("system");
+    });
+
+    it("falls back to defaultFormat for unknown type", () => {
+      const result = formatter.format(makeEntry("debug", "msg"));
+      expect(result.variant).toBe("log");
+    });
+  });
+
+  describe("Mock formatter", () => {
+    const mockDefinition = registry.getDefinition("mock");
+    if (!mockDefinition.outputFormatter) {
+      throw new Error("Mock outputFormatter missing");
+    }
+    const formatter = mockDefinition.outputFormatter;
+
+    it("maps log to log variant", () => {
+      const result = formatter.format(makeEntry("log", "test"));
+      expect(result.variant).toBe("log");
+    });
+
+    it("maps print to log variant", () => {
+      const result = formatter.format(makeEntry("print", "test"));
+      expect(result.variant).toBe("log");
+    });
+
+    it("maps warn to warn variant", () => {
+      const result = formatter.format(makeEntry("warn", "test"));
+      expect(result.variant).toBe("warn");
+    });
+
+    it("maps system to system variant", () => {
+      const result = formatter.format(makeEntry("system", "msg"));
+      expect(result.variant).toBe("system");
+    });
+
+    it("falls back to defaultFormat for unknown type", () => {
+      const result = formatter.format(makeEntry("unknown-type", "msg"));
+      expect(result.variant).toBe("log");
+    });
+  });
+});
