@@ -377,9 +377,8 @@ function TokenSet(props: {
 }
 
 /**
- * Molecule that renders a `ConsoleToken[]` from the QuickJS engine.
- * Supports interactive DevTools-style expand/collapse behavior for
- * collections (objects, arrays, maps, sets).
+ * Molecule that renders a `ConsoleToken[]`.
+ * Provides interactive expansion for structured collections (objects, arrays, maps, sets).
  */
 function ConsoleTokenView(props: ConsoleTokenViewProps) {
   return (
