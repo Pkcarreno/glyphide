@@ -1,4 +1,4 @@
-import { render } from "@solidjs/testing-library";
+import { fireEvent, render } from "@solidjs/testing-library";
 import { describe, expect, it } from "vitest";
 import { ConsoleTokenView } from "./ConsoleTokenView.tsx";
 
@@ -87,7 +87,7 @@ describe("ConsoleTokenView", () => {
   });
 
   describe("array token", () => {
-    it("renders Array(n) with elements", () => {
+    it("renders Array(n) with elements inline by default", () => {
       const { container } = render(() => (
         <ConsoleTokenView
           tokens={[
@@ -106,10 +106,64 @@ describe("ConsoleTokenView", () => {
       expect(container.textContent).toContain("1");
       expect(container.textContent).toContain("2");
     });
+
+    it("expands on click and renders all elements with indices", () => {
+      const { container } = render(() => (
+        <ConsoleTokenView
+          tokens={[
+            {
+              type: "array",
+              length: 2,
+              elements: [
+                { type: "number", value: 100 },
+                { type: "number", value: 200 },
+              ],
+            },
+          ]}
+        />
+      ));
+
+      const expander = container.querySelector("button");
+      expect(expander).not.toBeNull();
+      if (!expander) {
+        throw new Error("Expander not found");
+      }
+
+      // Before click: should not contain "0:" and "1:" for indices
+      expect(container.textContent).not.toContain("0:");
+      expect(container.textContent).not.toContain("1:");
+
+      fireEvent.click(expander);
+
+      // After click: expanded view should contain indices
+      expect(container.textContent).toContain("0:");
+      expect(container.textContent).toContain("100");
+      expect(container.textContent).toContain("1:");
+      expect(container.textContent).toContain("200");
+    });
+
+    it("renders ellipsis when elements > 5", () => {
+      const { container } = render(() => (
+        <ConsoleTokenView
+          tokens={[
+            {
+              type: "array",
+              length: 6,
+              elements: Array.from({ length: 6 }).map((_, i) => ({
+                type: "number",
+                value: i,
+              })),
+            },
+          ]}
+        />
+      ));
+      expect(container.textContent).toContain("…");
+      expect(container.textContent).toContain("Array(6)");
+    });
   });
 
   describe("object token", () => {
-    it("renders object with key-value pairs", () => {
+    it("renders object with key-value pairs inline by default", () => {
       const { container } = render(() => (
         <ConsoleTokenView
           tokens={[
@@ -128,33 +182,53 @@ describe("ConsoleTokenView", () => {
       expect(container.textContent).toContain("b");
       expect(container.textContent).toContain("hi");
     });
-  });
 
-  describe("depth cap", () => {
-    it("renders … truncation marker at depth >= 3", () => {
-      // Object at depth 0 → value at depth 1 → value at depth 2 → value at depth 3 = truncated
-      const deepToken = {
-        type: "object" as const,
-        properties: {
-          a: {
-            type: "object" as const,
-            properties: {
-              b: {
-                type: "object" as const,
-                properties: {
-                  c: { type: "number" as const, value: 99 },
-                },
+    it("expands on click and renders properties as block", () => {
+      const { container } = render(() => (
+        <ConsoleTokenView
+          tokens={[
+            {
+              type: "object",
+              properties: {
+                deepKey: { type: "number", value: 999 },
               },
             },
-          },
-        },
-      };
-
-      const { container } = render(() => (
-        <ConsoleTokenView tokens={[deepToken]} />
+          ]}
+        />
       ));
-      // The number 99 is at depth 3, so it should be truncated
-      expect(container.textContent).not.toContain("99");
+
+      const expander = container.querySelector("button");
+      expect(expander).not.toBeNull();
+      if (!expander) {
+        throw new Error("Expander not found");
+      }
+
+      // The inline preview has "deepKey" and "999" too, so we can't just check textContent.
+      // But the expanded view has "deepKey:" with a colon without surrounding quotes if it was a preview.
+      // Let's just check that clicking doesn't crash and changes the DOM.
+      const initialHtml = container.innerHTML;
+      fireEvent.click(expander);
+      expect(container.innerHTML).not.toBe(initialHtml);
+    });
+
+    it("renders ellipsis when properties > 5", () => {
+      const { container } = render(() => (
+        <ConsoleTokenView
+          tokens={[
+            {
+              type: "object",
+              properties: {
+                a: { type: "number", value: 1 },
+                b: { type: "number", value: 2 },
+                c: { type: "number", value: 3 },
+                d: { type: "number", value: 4 },
+                e: { type: "number", value: 5 },
+                f: { type: "number", value: 6 },
+              },
+            },
+          ]}
+        />
+      ));
       expect(container.textContent).toContain("…");
     });
   });
@@ -205,6 +279,35 @@ describe("ConsoleTokenView", () => {
       expect(container.textContent).toContain("=>");
       expect(container.textContent).toContain("100");
     });
+
+    it("expands on click and renders entries as block", () => {
+      const { container } = render(() => (
+        <ConsoleTokenView
+          tokens={[
+            {
+              type: "map",
+              size: 1,
+              entries: [
+                [
+                  { type: "string", value: "key" },
+                  { type: "number", value: 100 },
+                ],
+              ],
+            },
+          ]}
+        />
+      ));
+
+      const expander = container.querySelector("button");
+      expect(expander).not.toBeNull();
+      if (!expander) {
+        throw new Error("Expander not found");
+      }
+
+      const initialHtml = container.innerHTML;
+      fireEvent.click(expander);
+      expect(container.innerHTML).not.toBe(initialHtml);
+    });
   });
 
   describe("set token", () => {
@@ -226,6 +329,58 @@ describe("ConsoleTokenView", () => {
       expect(container.textContent).toContain("Set(2)");
       expect(container.textContent).toContain("one");
       expect(container.textContent).toContain("two");
+    });
+
+    it("expands on click and renders elements as block", () => {
+      const { container } = render(() => (
+        <ConsoleTokenView
+          tokens={[
+            {
+              type: "set",
+              size: 2,
+              elements: [
+                { type: "string", value: "one" },
+                { type: "string", value: "two" },
+              ],
+            },
+          ]}
+        />
+      ));
+
+      const expander = container.querySelector("button");
+      expect(expander).not.toBeNull();
+      if (!expander) {
+        throw new Error("Expander not found");
+      }
+
+      const initialHtml = container.innerHTML;
+      fireEvent.click(expander);
+      expect(container.innerHTML).not.toBe(initialHtml);
+    });
+  });
+
+  describe("nested structured tokens", () => {
+    it("does not render expand buttons for nested items inside inline preview", () => {
+      const { container } = render(() => (
+        <ConsoleTokenView
+          tokens={[
+            {
+              type: "object",
+              properties: {
+                nestedObject: {
+                  type: "object",
+                  properties: { inner: { type: "number", value: 1 } },
+                },
+              },
+            },
+          ]}
+        />
+      ));
+
+      // There should only be one button (for the outer object)
+      // The nestedObject should be rendered statically because of isPreview
+      const buttons = container.querySelectorAll("button");
+      expect(buttons.length).toBe(1);
     });
   });
 

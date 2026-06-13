@@ -9,9 +9,9 @@ import {
 } from "../../core/engine/output-formatter.ts";
 import { cn } from "../../helpers/cn.ts";
 import { ConsoleTableView } from "../atoms/ConsoleTableView.tsx";
-import { ConsoleTokenView } from "../atoms/ConsoleTokenView/ConsoleTokenView.tsx";
 import { Icon } from "../atoms/Icon.tsx";
 import { ConsoleMessage } from "../molecules/ConsoleMessage.tsx";
+import { ConsoleTokenView } from "../molecules/ConsoleTokenView/ConsoleTokenView.tsx";
 
 /**
  * Props for the ConsolePane component.

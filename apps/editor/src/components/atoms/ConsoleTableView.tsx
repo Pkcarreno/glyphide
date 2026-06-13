@@ -1,6 +1,6 @@
 import type { ConsoleToken } from "@glyphide/quickjs-engine/types";
 import { For, Show } from "solid-js";
-import { ConsoleTokenView } from "./ConsoleTokenView/ConsoleTokenView.tsx";
+import { ConsoleTokenView } from "../molecules/ConsoleTokenView/ConsoleTokenView.tsx";
 
 interface ConsoleTableViewProps {
   token: ConsoleToken;
@@ -139,10 +139,7 @@ function ConsoleTableView(props: ConsoleTableViewProps) {
                                 when={cellToken}
                               >
                                 {(token) => (
-                                  <ConsoleTokenView
-                                    depth={0}
-                                    tokens={[token()]}
-                                  />
+                                  <ConsoleTokenView tokens={[token()]} />
                                 )}
                               </Show>
                             </td>
