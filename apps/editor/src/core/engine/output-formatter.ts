@@ -57,13 +57,17 @@ export function isConsoleTokenArray(value: unknown): value is ConsoleToken[] {
 }
 
 /** Maps an engine output type string to the nearest visual variant. */
-function typeToVariant(type: string): ConsoleVariant {
+export function typeToVariant(type: string): ConsoleVariant {
   switch (type) {
     case "log":
     case "print":
     case "stdout":
+    case "timeLog":
+    case "timeEnd":
+    case "trace":
       return "log";
     case "info":
+    case "count":
       return "info";
     case "debug":
       return "debug";
@@ -73,6 +77,7 @@ function typeToVariant(type: string): ConsoleVariant {
       return "warn";
     case "error":
     case "stderr":
+    case "assert":
       return "error";
     case "system":
       return "system";

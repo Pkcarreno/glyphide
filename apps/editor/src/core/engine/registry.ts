@@ -6,6 +6,7 @@ import {
   defaultFormat,
   isConsoleTokenArray,
   type OutputFormatter,
+  typeToVariant,
 } from "./output-formatter.ts";
 
 /** Engine identifiers are now strings, validated at runtime. */
@@ -115,18 +116,7 @@ export function createEngineRegistry(): EngineRegistry {
           // Guard: data must be ConsoleToken[] — falls back to string on mismatch
           if (isConsoleTokenArray(entry.data)) {
             const tokens = entry.data as ConsoleToken[];
-            const variantMap: Record<string, ConsoleVariant> = {
-              log: "log",
-              warn: "warn",
-              error: "error",
-              info: "info",
-              debug: "debug",
-              table: "table",
-              group: "group",
-              groupCollapsed: "groupCollapsed",
-              groupEnd: "groupEnd",
-            };
-            const variant: ConsoleVariant = variantMap[entry.type] ?? "log";
+            const variant: ConsoleVariant = typeToVariant(entry.type);
             return { variant, tokens };
           }
           return defaultFormat(entry);
