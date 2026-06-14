@@ -10,6 +10,7 @@ import {
   isJsonRpcRequest,
 } from "@glyphide/rpc-protocol/guards";
 import type {
+  EngineInitResult,
   EngineInputRequestParams,
   EngineOutputPayload,
   JsonRpcFailResponse,
@@ -19,24 +20,6 @@ import type {
 } from "@glyphide/rpc-protocol/types";
 import { MessageBus } from "./message-bus.ts";
 import { PromiseRegistry } from "./promise-registry.ts";
-
-/**
- * Result returned by the engine after a successful INIT handshake.
- * The orchestrator extracts `timeout` for internal use and forwards
- * the full result to consumers via `onEngineReady`.
- *
- * This is a re-export alias — the canonical definition lives in
- * `@glyphide/rpc-protocol/types` as `EngineInitResult`.
- */
-export interface EngineInitResult {
-  id: string;
-  isInterruptible: boolean;
-  isStateful: boolean;
-  supportedLanguages: readonly string[];
-  /** Whether the engine may emit ENGINE.INPUT_REQUEST during execution. */
-  supportsInput?: boolean;
-  timeout: number;
-}
 
 /**
  * Phantom-typed worker factory.
