@@ -54,7 +54,7 @@ describe("Tooltip (Molecule)", () => {
 
   it("when action not found, does not render shortcut", () => {
     const { getByRole } = render(() => (
-      <Tooltip action={{ type: "UNKNOWN" } as any} as="button" text="Unknown">
+      <Tooltip action={{ type: "CLEAR_OUTPUT" }} as="button" text="Clear">
         Hover me
       </Tooltip>
     ));

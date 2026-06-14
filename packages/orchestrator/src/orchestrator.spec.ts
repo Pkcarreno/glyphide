@@ -3,6 +3,10 @@
  */
 
 import { EngineMethod } from "@glyphide/rpc-protocol/constants";
+import type {
+  EngineOutputPayload,
+  JsonRpcRequest,
+} from "@glyphide/rpc-protocol/types";
 import { describe, expect, it } from "vitest";
 import { EngineOrchestrator } from "./orchestrator.ts";
 import { PromiseRegistry } from "./promise-registry.ts";
@@ -56,13 +60,14 @@ describe("EngineOrchestrator", () => {
           terminate: () => {
             /* noop */
           },
-          postMessage: (data: any) => {
+          postMessage: (data: unknown) => {
+            const msg = data as JsonRpcRequest;
             // Simulate instant successful Init so the orchestrator is ready
-            if (data.method === EngineMethod.Init) {
+            if (msg.method === EngineMethod.Init) {
               mockWorkerFactory.currentOnMessage?.({
                 data: {
                   jsonrpc: "2.0",
-                  id: data.id,
+                  id: msg.id,
                   result: {
                     id: "test",
                     timeout: 30_000,
@@ -75,15 +80,17 @@ describe("EngineOrchestrator", () => {
             }
             // For EngineMethod.Run, we do nothing to simulate a FREEZE
           },
-          set onmessage(handler: any) {
+          set onmessage(handler: ((ev: MessageEvent) => void) | null) {
             mockWorkerFactory.currentOnMessage = handler;
           },
         } as unknown as Worker;
       };
 
-      mockWorkerFactory.currentOnMessage = null as any;
+      mockWorkerFactory.currentOnMessage = null as
+        | ((ev: MessageEvent) => void)
+        | null;
 
-      const systemOutputs: any[] = [];
+      const systemOutputs: EngineOutputPayload[] = [];
       const orchestrator = new EngineOrchestrator({
         createWorker: mockWorkerFactory,
         useWorker: true,

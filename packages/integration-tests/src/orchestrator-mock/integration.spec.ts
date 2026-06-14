@@ -6,6 +6,7 @@
  */
 
 import { EngineOrchestrator } from "@glyphide/orchestrator";
+import type { EngineInitResult } from "@glyphide/rpc-protocol/types";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   createMockConfig,
@@ -32,7 +33,7 @@ describe("Orchestrator + Mock Engine Integration", () => {
       expect(config).toHaveProperty("timeout", 30_000);
       expect(config).toHaveProperty("isStateful", true);
       expect(config).toHaveProperty("isInterruptible", true);
-      expect((config as any).outputTypes).toContain("print");
+      expect(config.outputTypes).toContain("print");
     });
 
     it("accepts and applies configuration overrides via init parameters", async () => {
@@ -45,7 +46,7 @@ describe("Orchestrator + Mock Engine Integration", () => {
         },
       });
 
-      const config = (await orchestrator.init(customConfig)) as any;
+      const config = await orchestrator.init(customConfig);
 
       expect(config.isStateful).toBe(false);
       expect(config.isInterruptible).toBe(false);
@@ -284,7 +285,7 @@ describe("Orchestrator + Mock Engine Integration", () => {
 
   describe("timeout", () => {
     it("rejects execution if engine exceeds timeout", async () => {
-      // Override timeout capability to 100ms via any casting
+      // Override timeout capability to 100ms via never casting
       const mockConfig = createMockConfig({
         runDelay: 300,
         capabilities: {
@@ -293,7 +294,7 @@ describe("Orchestrator + Mock Engine Integration", () => {
           isInterruptible: true,
           supportedLanguages: ["plaintext"],
           outputTypes: ["print"],
-        } as any,
+        } as Partial<EngineInitResult>,
       });
 
       await orchestrator.init(mockConfig);

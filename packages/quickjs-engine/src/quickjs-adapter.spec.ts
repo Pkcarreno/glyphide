@@ -1297,13 +1297,13 @@ describe("QuickJSEngineAdapter", () => {
       // time() doesn't emit unless it warns
       expect(notifications).toHaveLength(2);
       expect(notifications[0].params?.type).toBe("timeLog");
-      const logData = notifications[0].params?.data as any[];
+      const logData = notifications[0].params?.data as ConsoleToken[];
       expect(logData[0].type).toBe("string");
       expect(logData[0].value).toMatch(TIME_LOG_REGEX);
       expect(logData[1]).toEqual({ type: "string", value: "step" });
 
       expect(notifications[1].params?.type).toBe("timeEnd");
-      const endData = notifications[1].params?.data as any[];
+      const endData = notifications[1].params?.data as ConsoleToken[];
       expect(endData[0].type).toBe("string");
       expect(endData[0].value).toMatch(TIME_LOG_REGEX);
     });
@@ -1380,7 +1380,7 @@ describe("QuickJSEngineAdapter", () => {
       ]);
 
       expect(notifications[1].params?.type).toBe("trace");
-      const traceData = notifications[1].params?.data as any[];
+      const traceData = notifications[1].params?.data as ConsoleToken[];
       expect(traceData[0].type).toBe("string");
       expect(traceData[0].value).toContain("myTrace");
 

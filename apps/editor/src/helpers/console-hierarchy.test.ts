@@ -1,3 +1,4 @@
+import type { ConsoleToken } from "@glyphide/quickjs-engine/types";
 import { describe, expect, it } from "vitest";
 import type {
   ConsoleVariant,
@@ -11,7 +12,7 @@ describe("flattenConsoleEntries", () => {
 
   function makeItem(
     variant: ConsoleVariant,
-    tokens?: any[]
+    tokens?: ConsoleToken[]
   ): { entry: OutputEntry; rendered: RenderedOutput } {
     return {
       entry: mockEntry,

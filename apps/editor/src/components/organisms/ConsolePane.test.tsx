@@ -1,6 +1,8 @@
+import type { ConsoleToken } from "@glyphide/quickjs-engine/types";
 import { render } from "@solidjs/testing-library";
 import { createSignal } from "solid-js";
 import { describe, expect, it, vi } from "vitest";
+import type { ConsoleVariant } from "../../core/engine/output-formatter.ts";
 import { ConsolePane } from "./ConsolePane.tsx";
 
 const dispatchMock = vi.fn();
@@ -17,9 +19,15 @@ const quickjsFormatter = {
     data: unknown;
   }) {
     if (Array.isArray(entry.data)) {
-      return { variant: entry.type as any, tokens: entry.data };
+      return {
+        variant: entry.type as ConsoleVariant,
+        tokens: entry.data as ConsoleToken[],
+      };
     }
-    return { variant: entry.type as any, text: String(entry.data ?? "") };
+    return {
+      variant: entry.type as ConsoleVariant,
+      text: String(entry.data ?? ""),
+    };
   },
 };
 

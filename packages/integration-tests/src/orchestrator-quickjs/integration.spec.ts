@@ -22,7 +22,7 @@ describe("Orchestrator + QuickJS Engine Integration", () => {
       expect(config).toHaveProperty("timeout", 30_000);
       expect(config).toHaveProperty("isStateful", true);
       expect(config).toHaveProperty("isInterruptible", true);
-      expect((config as any).outputTypes).toContain("log");
+      expect(config.outputTypes).toContain("log");
     });
   });
 
