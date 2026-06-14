@@ -1,5 +1,6 @@
 import { fireEvent, render } from "@solidjs/testing-library";
 import { describe, expect, it, vi } from "vitest";
+import type { OutputEntry } from "../../core/models/output.ts";
 import type { FlatConsoleItem } from "../../helpers/console-hierarchy.ts";
 import { ConsoleGroupView } from "./ConsoleGroupView.tsx";
 
@@ -9,7 +10,7 @@ describe("ConsoleGroupView", () => {
     timestamp: 0,
     type: "log",
     data: "",
-  } as import("../../core/models/output.ts").OutputEntry;
+  } as OutputEntry;
 
   const mockItem: FlatConsoleItem = {
     id: 0,
