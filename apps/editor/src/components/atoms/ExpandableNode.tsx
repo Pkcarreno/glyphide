@@ -5,6 +5,17 @@ import { createSignal, Show } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { Icon } from "./Icon.tsx";
 
+/**
+ * Configuration props for the ExpandableNode component.
+ *
+ * Intent: Defines the content, initial visual state, and an optional persistence key
+ * for the togglable view.
+ *
+ * Edge cases: If `stateKey` is omitted, the expansion state relies entirely on local
+ * component state and will reset if the component unmounts.
+ *
+ * Side effects: None.
+ */
 interface ExpandableNodeProps {
   /** Content shown in the expanded state. */
   children: JSX.Element;
@@ -13,7 +24,11 @@ interface ExpandableNodeProps {
   defaultExpanded?: boolean;
   /** Inline content shown as the toggle trigger / collapsed preview. */
   preview: JSX.Element;
+  /** Optional stable object reference to persist the expanded state across remounts (e.g. when scrolling out of view in a VirtualList). */
+  stateKey?: object;
 }
+
+const globalExpandedState = new WeakMap<object, boolean>();
 
 /**
  * Atom that renders a chevron-toggled expandable node.
@@ -24,15 +39,27 @@ interface ExpandableNodeProps {
  * `console.groupCollapsed` sets it to `false`, `console.group` to `true`.
  */
 function ExpandableNode(props: ExpandableNodeProps) {
-  const [isExpanded, setIsExpanded] = createSignal(
-    props.defaultExpanded ?? false
-  );
+  const initial = props.stateKey
+    ? (globalExpandedState.get(props.stateKey) ??
+      props.defaultExpanded ??
+      false)
+    : (props.defaultExpanded ?? false);
+
+  const [isExpanded, setIsExpanded] = createSignal(initial);
+
+  const toggle = () => {
+    const next = !isExpanded();
+    setIsExpanded(next);
+    if (props.stateKey) {
+      globalExpandedState.set(props.stateKey, next);
+    }
+  };
 
   return (
     <span class={cn("inline-flex flex-col align-top", props.class)}>
       <button
         class="-ml-1 inline-flex cursor-pointer items-center gap-1 rounded px-1 transition-colors hover:bg-surface-variant/50"
-        onClick={() => setIsExpanded(!isExpanded())}
+        onClick={toggle}
         type="button"
       >
         <span class="text-on-surface-variant opacity-70">

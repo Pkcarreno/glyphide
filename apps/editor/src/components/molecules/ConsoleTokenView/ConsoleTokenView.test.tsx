@@ -129,17 +129,46 @@ describe("ConsoleTokenView", () => {
         throw new Error("Expander not found");
       }
 
-      // Before click: should not contain "0:" and "1:" for indices
       expect(container.textContent).not.toContain("0:");
       expect(container.textContent).not.toContain("1:");
 
       fireEvent.click(expander);
 
-      // After click: expanded view should contain indices
       expect(container.textContent).toContain("0:");
       expect(container.textContent).toContain("100");
       expect(container.textContent).toContain("1:");
       expect(container.textContent).toContain("200");
+    });
+
+    it("persists expanded state when remounted with the same token reference", () => {
+      const tokenArray = {
+        type: "array" as const,
+        length: 2,
+        elements: [
+          { type: "number" as const, value: 50 },
+          { type: "number" as const, value: 60 },
+        ],
+      };
+
+      const { container, unmount } = render(() => (
+        <ConsoleTokenView tokens={[tokenArray]} />
+      ));
+
+      const expander = container.querySelector("button");
+      if (!expander) {
+        throw new Error("Expander not found");
+      }
+      fireEvent.click(expander);
+      expect(container.textContent).toContain("50");
+
+      unmount();
+
+      const { container: container2 } = render(() => (
+        <ConsoleTokenView tokens={[tokenArray]} />
+      ));
+
+      expect(container2.textContent).toContain("0:");
+      expect(container2.textContent).toContain("50");
     });
 
     it("renders ellipsis when elements > 5", () => {

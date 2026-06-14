@@ -1,6 +1,6 @@
-import { render } from "@solidjs/testing-library";
-import { describe, expect, it } from "vitest";
-import type { ConsoleGroupNode } from "../../helpers/console-hierarchy.ts";
+import { fireEvent, render } from "@solidjs/testing-library";
+import { describe, expect, it, vi } from "vitest";
+import type { FlatConsoleItem } from "../../helpers/console-hierarchy.ts";
 import { ConsoleGroupView } from "./ConsoleGroupView.tsx";
 
 describe("ConsoleGroupView", () => {
@@ -11,120 +11,50 @@ describe("ConsoleGroupView", () => {
     data: "",
   } as import("../../core/models/output.ts").OutputEntry;
 
+  const mockItem: FlatConsoleItem = {
+    id: 0,
+    entry: mockOutputEntry,
+    rendered: { variant: "group" },
+    depth: 0,
+    isGroup: true,
+    isCollapsed: false,
+    groupLabel: [],
+  };
+
   it("renders a <no label> preview when label is empty", () => {
-    const mockGroupNode: ConsoleGroupNode = {
-      type: "group",
-      entry: mockOutputEntry,
-      label: [],
-      collapsed: false,
-      children: [],
-    };
     const { container } = render(() => (
-      <ConsoleGroupView node={mockGroupNode} renderNode={() => <span />} />
+      <ConsoleGroupView
+        item={mockItem}
+        onToggle={() => {
+          /* noop */
+        }}
+      />
     ));
     expect(container.textContent).toContain("<no label>");
   });
 
   it("renders the label using ConsoleTokenView when tokens are provided", () => {
-    const mockGroupNode: ConsoleGroupNode = {
-      type: "group",
-      entry: mockOutputEntry,
-      label: [{ type: "string", value: "My Custom Group" }],
-      collapsed: false,
-      children: [],
+    const itemWithLabel = {
+      ...mockItem,
+      groupLabel: [{ type: "string" as const, value: "My Custom Group" }],
     };
     const { container } = render(() => (
-      <ConsoleGroupView node={mockGroupNode} renderNode={() => <span />} />
+      <ConsoleGroupView
+        item={itemWithLabel}
+        onToggle={() => {
+          /* noop */
+        }}
+      />
     ));
     expect(container.textContent).toContain("My Custom Group");
   });
 
-  it("passes defaultExpanded=true to ExpandableNode when collapsed is false", () => {
-    const mockGroupNode: ConsoleGroupNode = {
-      type: "group",
-      entry: mockOutputEntry,
-      label: [{ type: "string", value: "Group" }],
-      collapsed: false, // console.group
-      children: [
-        {
-          type: "leaf",
-          entry: mockOutputEntry,
-          rendered: { variant: "log", text: "Child Content" },
-        },
-      ],
-    };
-    const { container } = render(() => (
-      <ConsoleGroupView
-        node={mockGroupNode}
-        renderNode={(childNode) => (
-          <span>
-            {childNode.type === "leaf" ? childNode.rendered.text : ""}
-          </span>
-        )}
-      />
+  it("fires onToggle when the button is clicked", () => {
+    const onToggle = vi.fn();
+    const { getByRole } = render(() => (
+      <ConsoleGroupView item={mockItem} onToggle={onToggle} />
     ));
-    // Since it's expanded by default, we should see the child
-    expect(container.textContent).toContain("Child Content");
-  });
-
-  it("passes defaultExpanded=false to ExpandableNode when collapsed is true", () => {
-    const mockGroupNode: ConsoleGroupNode = {
-      type: "group",
-      entry: mockOutputEntry,
-      label: [{ type: "string", value: "Group" }],
-      collapsed: true, // console.groupCollapsed
-      children: [
-        {
-          type: "leaf",
-          entry: mockOutputEntry,
-          rendered: { variant: "log", text: "Child Content" },
-        },
-      ],
-    };
-    const { container } = render(() => (
-      <ConsoleGroupView
-        node={mockGroupNode}
-        renderNode={(childNode) => (
-          <span>
-            {childNode.type === "leaf" ? childNode.rendered.text : ""}
-          </span>
-        )}
-      />
-    ));
-    // Since it's collapsed by default, the child content should NOT be visible
-    expect(container.textContent).not.toContain("Child Content");
-  });
-
-  it("renders children recursively via the renderNode callback", () => {
-    const mockGroupNode: ConsoleGroupNode = {
-      type: "group",
-      entry: mockOutputEntry,
-      label: [{ type: "string", value: "Parent Group" }],
-      collapsed: false,
-      children: [
-        {
-          type: "leaf",
-          entry: mockOutputEntry,
-          rendered: { variant: "log", text: "Child 1" },
-        },
-        {
-          type: "leaf",
-          entry: mockOutputEntry,
-          rendered: { variant: "log", text: "Child 2" },
-        },
-      ],
-    };
-    const { container } = render(() => (
-      <ConsoleGroupView
-        node={mockGroupNode}
-        renderNode={(childNode) => (
-          <span>
-            {childNode.type === "leaf" ? childNode.rendered.text : ""}
-          </span>
-        )}
-      />
-    ));
-    expect(container.textContent).toContain("Child 1");
-    expect(container.textContent).toContain("Child 2");
+    fireEvent.click(getByRole("button"));
+    expect(onToggle).toHaveBeenCalledOnce();
   });
 });

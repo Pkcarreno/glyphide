@@ -2,6 +2,17 @@ import type { ConsoleToken } from "@glyphide/quickjs-engine/types";
 import { For, Show } from "solid-js";
 import { ExpandableNode } from "../../atoms/ExpandableNode.tsx";
 
+/**
+ * Configuration props for the ConsoleTokenView component.
+ *
+ * Intent: Accepts an array of parsed tokens from the engine and maps them
+ * to their respective visual representations.
+ *
+ * Edge cases: If an empty array is provided, it renders an empty container.
+ * Unrecognized token types return null (render nothing).
+ *
+ * Side effects: None.
+ */
 interface ConsoleTokenViewProps {
   /** The token array to render. */
   tokens: ConsoleToken[];
@@ -160,7 +171,7 @@ function TokenArray(props: {
   }
 
   return (
-    <ExpandableNode preview={inlinePreview}>
+    <ExpandableNode preview={inlinePreview} stateKey={token}>
       <For each={token.elements}>
         {(element, index) => (
           <span class="flex items-baseline gap-2">
@@ -214,7 +225,7 @@ function TokenObject(props: {
   }
 
   return (
-    <ExpandableNode preview={inlinePreview}>
+    <ExpandableNode preview={inlinePreview} stateKey={token}>
       <For each={Object.entries(token.properties)}>
         {([key, value]) => (
           <span class="flex items-baseline gap-2">
@@ -268,7 +279,7 @@ function TokenMap(props: {
   }
 
   return (
-    <ExpandableNode preview={inlinePreview}>
+    <ExpandableNode preview={inlinePreview} stateKey={token}>
       <For each={token.entries}>
         {([key, value]) => (
           <span class="flex items-baseline gap-2">
@@ -321,7 +332,7 @@ function TokenSet(props: {
   }
 
   return (
-    <ExpandableNode preview={inlinePreview}>
+    <ExpandableNode preview={inlinePreview} stateKey={token}>
       <For each={token.elements}>
         {(element) => (
           <span class="flex items-baseline gap-2">

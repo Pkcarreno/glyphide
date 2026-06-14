@@ -1,5 +1,5 @@
 import type { Accessor } from "solid-js";
-import { createSignal } from "solid-js";
+import { batch, createSignal } from "solid-js";
 
 /**
  * A single output entry emitted by the execution engine.
@@ -34,17 +34,43 @@ export function createOutputModel(): OutputModel {
   const [entries, setEntries] = createSignal<readonly OutputEntry[]>([]);
   let nextId = 0;
 
+  let pendingEntries: OutputEntry[] = [];
+  let rafId: number | null = null;
+
+  function flush() {
+    if (pendingEntries.length > 0) {
+      batch(() => {
+        const toAdd = pendingEntries;
+        pendingEntries = [];
+        setEntries((previous) => [...previous, ...toAdd]);
+      });
+    }
+    rafId = null;
+  }
+
   function appendEntry(type: string, data: unknown): void {
-    const entry: OutputEntry = {
+    pendingEntries.push({
       id: nextId++,
       type,
       data,
       timestamp: Date.now(),
-    };
-    setEntries((previous) => [...previous, entry]);
+    });
+
+    if (rafId === null) {
+      rafId = -1; // Placeholder to detect synchronous execution in tests
+      const id = requestAnimationFrame(flush);
+      if (rafId === -1) {
+        rafId = id;
+      }
+    }
   }
 
   function clearEntries(): void {
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+    pendingEntries = [];
     setEntries([]);
     nextId = 0;
   }

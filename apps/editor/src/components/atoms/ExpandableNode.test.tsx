@@ -42,15 +42,38 @@ describe("ExpandableNode", () => {
       throw new Error("Button not found");
     }
 
-    // Initially collapsed
     expect(container.textContent).not.toContain("Expanded Content");
 
-    // Click to expand
     fireEvent.click(toggleButton);
     expect(container.textContent).toContain("Expanded Content");
 
-    // Click to collapse
     fireEvent.click(toggleButton);
     expect(container.textContent).not.toContain("Expanded Content");
+  });
+  it("persists expanded state across remounts using stateKey", () => {
+    const key = { some: "reference" };
+    const { container, unmount } = render(() => (
+      <ExpandableNode preview={<span>Preview</span>} stateKey={key}>
+        <div>Expanded Content</div>
+      </ExpandableNode>
+    ));
+
+    const toggleButton = container.querySelector("button");
+    if (!toggleButton) {
+      throw new Error("Button not found");
+    }
+
+    fireEvent.click(toggleButton);
+    expect(container.textContent).toContain("Expanded Content");
+
+    unmount();
+
+    const { container: container2 } = render(() => (
+      <ExpandableNode preview={<span>Preview</span>} stateKey={key}>
+        <div>Expanded Content</div>
+      </ExpandableNode>
+    ));
+
+    expect(container2.textContent).toContain("Expanded Content");
   });
 });
