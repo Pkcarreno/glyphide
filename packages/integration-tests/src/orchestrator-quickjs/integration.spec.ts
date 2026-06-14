@@ -38,6 +38,18 @@ describe("Orchestrator + QuickJS Engine Integration", () => {
         "SyntaxError"
       );
     });
+
+    it("terminates execution if it times out (infinite loop)", async () => {
+      // QuickJS uses an internal interrupt handler, so it doesn't block the main thread
+      // like Micropython does. It will gracefully throw an 'interrupted' error from within WASM.
+      await orchestrator.init({ timeout: 100 });
+      const runPromise = orchestrator.run("while(true) {}");
+
+      await expect(runPromise).rejects.toThrow("interrupted");
+
+      // Orchestrator remains fully usable without needing a hard restart
+      await expect(orchestrator.run("1 + 1")).resolves.toBeUndefined();
+    });
   });
 
   describe("notifications", () => {

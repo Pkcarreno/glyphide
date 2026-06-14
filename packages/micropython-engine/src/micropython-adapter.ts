@@ -48,6 +48,7 @@ export class MicropythonEngineAdapter {
   constructor(config: MicropythonEngineConfig = {}) {
     this.#config = {
       memoryLimit: config.memoryLimit ?? 1024 * 1024 * 50,
+      timeout: config.timeout ?? 30_000,
     };
     this.#sendResponse = () => {
       throw new Error("Response sender not configured");
@@ -109,7 +110,7 @@ export class MicropythonEngineAdapter {
       this.#sendResponse({
         jsonrpc: "2.0",
         id,
-        result: { timeout: 30_000, ...defaultCapabilities },
+        result: { timeout: this.#config.timeout, ...defaultCapabilities },
       });
     } catch (error) {
       this.#sendResponse({

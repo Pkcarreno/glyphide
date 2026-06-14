@@ -5,6 +5,8 @@ export interface MicropythonEngineConfig {
    * The maximum amount of memory the engine can use.
    */
   memoryLimit?: number;
+  /** Maximum execution time allowed for the Micropython runtime in milliseconds */
+  timeout?: number;
 }
 
 /** Discriminated output payload for Micropython engine. */

@@ -44,6 +44,7 @@ export class QuickJSEngineAdapter {
   constructor(config: QuickJSEngineConfig = {}) {
     this.#config = {
       memoryLimit: config.memoryLimit ?? 1024 * 1024 * 100, // 100MB default
+      timeout: config.timeout ?? 30_000,
     };
     this.#sendResponse = () => {
       throw new Error("Response sender not configured");
@@ -129,7 +130,7 @@ export class QuickJSEngineAdapter {
       this.#sendResponse({
         jsonrpc: "2.0",
         id,
-        result: { timeout: 30_000, ...defaultCapabilities },
+        result: { timeout: this.#config.timeout, ...defaultCapabilities },
       });
     } catch (error) {
       this.#sendResponse({
@@ -156,8 +157,11 @@ export class QuickJSEngineAdapter {
       return;
     }
 
-    // Reset interrupt handler if any
-    this.#runtime.setInterruptHandler(() => false);
+    const executionTimeoutMs = this.#config.timeout;
+    const executionStartTime = Date.now();
+    this.#runtime.setInterruptHandler(
+      () => Date.now() - executionStartTime >= executionTimeoutMs
+    );
 
     const payload = params as { code?: string } | undefined;
     const code = payload?.code ?? "";

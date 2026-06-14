@@ -88,6 +88,7 @@ export class EngineOrchestrator<
   #nextId = 0;
   #timeout = 30_000;
   #lastInitParams?: unknown;
+  #recoveryPromise: Promise<void> | null = null;
 
   constructor(config: OrchestratorConfig<TFactory>) {
     this.#config = {
@@ -129,6 +130,10 @@ export class EngineOrchestrator<
    * Executes code in the engine.
    */
   async run(code: string): Promise<void> {
+    if (this.#recoveryPromise) {
+      await this.#recoveryPromise;
+    }
+
     let response: JsonRpcOkResponse | JsonRpcFailResponse;
     try {
       response = await this.#sendRequest({
@@ -172,19 +177,24 @@ export class EngineOrchestrator<
       data: "Execution interrupted",
     } as InferEnginePayload<TFactory>);
 
-    // Respawn worker and reinitialize
-    if (this.#config.useWorker) {
-      this.#spawnWorker();
-    }
+    this.#recoveryPromise = (async () => {
+      // Respawn worker and reinitialize
+      if (this.#config.useWorker) {
+        this.#spawnWorker();
+      }
 
-    try {
-      await this.#sendRequest({
-        method: EngineMethod.Init,
-        params: this.#lastInitParams,
-      });
-    } catch {
-      // Silently ignore init errors on respawn to keep orchestrator alive
-    }
+      try {
+        await this.#sendRequest({
+          method: EngineMethod.Init,
+          params: this.#lastInitParams,
+        });
+      } catch {
+        // Silently ignore init errors on respawn to keep orchestrator alive
+      }
+    })();
+
+    await this.#recoveryPromise;
+    this.#recoveryPromise = null;
   }
 
   /**
@@ -287,14 +297,23 @@ export class EngineOrchestrator<
     const [promise, _resolve, reject] = this.#registry.register<T>(id);
     this.#bus?.sendRequest(message, id);
 
-    const timeoutId = setTimeout(() => {
+    const isRun = message.method === EngineMethod.Run;
+    const timeoutMs = isRun ? this.#timeout + 100 : 30_000;
+
+    const requestTimeoutId = setTimeout(() => {
       if (this.#registry.size > 0) {
         reject(new Error("Request timeout"));
+        // We trigger an interrupt (Worker.terminate()) slightly after the
+        // timeout to reclaim resources if an engine lacks graceful interruption
+        // support (like Micropython) and is stuck in a synchronous infinite loop.
+        this.interrupt().catch(() => {
+          /* noop */
+        });
       }
-    }, this.#timeout);
+    }, timeoutMs);
 
     return promise.then((result) => {
-      clearTimeout(timeoutId);
+      clearTimeout(requestTimeoutId);
       return { jsonrpc: "2.0", id, result } as JsonRpcOkResponse<T>;
     }) as Promise<JsonRpcOkResponse<T>>;
   }

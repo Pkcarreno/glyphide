@@ -3,6 +3,8 @@ import type { EngineCapabilities } from "@glyphide/rpc-protocol/types";
 export interface QuickJSEngineConfig {
   /** Maximum memory allowed for the QuickJS runtime in bytes */
   memoryLimit?: number;
+  /** Maximum execution time allowed for the QuickJS runtime in milliseconds */
+  timeout?: number;
 }
 
 /** AST token representing a single JS value serialized for transport. */

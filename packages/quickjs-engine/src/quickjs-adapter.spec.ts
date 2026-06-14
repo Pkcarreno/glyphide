@@ -7,6 +7,8 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { QuickJSEngineAdapter } from "./quickjs-adapter.ts";
 import type { ConsoleToken } from "./types.ts";
 
+const INTERRUPTED_REGEX = /interrupted/i;
+
 interface CapturedResponse {
   error?: { code: number; message: string };
   id: string | number | null;
@@ -527,6 +529,46 @@ describe("QuickJSEngineAdapter", () => {
           length: 1,
         },
       ]);
+    });
+
+    it("gracefully interrupts execution if timeout is exceeded", async () => {
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Init,
+        params: { timeout: 100 },
+        id: "init-short",
+      });
+      await new Promise((r) => setTimeout(r, 50));
+
+      const capturedResponses: CapturedResponse[] = [];
+
+      adapter.setup(
+        (r) =>
+          capturedResponses.push({
+            id: r.id,
+            result: r.result as object,
+            error: r.error,
+          }),
+        () => {
+          /* noop */
+        }
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: "while(true) {}" },
+        id: 99,
+      });
+
+      // The runtime's setInterruptHandler will throw an InternalError inside the WASM environment
+      // which we intercept and pass back via the RPC protocol
+      await new Promise((r) => setTimeout(r, 150));
+
+      expect(capturedResponses).toHaveLength(1);
+      expect(capturedResponses[0].id).toBe(99);
+      expect(capturedResponses[0].error).toBeDefined();
+      expect(capturedResponses[0].error?.message).toMatch(INTERRUPTED_REGEX);
     });
   });
 
