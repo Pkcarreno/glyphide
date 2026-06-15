@@ -118,9 +118,12 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     deps.output.appendEntry(payload.type, payload.data);
   }
 
-  async function initializeEngine(params: EngineInitParams): Promise<void> {
+  async function initializeEngine(
+    params: EngineInitParams,
+    message = "Initializing engine…"
+  ): Promise<void> {
     setEngineStatus("initializing");
-    deps.output.appendEntry("system", "Initializing engine…");
+    deps.output.appendEntry("system", message);
 
     currentInitParams = params;
 
@@ -197,7 +200,7 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     }
     terminate(); // Tear down to apply new config
     const newParams = { ...currentInitParams, ...patch };
-    await initializeEngine(newParams);
+    await initializeEngine(newParams, "Applying new configuration…");
   }
 
   async function retryInit(): Promise<void> {

@@ -35,7 +35,11 @@ export type EditorAction =
   | { type: "DISMISS_TOAST"; id: string };
 
 /** Uniquely identifies an overlay (modal, menu, etc). */
-export type OverlayId = string;
+export type OverlayId =
+  | "settings"
+  | "project-rename"
+  | "engine-settings"
+  | string;
 
 /** Extracts the action type string literal from the union. */
 export type EditorActionType = EditorAction["type"];

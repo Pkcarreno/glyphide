@@ -22,9 +22,20 @@ export interface EngineEntry {
 
 /** Descriptor for an engine-specific configuration parameter. */
 export interface EngineParamDescriptor {
+  /** Props passed to the UI input component. */
+  inputProps?: Record<string, unknown>;
+  /** UI presentation type for the parameter. */
+  inputType?: "compact-number" | "text";
+  /** Indicates whether the parameter can be edited by the user in the UI. */
   isEditable: boolean;
+  /** Unique key identifying the parameter, used in the engine's initialization payload. */
   key: string;
+  /** Human-readable label for the parameter shown in the UI. */
   label: string;
+  /** Transforms the value from the UI (view) back to the internal model (params). */
+  toModel?: (viewValue: unknown) => unknown;
+  /** Transforms the value from the internal model (params) to the UI (view). */
+  toView?: (modelValue: unknown) => unknown;
 }
 
 /** Static definition of a lazily-loadable execution engine. */
@@ -70,7 +81,15 @@ export function createEngineRegistry(): EngineRegistry {
       supportedLanguages: ["python"],
       defaultInitParams: { timeout: 30_000 },
       paramDescriptors: [
-        { key: "timeout", label: "Execution Timeout (ms)", isEditable: true },
+        {
+          key: "timeout",
+          label: "Execution Timeout (s)",
+          isEditable: true,
+          inputType: "compact-number",
+          inputProps: { min: 1, max: 120, step: 1 },
+          toModel: (val) => Number(val) * 1000,
+          toView: (val) => Number(val) / 1000,
+        },
       ],
       loadFactory: async () => {
         const { createMicropythonWorker } = await import(
@@ -100,7 +119,15 @@ export function createEngineRegistry(): EngineRegistry {
       supportedLanguages: ["javascript"],
       defaultInitParams: { timeout: 30_000 },
       paramDescriptors: [
-        { key: "timeout", label: "Execution Timeout (ms)", isEditable: true },
+        {
+          key: "timeout",
+          label: "Execution Timeout (s)",
+          isEditable: true,
+          inputType: "compact-number",
+          inputProps: { min: 1, max: 120, step: 1 },
+          toModel: (val) => Number(val) * 1000,
+          toView: (val) => Number(val) / 1000,
+        },
       ],
       loadFactory: async () => {
         const { createQuickJSWorker } = await import(
