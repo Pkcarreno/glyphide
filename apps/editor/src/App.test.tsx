@@ -1,5 +1,5 @@
 import { render } from "@solidjs/testing-library";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import App from "./App.tsx";
 
 vi.mock("./core/context", () => ({
@@ -19,6 +19,10 @@ vi.mock("./core/context", () => ({
       activeEngineId: () => "quickjs",
       activeLanguage: () => "javascript",
       isDirty: () => false,
+      activeInitParams: () => ({}),
+    },
+    engineRegistry: {
+      getDefinition: () => ({ paramDescriptors: [] }),
     },
     output: { entries: () => [] },
     settings: {
@@ -41,22 +45,6 @@ vi.mock("./core/context", () => ({
     },
   }),
 }));
-
-beforeAll(() => {
-  Object.defineProperty(window, "matchMedia", {
-    writable: true,
-    value: vi.fn().mockImplementation((query) => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    })),
-  });
-});
 
 const TEST_PROJECT_REGEX = /TEST_PROJECT/;
 

@@ -1,4 +1,5 @@
 import { EngineSelectorCommand } from "./EngineSelectorCommand.tsx";
+import { EngineSettingsPopover } from "./EngineSettingsPopover.tsx";
 import { ProjectRenameModal } from "./ProjectRenameModal.tsx";
 import { SettingsModal } from "./SettingsModal.tsx";
 import { ShareModal } from "./ShareModal.tsx";
@@ -13,6 +14,7 @@ export function FloatingLayer() {
     <>
       <SettingsModal />
       <EngineSelectorCommand />
+      <EngineSettingsPopover />
       <ProjectRenameModal />
       <ShareModal />
       <Toaster />

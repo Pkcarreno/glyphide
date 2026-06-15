@@ -217,10 +217,16 @@ function StatusBar(props: StatusBarProps) {
           </StatusBarButton>
         ) : (
           <StatusBarButton
-            aria-label="Engine settings"
+            id="engine-settings-trigger"
+            onClick={() =>
+              core.dispatcher.dispatch({
+                type: "OPEN_OVERLAY",
+                overlayId: "engine-settings",
+              })
+            }
             tooltip="Engine Settings"
           >
-            <Icon icon={Settings2} size={12} />
+            <Icon icon={Settings2} size={14} />
           </StatusBarButton>
         )}
       </div>

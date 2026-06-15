@@ -20,6 +20,17 @@ vi.mock("../../core/context", () => ({
     overlays: {
       isOpen: (id: string) => id === "settings" && mockIsOpen(),
     },
+    engine: {
+      activeEngineId: () => "mock-engine",
+      activeInitParams: () => ({ timeout: 1000 }),
+      engineStatus: () => "ready",
+    },
+    engineRegistry: {
+      getDefinition: () => ({ paramDescriptors: [] }),
+    },
+    project: {
+      name: () => "TestProject",
+    },
     notifications: {
       unreadCount: () => 0,
       items: () => [],

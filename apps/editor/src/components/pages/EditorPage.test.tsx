@@ -26,6 +26,10 @@ vi.mock("../../core/context", () => ({
       activeEngineId: () => "quickjs",
       activeLanguage: () => "javascript",
       isDirty: () => false,
+      activeInitParams: () => ({}),
+    },
+    engineRegistry: {
+      getDefinition: () => ({ paramDescriptors: [] }),
     },
     output: { entries: () => [] },
     settings: {
@@ -60,19 +64,6 @@ describe("EditorPage", () => {
       if (action.type === "TOGGLE_OVERLAY" && action.overlayId === "settings") {
         setMockIsOpen(!mockIsOpen());
       }
-    });
-    Object.defineProperty(window, "matchMedia", {
-      writable: true,
-      value: vi.fn().mockImplementation((query) => ({
-        matches: false,
-        media: query,
-        onchange: null,
-        addListener: vi.fn(),
-        removeListener: vi.fn(),
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-        dispatchEvent: vi.fn(),
-      })),
     });
   });
 

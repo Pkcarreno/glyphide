@@ -34,6 +34,12 @@ vi.mock("../../core/context.tsx", () => ({
       activeToasts: () => [],
     },
     dispatcher: { dispatch: dispatchMock },
+    engineRegistry: {
+      getDefinition: () => ({ paramDescriptors: [] }),
+    },
+    overlays: {
+      isOpen: () => false,
+    },
   }),
 }));
 
