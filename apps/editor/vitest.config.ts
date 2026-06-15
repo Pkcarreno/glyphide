@@ -6,7 +6,6 @@ export default mergeConfig(
   defineConfig({
     test: {
       environment: "jsdom",
-      isolate: false,
       setupFiles: ["./src/setup-tests.ts"],
     },
   })
