@@ -206,6 +206,8 @@ export class QuickJSEngineAdapter {
           message: `Execution failed: ${error instanceof Error ? error.message : String(error)}`,
         },
       });
+    } finally {
+      this.#runtime.removeInterruptHandler();
     }
   }
 

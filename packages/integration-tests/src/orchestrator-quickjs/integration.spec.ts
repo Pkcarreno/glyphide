@@ -144,4 +144,40 @@ describe("Orchestrator + QuickJS Engine Integration", () => {
       await expect(runPromise).rejects.toThrow();
     });
   });
+
+  describe("reset", () => {
+    it("clears context state but retains runtime stability, properly reloading console", async () => {
+      const outputs: Array<{ content: string; type: string }> = [];
+
+      orchestrator = new EngineOrchestrator({
+        createWorker: createQuickJSWorker,
+        events: {
+          onOutput: (payload) =>
+            outputs.push({
+              content: JSON.stringify(payload.data),
+              type: payload.type,
+            }),
+        },
+      });
+
+      await orchestrator.init();
+
+      // Mutate global state
+      await orchestrator.run("globalThis.X = 42;");
+
+      // Reset engine
+      await orchestrator.reset();
+
+      // Ensure global state was cleared
+      await orchestrator.run("console.log(typeof globalThis.X);");
+
+      // We expect 1 log containing 'undefined'
+      expect(outputs).toHaveLength(1);
+      expect(outputs[0].type).toBe("log");
+      // ConsoleToken output format
+      expect(outputs[0].content).toEqual(
+        JSON.stringify([{ type: "string", value: "undefined" }])
+      );
+    });
+  });
 });

@@ -295,10 +295,13 @@ export class EngineOrchestrator<
       }
     }, timeoutMs);
 
-    return promise.then((result) => {
-      clearTimeout(requestTimeoutId);
-      return { jsonrpc: "2.0", id, result } as JsonRpcOkResponse<T>;
-    }) as Promise<JsonRpcOkResponse<T>>;
+    return promise
+      .finally(() => {
+        clearTimeout(requestTimeoutId);
+      })
+      .then(
+        (result) => ({ jsonrpc: "2.0", id, result }) as JsonRpcOkResponse<T>
+      ) as Promise<JsonRpcOkResponse<T>>;
   }
 
   #sendNotification(message: { method: string; params?: unknown }): void {
