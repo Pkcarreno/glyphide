@@ -8,6 +8,7 @@ import logo from "../../assets/logo-square.svg";
 import { useEditor } from "../../core/context.tsx";
 import { cn } from "../../helpers/cn.ts";
 import { Button } from "../atoms/Button.tsx";
+import { Dropdown } from "../atoms/DropdownPrimitive.tsx";
 import { Icon } from "../atoms/Icon.tsx";
 import { Tooltip } from "../molecules/Tooltip.tsx";
 
@@ -54,13 +55,30 @@ function Header(props: HeaderProps) {
       {...rest}
     >
       <div class="flex items-center gap-3">
-        <img
-          alt="Glyphide Logo"
-          class="h-6 w-6"
-          height="24"
-          src={logo}
-          width="24"
-        />
+        <Dropdown.Root>
+          <Tooltip
+            aria-label="Project Menu"
+            as={Dropdown.Trigger}
+            position="bottom"
+            text="File / Project Menu"
+            variant="ghost"
+          >
+            <img
+              alt="Glyphide Logo"
+              class="h-6 w-6"
+              height="24"
+              src={logo}
+              width="24"
+            />
+          </Tooltip>
+          <Dropdown.Portal>
+            <Dropdown.Content>
+              <Dropdown.Item as="a" href="/" target="_blank">
+                New Project
+              </Dropdown.Item>
+            </Dropdown.Content>
+          </Dropdown.Portal>
+        </Dropdown.Root>
         <Tooltip
           action={{ type: "OPEN_OVERLAY", overlayId: "project-rename" }}
           aria-label="Rename Project"

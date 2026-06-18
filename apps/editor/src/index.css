@@ -126,6 +126,18 @@
     --ui-target-size: 44px;
     --spacing-header-height: 52px;
   }
+
+  /* Dropdown: larger touch targets on mobile */
+  [role="menu"] {
+    padding: 0.375rem;
+  }
+
+  [role="menuitem"],
+  [role="menuitemcheckbox"] {
+    min-height: var(--ui-target-size);
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
+  }
 }
 
 /* ---------- Design tokens → Tailwind utilities ---------- */
@@ -205,4 +217,17 @@
   --radius-md: 0.125rem;
   --radius-lg: 0.25rem;
   --radius-xl: 0.5rem;
+}
+
+/* ---------- Dropdown animation ---------- */
+
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
