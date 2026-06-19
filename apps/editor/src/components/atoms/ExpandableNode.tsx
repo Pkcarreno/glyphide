@@ -1,4 +1,3 @@
-import ChevronDown from "lucide-solid/icons/chevron-down";
 import ChevronRight from "lucide-solid/icons/chevron-right";
 import type { JSX } from "solid-js";
 import { createSignal, Show } from "solid-js";
@@ -29,6 +28,8 @@ interface ExpandableNodeProps {
 }
 
 const globalExpandedState = new WeakMap<object, boolean>();
+const idForStateKey = new WeakMap<object, string>();
+let nextExpandableContentId = 1;
 
 /**
  * Atom that renders a chevron-toggled expandable node.
@@ -55,23 +56,47 @@ function ExpandableNode(props: ExpandableNodeProps) {
     }
   };
 
+  let contentId: string;
+  if (props.stateKey) {
+    if (!idForStateKey.has(props.stateKey)) {
+      idForStateKey.set(
+        props.stateKey,
+        `expandable-content-${Math.random().toString(36).slice(2, 9)}`
+      );
+    }
+    contentId = idForStateKey.get(props.stateKey) ?? "";
+  } else {
+    const instanceAutoId = nextExpandableContentId++;
+    contentId = `expandable-content-${instanceAutoId}`;
+  }
+
   return (
     <span class={cn("inline-flex flex-col align-top", props.class)}>
       <button
-        class="-ml-1 inline-flex cursor-pointer items-center gap-1 rounded px-1 transition-colors hover:bg-surface-variant/50"
+        aria-controls={contentId}
+        aria-expanded={isExpanded() ? "true" : "false"}
+        class="group -ml-1 inline-flex cursor-pointer items-center gap-1 rounded px-1 transition-colors hover:bg-surface-variant/50"
+        data-expanded={isExpanded() ? "true" : "false"}
         onClick={toggle}
         type="button"
       >
-        <span class="text-on-surface-variant opacity-70">
-          <Icon icon={isExpanded() ? ChevronDown : ChevronRight} size={12} />
+        <span
+          class={cn(
+            "rotate-0 text-on-surface-variant opacity-70 motion-safe:transition-transform motion-safe:duration-150",
+            "group-data-[expanded=true]:rotate-90 motion-reduce:transition-none motion-reduce:duration-0"
+          )}
+        >
+          <Icon icon={ChevronRight} size={12} />
         </span>
         {props.preview}
       </button>
-      <Show when={isExpanded()}>
-        <span class="mt-1 ml-1.5 flex flex-col gap-1 border-outline-variant/30 border-l pl-4">
-          {props.children}
-        </span>
-      </Show>
+
+      <span
+        class="mt-1 ml-1.5 flex flex-col gap-1 border-outline-variant/30 border-l pl-4"
+        id={contentId}
+      >
+        <Show when={isExpanded()}>{props.children}</Show>
+      </span>
     </span>
   );
 }
