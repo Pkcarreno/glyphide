@@ -4,12 +4,12 @@ import Share2 from "lucide-solid/icons/share-2";
 import Square from "lucide-solid/icons/square";
 import type { JSX } from "solid-js";
 import { Show, splitProps } from "solid-js";
-import logo from "../../assets/logo-square.svg";
 import { useEditor } from "../../core/context.tsx";
 import { cn } from "../../helpers/cn.ts";
 import { Button } from "../atoms/Button.tsx";
 import { Dropdown } from "../atoms/DropdownPrimitive.tsx";
 import { Icon } from "../atoms/Icon.tsx";
+import { LogoSquare } from "../atoms/LogoSquare.tsx";
 import { Tooltip } from "../molecules/Tooltip.tsx";
 
 interface HeaderProps
@@ -63,13 +63,7 @@ function Header(props: HeaderProps) {
             text="File / Project Menu"
             variant="ghost"
           >
-            <img
-              alt="Glyphide Logo"
-              class="h-6 w-6"
-              height="24"
-              src={logo}
-              width="24"
-            />
+            <LogoSquare alt="Glyphide Logo" />
           </Tooltip>
           <Dropdown.Portal>
             <Dropdown.Content>
