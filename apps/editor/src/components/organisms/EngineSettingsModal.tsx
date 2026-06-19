@@ -1,31 +1,17 @@
-import { createEffect, For, onCleanup, Show } from "solid-js";
+import X from "lucide-solid/icons/x";
+import { For, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import { useEditor } from "../../core/context.tsx";
 import { CompactNumberInput } from "../atoms/CompactNumberInput.tsx";
-import { Popover, usePopover } from "../atoms/PopoverPrimitive.tsx";
+import { Icon } from "../atoms/Icon.tsx";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+} from "../molecules/Dialog.tsx";
 
-function VirtualAnchor() {
-  const ctx = usePopover();
-
-  createEffect(() => {
-    // Repeatedly try to find the element in case it mounts slightly after
-    const findAndSet = () => {
-      const el = document.getElementById("engine-settings-trigger");
-      if (el) {
-        ctx.setTriggerRef(el);
-        return true;
-      }
-      return false;
-    };
-
-    if (!findAndSet()) {
-      // Retry in next microtask
-      setTimeout(findAndSet, 0);
-    }
-  });
-
-  return null;
-}
+/* ---------- Internal Components ---------- */
 
 function EngineSettingsForm() {
   const core = useEditor();
@@ -49,24 +35,22 @@ function EngineSettingsForm() {
   const [localPatch, setLocalPatch] =
     createStore<Record<string, unknown>>(initialPatch);
 
-  onCleanup(() => {
-    // Apply changes when the modal closes
+  const handleApply = () => {
     core.dispatcher.dispatch({
       type: "UPDATE_ENGINE_CONFIG",
       patch: { ...localPatch },
     });
-  });
+    core.dispatcher.dispatch({
+      type: "CLOSE_OVERLAY",
+      overlayId: "engine-settings",
+    });
+  };
 
   return (
-    <div class="flex min-w-[140px] max-w-xs flex-col gap-1 pb-1">
-      <div class="mb-1 border-outline-variant/50 border-b px-2 py-1.5">
-        <span class="font-semibold text-on-surface-variant text-xs uppercase tracking-wider">
-          Engine Settings
-        </span>
-      </div>
+    <div class="flex min-w-[140px] max-w-xs flex-col gap-1">
       <Show
         fallback={
-          <div class="py-2 text-center text-on-surface-variant text-xs">
+          <div class="px-3 py-2 text-center text-on-surface-variant text-xs">
             No configurable parameters.
           </div>
         }
@@ -74,7 +58,7 @@ function EngineSettingsForm() {
       >
         <For each={engineDef().paramDescriptors}>
           {(desc) => (
-            <div class="flex items-center justify-between gap-4 px-2 py-1">
+            <div class="flex items-center justify-between gap-4 px-3 py-1">
               <label
                 class="whitespace-nowrap text-on-surface text-xs"
                 for={`engine-param-${desc.key}`}
@@ -126,15 +110,26 @@ function EngineSettingsForm() {
           )}
         </For>
       </Show>
+
+      <button
+        class="mt-2 w-full rounded-lg bg-primary px-3 py-2 font-medium text-on-primary text-sm transition-colors hover:bg-primary/90"
+        onClick={handleApply}
+        type="button"
+      >
+        Apply
+      </button>
     </div>
   );
 }
 
+/* ---------- Main Component ---------- */
+
 /**
- * A FloatingUI popover that renders dynamically generated configuration inputs
+ * Engine settings modal that renders dynamically generated configuration inputs
  * for the currently active execution engine based on its paramDescriptors.
+ * Uses Dialog compound component for consistent modal behavior.
  */
-export function EngineSettingsPopover() {
+function EngineSettingsModal() {
   const core = useEditor();
 
   const handleOpenChange = (isOpen: boolean) => {
@@ -145,20 +140,23 @@ export function EngineSettingsPopover() {
   };
 
   return (
-    <Popover.Root
+    <Dialog
       isOpen={core.overlays.isOpen("engine-settings")}
-      offset={8}
       onOpenChange={handleOpenChange}
-      position="top-end"
     >
-      <VirtualAnchor />
-      <Popover.Portal>
-        <Popover.Positioner>
-          <Popover.Popup>
-            <EngineSettingsForm />
-          </Popover.Popup>
-        </Popover.Positioner>
-      </Popover.Portal>
-    </Popover.Root>
+      <DialogContent class="max-w-xs p-0">
+        <DialogHeader class="justify-between px-3 py-2">
+          <span class="font-semibold text-xs uppercase tracking-wider">
+            Engine Settings
+          </span>
+          <DialogClose aria-label="Close engine settings">
+            <Icon icon={X} size={16} />
+          </DialogClose>
+        </DialogHeader>
+        <EngineSettingsForm />
+      </DialogContent>
+    </Dialog>
   );
 }
+
+export { EngineSettingsModal };
