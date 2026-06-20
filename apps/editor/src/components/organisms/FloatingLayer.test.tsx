@@ -3,7 +3,9 @@ import { createSignal } from "solid-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FloatingLayer } from "./FloatingLayer.tsx";
 
-const [mockIsOpen, setMockIsOpen] = createSignal(false);
+const [mockIsOpenSettings, setMockIsOpenSettings] = createSignal(false);
+const [mockIsOpenEngineSettings, setMockIsOpenEngineSettings] =
+  createSignal(false);
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
@@ -18,7 +20,9 @@ vi.mock("../../core/context", () => ({
     },
     dispatcher: { dispatch: vi.fn() },
     overlays: {
-      isOpen: (id: string) => id === "settings" && mockIsOpen(),
+      isOpen: (id: string) =>
+        (id === "settings" && mockIsOpenSettings()) ||
+        (id === "engine-settings" && mockIsOpenEngineSettings()),
     },
     engine: {
       activeEngineId: () => "mock-engine",
@@ -26,7 +30,20 @@ vi.mock("../../core/context", () => ({
       engineStatus: () => "ready",
     },
     engineRegistry: {
-      getDefinition: () => ({ paramDescriptors: [] }),
+      getDefinition: () => ({
+        paramDescriptors: [
+          {
+            key: "timeout",
+            label: "Timeout (s)",
+            isEditable: true,
+            inputType: "compact-number",
+            inputProps: { min: 1, max: 120, step: 1 },
+            toModel: (val: unknown) => Number(val) * 1000,
+            toView: (val: unknown) => Number(val) / 1000,
+          },
+        ],
+        defaultInitParams: {},
+      }),
     },
     project: {
       name: () => "TestProject",
@@ -41,22 +58,30 @@ vi.mock("../../core/context", () => ({
 
 describe("FloatingLayer", () => {
   beforeEach(() => {
-    setMockIsOpen(false);
+    setMockIsOpenSettings(false);
+    setMockIsOpenEngineSettings(false);
   });
 
   afterEach(() => {
     cleanup();
   });
 
-  it("when rendered and settings overlay is closed, dialog is null", () => {
-    const { queryByRole } = render(() => <FloatingLayer />);
-    expect(queryByRole("dialog")).toBeNull();
+  it("when rendered and all overlays are closed, no dialogs are in the DOM", () => {
+    const { queryAllByRole } = render(() => <FloatingLayer />);
+    expect(queryAllByRole("dialog")).toHaveLength(0);
   });
 
-  it("when rendered and settings overlay is open, displays SettingsModal", () => {
-    setMockIsOpen(true);
+  it("when settings overlay is open, displays SettingsModal with Settings title", () => {
+    setMockIsOpenSettings(true);
     const { getByRole, getByText } = render(() => <FloatingLayer />);
     expect(getByRole("dialog")).toBeTruthy();
     expect(getByText("Settings")).toBeTruthy();
+  });
+
+  it("when engine-settings overlay is open, displays EngineSettingsModal with Engine Settings title", () => {
+    setMockIsOpenEngineSettings(true);
+    const { getByRole, getByText } = render(() => <FloatingLayer />);
+    expect(getByRole("dialog")).toBeTruthy();
+    expect(getByText("Engine Settings")).toBeTruthy();
   });
 });
