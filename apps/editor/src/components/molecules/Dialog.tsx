@@ -198,7 +198,10 @@ function DialogClose(props: DialogCloseProps) {
     <Tooltip
       action={{ type: "CLOSE_ALL_OVERLAYS" }}
       as="button"
-      class={cn(local.class)}
+      class={cn(
+        "rounded-lg p-1.5 text-on-surface-variant transition-colors hover:bg-surface-variant hover:text-on-surface",
+        local.class
+      )}
       onClick={close}
       position="bottom"
       text="Close"

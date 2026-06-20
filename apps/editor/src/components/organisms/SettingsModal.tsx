@@ -214,10 +214,7 @@ function SettingsModal(props: SettingsModalProps) {
         )}
         {...rest}
       >
-        <DialogClose
-          aria-label="Close settings"
-          class="absolute top-2 right-2 z-10 rounded-lg border border-outline-variant bg-background p-1.5 text-on-surface-variant transition-colors hover:bg-surface-variant hover:text-on-surface md:hidden"
-        >
+        <DialogClose aria-label="Close settings">
           <Icon icon={X} size={16} />
         </DialogClose>
 
