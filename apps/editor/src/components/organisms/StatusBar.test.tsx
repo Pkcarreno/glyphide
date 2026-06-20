@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { StatusBar } from "./StatusBar.tsx";
 
 const { mockCursorPositionFn, dispatchMock } = vi.hoisted(() => ({
@@ -209,5 +209,60 @@ describe("StatusBar.Button", () => {
     const btn = getByRole("button");
     expect(btn.className).toContain("gap-2");
     expect(btn.className).toContain("rounded-md");
+  });
+});
+
+describe("StatusBar - Mobile Visibility", () => {
+  beforeEach(() => {
+    dispatchMock.mockClear();
+  });
+
+  it("when idle status, engine selector has hidden md:block class for mobile visibility toggle", () => {
+    mockStatus = "idle";
+    const { container } = render(() => <StatusBar />);
+
+    // Find the engine selector StatusBarButton - it has tooltip "Select Engine"
+    // The Tooltip wraps the button, so we find by text content
+    const engineSelectorBtn = Array.from(
+      container.querySelectorAll("button")
+    ).find((btn) => btn.textContent?.includes(mockEngineId));
+    expect(engineSelectorBtn).toBeTruthy();
+
+    // The parent StatusBarItem should have hidden md:block class (hidden on mobile, visible on desktop)
+    const parentItem = engineSelectorBtn?.closest(".hidden");
+    expect(parentItem).toBeTruthy();
+  });
+
+  it("when idle status, engine settings has hidden md:block class for mobile visibility toggle", () => {
+    mockStatus = "idle";
+    const { container } = render(() => <StatusBar />);
+
+    // Find the engine settings button by its id
+    const engineSettingsBtn = container.querySelector(
+      "#engine-settings-trigger"
+    );
+    expect(engineSettingsBtn).toBeTruthy();
+
+    // The parent wrapper should have hidden md:block class
+    const wrapper = engineSettingsBtn?.closest(".hidden");
+    expect(wrapper).toBeTruthy();
+  });
+
+  it("when error status, retry button is visible without wrapper class restriction", () => {
+    mockStatus = "error";
+    const { container } = render(() => <StatusBar />);
+
+    // Retry button should be visible - find all buttons and find the one with red icon
+    const buttons = container.querySelectorAll("button");
+    const retryBtn = Array.from(buttons).find((btn) =>
+      btn.querySelector("svg")?.classList.contains("text-red-500")
+    );
+    expect(retryBtn).toBeTruthy();
+
+    // Engine settings should NOT be visible (error replaces it)
+    const engineSettingsBtn = container.querySelector(
+      "#engine-settings-trigger"
+    );
+    expect(engineSettingsBtn).toBeFalsy();
   });
 });

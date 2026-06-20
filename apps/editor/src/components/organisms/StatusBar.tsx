@@ -193,17 +193,20 @@ function StatusBar(props: StatusBarProps) {
           </span>
         </StatusBarItem>
 
-        <StatusBarButton
-          onClick={openEngineSelector}
-          tooltip="Select Engine"
-          tooltipAction={{
-            type: "OPEN_OVERLAY",
-            overlayId: "engine-selector",
-          }}
-          tooltipDescription="Switch the active execution engine."
-        >
-          <span>{core.engine.activeEngineId()}</span>
-        </StatusBarButton>
+        {/* Hidden on mobile, visible md+ */}
+        <StatusBarItem class="hidden md:block">
+          <StatusBarButton
+            onClick={openEngineSelector}
+            tooltip="Select Engine"
+            tooltipAction={{
+              type: "OPEN_OVERLAY",
+              overlayId: "engine-selector",
+            }}
+            tooltipDescription="Switch the active execution engine."
+          >
+            <span>{core.engine.activeEngineId()}</span>
+          </StatusBarButton>
+        </StatusBarItem>
 
         {core.engine.engineStatus() === "error" ? (
           <StatusBarButton
@@ -216,18 +219,21 @@ function StatusBar(props: StatusBarProps) {
             <Icon class="text-red-500" icon={RefreshCcw} size={12} />
           </StatusBarButton>
         ) : (
-          <StatusBarButton
-            id="engine-settings-trigger"
-            onClick={() =>
-              core.dispatcher.dispatch({
-                type: "OPEN_OVERLAY",
-                overlayId: "engine-settings",
-              })
-            }
-            tooltip="Engine Settings"
-          >
-            <Icon icon={Settings2} size={14} />
-          </StatusBarButton>
+          /* Hidden on mobile, visible md+ */
+          <span class="hidden md:block">
+            <StatusBarButton
+              id="engine-settings-trigger"
+              onClick={() =>
+                core.dispatcher.dispatch({
+                  type: "OPEN_OVERLAY",
+                  overlayId: "engine-settings",
+                })
+              }
+              tooltip="Engine Settings"
+            >
+              <Icon icon={Settings2} size={14} />
+            </StatusBarButton>
+          </span>
         )}
       </div>
     </footer>

@@ -70,6 +70,36 @@ function Header(props: HeaderProps) {
               <Dropdown.Item as="a" href="/" target="_blank">
                 New Project
               </Dropdown.Item>
+              <Dropdown.Separator class="block md:hidden" />
+              <Dropdown.Group class="block md:hidden">
+                <Dropdown.Item onSelect={handleSettingsClick}>
+                  Settings
+                </Dropdown.Item>
+                <Dropdown.Item onSelect={handleShareClick}>Share</Dropdown.Item>
+              </Dropdown.Group>
+              <Dropdown.Separator class="block md:hidden" />
+              <Dropdown.Group class="block md:hidden">
+                <Dropdown.Item
+                  onSelect={() =>
+                    core.dispatcher.dispatch({
+                      type: "OPEN_OVERLAY",
+                      overlayId: "engine-selector",
+                    })
+                  }
+                >
+                  Select Engine
+                </Dropdown.Item>
+                <Dropdown.Item
+                  onSelect={() =>
+                    core.dispatcher.dispatch({
+                      type: "OPEN_OVERLAY",
+                      overlayId: "engine-settings",
+                    })
+                  }
+                >
+                  Engine Settings
+                </Dropdown.Item>
+              </Dropdown.Group>
             </Dropdown.Content>
           </Dropdown.Portal>
         </Dropdown.Root>
@@ -93,30 +123,35 @@ function Header(props: HeaderProps) {
       </div>
 
       <div class="flex items-center gap-gap-compact">
-        <Tooltip
-          action={{ type: "TOGGLE_OVERLAY", overlayId: "settings" }}
-          aria-label="Settings"
-          as={Button}
-          onClick={handleSettingsClick}
-          position="bottom"
-          size="icon"
-          text="Settings"
-          variant="ghost"
-        >
-          <Icon icon={Settings} />
-        </Tooltip>
-        <Tooltip
-          action={{ type: "OPEN_OVERLAY", overlayId: "share" }}
-          aria-label="Share workspace"
-          as={Button}
-          onClick={handleShareClick}
-          position="bottom"
-          text="Share"
-          variant="outline"
-        >
-          <Icon class="mr-1" icon={Share2} />
-          Share
-        </Tooltip>
+        {/* Hidden on mobile, visible md+ */}
+        <span class="hidden md:block">
+          <Tooltip
+            action={{ type: "TOGGLE_OVERLAY", overlayId: "settings" }}
+            aria-label="Settings"
+            as={Button}
+            onClick={handleSettingsClick}
+            position="bottom"
+            size="icon"
+            text="Settings"
+            variant="ghost"
+          >
+            <Icon icon={Settings} />
+          </Tooltip>
+        </span>
+        <span class="hidden md:block">
+          <Tooltip
+            action={{ type: "OPEN_OVERLAY", overlayId: "share" }}
+            aria-label="Share workspace"
+            as={Button}
+            onClick={handleShareClick}
+            position="bottom"
+            text="Share"
+            variant="outline"
+          >
+            <Icon class="mr-1" icon={Share2} />
+            Share
+          </Tooltip>
+        </span>
         <Tooltip
           action={
             core.engine.engineStatus() === "running"
