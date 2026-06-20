@@ -427,13 +427,9 @@ function DropdownGroup(props: DropdownGroupProps) {
   const [local, rest] = splitProps(props, ["class", "children", "heading"]);
 
   return (
-    <fieldset
-      aria-label={local.heading}
-      class={cn("py-1", local.class)}
-      {...rest}
-    >
+    <fieldset aria-label={local.heading} class={cn(local.class)} {...rest}>
       <Show when={local.heading}>
-        <div class="px-2 py-1.5 font-medium text-on-surface-variant text-xs">
+        <div class="px-2 font-medium text-on-surface-variant text-xs">
           {local.heading}
         </div>
       </Show>
