@@ -668,7 +668,7 @@ function DropdownSeparator(props: DropdownSeparatorProps) {
   return (
     <hr
       aria-orientation="horizontal"
-      class={cn("-mx-1 my-1 h-px bg-outline-variant", local.class)}
+      class={cn("-mx-1 my-1 h-px border-none bg-outline-variant", local.class)}
       {...rest}
     />
   );
