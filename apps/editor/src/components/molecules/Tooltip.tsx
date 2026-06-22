@@ -2,15 +2,15 @@ import { splitProps, type ValidComponent } from "solid-js";
 import type { EditorAction } from "../../core/actions/types.ts";
 import { useEditor } from "../../core/context.tsx";
 import {
-  TooltipPrimitive,
-  type TooltipPrimitiveProps,
-} from "../atoms/TooltipPrimitive.tsx";
+  Tooltip as TooltipAtom,
+  type TooltipProps as TooltipAtomProps,
+} from "../atoms/Tooltip.tsx";
 
 /**
  * Props for the Tooltip component.
  */
 export type TooltipProps<T extends ValidComponent = "div"> = Omit<
-  TooltipPrimitiveProps<T>,
+  TooltipAtomProps<T>,
   "shortcut"
 > &
   (
@@ -27,7 +27,7 @@ export type TooltipProps<T extends ValidComponent = "div"> = Omit<
   );
 
 /**
- * Smart Tooltip molecule that connects the UI TooltipPrimitive to the EditorCore.
+ * Smart Tooltip molecule that connects the UI Tooltip atom to the EditorCore.
  * Automatically resolves keyboard shortcuts if an `action` is provided.
  */
 export function Tooltip<T extends ValidComponent = "div">(
@@ -65,9 +65,9 @@ export function Tooltip<T extends ValidComponent = "div">(
   };
 
   return (
-    <TooltipPrimitive
+    <TooltipAtom
       shortcut={resolvedShortcut()}
-      {...(rest as unknown as TooltipPrimitiveProps<T>)}
+      {...(rest as unknown as TooltipAtomProps<T>)}
     />
   );
 }

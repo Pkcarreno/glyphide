@@ -6,8 +6,8 @@ import { Popover } from "./Popover.tsx";
 /** Positioning options for the Tooltip, identical to Popover positions. */
 export type TooltipPosition = PopoverPosition;
 
-/** Properties for the TooltipPrimitive component. */
-export type TooltipPrimitiveProps<T extends ValidComponent = "div"> = {
+/** Properties for the Tooltip component. */
+export type TooltipProps<T extends ValidComponent = "div"> = {
   /** The element type to render the trigger as. Default: 'div' */
   as?: T;
   /** The child elements that will trigger the tooltip. */
@@ -37,11 +37,11 @@ export type TooltipPrimitiveProps<T extends ValidComponent = "div"> = {
 >;
 
 /**
- * Standard unified tooltip primitive for the Glyphide design system.
+ * Standard unified tooltip for the Glyphide design system.
  * Enforces consistency by accepting only specific textual props.
  */
-export function TooltipPrimitive<T extends ValidComponent = "div">(
-  props: TooltipPrimitiveProps<T>
+export function Tooltip<T extends ValidComponent = "div">(
+  props: TooltipProps<T>
 ) {
   const [local, rest] = splitProps(props, [
     "as",

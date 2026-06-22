@@ -1,24 +1,24 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
 import { afterEach, describe, expect, it } from "vitest";
-import { TooltipPrimitive } from "./TooltipPrimitive.tsx";
+import { Tooltip } from "./Tooltip.tsx";
 
 afterEach(() => cleanup());
 
-describe("TooltipPrimitive", () => {
+describe("Tooltip", () => {
   it("when rendered, popup is not in the DOM initially", () => {
     render(() => (
-      <TooltipPrimitive data-testid="trigger" text="Tooltip content">
+      <Tooltip data-testid="trigger" text="Tooltip content">
         Hover me
-      </TooltipPrimitive>
+      </Tooltip>
     ));
     expect(screen.queryByRole("tooltip")).toBeNull();
   });
 
   it("when trigger receives mouseenter, popup appears", () => {
     const { getByTestId } = render(() => (
-      <TooltipPrimitive data-testid="trigger" text="Tooltip content">
+      <Tooltip data-testid="trigger" text="Tooltip content">
         Hover me
-      </TooltipPrimitive>
+      </Tooltip>
     ));
     fireEvent.mouseEnter(getByTestId("trigger"));
     expect(screen.queryByRole("tooltip")).not.toBeNull();
@@ -26,9 +26,9 @@ describe("TooltipPrimitive", () => {
 
   it("when trigger receives mouseleave, popup disappears", () => {
     const { getByTestId } = render(() => (
-      <TooltipPrimitive data-testid="trigger" text="Tooltip content">
+      <Tooltip data-testid="trigger" text="Tooltip content">
         Hover me
-      </TooltipPrimitive>
+      </Tooltip>
     ));
     fireEvent.mouseEnter(getByTestId("trigger"));
     expect(screen.queryByRole("tooltip")).not.toBeNull();
@@ -38,9 +38,9 @@ describe("TooltipPrimitive", () => {
 
   it("when popup is visible, has role='tooltip'", () => {
     const { getByTestId } = render(() => (
-      <TooltipPrimitive data-testid="trigger" text="Tooltip content">
+      <Tooltip data-testid="trigger" text="Tooltip content">
         Hover me
-      </TooltipPrimitive>
+      </Tooltip>
     ));
     fireEvent.mouseEnter(getByTestId("trigger"));
     const popup = screen.queryByRole("tooltip");
@@ -50,7 +50,7 @@ describe("TooltipPrimitive", () => {
 
   it("renders text, shortcut, and meta correctly", () => {
     const { getByTestId } = render(() => (
-      <TooltipPrimitive
+      <Tooltip
         as="button"
         data-testid="trigger"
         meta="Copies the selection"
@@ -58,7 +58,7 @@ describe("TooltipPrimitive", () => {
         text="Copy"
       >
         Trigger
-      </TooltipPrimitive>
+      </Tooltip>
     ));
 
     fireEvent.mouseEnter(getByTestId("trigger"));
@@ -72,9 +72,9 @@ describe("TooltipPrimitive", () => {
 
   it("renders only text if shortcut and meta are absent", () => {
     const { getByTestId } = render(() => (
-      <TooltipPrimitive data-testid="trigger" text="Paste">
+      <Tooltip data-testid="trigger" text="Paste">
         Trigger
-      </TooltipPrimitive>
+      </Tooltip>
     ));
 
     fireEvent.mouseEnter(getByTestId("trigger"));
