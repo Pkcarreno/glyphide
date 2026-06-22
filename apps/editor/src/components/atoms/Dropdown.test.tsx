@@ -1,11 +1,11 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
 import type { JSX } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Dropdown } from "./DropdownPrimitive.tsx";
+import { Dropdown } from "./Dropdown.tsx";
 
 afterEach(() => cleanup());
 
-describe("DropdownPrimitive", () => {
+describe("Dropdown", () => {
   describe("Open/Close", () => {
     it("renders trigger and ignores content when closed", () => {
       render(() => (

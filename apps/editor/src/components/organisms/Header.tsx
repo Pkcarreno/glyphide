@@ -7,7 +7,7 @@ import { Show, splitProps } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { cn } from "../../helpers/cn.ts";
 import { Button } from "../atoms/Button.tsx";
-import { Dropdown } from "../atoms/DropdownPrimitive.tsx";
+import { Dropdown } from "../atoms/Dropdown.tsx";
 import { Icon } from "../atoms/Icon.tsx";
 import { LogoSquare } from "../atoms/LogoSquare.tsx";
 import { Tooltip } from "../molecules/Tooltip.tsx";
