@@ -1,10 +1,10 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
 import { afterEach, describe, expect, it } from "vitest";
-import { Popover } from "./PopoverPrimitive.tsx";
+import { Popover } from "./Popover.tsx";
 
 afterEach(() => cleanup());
 
-describe("PopoverPrimitive", () => {
+describe("Popover", () => {
   it("renders trigger and ignores content when closed", () => {
     render(() => (
       <Popover.Root>

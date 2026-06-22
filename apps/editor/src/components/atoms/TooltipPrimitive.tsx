@@ -1,7 +1,7 @@
 import type { ComponentProps, JSX, ValidComponent } from "solid-js";
 import { createSignal, Show, splitProps } from "solid-js";
-import type { PopoverPosition } from "./PopoverPrimitive.tsx";
-import { Popover } from "./PopoverPrimitive.tsx";
+import type { PopoverPosition } from "./Popover.tsx";
+import { Popover } from "./Popover.tsx";
 
 /** Positioning options for the Tooltip, identical to Popover positions. */
 export type TooltipPosition = PopoverPosition;
