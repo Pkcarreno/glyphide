@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Tooltip } from "./Tooltip.tsx";
+import { ActionTooltip } from "./ActionTooltip.tsx";
 
 vi.mock("../../core/context.tsx", () => ({
   useEditor: () => ({
@@ -21,12 +21,16 @@ vi.mock("../../core/context.tsx", () => ({
 
 afterEach(() => cleanup());
 
-describe("Tooltip (Molecule)", () => {
+describe("ActionTooltip", () => {
   it("when action is provided, resolves the shortcut automatically", () => {
     const { getByRole } = render(() => (
-      <Tooltip action={{ type: "RUN_CODE" } as const} as="button" text="Run">
+      <ActionTooltip
+        action={{ type: "RUN_CODE" } as const}
+        as="button"
+        text="Run"
+      >
         Hover me
-      </Tooltip>
+      </ActionTooltip>
     ));
 
     fireEvent.mouseEnter(getByRole("button"));
@@ -37,13 +41,13 @@ describe("Tooltip (Molecule)", () => {
 
   it("when complex action is provided, matches correctly", () => {
     const { getByRole } = render(() => (
-      <Tooltip
+      <ActionTooltip
         action={{ type: "TOGGLE_OVERLAY", overlayId: "settings" } as const}
         as="button"
         text="Settings"
       >
         Hover me
-      </Tooltip>
+      </ActionTooltip>
     ));
 
     fireEvent.mouseEnter(getByRole("button"));
@@ -54,9 +58,9 @@ describe("Tooltip (Molecule)", () => {
 
   it("when action not found, does not render shortcut", () => {
     const { getByRole } = render(() => (
-      <Tooltip action={{ type: "CLEAR_OUTPUT" }} as="button" text="Clear">
+      <ActionTooltip action={{ type: "CLEAR_OUTPUT" }} as="button" text="Clear">
         Hover me
-      </Tooltip>
+      </ActionTooltip>
     ));
 
     fireEvent.mouseEnter(getByRole("button"));

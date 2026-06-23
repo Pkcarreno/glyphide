@@ -10,7 +10,7 @@ import { Button } from "../atoms/Button.tsx";
 import { Dropdown } from "../atoms/Dropdown.tsx";
 import { Icon } from "../atoms/Icon.tsx";
 import { LogoSquare } from "../atoms/LogoSquare.tsx";
-import { Tooltip } from "../molecules/Tooltip.tsx";
+import { ActionTooltip } from "../molecules/ActionTooltip.tsx";
 
 interface HeaderProps
   extends Omit<
@@ -56,7 +56,7 @@ function Header(props: HeaderProps) {
     >
       <div class="flex items-center gap-3">
         <Dropdown.Root>
-          <Tooltip
+          <ActionTooltip
             aria-label="Project Menu"
             as={Dropdown.Trigger}
             position="bottom"
@@ -64,7 +64,7 @@ function Header(props: HeaderProps) {
             variant="ghost"
           >
             <LogoSquare alt="Glyphide Logo" />
-          </Tooltip>
+          </ActionTooltip>
           <Dropdown.Portal>
             <Dropdown.Content>
               <Dropdown.Item as="a" href="/" target="_blank">
@@ -103,7 +103,7 @@ function Header(props: HeaderProps) {
             </Dropdown.Content>
           </Dropdown.Portal>
         </Dropdown.Root>
-        <Tooltip
+        <ActionTooltip
           action={{ type: "OPEN_OVERLAY", overlayId: "project-rename" }}
           aria-label="Rename Project"
           as={Button}
@@ -119,13 +119,13 @@ function Header(props: HeaderProps) {
           variant="ghost"
         >
           {core.project.displayName()}
-        </Tooltip>
+        </ActionTooltip>
       </div>
 
       <div class="flex items-center gap-gap-compact">
         {/* Hidden on mobile, visible md+ */}
         <span class="hidden md:block">
-          <Tooltip
+          <ActionTooltip
             action={{ type: "TOGGLE_OVERLAY", overlayId: "settings" }}
             aria-label="Settings"
             as={Button}
@@ -136,10 +136,10 @@ function Header(props: HeaderProps) {
             variant="ghost"
           >
             <Icon icon={Settings} />
-          </Tooltip>
+          </ActionTooltip>
         </span>
         <span class="hidden md:block">
-          <Tooltip
+          <ActionTooltip
             action={{ type: "OPEN_OVERLAY", overlayId: "share" }}
             aria-label="Share workspace"
             as={Button}
@@ -150,9 +150,9 @@ function Header(props: HeaderProps) {
           >
             <Icon class="mr-1" icon={Share2} />
             Share
-          </Tooltip>
+          </ActionTooltip>
         </span>
-        <Tooltip
+        <ActionTooltip
           action={
             core.engine.engineStatus() === "running"
               ? { type: "INTERRUPT_EXECUTION" }
@@ -180,7 +180,7 @@ function Header(props: HeaderProps) {
           >
             <Icon class="mr-1" icon={Square} /> Stop
           </Show>
-        </Tooltip>
+        </ActionTooltip>
       </div>
     </header>
   );

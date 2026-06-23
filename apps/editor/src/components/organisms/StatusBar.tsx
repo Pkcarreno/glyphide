@@ -12,7 +12,7 @@ import type { EditorAction } from "../../core/actions/types.ts";
 import { useEditor } from "../../core/context.tsx";
 import { cn } from "../../helpers/cn.ts";
 import { Icon } from "../atoms/Icon.tsx";
-import { Tooltip } from "../molecules/Tooltip.tsx";
+import { ActionTooltip } from "../molecules/ActionTooltip.tsx";
 
 /**
  * Props for the StatusBar root component.
@@ -92,7 +92,7 @@ function StatusBarButton(props: StatusBarButtonProps) {
       }
       when={local.tooltip}
     >
-      <Tooltip
+      <ActionTooltip
         as="button"
         class={buttonClass}
         meta={local.tooltipDescription}
@@ -104,7 +104,7 @@ function StatusBarButton(props: StatusBarButtonProps) {
         {...rest}
       >
         {local.children}
-      </Tooltip>
+      </ActionTooltip>
     </Show>
   );
 }

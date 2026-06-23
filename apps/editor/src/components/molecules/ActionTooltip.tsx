@@ -7,9 +7,9 @@ import {
 } from "../atoms/Tooltip.tsx";
 
 /**
- * Props for the Tooltip component.
+ * Props for the ActionTooltip component.
  */
-export type TooltipProps<T extends ValidComponent = "div"> = Omit<
+export type ActionTooltipProps<T extends ValidComponent = "div"> = Omit<
   TooltipAtomProps<T>,
   "shortcut"
 > &
@@ -27,13 +27,14 @@ export type TooltipProps<T extends ValidComponent = "div"> = Omit<
   );
 
 /**
- * Smart Tooltip molecule that connects the UI Tooltip atom to the EditorCore.
- * Automatically resolves keyboard shortcuts if an `action` is provided.
+ * Smart ActionTooltip molecule that connects the UI Tooltip atom to the
+ * EditorCore. Automatically resolves keyboard shortcuts if an `action`
+ * is provided.
  */
-export function Tooltip<T extends ValidComponent = "div">(
-  props: TooltipProps<T>
+export function ActionTooltip<T extends ValidComponent = "div">(
+  props: ActionTooltipProps<T>
 ) {
-  const [local, rest] = splitProps(props as TooltipProps<T>, [
+  const [local, rest] = splitProps(props as ActionTooltipProps<T>, [
     "action",
     "shortcut",
   ]);
