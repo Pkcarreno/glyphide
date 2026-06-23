@@ -5,6 +5,7 @@ import { EngineSettingsModal } from "./EngineSettingsModal.tsx";
 
 const dispatchMock = vi.fn();
 const [mockIsOpen, setMockIsOpen] = createSignal(false);
+const [mockEngineStatus, setMockEngineStatus] = createSignal("ready");
 
 vi.mock("../../core/context.tsx", () => ({
   useEditor: (): {
@@ -35,8 +36,8 @@ vi.mock("../../core/context.tsx", () => ({
     dispatcher: { dispatch: dispatchMock },
     engine: {
       activeEngineId: () => "mock-engine",
-      activeInitParams: () => ({ timeout: 1000 }),
-      engineStatus: () => "ready",
+      activeInitParams: () => ({ timeout: 5000, retries: 3 }),
+      engineStatus: () => mockEngineStatus(),
     },
     engineRegistry: {
       getDefinition: () => ({
@@ -49,6 +50,12 @@ vi.mock("../../core/context.tsx", () => ({
             inputProps: { min: 1, max: 120, step: 1 },
             toModel: (val: unknown) => Number(val) * 1000,
             toView: (val: unknown) => Number(val) / 1000,
+          },
+          {
+            key: "retries",
+            label: "Retries",
+            isEditable: false,
+            inputType: "text",
           },
         ],
         defaultInitParams: {},
@@ -68,6 +75,7 @@ afterEach(() => {
 describe("EngineSettingsModal", () => {
   beforeEach(() => {
     setMockIsOpen(false);
+    setMockEngineStatus("ready");
   });
 
   it("when core.overlays is false, dialog is not in the DOM", () => {
@@ -93,6 +101,7 @@ describe("EngineSettingsModal", () => {
 describe("EngineSettingsModal Apply behavior", () => {
   beforeEach(() => {
     setMockIsOpen(true);
+    setMockEngineStatus("ready");
     dispatchMock.mockClear();
   });
 
@@ -111,7 +120,7 @@ describe("EngineSettingsModal Apply behavior", () => {
 
     expect(dispatchMock).toHaveBeenCalledWith({
       type: "UPDATE_ENGINE_CONFIG",
-      patch: { timeout: 2000 },
+      patch: { retries: 3, timeout: 2000 },
     });
     expect(dispatchMock).toHaveBeenCalledWith({
       type: "CLOSE_OVERLAY",
@@ -153,5 +162,205 @@ describe("EngineSettingsModal Apply behavior", () => {
     expect(dispatchMock).not.toHaveBeenCalledWith(
       expect.objectContaining({ type: "UPDATE_ENGINE_CONFIG" })
     );
+  });
+});
+
+describe("EngineSettingsModal ready-state gate", () => {
+  beforeEach(() => {
+    setMockIsOpen(true);
+    setMockEngineStatus("ready");
+    dispatchMock.mockClear();
+  });
+
+  afterEach(cleanup);
+
+  it("disables all inputs and Apply button when engine is idle", () => {
+    setMockEngineStatus("idle");
+    render(() => <EngineSettingsModal />);
+
+    const input = screen.getByRole("spinbutton") as HTMLInputElement;
+    expect(input.disabled).toBe(true);
+    const decreaseBtn = screen.getByLabelText("Decrease") as HTMLButtonElement;
+    const increaseBtn = screen.getByLabelText("Increase") as HTMLButtonElement;
+    expect(decreaseBtn.disabled).toBe(true);
+    expect(increaseBtn.disabled).toBe(true);
+    const retriesInput = screen.getByLabelText("Retries") as HTMLInputElement;
+    expect(retriesInput.disabled).toBe(true);
+    expect(
+      (screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement)
+        .disabled
+    ).toBe(true);
+    expect(
+      screen.getByText(
+        "The engine initializes when you run code. Parameters can be modified once initialized."
+      )
+    ).toBeTruthy();
+  });
+
+  it("disables all inputs and Apply button when engine is initializing", () => {
+    setMockEngineStatus("initializing");
+    render(() => <EngineSettingsModal />);
+
+    const input = screen.getByRole("spinbutton") as HTMLInputElement;
+    expect(input.disabled).toBe(true);
+    const decreaseBtn = screen.getByLabelText("Decrease") as HTMLButtonElement;
+    const increaseBtn = screen.getByLabelText("Increase") as HTMLButtonElement;
+    expect(decreaseBtn.disabled).toBe(true);
+    expect(increaseBtn.disabled).toBe(true);
+    const retriesInput = screen.getByLabelText("Retries") as HTMLInputElement;
+    expect(retriesInput.disabled).toBe(true);
+    expect(
+      (screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement)
+        .disabled
+    ).toBe(true);
+    expect(
+      screen.getByText("The engine is initializing. Please wait...")
+    ).toBeTruthy();
+  });
+
+  it("disables all inputs and Apply button when engine is running", () => {
+    setMockEngineStatus("running");
+    render(() => <EngineSettingsModal />);
+
+    const input = screen.getByRole("spinbutton") as HTMLInputElement;
+    expect(input.disabled).toBe(true);
+    const decreaseBtn = screen.getByLabelText("Decrease") as HTMLButtonElement;
+    const increaseBtn = screen.getByLabelText("Increase") as HTMLButtonElement;
+    expect(decreaseBtn.disabled).toBe(true);
+    expect(increaseBtn.disabled).toBe(true);
+    const retriesInput = screen.getByLabelText("Retries") as HTMLInputElement;
+    expect(retriesInput.disabled).toBe(true);
+    expect(
+      (screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement)
+        .disabled
+    ).toBe(true);
+    expect(
+      screen.getByText(
+        "The engine is currently running. Stop execution to modify parameters."
+      )
+    ).toBeTruthy();
+  });
+
+  it("disables all inputs and Apply button when engine is in error", () => {
+    setMockEngineStatus("error");
+    render(() => <EngineSettingsModal />);
+
+    const input = screen.getByRole("spinbutton") as HTMLInputElement;
+    expect(input.disabled).toBe(true);
+    const decreaseBtn = screen.getByLabelText("Decrease") as HTMLButtonElement;
+    const increaseBtn = screen.getByLabelText("Increase") as HTMLButtonElement;
+    expect(decreaseBtn.disabled).toBe(true);
+    expect(increaseBtn.disabled).toBe(true);
+    const retriesInput = screen.getByLabelText("Retries") as HTMLInputElement;
+    expect(retriesInput.disabled).toBe(true);
+    expect(
+      (screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement)
+        .disabled
+    ).toBe(true);
+    expect(
+      screen.getByText(
+        "Engine initialization failed. Retry to modify parameters."
+      )
+    ).toBeTruthy();
+  });
+
+  it("enables editable inputs and Apply button when engine is ready", () => {
+    setMockEngineStatus("ready");
+    render(() => <EngineSettingsModal />);
+
+    const input = screen.getByRole("spinbutton") as HTMLInputElement;
+    expect(input.disabled).toBe(false);
+    const decreaseBtn = screen.getByLabelText("Decrease") as HTMLButtonElement;
+    const increaseBtn = screen.getByLabelText("Increase") as HTMLButtonElement;
+    expect(decreaseBtn.disabled).toBe(false);
+    expect(increaseBtn.disabled).toBe(false);
+    expect(
+      (screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement)
+        .disabled
+    ).toBe(false);
+    expect(
+      screen.queryByText(
+        "The engine initializes when you run code. Parameters can be modified once initialized."
+      )
+    ).toBeNull();
+    expect(
+      screen.queryByText("The engine is initializing. Please wait...")
+    ).toBeNull();
+    expect(
+      screen.queryByText(
+        "The engine is currently running. Stop execution to modify parameters."
+      )
+    ).toBeNull();
+    expect(
+      screen.queryByText(
+        "Engine initialization failed. Retry to modify parameters."
+      )
+    ).toBeNull();
+  });
+
+  it("isEditable:false input stays disabled even when engine is ready", () => {
+    setMockEngineStatus("ready");
+    render(() => <EngineSettingsModal />);
+
+    const retriesInput = screen.getByLabelText("Retries") as HTMLInputElement;
+    expect(retriesInput.disabled).toBe(true);
+  });
+
+  it("isEditable:true input is disabled when engine is NOT ready (gate overrides)", () => {
+    setMockEngineStatus("idle");
+    render(() => <EngineSettingsModal />);
+
+    const input = screen.getByRole("spinbutton") as HTMLInputElement;
+    expect(input.disabled).toBe(true);
+  });
+
+  it("transition: idle → ready enables inputs and hides message", () => {
+    setMockEngineStatus("idle");
+    const { unmount: unmount1 } = render(() => <EngineSettingsModal />);
+
+    const inputIdle = screen.getByRole("spinbutton") as HTMLInputElement;
+    expect(inputIdle.disabled).toBe(true);
+    expect(
+      screen.getByText(
+        "The engine initializes when you run code. Parameters can be modified once initialized."
+      )
+    ).toBeTruthy();
+
+    unmount1();
+    setMockEngineStatus("ready");
+    render(() => <EngineSettingsModal />);
+
+    const inputReady = screen.getByRole("spinbutton") as HTMLInputElement;
+    expect(inputReady.disabled).toBe(false);
+    expect(
+      screen.queryByText(
+        "The engine initializes when you run code. Parameters can be modified once initialized."
+      )
+    ).toBeNull();
+  });
+
+  it("transition: ready → running disables inputs and shows message", () => {
+    setMockEngineStatus("ready");
+    const { unmount: unmount1 } = render(() => <EngineSettingsModal />);
+
+    const inputReady = screen.getByRole("spinbutton") as HTMLInputElement;
+    expect(inputReady.disabled).toBe(false);
+    expect(
+      screen.queryByText(
+        "The engine is currently running. Stop execution to modify parameters."
+      )
+    ).toBeNull();
+
+    unmount1();
+    setMockEngineStatus("running");
+    render(() => <EngineSettingsModal />);
+
+    const inputRunning = screen.getByRole("spinbutton") as HTMLInputElement;
+    expect(inputRunning.disabled).toBe(true);
+    expect(
+      screen.getByText(
+        "The engine is currently running. Stop execution to modify parameters."
+      )
+    ).toBeTruthy();
   });
 });

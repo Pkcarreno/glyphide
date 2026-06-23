@@ -85,4 +85,83 @@ describe("CompactNumberInput", () => {
 
     expect(handleValueChange).toHaveBeenCalledWith(15);
   });
+
+  describe("disabled prop", () => {
+    it("disables the input and both stepper buttons when disabled=true", () => {
+      const { getByRole, getByLabelText } = render(() => (
+        <CompactNumberInput
+          disabled={true}
+          onValueChange={() => undefined}
+          value={5}
+        />
+      ));
+
+      const input = getByRole("spinbutton") as HTMLInputElement;
+      const decreaseBtn = getByLabelText("Decrease") as HTMLButtonElement;
+      const increaseBtn = getByLabelText("Increase") as HTMLButtonElement;
+
+      expect(input.disabled).toBe(true);
+      expect(decreaseBtn.disabled).toBe(true);
+      expect(increaseBtn.disabled).toBe(true);
+    });
+
+    it("applies disabled:opacity-50 class to root wrapper when disabled", () => {
+      const { container } = render(() => (
+        <CompactNumberInput
+          disabled={true}
+          onValueChange={() => undefined}
+          value={5}
+        />
+      ));
+
+      const root = container.firstElementChild as HTMLElement;
+      expect(root.className).toContain("disabled:opacity-50");
+    });
+
+    it("keeps input and steppers enabled when disabled is not passed (default)", () => {
+      const { getByRole, getByLabelText } = render(() => (
+        <CompactNumberInput onValueChange={() => undefined} value={5} />
+      ));
+
+      const input = getByRole("spinbutton") as HTMLInputElement;
+      const decreaseBtn = getByLabelText("Decrease") as HTMLButtonElement;
+      const increaseBtn = getByLabelText("Increase") as HTMLButtonElement;
+
+      expect(input.disabled).toBe(false);
+      expect(decreaseBtn.disabled).toBe(false);
+      expect(increaseBtn.disabled).toBe(false);
+    });
+
+    it("does not apply disabled:opacity-50 class when disabled=false", () => {
+      const { container } = render(() => (
+        <CompactNumberInput
+          disabled={false}
+          onValueChange={() => undefined}
+          value={5}
+        />
+      ));
+
+      const root = container.firstElementChild as HTMLElement;
+      expect(root.className).not.toContain("disabled:opacity-50");
+    });
+
+    it("disabled prop overrides value-based guards (both buttons disabled even within min/max range)", () => {
+      const { getByLabelText } = render(() => (
+        <CompactNumberInput
+          disabled={true}
+          max={100}
+          min={0}
+          onValueChange={() => undefined}
+          value={50}
+        />
+      ));
+
+      // Value is in range, so with disabled=false both buttons would be enabled.
+      // With disabled=true, both MUST be disabled regardless.
+      const decreaseBtn = getByLabelText("Decrease") as HTMLButtonElement;
+      const increaseBtn = getByLabelText("Increase") as HTMLButtonElement;
+      expect(decreaseBtn.disabled).toBe(true);
+      expect(increaseBtn.disabled).toBe(true);
+    });
+  });
 });

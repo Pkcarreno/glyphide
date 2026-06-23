@@ -5,6 +5,8 @@ import { cn } from "../../helpers/cn.ts";
 export interface CompactNumberInputProps {
   /** Optional CSS classes to apply to the root element. */
   class?: string;
+  /** When true, disables the input and stepper buttons. */
+  disabled?: boolean;
   /** Maximum allowed value. */
   max?: number;
   /** Minimum allowed value. */
@@ -24,6 +26,7 @@ export interface CompactNumberInputProps {
 export function CompactNumberInput(props: CompactNumberInputProps) {
   const [local] = splitProps(props, [
     "class",
+    "disabled",
     "value",
     "onValueChange",
     "min",
@@ -61,13 +64,17 @@ export function CompactNumberInput(props: CompactNumberInputProps) {
     <div
       class={cn(
         "flex items-center overflow-hidden rounded border border-outline-variant bg-transparent",
+        local.disabled && "disabled:opacity-50",
         local.class
       )}
     >
       <button
         aria-label="Decrease"
         class="flex h-5 w-5 shrink-0 items-center justify-center text-on-surface-variant transition-colors hover:bg-surface-variant hover:text-on-surface disabled:opacity-50"
-        disabled={local.min !== undefined && local.value <= local.min}
+        disabled={
+          local.disabled ||
+          (local.min !== undefined && local.value <= local.min)
+        }
         onClick={handleDecrement}
         type="button"
       >
@@ -75,6 +82,7 @@ export function CompactNumberInput(props: CompactNumberInputProps) {
       </button>
       <input
         class="h-5 w-10 min-w-0 bg-transparent px-0.5 text-center text-on-surface text-xs outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        disabled={local.disabled}
         max={local.max}
         min={local.min}
         onChange={handleChange}
@@ -85,7 +93,10 @@ export function CompactNumberInput(props: CompactNumberInputProps) {
       <button
         aria-label="Increase"
         class="flex h-5 w-5 shrink-0 items-center justify-center text-on-surface-variant transition-colors hover:bg-surface-variant hover:text-on-surface disabled:opacity-50"
-        disabled={local.max !== undefined && local.value >= local.max}
+        disabled={
+          local.disabled ||
+          (local.max !== undefined && local.value >= local.max)
+        }
         onClick={handleIncrement}
         type="button"
       >

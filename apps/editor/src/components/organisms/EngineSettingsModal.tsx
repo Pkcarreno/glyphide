@@ -17,6 +17,24 @@ import {
 function EngineSettingsForm() {
   const core = useEditor();
 
+  const engineStatus = () => core.engine.engineStatus();
+  const isReady = () => engineStatus() === "ready";
+
+  const statusMessage = (): string => {
+    switch (engineStatus()) {
+      case "idle":
+        return "The engine initializes when you run code. Parameters can be modified once initialized.";
+      case "initializing":
+        return "The engine is initializing. Please wait...";
+      case "running":
+        return "The engine is currently running. Stop execution to modify parameters.";
+      case "error":
+        return "Engine initialization failed. Retry to modify parameters.";
+      default:
+        return "";
+    }
+  };
+
   const engineDef = () =>
     core.engineRegistry.getDefinition(core.engine.activeEngineId());
 
@@ -71,7 +89,7 @@ function EngineSettingsForm() {
                 fallback={
                   <input
                     class="h-5 w-16 rounded border border-outline-variant bg-transparent px-1 text-right text-on-surface text-xs focus:border-primary focus:outline-none disabled:opacity-50"
-                    disabled={!desc.isEditable}
+                    disabled={!(desc.isEditable && isReady())}
                     id={`engine-param-${desc.key}`}
                     onInput={(e) => {
                       const val = e.currentTarget.value;
@@ -94,6 +112,7 @@ function EngineSettingsForm() {
               >
                 <CompactNumberInput
                   {...(desc.inputProps ?? {})}
+                  disabled={!(desc.isEditable && isReady())}
                   onValueChange={(val) => {
                     setLocalPatch(
                       desc.key,
@@ -112,8 +131,13 @@ function EngineSettingsForm() {
         </For>
       </Show>
 
+      <Show when={!isReady()}>
+        <div class="text-on-surface-variant text-xs">{statusMessage()}</div>
+      </Show>
+
       <Button
         class="w-full"
+        disabled={!isReady()}
         onClick={handleApply}
         type="button"
         variant="primary"
