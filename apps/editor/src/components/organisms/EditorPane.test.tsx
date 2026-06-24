@@ -1,8 +1,10 @@
 import { render } from "@solidjs/testing-library";
+import { createSignal } from "solid-js";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { EditorPane } from "./EditorPane.tsx";
 
 const dispatchMock = vi.fn();
+const [mockIsTrustRequired, setMockIsTrustRequired] = createSignal(false);
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
@@ -10,6 +12,7 @@ vi.mock("../../core/context", () => ({
     settings: { settings: { theme: "system", isWordWrapEnabled: false } },
     engine: { activeLanguage: () => "javascript" },
     dispatcher: { dispatch: dispatchMock },
+    trust: { isTrustRequired: () => mockIsTrustRequired() },
   }),
 }));
 
@@ -48,5 +51,25 @@ describe("EditorPane", () => {
     const { container } = render(() => <EditorPane class="hidden" />);
     expect(container.firstElementChild?.className).toContain("hidden");
     expect(container.firstElementChild?.className).toContain("flex-1");
+  });
+
+  it("when trust is required, editor is read-only", () => {
+    setMockIsTrustRequired(true);
+    const { container } = render(() => <EditorPane />);
+    const editor = container.querySelector(".cm-editor");
+    expect(editor).not.toBeNull();
+    // CodeMirror sets contenteditable="false" when read-only
+    const content = editor?.querySelector(".cm-content");
+    expect(content?.getAttribute("contenteditable")).toBe("false");
+    setMockIsTrustRequired(false);
+  });
+
+  it("when trust is not required, editor is editable", () => {
+    setMockIsTrustRequired(false);
+    const { container } = render(() => <EditorPane />);
+    const editor = container.querySelector(".cm-editor");
+    expect(editor).not.toBeNull();
+    const content = editor?.querySelector(".cm-content");
+    expect(content?.getAttribute("contenteditable")).toBe("true");
   });
 });

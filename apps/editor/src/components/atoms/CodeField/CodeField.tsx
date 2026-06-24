@@ -6,6 +6,8 @@ import { getEditorAppearance, glyphideSyntaxHighlight } from "./theme.ts";
 export interface CodeFieldProps {
   /** Whether the dark theme should be enforced in CodeMirror internals */
   isDark?: boolean;
+  /** Whether the editor is read-only (no edits allowed) */
+  isReadOnly?: boolean;
   /** Whether lines should wrap when they exceed the editor width */
   isWordWrapEnabled?: boolean;
   /** Programming language for syntax highlighting */
@@ -36,6 +38,7 @@ export function CodeField(props: CodeFieldProps) {
   const languageCompartment = new Compartment();
   const appearanceCompartment = new Compartment();
   const wordWrapCompartment = new Compartment();
+  const readOnlyCompartment = new Compartment();
 
   onMount(() => {
     const updateListener = EditorView.updateListener.of((update) => {
@@ -71,6 +74,11 @@ export function CodeField(props: CodeFieldProps) {
         wordWrapCompartment.of(
           props.isWordWrapEnabled ? EditorView.lineWrapping : []
         ),
+        readOnlyCompartment.of(
+          props.isReadOnly
+            ? [EditorState.readOnly.of(true), EditorView.editable.of(false)]
+            : []
+        ),
       ],
     });
 
@@ -92,6 +100,19 @@ export function CodeField(props: CodeFieldProps) {
       view.dispatch({
         effects: wordWrapCompartment.reconfigure(
           isWrap ? EditorView.lineWrapping : []
+        ),
+      });
+    }
+  });
+
+  createEffect(() => {
+    const isReadOnly = !!props.isReadOnly;
+    if (view) {
+      view.dispatch({
+        effects: readOnlyCompartment.reconfigure(
+          isReadOnly
+            ? [EditorState.readOnly.of(true), EditorView.editable.of(false)]
+            : []
         ),
       });
     }
