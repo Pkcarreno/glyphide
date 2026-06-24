@@ -32,13 +32,15 @@ export type EditorAction =
       description?: string;
       notificationType?: "info" | "success" | "warning" | "error";
     }
-  | { type: "DISMISS_TOAST"; id: string };
+  | { type: "DISMISS_TOAST"; id: string }
+  | { type: "GRANT_TRUST" };
 
 /** Uniquely identifies an overlay (modal, menu, etc). */
 export type OverlayId =
   | "settings"
   | "project-rename"
   | "engine-settings"
+  | "trust-required"
   | string;
 
 /** Extracts the action type string literal from the union. */

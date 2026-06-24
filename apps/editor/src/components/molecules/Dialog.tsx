@@ -102,12 +102,24 @@ function DialogTrigger(props: DialogTriggerProps) {
 
 interface DialogOverlayProps extends JSX.HTMLAttributes<HTMLButtonElement> {
   class?: string;
+  preventBackdropClose?: boolean;
 }
 
 /** Backdrop overlay that closes the dialog on click. */
 function DialogOverlay(props: DialogOverlayProps) {
-  const [local, rest] = splitProps(props, ["class"]);
+  const [local, rest] = splitProps(props, ["class", "preventBackdropClose"]);
   const { close } = useDialog();
+
+  function handleClick(e: MouseEvent) {
+    if (!local.preventBackdropClose) {
+      close();
+    }
+    if (typeof rest.onClick === "function") {
+      rest.onClick(
+        e as unknown as Parameters<NonNullable<typeof rest.onClick>>[0]
+      );
+    }
+  }
 
   return (
     <button
@@ -116,7 +128,7 @@ function DialogOverlay(props: DialogOverlayProps) {
         "fixed inset-0 z-50 m-0 cursor-default border-none bg-transparent p-0",
         local.class
       )}
-      onClick={close}
+      onClick={handleClick}
       tabIndex={-1}
       type="button"
       {...rest}
@@ -128,17 +140,23 @@ function DialogOverlay(props: DialogOverlayProps) {
 
 interface DialogContentProps extends JSX.HTMLAttributes<HTMLDivElement> {
   class?: string;
+  /** When true, clicking the backdrop does NOT close the dialog. */
+  preventBackdropClose?: boolean;
 }
 
 /** The visible dialog panel. Shown only when open. */
 function DialogContent(props: DialogContentProps) {
-  const [local, rest] = splitProps(props, ["class", "children"]);
+  const [local, rest] = splitProps(props, [
+    "class",
+    "children",
+    "preventBackdropClose",
+  ]);
   const { isOpen } = useDialog();
 
   return (
     <Show when={isOpen()}>
       <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <DialogOverlay />
+        <DialogOverlay preventBackdropClose={local.preventBackdropClose} />
         <div
           aria-modal="true"
           class={cn(

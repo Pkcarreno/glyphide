@@ -4,6 +4,7 @@ import { ProjectRenameModal } from "./ProjectRenameModal.tsx";
 import { SettingsModal } from "./SettingsModal.tsx";
 import { ShareModal } from "./ShareModal.tsx";
 import { Toaster } from "./Toaster.tsx";
+import { TrustRequiredModal } from "./TrustRequiredModal.tsx";
 
 /**
  * Orchestrates all application-level floating elements.
@@ -17,6 +18,7 @@ export function FloatingLayer() {
       <EngineSettingsModal />
       <ProjectRenameModal />
       <ShareModal />
+      <TrustRequiredModal />
       <Toaster />
     </>
   );

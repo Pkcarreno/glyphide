@@ -22,7 +22,8 @@ export type EngineStatus =
   | "initializing"
   | "ready"
   | "running"
-  | "error";
+  | "error"
+  | "blocked";
 
 /** Dependencies injected into the engine model. */
 export interface EngineModelDeps {
@@ -60,6 +61,8 @@ export interface EngineModel {
   retryInit(): Promise<void>;
   /** Selects an engine entry and triggers INIT immediately. */
   selectEngineEntry(entry: EngineEntry): Promise<void>;
+  /** Sets the engine status to blocked (used when trust is required). */
+  setBlocked(isBlocked: boolean): void;
   /** Tears down the orchestrator and releases resources. */
   terminate(): void;
   /** Updates the engine config and triggers a re-INIT. */
@@ -70,6 +73,7 @@ export interface EngineModel {
 export function createEngineModel(deps: EngineModelDeps): EngineModel {
   const [engineStatus, setEngineStatus] = createSignal<EngineStatus>("idle");
   const [isDirty, setIsDirty] = createSignal<boolean>(false);
+  const [isBlocked, setIsBlocked] = createSignal<boolean>(false);
 
   const initialEngineState = deps.urlState.get("engine") as string | null;
 
@@ -295,8 +299,24 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     }
   }
 
+  function setBlocked(blocked: boolean): void {
+    setIsBlocked(blocked);
+    if (blocked) {
+      setEngineStatus("blocked");
+    } else if (engineStatus() === "blocked") {
+      setEngineStatus("idle");
+    }
+  }
+
+  function engineStatusAccessor(): EngineStatus {
+    if (isBlocked()) {
+      return "blocked";
+    }
+    return engineStatus();
+  }
+
   return {
-    engineStatus,
+    engineStatus: engineStatusAccessor,
     activeEngineId,
     activeLanguage,
     activeInitParams,
@@ -307,6 +327,7 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     selectEngineEntry,
     updateEngineConfig,
     retryInit,
+    setBlocked,
     terminate,
     onBufferUpdated,
   };

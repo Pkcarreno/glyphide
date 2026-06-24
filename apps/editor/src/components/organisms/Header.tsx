@@ -1,6 +1,7 @@
 import Play from "lucide-solid/icons/play";
 import Settings from "lucide-solid/icons/settings";
 import Share2 from "lucide-solid/icons/share-2";
+import ShieldAlert from "lucide-solid/icons/shield-alert";
 import Square from "lucide-solid/icons/square";
 import type { JSX } from "solid-js";
 import { Show, splitProps } from "solid-js";
@@ -120,6 +121,28 @@ function Header(props: HeaderProps) {
         >
           {core.project.displayName()}
         </ActionTooltip>
+
+        <Show when={core.trust.isTrustRequired()}>
+          <ActionTooltip
+            action={{ type: "OPEN_OVERLAY", overlayId: "trust-required" }}
+            aria-label="Trust Required"
+            as={Button}
+            class="border-log-warn bg-log-warn/10 text-log-warn hover:bg-log-warn/20"
+            meta="Review before running"
+            onClick={() =>
+              core.dispatcher.dispatch({
+                type: "OPEN_OVERLAY",
+                overlayId: "trust-required",
+              })
+            }
+            position="bottom"
+            text="Shared Code Detected"
+            variant="outline"
+          >
+            <Icon class="mr-1" icon={ShieldAlert} />
+            Trust Required
+          </ActionTooltip>
+        </Show>
       </div>
 
       <div class="flex items-center gap-gap-compact">

@@ -111,4 +111,40 @@ describe("Dialog", () => {
     expect(dialog.className).toContain("max-w-lg");
     expect(dialog.className).toContain("bg-surface");
   });
+
+  it("when preventBackdropClose is true, clicking backdrop does not close dialog", () => {
+    const handler = vi.fn();
+    const { container } = render(() => (
+      <Dialog defaultOpen onOpenChange={handler}>
+        <DialogContent preventBackdropClose>
+          <p>Cannot dismiss via backdrop</p>
+        </DialogContent>
+      </Dialog>
+    ));
+    // Find the backdrop overlay button
+    const overlay = container.querySelector('[aria-hidden="true"]');
+    expect(overlay).not.toBeNull();
+    if (overlay) {
+      overlay.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    }
+    // onOpenChange should NOT have been called with false (dialog should NOT close)
+    expect(handler).not.toHaveBeenCalledWith(false);
+  });
+
+  it("when preventBackdropClose is not set, clicking backdrop closes dialog", () => {
+    const handler = vi.fn();
+    const { container } = render(() => (
+      <Dialog defaultOpen onOpenChange={handler}>
+        <DialogContent>
+          <p>Can dismiss via backdrop</p>
+        </DialogContent>
+      </Dialog>
+    ));
+    const overlay = container.querySelector('[aria-hidden="true"]');
+    expect(overlay).not.toBeNull();
+    if (overlay) {
+      overlay.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    }
+    expect(handler).toHaveBeenCalledWith(false);
+  });
 });

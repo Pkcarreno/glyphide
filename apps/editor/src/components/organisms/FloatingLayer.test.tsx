@@ -6,6 +6,8 @@ import { FloatingLayer } from "./FloatingLayer.tsx";
 const [mockIsOpenSettings, setMockIsOpenSettings] = createSignal(false);
 const [mockIsOpenEngineSettings, setMockIsOpenEngineSettings] =
   createSignal(false);
+const [mockIsOpenTrustRequired, setMockIsOpenTrustRequired] =
+  createSignal(false);
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
@@ -22,7 +24,8 @@ vi.mock("../../core/context", () => ({
     overlays: {
       isOpen: (id: string) =>
         (id === "settings" && mockIsOpenSettings()) ||
-        (id === "engine-settings" && mockIsOpenEngineSettings()),
+        (id === "engine-settings" && mockIsOpenEngineSettings()) ||
+        (id === "trust-required" && mockIsOpenTrustRequired()),
     },
     engine: {
       activeEngineId: () => "mock-engine",
@@ -60,6 +63,7 @@ describe("FloatingLayer", () => {
   beforeEach(() => {
     setMockIsOpenSettings(false);
     setMockIsOpenEngineSettings(false);
+    setMockIsOpenTrustRequired(false);
   });
 
   afterEach(() => {
@@ -83,5 +87,12 @@ describe("FloatingLayer", () => {
     const { getByRole, getByText } = render(() => <FloatingLayer />);
     expect(getByRole("dialog")).toBeTruthy();
     expect(getByText("Engine Settings")).toBeTruthy();
+  });
+
+  it("when trust-required overlay is open, displays TrustRequiredModal with Trust Required title", () => {
+    setMockIsOpenTrustRequired(true);
+    const { getByRole, getByText } = render(() => <FloatingLayer />);
+    expect(getByRole("dialog")).toBeTruthy();
+    expect(getByText("Trust Required")).toBeTruthy();
   });
 });

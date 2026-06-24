@@ -16,6 +16,8 @@ import type { ProjectModel } from "./models/project.ts";
 import { createProjectModel } from "./models/project.ts";
 import type { SettingsModel } from "./models/settings.ts";
 import { createSettingsModel } from "./models/settings.ts";
+import type { TrustModel } from "./models/trust.ts";
+import { createTrustModel } from "./models/trust.ts";
 import type { PersistencePort } from "./ports/persistence.ts";
 import type { UrlStatePort } from "./ports/url-state.ts";
 import type { ShortcutRegistry } from "./shortcuts/registry.ts";
@@ -48,6 +50,7 @@ export interface EditorCore {
   project: ProjectModel;
   settings: SettingsModel;
   shortcuts: ShortcutRegistry;
+  trust: TrustModel;
 }
 
 /**
@@ -64,6 +67,7 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
   const overlays = createOverlayModel();
   const notifications = createNotificationModel();
   const engineRegistry = createEngineRegistry();
+  const trust = createTrustModel(deps.urlState);
   const engine = createEngineModel({
     buffer,
     output,
@@ -77,6 +81,10 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
 
   unsubscribers.push(
     dispatcher.on("RUN_CODE", () => {
+      if (trust.isTrustRequired()) {
+        overlays.open("trust-required");
+        return;
+      }
       engine.executeCode();
     })
   );
@@ -95,6 +103,10 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
 
   unsubscribers.push(
     dispatcher.on("SELECT_ENGINE_ENTRY", (action) => {
+      if (trust.isTrustRequired()) {
+        overlays.open("trust-required");
+        return;
+      }
       engine.selectEngineEntry({
         engineId: action.engineId,
         language: action.language,
@@ -111,6 +123,10 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
 
   unsubscribers.push(
     dispatcher.on("RETRY_ENGINE_INIT", () => {
+      if (trust.isTrustRequired()) {
+        overlays.open("trust-required");
+        return;
+      }
       engine.retryInit();
     })
   );
@@ -124,7 +140,7 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
         clearTimeout(autoRunTimer);
       }
 
-      if (settings.settings.isAutoRunEnabled) {
+      if (settings.settings.isAutoRunEnabled && !trust.isTrustRequired()) {
         autoRunTimer = setTimeout(() => {
           const status = engine.engineStatus();
           if (
@@ -196,6 +212,20 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
     })
   );
 
+  unsubscribers.push(
+    dispatcher.on("GRANT_TRUST", () => {
+      trust.grantTrust();
+      engine.setBlocked(false);
+      overlays.close("trust-required");
+      const def = engineRegistry.getDefinition(engine.activeEngineId());
+      engine.selectEngineEntry({
+        engineId: engine.activeEngineId(),
+        language: engine.activeLanguage(),
+        label: def.label,
+      });
+    })
+  );
+
   function dispose(): void {
     if (autoRunTimer) {
       clearTimeout(autoRunTimer);
@@ -207,12 +237,17 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
     }
   }
 
-  const initialDef = engineRegistry.getDefinition(engine.activeEngineId());
-  engine.selectEngineEntry({
-    engineId: engine.activeEngineId(),
-    language: engine.activeLanguage(),
-    label: initialDef.label,
-  });
+  if (trust.isTrustRequired()) {
+    engine.setBlocked(true);
+    overlays.open("trust-required");
+  } else {
+    const initialDef = engineRegistry.getDefinition(engine.activeEngineId());
+    engine.selectEngineEntry({
+      engineId: engine.activeEngineId(),
+      language: engine.activeLanguage(),
+      label: initialDef.label,
+    });
+  }
 
   return {
     buffer,
@@ -225,6 +260,7 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
     overlays,
     dispatcher,
     shortcuts,
+    trust,
     dispose,
   };
 }

@@ -1,24 +1,29 @@
 import { render, screen } from "@solidjs/testing-library";
+import { createSignal } from "solid-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Header } from "./Header.tsx";
 
 vi.stubGlobal("console", { info: vi.fn() });
 
 const dispatchMock = vi.fn();
+const [mockIsTrustRequired, setMockIsTrustRequired] = createSignal(false);
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
     project: { name: () => "TEST_PROJECT", displayName: () => "TEST_PROJECT" },
     engine: { engineStatus: () => "idle" },
     dispatcher: { dispatch: dispatchMock },
+    trust: { isTrustRequired: () => mockIsTrustRequired() },
   }),
 }));
 
 const TEST_PROJECT_REGEX = /TEST_PROJECT/;
 const RUN_REGEX = /Run/;
+const TRUST_REGEX = /trust/i;
 
 describe("Header", () => {
   beforeEach(() => {
     dispatchMock.mockClear();
+    setMockIsTrustRequired(false);
   });
 
   it("when rendered, displays the app title", () => {
@@ -55,11 +60,45 @@ describe("Header", () => {
     const { container } = render(() => <Header class="mb-4" />);
     expect(container.firstElementChild?.className).toContain("mb-4");
   });
+
+  describe("Trust indicator", () => {
+    it("when trust is not required, indicator is not visible", () => {
+      const { queryByRole } = render(() => <Header />);
+      expect(queryByRole("button", { name: TRUST_REGEX })).toBeNull();
+    });
+
+    it("when trust is required, indicator is visible", () => {
+      setMockIsTrustRequired(true);
+      const { getByRole } = render(() => <Header />);
+      expect(getByRole("button", { name: TRUST_REGEX })).toBeTruthy();
+    });
+
+    it("when trust indicator clicked, dispatches OPEN_OVERLAY for trust-required", () => {
+      setMockIsTrustRequired(true);
+      const { getByRole } = render(() => <Header />);
+      const indicator = getByRole("button", { name: TRUST_REGEX });
+      indicator.click();
+      expect(dispatchMock).toHaveBeenCalledWith({
+        type: "OPEN_OVERLAY",
+        overlayId: "trust-required",
+      });
+    });
+
+    it("when trust required, run button still dispatches RUN_CODE (gate is in core)", () => {
+      setMockIsTrustRequired(true);
+      const { getAllByRole } = render(() => <Header />);
+      const buttons = getAllByRole("button", { name: RUN_REGEX });
+      buttons[0].click();
+      // The Header still dispatches RUN_CODE — the core guard blocks it
+      expect(dispatchMock).toHaveBeenCalledWith({ type: "RUN_CODE" });
+    });
+  });
 });
 
 describe("Header - Mobile Dropdown Items", () => {
   beforeEach(() => {
     dispatchMock.mockClear();
+    setMockIsTrustRequired(false);
   });
 
   it("when dropdown is opened, displays mobile-only dropdown items", () => {
