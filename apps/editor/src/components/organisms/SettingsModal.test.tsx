@@ -55,7 +55,7 @@ describe("SettingsModal", () => {
 
   it("when rendered, displays the Appearance tab and its components by default", () => {
     setMockIsOpen(true);
-    const { getAllByText, getByRole, queryByText } = render(() => (
+    const { getAllByText, getByRole, getAllByRole } = render(() => (
       <SettingsModal />
     ));
 
@@ -63,40 +63,65 @@ describe("SettingsModal", () => {
 
     expect(getByRole("combobox")).toBeTruthy();
 
-    expect(queryByText("Word Wrap")).toBeNull();
-    expect(queryByText("Auto-run on type")).toBeNull();
+    // Only the Appearance panel is visible; Editor/Execution/About are hidden.
+    const panels = getAllByRole("tabpanel", { hidden: true });
+    const editorPanel = panels.find((p) =>
+      p.textContent?.includes("Word Wrap")
+    );
+    const executionPanel = panels.find((p) =>
+      p.textContent?.includes("Auto-run on type")
+    );
+    expect(editorPanel?.hasAttribute("hidden")).toBe(true);
+    expect(executionPanel?.hasAttribute("hidden")).toBe(true);
   });
 
   it("changes tab to Editor when clicked", () => {
     setMockIsOpen(true);
-    const { getByRole, queryByText } = render(() => <SettingsModal />);
+    const { getByRole, getAllByRole } = render(() => <SettingsModal />);
 
-    const editorTab = getByRole("button", { name: "Editor" });
+    const editorTab = getByRole("tab", { name: "Editor" });
     editorTab.click();
 
     expect(getByRole("switch", { name: "Word Wrap" })).toBeTruthy();
-    expect(queryByText("Theme Preference")).toBeNull();
+
+    // Appearance panel must be hidden now; Editor panel must be visible
+    const panels = getAllByRole("tabpanel", { hidden: true });
+    const appearancePanel = panels.find((p) =>
+      p.textContent?.includes("Theme Preference")
+    );
+    const editorPanel = panels.find((p) =>
+      p.textContent?.includes("Word Wrap")
+    );
+    expect(appearancePanel?.hasAttribute("hidden")).toBe(true);
+    expect(editorPanel?.hasAttribute("hidden")).toBe(false);
   });
 
   it("changes tab when navigation buttons are clicked", () => {
     setMockIsOpen(true);
-    const { getByRole, queryByText } = render(() => <SettingsModal />);
+    const { getByRole, getAllByRole } = render(() => <SettingsModal />);
 
-    const executionTab = getByRole("button", { name: "Execution" });
+    const executionTab = getByRole("tab", { name: "Execution" });
     executionTab.click();
 
     expect(getByRole("switch", { name: "Auto-run on type" })).toBeTruthy();
     expect(getByRole("switch", { name: "Clear console on run" })).toBeTruthy();
-    expect(queryByText("Auto-run delay (ms)")).toBeTruthy();
+    expect(
+      getByRole("spinbutton", { name: "Auto-run delay (ms)" })
+    ).toBeTruthy();
 
-    expect(queryByText("Theme Preference")).toBeNull();
+    // Appearance panel must be hidden
+    const panels = getAllByRole("tabpanel", { hidden: true });
+    const appearancePanel = panels.find((p) =>
+      p.textContent?.includes("Theme Preference")
+    );
+    expect(appearancePanel?.hasAttribute("hidden")).toBe(true);
   });
 
   it("when close button clicked, fires dispatcher CLOSE_OVERLAY", () => {
     setMockIsOpen(true);
     dispatchMock.mockClear();
-    const { getAllByRole } = render(() => <SettingsModal />);
-    getAllByRole("button", { name: "Close settings" })[0].click();
+    const { getByRole } = render(() => <SettingsModal />);
+    getByRole("button", { name: "Close settings" }).click();
     expect(dispatchMock).toHaveBeenCalledWith({
       type: "CLOSE_OVERLAY",
       overlayId: "settings",
@@ -126,5 +151,34 @@ describe("SettingsModal", () => {
 
     resetButton.click();
     expect(resetSettingMock).toHaveBeenCalledWith("theme");
+  });
+
+  it("renders a tablist with one tab per settings section", () => {
+    setMockIsOpen(true);
+    const { getAllByRole, getByRole } = render(() => <SettingsModal />);
+
+    expect(getByRole("tablist")).toBeTruthy();
+    expect(getAllByRole("tab")).toHaveLength(4);
+  });
+
+  it("renders one tabpanel per settings section (most hidden by default)", () => {
+    setMockIsOpen(true);
+    const { getAllByRole } = render(() => <SettingsModal />);
+
+    // 4 panels mounted; only the active (Appearance) is visible to the role query.
+    expect(getAllByRole("tabpanel", { hidden: true })).toHaveLength(4);
+    expect(getAllByRole("tabpanel")).toHaveLength(1);
+  });
+
+  it("renders a single floating close button in the content area", () => {
+    setMockIsOpen(true);
+    const { getAllByRole } = render(() => <SettingsModal />);
+
+    const closeButtons = getAllByRole("button", { name: "Close settings" });
+    expect(closeButtons).toHaveLength(1);
+    expect(closeButtons[0].classList.contains("absolute")).toBe(true);
+    expect(closeButtons[0].classList.contains("top-3")).toBe(true);
+    expect(closeButtons[0].classList.contains("right-3")).toBe(true);
+    expect(closeButtons[0].classList.contains("z-10")).toBe(true);
   });
 });
