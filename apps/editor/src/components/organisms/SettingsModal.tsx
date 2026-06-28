@@ -190,11 +190,11 @@ function SettingsModal(props: SettingsModalProps) {
           </div>
 
           <div class="flex min-w-0 flex-1 flex-col bg-background">
-            <div class="flex w-full flex-1 flex-col overflow-y-auto p-6 pt-14 md:p-8 md:pt-14">
+            <div class="flex w-full flex-1 flex-col overflow-y-auto p-6 pt-8 md:p-8 md:pt-8">
               <Tabs.Content class="w-full" value="Appearance">
                 <div class="fade-in flex w-full animate-in flex-col gap-8 duration-300">
                   <section class="w-full">
-                    <div class="flex w-full flex-col divide-y divide-outline-variant/50 border-outline-variant/50 border-y">
+                    <div class="flex w-full flex-col divide-y divide-outline-variant/50 border-outline-variant/50 border-b">
                       <SettingsItem
                         description="Select the color theme for the editor interface."
                         forId="theme-select"
@@ -249,7 +249,7 @@ function SettingsModal(props: SettingsModalProps) {
               <Tabs.Content class="w-full" value="Editor">
                 <div class="fade-in flex w-full animate-in flex-col gap-8 duration-300">
                   <section class="w-full">
-                    <div class="flex w-full flex-col divide-y divide-outline-variant/50 border-outline-variant/50 border-y">
+                    <div class="flex w-full flex-col divide-y divide-outline-variant/50 border-outline-variant/50 border-b">
                       <SettingsNumberItem
                         description="Base font size for the code editor (px)."
                         isModified={
@@ -313,7 +313,7 @@ function SettingsModal(props: SettingsModalProps) {
               <Tabs.Content class="w-full" value="Execution">
                 <div class="fade-in flex w-full animate-in flex-col gap-8 duration-300">
                   <section class="w-full">
-                    <div class="flex w-full flex-col divide-y divide-outline-variant/50 border-outline-variant/50 border-y">
+                    <div class="flex w-full flex-col divide-y divide-outline-variant/50 border-outline-variant/50 border-b">
                       <SettingsSwitchItem
                         checked={core.settings.settings.isAutoRunEnabled}
                         description="Execute code automatically after a short delay."
