@@ -24,5 +24,7 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
-# Local gentle-ai runtime state
+
+# ai related
 .atl/
+.pi/
