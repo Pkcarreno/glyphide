@@ -395,7 +395,7 @@ function DropdownContent(props: DropdownContentProps) {
           class={cn(
             "pointer-events-auto fixed z-50 w-max origin-top-left",
             "overflow-y-auto overflow-x-hidden rounded-lg",
-            "border border-outline-variant bg-surface p-1 text-on-surface text-xs shadow-md",
+            "bg-surface p-1 text-on-surface text-xs shadow-md ring-1 ring-on-surface/10",
             "animate-[dropdown-in_100ms_ease-out]",
             local.class
           )}
@@ -500,7 +500,7 @@ function DropdownItem<T extends ValidComponent = "div">(
   return (
     <Dynamic
       class={cn(
-        "relative flex cursor-pointer select-none items-center gap-1.5 rounded-md px-2 py-1.5 text-xs outline-none transition-colors",
+        "relative flex min-h-7 cursor-pointer select-none items-center gap-1.5 rounded-sm px-2 py-1 text-xs outline-none transition-colors",
         "hover:bg-surface-variant hover:text-on-surface",
         "data-[active=true]:bg-surface-variant data-[active=true]:text-on-surface",
         local.inset && "pl-7",
@@ -591,7 +591,7 @@ function DropdownCheckboxItem(props: DropdownCheckboxItemProps) {
     <div
       aria-checked={local.isChecked}
       class={cn(
-        "relative flex cursor-pointer select-none items-center gap-1.5 rounded-md py-1 pr-8 pl-1.5 text-xs outline-none transition-colors",
+        "relative flex cursor-pointer select-none items-center gap-1.5 rounded-sm py-1 pr-8 pl-1.5 text-xs outline-none transition-colors",
         "hover:bg-surface-variant hover:text-on-surface",
         "data-[active=true]:bg-surface-variant data-[active=true]:text-on-surface",
         local.inset && "pl-7",

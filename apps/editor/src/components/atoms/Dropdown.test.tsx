@@ -351,6 +351,27 @@ describe("Dropdown", () => {
   });
 
   describe("Styling Props", () => {
+    it("content uses ring-1 instead of border", async () => {
+      render(() => (
+        <Dropdown.Root>
+          <Dropdown.Trigger>Menu</Dropdown.Trigger>
+          <Dropdown.Portal>
+            <Dropdown.Content>
+              <Dropdown.Item>Item 1</Dropdown.Item>
+            </Dropdown.Content>
+          </Dropdown.Portal>
+        </Dropdown.Root>
+      ));
+
+      fireEvent.click(screen.getByText("Menu"));
+      await Promise.resolve();
+
+      const content = screen.getByRole("menu");
+      expect(content.classList.contains("ring-1")).toBe(true);
+      expect(content.classList.contains("ring-on-surface/10")).toBe(true);
+      expect(content.classList.contains("border")).toBe(false);
+    });
+
     it("applies inset padding when inset=true", async () => {
       render(() => (
         <Dropdown.Root>
@@ -387,6 +408,26 @@ describe("Dropdown", () => {
 
       const item = screen.getByText("Delete");
       expect(item.classList.contains("text-error")).toBe(true);
+    });
+
+    it("item applies min-h-7 and py-1 for compact density", async () => {
+      render(() => (
+        <Dropdown.Root>
+          <Dropdown.Trigger>Menu</Dropdown.Trigger>
+          <Dropdown.Portal>
+            <Dropdown.Content>
+              <Dropdown.Item>Item</Dropdown.Item>
+            </Dropdown.Content>
+          </Dropdown.Portal>
+        </Dropdown.Root>
+      ));
+
+      fireEvent.click(screen.getByText("Menu"));
+      await Promise.resolve();
+
+      const item = screen.getByText("Item");
+      expect(item.classList.contains("min-h-7")).toBe(true);
+      expect(item.classList.contains("py-1")).toBe(true);
     });
 
     it("renders Shortcut right-aligned with muted color", async () => {

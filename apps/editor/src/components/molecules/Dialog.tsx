@@ -161,9 +161,9 @@ function DialogContent(props: DialogContentProps) {
           aria-modal="true"
           class={cn(
             "relative z-50",
-            "border border-outline-variant bg-surface",
-            "overflow-hidden rounded-xl shadow-2xl",
-            "w-full max-w-sm",
+            "bg-surface ring-1 ring-on-surface/10",
+            "overflow-hidden rounded-xl shadow-md",
+            "w-full max-w-sm p-4",
             "flex flex-col text-on-surface",
             local.class
           )}

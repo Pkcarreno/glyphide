@@ -325,8 +325,8 @@ export function PopoverPopup(props: PopoverPopupProps) {
     <div
       class={cn(
         "flex flex-col",
-        "rounded-lg border border-outline-variant bg-surface shadow-xl",
-        "text-on-surface text-sm",
+        "rounded-lg bg-surface ring-1 ring-on-surface/10",
+        "p-2.5 text-on-surface text-xs shadow-md",
         local.class
       )}
       role="dialog"

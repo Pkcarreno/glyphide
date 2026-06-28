@@ -10,6 +10,11 @@ describe("Input", () => {
     expect(wrapper).toBeInstanceOf(HTMLDivElement);
     expect(wrapper?.className).toContain("bg-surface");
     expect(wrapper?.className).toContain("border-outline-variant");
+    expect(wrapper?.className).toContain("h-7");
+    expect(wrapper?.className).toContain("text-xs");
+    expect(wrapper?.className).toContain("rounded-sm");
+    expect(wrapper?.className).toContain("focus-within:ring-2");
+    expect(wrapper?.className).toContain("focus-within:ring-primary/30");
   });
 
   it("when rendered with ghost variant, applies ghost classes", () => {
@@ -35,7 +40,7 @@ describe("Input", () => {
       <Input aria-label="test-input" inputSize="sm" />
     ));
     const wrapper = getByRole("textbox").parentElement;
-    expect(wrapper?.className).toContain("h-8");
+    expect(wrapper?.className).toContain("h-6");
     expect(wrapper?.className).toContain("text-xs");
   });
 

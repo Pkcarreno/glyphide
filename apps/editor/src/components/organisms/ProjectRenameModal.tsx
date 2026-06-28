@@ -54,6 +54,7 @@ function ProjectRenameContent() {
           role="dialog"
         >
           <Input
+            inputSize="lg"
             onInput={(e) => setName(e.currentTarget.value)}
             onKeyDown={handleKeyDown}
             placeholder="Enter project name..."

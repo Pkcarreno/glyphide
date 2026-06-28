@@ -29,6 +29,20 @@ describe("Select", () => {
     const select = getByRole("combobox");
     expect(select.className).toContain("custom-select-class");
     expect(select.className).toContain("appearance-none");
+    expect(select.className).toContain("h-7");
+    expect(select.className).toContain("text-xs");
+    expect(select.className).toContain("rounded-sm");
+  });
+
+  it("applies compact padding for dense layout", () => {
+    const { getByRole } = render(() => (
+      <Select>
+        <option value="a">A</option>
+      </Select>
+    ));
+    const select = getByRole("combobox");
+    expect(select.className).toContain("px-2");
+    expect(select.className).toContain("pr-8");
   });
 
   it("handles onChange events", () => {

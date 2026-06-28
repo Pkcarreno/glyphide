@@ -9,6 +9,8 @@ describe("Button", () => {
     expect(btn).toBeInstanceOf(HTMLButtonElement);
     expect(btn.className).toContain("bg-transparent");
     expect(btn.className).toContain("text-on-surface-variant");
+    expect(btn.className).toContain("h-7");
+    expect(btn.className).toContain("focus-visible:ring-2");
   });
 
   it("when rendered with primary variant, applies primary classes", () => {
@@ -26,10 +28,12 @@ describe("Button", () => {
     expect(btn.className).toContain("border-outline-variant");
   });
 
-  it("when rendered with icon size, applies icon padding", () => {
+  it("when rendered with icon size, applies icon dimensions", () => {
     const { getByRole } = render(() => <Button size="icon">X</Button>);
     const btn = getByRole("button");
     expect(btn.className).toContain("px-1");
+    expect(btn.className).toContain("h-7");
+    expect(btn.className).toContain("w-7");
   });
 
   it("when rendered with sm size, applies small padding", () => {
@@ -81,6 +85,13 @@ describe("Button", () => {
     const { getByRole } = render(() => <Button>Touch</Button>);
     const btn = getByRole("button");
     expect(btn.className).toContain("min-h-[var(--ui-target-size)]");
+  });
+
+  it("when rendered, applies focus-visible ring and SVG sizing in base styles", () => {
+    const { getByRole } = render(() => <Button>Test</Button>);
+    const btn = getByRole("button");
+    expect(btn.className).toContain("focus-visible:ring-primary/30");
+    expect(btn.className).toContain("[&_svg]:size-3.5");
   });
 
   it("when children is a complex JSX node, renders it", () => {

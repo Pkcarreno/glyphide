@@ -147,7 +147,7 @@ export function CommandRoot(props: CommandRootProps) {
         aria-expanded={true}
         aria-haspopup="listbox"
         class={cn(
-          "flex flex-col overflow-hidden rounded-xl border border-outline-variant bg-surface shadow-2xl",
+          "flex flex-col overflow-hidden rounded-xl bg-surface shadow-md ring-1 ring-on-surface/10",
           local.class
         )}
         onKeyDown={handleKeyDown}
@@ -186,6 +186,7 @@ export function CommandInput(props: CommandInputProps) {
   return (
     <Input
       class={local.class}
+      inputSize="lg"
       onInput={(e) => ctx.setSearch(e.currentTarget.value)}
       placeholder={local.placeholder ?? "Search..."}
       ref={(el) => {
@@ -206,10 +207,7 @@ export function CommandList(props: JSX.HTMLAttributes<HTMLDivElement>) {
   const [local, rest] = splitProps(props, ["class", "children"]);
   return (
     <div
-      class={cn(
-        "max-h-[300px] overflow-y-auto overflow-x-hidden p-1",
-        local.class
-      )}
+      class={cn("max-h-75 overflow-y-auto overflow-x-hidden p-1", local.class)}
       {...rest}
     >
       {local.children}
@@ -300,7 +298,7 @@ export function CommandItem(props: CommandItemProps) {
       <div
         aria-selected={isSelected()}
         class={cn(
-          "relative flex cursor-pointer select-none items-center rounded-lg px-2 py-2 text-sm outline-none transition-colors",
+          "relative flex min-h-7 cursor-pointer select-none items-center rounded-sm px-2.5 py-1.5 text-xs outline-none transition-colors",
           isSelected()
             ? "bg-surface-variant text-on-surface"
             : "text-on-surface-variant hover:bg-surface-variant/50 hover:text-on-surface",

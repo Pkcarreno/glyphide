@@ -112,6 +112,33 @@ describe("Dialog", () => {
     expect(dialog.className).toContain("bg-surface");
   });
 
+  it("when dialog content is open, uses shadow-md and ring-1 instead of border", () => {
+    const { getByRole } = render(() => (
+      <Dialog defaultOpen>
+        <DialogContent>Content</DialogContent>
+      </Dialog>
+    ));
+    const dialog = getByRole("dialog");
+    expect(dialog.className).toContain("shadow-md");
+    expect(dialog.className).toContain("ring-1");
+    expect(dialog.className).toContain("ring-on-surface/10");
+    expect(dialog.className).toContain("p-4");
+  });
+
+  it("when dialog is open, overlay has bg-transparent and no backdrop-blur", () => {
+    const { container } = render(() => (
+      <Dialog defaultOpen>
+        <DialogContent>Content</DialogContent>
+      </Dialog>
+    ));
+    const overlay = container.querySelector(
+      '[aria-hidden="true"]'
+    ) as HTMLElement;
+    expect(overlay).not.toBeNull();
+    expect(overlay.className).toContain("bg-transparent");
+    expect(overlay.className).not.toContain("backdrop-blur");
+  });
+
   it("when preventBackdropClose is true, clicking backdrop does not close dialog", () => {
     const handler = vi.fn();
     const { container } = render(() => (

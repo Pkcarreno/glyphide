@@ -45,4 +45,36 @@ describe("Command", () => {
     expect(handleSelect1).toHaveBeenCalledTimes(1);
     expect(handleSelect2).not.toHaveBeenCalled();
   });
+
+  it("root uses shadow-md and ring-1 instead of border", () => {
+    render(() => (
+      <CommandRoot data-testid="command-root">
+        <CommandList>
+          <CommandItem value="test">Test</CommandItem>
+        </CommandList>
+      </CommandRoot>
+    ));
+
+    const root = screen.getByTestId("command-root");
+    expect(root.className).toContain("shadow-md");
+    expect(root.className).toContain("ring-1");
+    expect(root.className).toContain("ring-on-surface/10");
+  });
+
+  it("item uses min-h-7, text-xs, rounded-sm, and compact padding", () => {
+    render(() => (
+      <CommandRoot>
+        <CommandList>
+          <CommandItem value="test">Test Item</CommandItem>
+        </CommandList>
+      </CommandRoot>
+    ));
+
+    const item = screen.getByText("Test Item");
+    expect(item.className).toContain("min-h-7");
+    expect(item.className).toContain("text-xs");
+    expect(item.className).toContain("rounded-sm");
+    expect(item.className).toContain("px-2.5");
+    expect(item.className).toContain("py-1.5");
+  });
 });

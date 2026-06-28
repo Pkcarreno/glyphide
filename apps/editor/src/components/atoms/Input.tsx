@@ -8,16 +8,16 @@ const inputWrapperVariants = cva(
     variants: {
       variant: {
         default:
-          "rounded-lg border border-outline-variant bg-surface px-3 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20",
+          "rounded-sm border border-outline-variant bg-surface px-2 focus-within:ring-2 focus-within:ring-primary/30",
         ghost:
-          "rounded-lg border-none bg-transparent px-3 focus-within:bg-surface-variant/30",
+          "rounded-sm border-none bg-transparent px-2 focus-within:bg-surface-variant/30",
         bottomBorder:
-          "rounded-none border-outline-variant border-b bg-transparent px-3",
+          "rounded-none border-outline-variant border-b bg-transparent px-2",
       },
       size: {
-        sm: "h-8 text-xs",
-        default: "h-10 text-sm",
-        lg: "h-12 text-base",
+        sm: "h-6 text-xs",
+        default: "h-7 text-xs",
+        lg: "h-9 text-sm",
       },
     },
     defaultVariants: {

@@ -26,8 +26,8 @@ export function Select(props: SelectProps) {
       <select
         class={cn(
           "w-full appearance-none border border-outline-variant bg-surface-variant",
-          "rounded-lg px-3 py-2.5 pr-10 text-on-surface text-sm",
-          "focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50",
+          "h-7 rounded-sm px-2 py-1 pr-8 text-on-surface text-xs",
+          "focus:outline-none focus:ring-2 focus:ring-primary/30",
           "disabled:cursor-not-allowed disabled:opacity-50",
           "cursor-pointer transition-colors hover:bg-surface-variant/80",
           local.class
@@ -38,7 +38,7 @@ export function Select(props: SelectProps) {
       >
         {local.children}
       </select>
-      <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-on-surface-variant">
+      <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-on-surface-variant">
         <Icon icon={ChevronDown} size={16} />
       </div>
     </div>

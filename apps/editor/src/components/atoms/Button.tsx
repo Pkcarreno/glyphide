@@ -11,6 +11,8 @@ const buttonVariants = cva(
     "cursor-pointer select-none",
     "disabled:pointer-events-none disabled:opacity-50",
     "min-h-[var(--ui-target-size)] min-w-[var(--ui-target-size)]",
+    "focus-visible:ring-2 focus-visible:ring-primary/30",
+    "[&_svg]:size-3.5",
   ],
   {
     variants: {
@@ -32,10 +34,10 @@ const buttonVariants = cva(
         ],
       },
       size: {
-        sm: "gap-1 px-1.5 text-xs",
-        md: "gap-1 px-2 text-xs",
-        lg: "gap-1.5 px-3 py-2 text-sm",
-        icon: "px-1 text-xs",
+        sm: "h-6 gap-1 px-1.5 text-xs",
+        md: "h-7 gap-1 px-2 text-xs",
+        lg: "h-9 gap-1.5 px-3 py-2 text-sm",
+        icon: "h-7 w-7 px-1 text-xs",
       },
     },
     defaultVariants: {

@@ -76,7 +76,7 @@ export function Tooltip<T extends ValidComponent = "div">(
       <Popover.Portal>
         <Popover.Positioner>
           <Popover.Popup
-            class="w-max max-w-64 px-2 py-1 text-ui-label"
+            class="w-max max-w-64 px-2 py-1 text-surface text-xs"
             role="tooltip"
           >
             <div class="flex items-baseline justify-between gap-4">
