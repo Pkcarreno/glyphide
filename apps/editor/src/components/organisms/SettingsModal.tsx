@@ -171,7 +171,7 @@ function SettingsModal(props: SettingsModalProps) {
         </DialogClose>
 
         <Tabs.Root
-          class="flex h-full flex-col overflow-hidden md:flex-row"
+          class="flex h-full w-full flex-col overflow-hidden md:flex-row"
           defaultValue="Appearance"
         >
           <div class="scrollbar-hide w-full shrink-0 overflow-x-auto border-outline-variant border-b bg-surface-variant/30 px-3 pt-4 pb-2 md:w-56 md:overflow-y-auto md:overflow-x-visible md:border-r md:border-b-0 md:p-4">
@@ -190,11 +190,11 @@ function SettingsModal(props: SettingsModalProps) {
           </div>
 
           <div class="flex min-w-0 flex-1 flex-col bg-background">
-            <div class="flex-1 overflow-y-auto p-6 pt-14 md:p-8 md:pt-14">
-              <Tabs.Content value="Appearance">
+            <div class="flex w-full flex-1 flex-col overflow-y-auto p-6 pt-14 md:p-8 md:pt-14">
+              <Tabs.Content class="w-full" value="Appearance">
                 <div class="fade-in flex w-full animate-in flex-col gap-8 duration-300">
-                  <section>
-                    <div class="flex flex-col divide-y divide-outline-variant/50 border-outline-variant/50 border-y">
+                  <section class="w-full">
+                    <div class="flex w-full flex-col divide-y divide-outline-variant/50 border-outline-variant/50 border-y">
                       <SettingsItem
                         description="Select the color theme for the editor interface."
                         forId="theme-select"
@@ -246,10 +246,10 @@ function SettingsModal(props: SettingsModalProps) {
                 </div>
               </Tabs.Content>
 
-              <Tabs.Content value="Editor">
+              <Tabs.Content class="w-full" value="Editor">
                 <div class="fade-in flex w-full animate-in flex-col gap-8 duration-300">
-                  <section>
-                    <div class="flex flex-col divide-y divide-outline-variant/50 border-outline-variant/50 border-y">
+                  <section class="w-full">
+                    <div class="flex w-full flex-col divide-y divide-outline-variant/50 border-outline-variant/50 border-y">
                       <SettingsNumberItem
                         description="Base font size for the code editor (px)."
                         isModified={
@@ -310,10 +310,10 @@ function SettingsModal(props: SettingsModalProps) {
                 </div>
               </Tabs.Content>
 
-              <Tabs.Content value="Execution">
+              <Tabs.Content class="w-full" value="Execution">
                 <div class="fade-in flex w-full animate-in flex-col gap-8 duration-300">
-                  <section>
-                    <div class="flex flex-col divide-y divide-outline-variant/50 border-outline-variant/50 border-y">
+                  <section class="w-full">
+                    <div class="flex w-full flex-col divide-y divide-outline-variant/50 border-outline-variant/50 border-y">
                       <SettingsSwitchItem
                         checked={core.settings.settings.isAutoRunEnabled}
                         description="Execute code automatically after a short delay."
@@ -371,10 +371,10 @@ function SettingsModal(props: SettingsModalProps) {
                 </div>
               </Tabs.Content>
 
-              <Tabs.Content value="About">
+              <Tabs.Content class="w-full" value="About">
                 <div class="fade-in flex w-full animate-in flex-col gap-8 duration-300">
-                  <section>
-                    <div class="rounded-lg border border-outline-variant bg-surface-variant/50 p-4 text-on-surface-variant text-sm">
+                  <section class="w-full">
+                    <div class="w-full rounded-lg border border-outline-variant bg-surface-variant/50 p-4 text-on-surface-variant text-sm">
                       Glyphide Editor v1.0.0
                     </div>
                   </section>
