@@ -7,6 +7,7 @@ import { DEFAULT_SETTINGS } from "../../core/models/settings.ts";
 import { cn } from "../../helpers/cn.ts";
 import { Icon } from "../atoms/Icon.tsx";
 import { Select } from "../atoms/Select.tsx";
+import { StepperInput } from "../atoms/StepperInput.tsx";
 import { Switch } from "../atoms/Switch.tsx";
 import {
   Dialog,
@@ -108,32 +109,6 @@ function SettingsNumberItem(props: {
   class?: string;
 }) {
   const id = createUniqueId();
-  const step = props.step ?? 1;
-
-  const handleDecrement = () => {
-    const next = Number((props.value - step).toFixed(2));
-    if (props.min !== undefined && next < props.min) {
-      return;
-    }
-    props.onValueChange(next);
-  };
-
-  const handleIncrement = () => {
-    const next = Number((props.value + step).toFixed(2));
-    if (props.max !== undefined && next > props.max) {
-      return;
-    }
-    props.onValueChange(next);
-  };
-
-  const handleChange = (e: Event) => {
-    const target = e.target as HTMLInputElement;
-    const val = Number.parseFloat(target.value);
-    if (!Number.isNaN(val)) {
-      props.onValueChange(val);
-    }
-  };
-
   return (
     <SettingsItem
       class={props.class}
@@ -143,34 +118,15 @@ function SettingsNumberItem(props: {
       label={props.label}
       onReset={props.onReset}
     >
-      <div class="flex items-center overflow-hidden rounded-lg border border-outline-variant bg-surface-variant">
-        <button
-          aria-label="Decrease"
-          class="flex h-8 w-8 items-center justify-center text-on-surface-variant transition-colors hover:bg-surface hover:text-on-surface"
-          onClick={handleDecrement}
-          type="button"
-        >
-          -
-        </button>
-        <input
-          class="h-8 w-16 bg-transparent text-center text-on-surface text-sm outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-          id={id}
-          max={props.max}
-          min={props.min}
-          onChange={handleChange}
-          step={step}
-          type="number"
-          value={props.value}
-        />
-        <button
-          aria-label="Increase"
-          class="flex h-8 w-8 items-center justify-center text-on-surface-variant transition-colors hover:bg-surface hover:text-on-surface"
-          onClick={handleIncrement}
-          type="button"
-        >
-          +
-        </button>
-      </div>
+      <StepperInput
+        id={id}
+        inputAriaLabel={props.label}
+        max={props.max}
+        min={props.min}
+        onValueChange={props.onValueChange}
+        step={props.step}
+        value={props.value}
+      />
     </SettingsItem>
   );
 }

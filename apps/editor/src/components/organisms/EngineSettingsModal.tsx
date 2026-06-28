@@ -3,8 +3,8 @@ import { For, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import { useEditor } from "../../core/context.tsx";
 import { Button } from "../atoms/Button.tsx";
-import { CompactNumberInput } from "../atoms/CompactNumberInput.tsx";
 import { Icon } from "../atoms/Icon.tsx";
+import { StepperInput } from "../atoms/StepperInput.tsx";
 import {
   Dialog,
   DialogClose,
@@ -110,7 +110,7 @@ function EngineSettingsForm() {
                 }
                 when={desc.inputType === "compact-number"}
               >
-                <CompactNumberInput
+                <StepperInput
                   {...(desc.inputProps ?? {})}
                   disabled={!(desc.isEditable && isReady())}
                   onValueChange={(val) => {
