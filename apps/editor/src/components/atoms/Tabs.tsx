@@ -315,7 +315,7 @@ function TabsTrigger(props: TabsTriggerProps) {
       aria-selected={isActive()}
       class={cn(
         "rounded-md px-3 py-2 text-left font-medium text-sm transition-colors",
-        "flex-1 md:w-full",
+        "pointer-coarse:min-h-11 flex-1 pointer-coarse:px-4 md:w-full",
         isActive()
           ? "bg-surface-variant text-on-surface"
           : "text-on-surface-variant hover:bg-surface-variant/50 hover:text-on-surface",

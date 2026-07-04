@@ -205,7 +205,7 @@ function ConsolePane(props: ConsolePaneProps) {
         </h2>
         <div class="flex items-center gap-1">
           <button
-            class="flex cursor-pointer items-center gap-1 rounded-sm border border-transparent px-1.5 py-0.5 font-medium text-on-surface-variant text-status-bar uppercase tracking-wider transition-colors hover:border-outline-variant hover:bg-surface-variant hover:text-on-surface"
+            class="flex pointer-coarse:min-h-11 cursor-pointer items-center gap-1 pointer-coarse:gap-1.5 rounded-sm border border-transparent pointer-coarse:px-3 px-1.5 py-0.5 font-medium text-on-surface-variant text-status-bar uppercase tracking-wider transition-colors hover:border-outline-variant hover:bg-surface-variant hover:text-on-surface"
             onClick={handleClear}
             type="button"
           >

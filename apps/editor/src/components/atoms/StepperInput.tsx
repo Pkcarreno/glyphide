@@ -82,6 +82,7 @@ export function StepperInput(props: StepperInputProps) {
       <InputGroupAddon align="inline-start">
         <InputGroupButton
           aria-label="Decrease"
+          class="pointer-coarse:size-11 pointer-coarse:justify-center pointer-coarse:p-2"
           disabled={local.disabled || isAtMin()}
           onClick={handleDecrement}
         >
@@ -104,6 +105,7 @@ export function StepperInput(props: StepperInputProps) {
       <InputGroupAddon align="inline-end">
         <InputGroupButton
           aria-label="Increase"
+          class="pointer-coarse:size-11 pointer-coarse:justify-center pointer-coarse:p-2"
           disabled={local.disabled || isAtMax()}
           onClick={handleIncrement}
         >

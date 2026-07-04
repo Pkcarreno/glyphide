@@ -34,7 +34,7 @@ function ConsoleGroupView(props: ConsoleGroupViewProps) {
     <div class="shrink-0 border-transparent border-l-2 px-2 py-0.5">
       <span class="inline-flex flex-col align-top">
         <button
-          class="-ml-1 inline-flex cursor-pointer items-center gap-1 rounded px-1 transition-colors hover:bg-surface-variant/50"
+          class="-ml-1 inline-flex pointer-coarse:min-h-11 cursor-pointer items-center gap-1 rounded pointer-coarse:px-3 px-1 transition-colors hover:bg-surface-variant/50"
           onClick={() => props.onToggle()}
           type="button"
         >

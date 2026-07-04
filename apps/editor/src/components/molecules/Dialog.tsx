@@ -218,6 +218,7 @@ function DialogClose(props: DialogCloseProps) {
       as="button"
       class={cn(
         "rounded-lg p-1.5 text-on-surface-variant transition-colors hover:bg-surface-variant hover:text-on-surface",
+        "pointer-coarse:min-h-11 pointer-coarse:min-w-11",
         local.class
       )}
       onClick={close}

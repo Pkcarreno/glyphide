@@ -126,18 +126,6 @@
     --ui-target-size: 44px;
     --spacing-header-height: 52px;
   }
-
-  /* Dropdown: larger touch targets on mobile */
-  [role="menu"] {
-    padding: 0.375rem;
-  }
-
-  [role="menuitem"],
-  [role="menuitemcheckbox"] {
-    min-height: var(--ui-target-size);
-    padding: 0.625rem 0.75rem;
-    font-size: 0.875rem;
-  }
 }
 
 /* ---------- Design tokens → Tailwind utilities ---------- */

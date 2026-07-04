@@ -60,6 +60,7 @@ function Header(props: HeaderProps) {
           <ActionTooltip
             aria-label="Project Menu"
             as={Dropdown.Trigger}
+            class="pointer-coarse:min-h-11 pointer-coarse:min-w-11"
             position="bottom"
             text="File / Project Menu"
             variant="ghost"

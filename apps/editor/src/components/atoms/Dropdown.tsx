@@ -501,6 +501,7 @@ function DropdownItem<T extends ValidComponent = "div">(
     <Dynamic
       class={cn(
         "relative flex min-h-7 cursor-pointer select-none items-center gap-1.5 rounded-sm px-2 py-1 text-xs outline-none transition-colors",
+        "pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:py-2.5",
         "hover:bg-surface-variant hover:text-on-surface",
         "data-[active=true]:bg-surface-variant data-[active=true]:text-on-surface",
         local.inset && "pl-7",
@@ -592,6 +593,7 @@ function DropdownCheckboxItem(props: DropdownCheckboxItemProps) {
       aria-checked={local.isChecked}
       class={cn(
         "relative flex cursor-pointer select-none items-center gap-1.5 rounded-sm py-1 pr-8 pl-1.5 text-xs outline-none transition-colors",
+        "pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:py-2.5",
         "hover:bg-surface-variant hover:text-on-surface",
         "data-[active=true]:bg-surface-variant data-[active=true]:text-on-surface",
         local.inset && "pl-7",
