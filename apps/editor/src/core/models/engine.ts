@@ -16,7 +16,11 @@ import type { BufferModel } from "./buffer.ts";
 import type { OutputModel } from "./output.ts";
 import type { SettingsModel } from "./settings.ts";
 
-/** Execution lifecycle states for the active engine. */
+/**
+ * Execution lifecycle states for the active engine.
+ *
+ * @public
+ */
 export type EngineStatus =
   | "idle"
   | "initializing"

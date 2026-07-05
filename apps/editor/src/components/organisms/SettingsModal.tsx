@@ -388,4 +388,5 @@ function SettingsModal(props: SettingsModalProps) {
   );
 }
 
+/** @public */
 export { SettingsModal, type SettingsModalProps };

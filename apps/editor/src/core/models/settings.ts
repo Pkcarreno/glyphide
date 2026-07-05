@@ -3,7 +3,11 @@ import type { PersistencePort } from "../ports/persistence.ts";
 
 const SETTINGS_STORAGE_KEY = "settings";
 
-/** Supported theme preferences. */
+/**
+ * Supported theme preferences.
+ *
+ * @public
+ */
 export type ThemePreference = "light" | "dark" | "system";
 
 /**

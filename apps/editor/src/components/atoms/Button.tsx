@@ -81,4 +81,5 @@ function Button(props: ButtonProps) {
   );
 }
 
+/** @public */
 export { Button, type ButtonProps, buttonVariants };

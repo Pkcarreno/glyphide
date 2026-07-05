@@ -98,4 +98,5 @@ function Switch(props: SwitchProps) {
   );
 }
 
+/** @public */
 export { Switch, type SwitchProps };

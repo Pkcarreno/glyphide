@@ -61,4 +61,5 @@ function ConsoleMessage(props: ConsoleMessageProps) {
   );
 }
 
+/** @public */
 export { ConsoleMessage, type ConsoleMessageProps, consoleMessageVariants };

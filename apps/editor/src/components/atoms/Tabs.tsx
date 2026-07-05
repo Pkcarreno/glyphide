@@ -29,6 +29,8 @@ const TabsContext = createContext<TabsContextValue>();
 /**
  * Retrieves the Tabs context.
  * Throws if used outside a Tabs.Root.
+ *
+ * @public
  */
 export function useTabs(): TabsContextValue {
   const ctx = useContext(TabsContext);
@@ -383,6 +385,8 @@ function TabsContent(props: TabsContentProps) {
 /**
  * Composable Tabs compound component.
  * Follows WAI-ARIA Tabs pattern with roving tabindex and automatic activation.
+ *
+ * @public
  */
 export const Tabs = {
   Content: TabsContent,

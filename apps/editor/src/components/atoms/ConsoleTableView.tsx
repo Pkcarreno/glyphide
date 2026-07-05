@@ -158,4 +158,5 @@ function ConsoleTableView(props: ConsoleTableViewProps) {
   );
 }
 
+/** @public */
 export { ConsoleTableView, type ConsoleTableViewProps };

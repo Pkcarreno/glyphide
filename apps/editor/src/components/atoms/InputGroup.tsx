@@ -200,6 +200,7 @@ function InputGroupInput(props: InputGroupInputProps) {
   );
 }
 
+/** @public */
 export {
   InputGroup,
   InputGroupAddon,

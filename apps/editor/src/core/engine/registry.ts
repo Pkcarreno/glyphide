@@ -20,7 +20,11 @@ export interface EngineEntry {
   language: string;
 }
 
-/** Descriptor for an engine-specific configuration parameter. */
+/**
+ * Descriptor for an engine-specific configuration parameter.
+ *
+ * @public
+ */
 export interface EngineParamDescriptor {
   /** Props passed to the UI input component. */
   inputProps?: Record<string, unknown>;
@@ -38,7 +42,11 @@ export interface EngineParamDescriptor {
   toView?: (modelValue: unknown) => unknown;
 }
 
-/** Static definition of a lazily-loadable execution engine. */
+/**
+ * Static definition of a lazily-loadable execution engine.
+ *
+ * @public
+ */
 export interface EngineDefinition {
   /** Default INIT params sent to this engine (language is overridden per entry). */
   defaultInitParams: Omit<EngineInitParams, "language">;

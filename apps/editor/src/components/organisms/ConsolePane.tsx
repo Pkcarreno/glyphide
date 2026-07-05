@@ -227,4 +227,5 @@ function ConsolePane(props: ConsolePaneProps) {
   );
 }
 
+/** @public */
 export { ConsolePane, type ConsolePaneProps };

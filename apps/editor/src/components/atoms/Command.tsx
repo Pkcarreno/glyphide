@@ -29,6 +29,7 @@ interface CommandContextValue {
 
 const CommandContext = createContext<CommandContextValue>();
 
+/** @public */
 export function useCommand() {
   const context = useContext(CommandContext);
   if (!context) {
@@ -47,6 +48,8 @@ interface CommandRootProps extends JSX.HTMLAttributes<HTMLDivElement> {
 
 /**
  * Root container for a command menu. Provides state and filtering logic.
+ *
+ * @public
  */
 export function CommandRoot(props: CommandRootProps) {
   const [local, rest] = splitProps(props, [

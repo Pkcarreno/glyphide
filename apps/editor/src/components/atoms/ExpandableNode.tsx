@@ -101,4 +101,5 @@ function ExpandableNode(props: ExpandableNodeProps) {
   );
 }
 
+/** @public */
 export { ExpandableNode, type ExpandableNodeProps };

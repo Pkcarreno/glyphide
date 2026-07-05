@@ -243,6 +243,7 @@ function StatusBar(props: StatusBarProps) {
 StatusBar.Item = StatusBarItem;
 StatusBar.Button = StatusBarButton;
 
+/** @public */
 export {
   StatusBar,
   type StatusBarButtonProps,

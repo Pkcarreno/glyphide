@@ -210,4 +210,5 @@ function Header(props: HeaderProps) {
   );
 }
 
+/** @public */
 export { Header, type HeaderProps };

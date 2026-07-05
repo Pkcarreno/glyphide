@@ -36,4 +36,5 @@ function LogoSquare(props: LogoSquareProps) {
   );
 }
 
+/** @public */
 export { LogoSquare, type LogoSquareProps };

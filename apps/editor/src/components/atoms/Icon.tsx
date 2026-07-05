@@ -31,4 +31,5 @@ function Icon(props: IconProps) {
   );
 }
 
+/** @public */
 export { Icon, type IconProps };

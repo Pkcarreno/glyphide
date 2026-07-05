@@ -45,6 +45,8 @@ const PopoverContext = createContext<PopoverContextValue>();
 /**
  * Retrieves the popover context.
  * Throws if used outside a PopoverRoot.
+ *
+ * @public
  */
 export function usePopover(): PopoverContextValue {
   const ctx = useContext(PopoverContext);
@@ -58,7 +60,11 @@ export function usePopover(): PopoverContextValue {
 
 /* ---------- Root ---------- */
 
-/** Properties for the PopoverRoot component. */
+/**
+ * Properties for the PopoverRoot component.
+ *
+ * @public
+ */
 export interface PopoverRootProps {
   /** The children nodes. */
   children: JSX.Element;
@@ -74,6 +80,8 @@ export interface PopoverRootProps {
 
 /**
  * Popover root that manages open state and positioning context.
+ *
+ * @public
  */
 export function PopoverRoot(props: PopoverRootProps) {
   const [local] = splitProps(props, [
@@ -208,7 +216,11 @@ export function PopoverRoot(props: PopoverRootProps) {
 
 /* ---------- Trigger ---------- */
 
-/** Properties for the PopoverTrigger component. */
+/**
+ * Properties for the PopoverTrigger component.
+ *
+ * @public
+ */
 export type PopoverTriggerProps<T extends ValidComponent = "button"> = {
   /** The HTML tag or Solid component to render as. Default is "button". */
   as?: T;
@@ -221,6 +233,8 @@ export type PopoverTriggerProps<T extends ValidComponent = "button"> = {
 /**
  * The element that triggers the popover to open or close.
  * It automatically registers its reference for Floating UI positioning.
+ *
+ * @public
  */
 export function PopoverTrigger<T extends ValidComponent = "button">(
   props: PopoverTriggerProps<T>
@@ -249,7 +263,11 @@ export function PopoverTrigger<T extends ValidComponent = "button">(
 
 /* ---------- Portal ---------- */
 
-/** Properties for the PopoverPortal component. */
+/**
+ * Properties for the PopoverPortal component.
+ *
+ * @public
+ */
 export interface PopoverPortalProps {
   /** The content to portal when the popover is open. */
   children: JSX.Element;
@@ -258,6 +276,8 @@ export interface PopoverPortalProps {
 /**
  * Portals the children into the document body (or custom portal target)
  * conditionally when the popover is open.
+ *
+ * @public
  */
 export function PopoverPortal(props: PopoverPortalProps) {
   const ctx = usePopover();
@@ -271,7 +291,11 @@ export function PopoverPortal(props: PopoverPortalProps) {
 
 /* ---------- Positioner ---------- */
 
-/** Properties for the PopoverPositioner component. */
+/**
+ * Properties for the PopoverPositioner component.
+ *
+ * @public
+ */
 export interface PopoverPositionerProps
   extends JSX.HTMLAttributes<HTMLDivElement> {
   /** The children nodes. */
@@ -283,6 +307,8 @@ export interface PopoverPositionerProps
 /**
  * A wrapper element that is absolutely positioned by Floating UI.
  * It manages the actual floating coordinates based on the context.
+ *
+ * @public
  */
 export function PopoverPositioner(props: PopoverPositionerProps) {
   const [local, rest] = splitProps(props, ["class", "children"]);
@@ -306,7 +332,11 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
 
 /* ---------- Popup ---------- */
 
-/** Properties for the PopoverPopup component. */
+/**
+ * Properties for the PopoverPopup component.
+ *
+ * @public
+ */
 export interface PopoverPopupProps extends JSX.HTMLAttributes<HTMLDivElement> {
   /** The children nodes. */
   children?: JSX.Element;
@@ -317,6 +347,8 @@ export interface PopoverPopupProps extends JSX.HTMLAttributes<HTMLDivElement> {
 /**
  * The actual visual container of the popover (the styled box).
  * Apply classes to style the outer popover frame.
+ *
+ * @public
  */
 export function PopoverPopup(props: PopoverPopupProps) {
   const [local, rest] = splitProps(props, ["class", "children"]);
@@ -342,6 +374,8 @@ export function PopoverPopup(props: PopoverPopupProps) {
 /**
  * The Unified Popover component namespace.
  * Use these dot-notation components to compose a Popover primitive.
+ *
+ * @public
  */
 export const Popover = {
   Root: PopoverRoot,

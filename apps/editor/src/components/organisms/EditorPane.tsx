@@ -64,4 +64,5 @@ function EditorPane(props: EditorPaneProps) {
   );
 }
 
+/** @public */
 export { EditorPane, type EditorPaneProps };

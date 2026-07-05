@@ -68,4 +68,5 @@ function Resizer(props: ResizerProps) {
   );
 }
 
+/** @public */
 export { Resizer, type ResizerProps };

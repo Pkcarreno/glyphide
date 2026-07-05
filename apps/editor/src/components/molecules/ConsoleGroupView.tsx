@@ -48,4 +48,5 @@ function ConsoleGroupView(props: ConsoleGroupViewProps) {
   );
 }
 
+/** @public */
 export { ConsoleGroupView, type ConsoleGroupViewProps };

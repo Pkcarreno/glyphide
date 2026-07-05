@@ -356,4 +356,5 @@ function ConsoleTokenView(props: ConsoleTokenViewProps) {
   );
 }
 
+/** @public */
 export { ConsoleTokenView, type ConsoleTokenViewProps };

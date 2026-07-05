@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js";
 
+/** @public */
 export type NotificationType = "info" | "success" | "warning" | "error";
 
 export interface NotificationItem {
@@ -11,6 +12,7 @@ export interface NotificationItem {
   type: NotificationType;
 }
 
+/** @public */
 export interface NotificationPayload {
   action?: { label: string; onClick: () => void };
   description?: string;

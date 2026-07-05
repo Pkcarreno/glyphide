@@ -49,6 +49,8 @@ const DropdownContext = createContext<DropdownContextValue>();
 /**
  * Retrieves the dropdown context.
  * Throws if used outside a DropdownRoot.
+ *
+ * @public
  */
 export function useDropdown(): DropdownContextValue {
   const ctx = useContext(DropdownContext);
@@ -703,6 +705,8 @@ function DropdownShortcut(props: DropdownShortcutProps) {
 /**
  * Composable Dropdown Menu compound component.
  * Follows WAI-ARIA menu pattern with roving tabindex keyboard navigation.
+ *
+ * @public
  */
 export const Dropdown = {
   Root: DropdownRoot,

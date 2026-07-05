@@ -86,4 +86,5 @@ function WorkspaceLayout(props: WorkspaceLayoutProps) {
   );
 }
 
+/** @public */
 export { WorkspaceLayout, type WorkspaceLayoutProps };

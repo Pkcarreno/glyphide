@@ -232,6 +232,7 @@ function DialogClose(props: DialogCloseProps) {
   );
 }
 
+/** @public */
 export {
   Dialog,
   DialogClose,

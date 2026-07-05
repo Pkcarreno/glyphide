@@ -3,7 +3,11 @@ import { createSignal, Show, splitProps } from "solid-js";
 import type { PopoverPosition } from "./Popover.tsx";
 import { Popover } from "./Popover.tsx";
 
-/** Positioning options for the Tooltip, identical to Popover positions. */
+/**
+ * Positioning options for the Tooltip, identical to Popover positions.
+ *
+ * @public
+ */
 export type TooltipPosition = PopoverPosition;
 
 /** Properties for the Tooltip component. */
