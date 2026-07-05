@@ -17,7 +17,7 @@
     "commitlint": "commitlint",
     "prepare": "lefthook install",
     "root:knip": "knip",
-    "knip": "turbo run root:knip",
+    "knip": "turbo run //#root:knip --",
     "clean": "turbo run clean",
     "nuke": "pnpm run clean && rm -rf node_modules .turbo pnpm-lock.yaml"
   },
@@ -26,7 +26,7 @@
     "@biomejs/biome": "^2.4.16",
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
-    "knip": "^6.1.1",
+    "knip": "^6.24.0",
     "lefthook": "^2.1.4",
     "turbo": "^2.9.1",
     "ultracite": "^7.8.1"
