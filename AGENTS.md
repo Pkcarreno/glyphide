@@ -71,6 +71,7 @@ Always run these commands from the root directory using `pnpm`.
 - **Fix Format & Linting**: `pnpm lint:fix`
 - **Testing**: `pnpm test`
 - **Typecheck All**: `pnpm typecheck`
+- **Unused Code Check**: `pnpm knip`
 
 ### 2. Code Style Guidelines
 
@@ -121,8 +122,34 @@ Adhere to the `.editorconfig` configuration:
   1. All base exported methods, interfaces, type aliases, and module entry points.
   2. Pure functions handling complex domain logic or state mutations.
   3. Custom protocol implementations or parsers where the "why" or the specific input/output shapes are not immediately obvious from standard syntax.
-  TSDoc blocks must be concise, explaining the core intent, edge cases, and side effects, without narrating the code line by line.
+   TSDoc blocks must be concise, explaining the core intent, edge cases, and side effects, without narrating the code line by line.
+
+#### Public API Annotations
+
+- **`@public` Tag**: All exported types, interfaces, and component props that form part of the public API MUST be annotated with `@public` in their TSDoc block. This is used by Knip to identify intentional exports and prevent false positives for unused code detection.
+- **Placement Rules**:
+  - For **grouped exports** (`export { Type1, Type2 }`): Add `/** @public */` directly above the export block.
+  - For **inline exports with existing TSDoc**: Merge `* @public` into the existing TSDoc block (do NOT create a separate `/** @public */` block above it).
+  - For **inline exports without TSDoc**: Add `/** @public */` directly above the `export interface/type` declaration.
+- **Examples**:
+  ```typescript
+  // Grouped export pattern
+  /** @public */
+  export type { IconProps, IconSize };
   
+  // Inline export with existing TSDoc
+  /**
+   * Configuration for the popover root component.
+   * @public
+   */
+  export interface PopoverRootProps { ... }
+  
+  // Inline export without TSDoc
+  /** @public */
+  export type NotificationType = 'info' | 'warning' | 'error';
+  ```
+- **When to Apply**: Component prop types, model types, and any type/interface that is part of the design system or core API surface.
+   
 ### 3. Testing and Quality Assurance
 
 - **Framework**: Vitest is used for unit and integration tests.
