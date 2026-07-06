@@ -1,0 +1,35 @@
+{
+  "name": "@glyphide/url-migration",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Framework-agnostic library that detects, parses, and re-encodes legacy glyphide share URLs into the current format.",
+  "author": "Pedro Carreño (34664891+Pkcarreno@users.noreply.github.com)",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "clean": "rm -rf .turbo node_modules dist",
+    "dev": "tsdown --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3",
+    "js-base64": "^3.7.8"
+  },
+  "devDependencies": {
+    "tsdown": "^0.22.0",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.6"
+  }
+}

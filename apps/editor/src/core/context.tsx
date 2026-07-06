@@ -1,3 +1,4 @@
+import { buildCurrentUrl, migrateUrl } from "@glyphide/url-migration";
 import type { JSX } from "solid-js";
 import { createContext, onCleanup, onMount, useContext } from "solid-js";
 import { createFflateCodecAdapter } from "./adapters/fflate-codec.ts";
@@ -19,6 +20,21 @@ const EditorContext = createContext<EditorCore>();
  */
 export function EditorProvider(props: { children: JSX.Element }) {
   let core: EditorCore;
+
+  // Transparent URL migration: rewrite legacy v1/v2 share URLs into the
+  // current v3 format before the URL state adapter reads from the address
+  // bar. Failures degrade silently — the editor still loads with defaults.
+  try {
+    const migration = migrateUrl(window.location.href);
+    if (migration.ok && migration.version !== "v3") {
+      // Preserve the current origin (important for development environments)
+      const baseUrl = `${window.location.origin}/`;
+      const built = buildCurrentUrl(migration.state, baseUrl);
+      window.history.replaceState(null, "", built.url);
+    }
+  } catch {
+    // Migration failure is non-fatal; editor loads with default state.
+  }
 
   const browserUrlAdapter = createBrowserUrlStateAdapter();
   const codecAdapter = createFflateCodecAdapter();
