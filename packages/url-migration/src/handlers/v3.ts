@@ -1,4 +1,4 @@
-import { decode as codecDecode } from "../codec.ts";
+import { decodePayload as codecDecode } from "../codec.ts";
 import { MigrationError } from "../errors.ts";
 import type { CanonicalState } from "../types.ts";
 

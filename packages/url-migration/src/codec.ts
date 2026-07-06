@@ -22,7 +22,7 @@ function toUrlSafeBase64(value: string): string {
  *
  * @public
  */
-export function encode(value: string): string {
+export function encodePayload(value: string): string {
   const bytes = new TextEncoder().encode(value);
   const compressed = deflateSync(bytes);
   const binaryString = String.fromCharCode(...compressed);
@@ -30,13 +30,13 @@ export function encode(value: string): string {
 }
 
 /**
- * Decodes a URL-safe base64 string previously produced by {@link encode}.
+ * Decodes a URL-safe base64 string previously produced by {@link encodePayload}.
  * Returns `null` when the input is malformed or the bytes are not valid
  * deflate-compressed UTF-8.
  *
  * @public
  */
-export function decode(value: string): string | null {
+export function decodePayload(value: string): string | null {
   try {
     const standardBase64 = fromUrlSafeBase64(value);
     const binaryString = atob(standardBase64);

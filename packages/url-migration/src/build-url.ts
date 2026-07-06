@@ -1,4 +1,4 @@
-import { encode } from "./codec.ts";
+import { encodePayload } from "./codec.ts";
 import type { BuildResult, CanonicalState } from "./types.ts";
 
 const BASE_URL = "https://glyphide.com/";
@@ -36,11 +36,11 @@ export function buildCurrentUrl(
   baseUrl: string = BASE_URL
 ): BuildResult {
   const params = new URLSearchParams();
-  params.set("code", encode(state.code));
+  params.set("code", encodePayload(state.code));
   if (state.name) {
-    params.set("name", encode(state.name));
+    params.set("name", encodePayload(state.name));
   }
-  params.set("engine", encode(composeEngineString(state)));
+  params.set("engine", encodePayload(composeEngineString(state)));
 
   const url = `${baseUrl}?${params.toString()}`;
 

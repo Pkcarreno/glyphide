@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { decode as codecDecode } from "./codec.ts";
+import { buildCurrentUrl } from "./build-url.ts";
+import { decodePayload as codecDecode } from "./codec.ts";
+import { detectVersion } from "./detect.ts";
 import { MigrationError } from "./errors.ts";
-import { buildCurrentUrl, detectVersion, migrateUrl } from "./index.ts";
+import { migrateUrl } from "./migrate.ts";
 import { FIXTURES } from "./test-fixtures.ts";
 import type { CanonicalState } from "./types.ts";
 

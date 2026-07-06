@@ -1,5 +1,5 @@
 import { encode as base64Encode } from "js-base64";
-import { encode as fflateEncode } from "./codec.ts";
+import { encodePayload as fflateEncode } from "./codec.ts";
 
 /**
  * Pre-built URL fixtures that exercise each supported version.

@@ -1,4 +1,4 @@
-import { encodePayload as codecEncode } from "@glyphide/url-migration";
+import { encodePayload as codecEncode } from "@glyphide/url-migration/codec";
 import { cleanup, render, screen } from "@solidjs/testing-library";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EditorProvider, useEditor } from "./context.tsx";

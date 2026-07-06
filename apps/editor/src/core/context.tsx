@@ -1,4 +1,5 @@
-import { buildCurrentUrl, migrateUrl } from "@glyphide/url-migration";
+import { buildCurrentUrl } from "@glyphide/url-migration/build-url";
+import { migrateUrl } from "@glyphide/url-migration/migrate";
 import type { JSX } from "solid-js";
 import { createContext, onCleanup, onMount, useContext } from "solid-js";
 import { createFflateCodecAdapter } from "./adapters/fflate-codec.ts";
