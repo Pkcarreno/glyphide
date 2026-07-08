@@ -69,9 +69,21 @@ function Header(props: HeaderProps) {
           </ActionTooltip>
           <Dropdown.Portal>
             <Dropdown.Content>
-              <Dropdown.Item as="a" href="/" target="_blank">
-                New Project
-              </Dropdown.Item>
+              <Dropdown.Group>
+                <Dropdown.Item as="a" href="/" target="_blank">
+                  New Project
+                </Dropdown.Item>
+                <Dropdown.Item
+                  onSelect={() =>
+                    core.dispatcher.dispatch({
+                      type: "OPEN_OVERLAY",
+                      overlayId: "load-file",
+                    })
+                  }
+                >
+                  Open File
+                </Dropdown.Item>
+              </Dropdown.Group>
               <Dropdown.Separator class="block md:hidden" />
               <Dropdown.Group class="block md:hidden">
                 <Dropdown.Item onSelect={handleSettingsClick}>

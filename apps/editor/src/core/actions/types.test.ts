@@ -38,3 +38,32 @@ describe("EditorAction — trust mode types", () => {
     expect(id.length).toBeGreaterThan(0);
   });
 });
+
+describe("EditorAction — file backup flow types", () => {
+  it("LOAD_FILE_FROM_DISK carries name, content, engineId, and language", () => {
+    const action: EditorAction = {
+      type: "LOAD_FILE_FROM_DISK",
+      name: "script.js",
+      content: "console.log(1)",
+      engineId: "quickjs",
+      language: "javascript",
+    };
+    expect(action.type).toBe("LOAD_FILE_FROM_DISK");
+    expect(action.name).toBe("script.js");
+    expect(action.content).toBe("console.log(1)");
+    expect(action.engineId).toBe("quickjs");
+    expect(action.language).toBe("javascript");
+  });
+
+  it("DOWNLOAD_BUFFER_TO_FILE has no extra payload", () => {
+    const action: EditorAction = { type: "DOWNLOAD_BUFFER_TO_FILE" };
+    expect(action.type).toBe("DOWNLOAD_BUFFER_TO_FILE");
+    expect(Object.keys(action)).toEqual(["type"]);
+  });
+
+  it("RESET_PROJECT_STATE has no extra payload", () => {
+    const action: EditorAction = { type: "RESET_PROJECT_STATE" };
+    expect(action.type).toBe("RESET_PROJECT_STATE");
+    expect(Object.keys(action)).toEqual(["type"]);
+  });
+});

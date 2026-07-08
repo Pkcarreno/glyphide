@@ -1,3 +1,4 @@
+import { batch } from "solid-js";
 import type { ActionDispatcher } from "./actions/dispatcher.ts";
 import { createActionDispatcher } from "./actions/dispatcher.ts";
 import type { EngineRegistry } from "./engine/registry.ts";
@@ -6,6 +7,8 @@ import type { BufferModel } from "./models/buffer.ts";
 import { createBufferModel } from "./models/buffer.ts";
 import type { EngineModel } from "./models/engine.ts";
 import { createEngineModel } from "./models/engine.ts";
+import type { FileLoadModel } from "./models/file-load.ts";
+import { createFileLoadModel } from "./models/file-load.ts";
 import type { NotificationModel } from "./models/notifications.ts";
 import { createNotificationModel } from "./models/notifications.ts";
 import type { OutputModel } from "./models/output.ts";
@@ -18,6 +21,7 @@ import type { SettingsModel } from "./models/settings.ts";
 import { createSettingsModel } from "./models/settings.ts";
 import type { TrustModel } from "./models/trust.ts";
 import { createTrustModel } from "./models/trust.ts";
+import type { FileIoPort } from "./ports/file-io.ts";
 import type { PersistencePort } from "./ports/persistence.ts";
 import type { UrlStatePort } from "./ports/url-state.ts";
 import type { ShortcutRegistry } from "./shortcuts/registry.ts";
@@ -28,6 +32,7 @@ import {
 
 /** External dependencies required by the editor core. */
 export interface EditorCoreDeps {
+  fileIo: FileIoPort;
   persistence: PersistencePort;
   urlState: UrlStatePort;
 }
@@ -44,6 +49,9 @@ export interface EditorCore {
   dispose(): void;
   engine: EngineModel;
   engineRegistry: EngineRegistry;
+  /** Local file IO port (read/write). */
+  fileIo: FileIoPort;
+  fileLoad: FileLoadModel;
   notifications: NotificationModel;
   output: OutputModel;
   overlays: OverlayModel;
@@ -51,6 +59,31 @@ export interface EditorCore {
   settings: SettingsModel;
   shortcuts: ShortcutRegistry;
   trust: TrustModel;
+}
+
+/** Maps an engine language to the file extension used for download. */
+function languageToExtension(language: string): string {
+  switch (language) {
+    case "javascript":
+    case "typescript":
+      return ".js";
+    case "python":
+      return ".py";
+    default:
+      return ".txt";
+  }
+}
+
+/** Strips a known file extension from a filename. */
+function stripExtension(filename: string): string {
+  const knownExtensions = [".js", ".py", ".ts", ".jsx", ".tsx"];
+  const lowerFilename = filename.toLowerCase();
+  for (const ext of knownExtensions) {
+    if (lowerFilename.endsWith(ext)) {
+      return filename.slice(0, -ext.length);
+    }
+  }
+  return filename;
 }
 
 /**
@@ -68,6 +101,7 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
   const notifications = createNotificationModel();
   const engineRegistry = createEngineRegistry();
   const trust = createTrustModel(deps.urlState);
+  const fileLoad = createFileLoadModel();
   const engine = createEngineModel({
     buffer,
     output,
@@ -226,6 +260,71 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
     })
   );
 
+  unsubscribers.push(
+    dispatcher.on("RESET_PROJECT_STATE", () => {
+      // Batched so the UI does not flash an intermediate state
+      // (empty buffer + lingering engine, etc.) during the reset.
+      batch(() => {
+        deps.urlState.remove("code");
+        deps.urlState.remove("name");
+        deps.urlState.remove("engine");
+        buffer.setContent("");
+        buffer.setCursorPosition(1, 1, 0, 0);
+        output.clearEntries();
+        trust.grantTrust();
+        overlays.close("trust-required");
+        engine.setBlocked(false);
+        engine.terminate();
+      });
+      // Re-arm the default engine entry so the editor is runnable.
+      // selectEngineEntry is a no-op if the entry is identical and the
+      // engine is not in an error state — that's fine, the engine is now idle.
+      const def = engineRegistry.getDefinition(engine.activeEngineId());
+      engine.selectEngineEntry({
+        engineId: engine.activeEngineId(),
+        language: engine.activeLanguage(),
+        label: def.label,
+      });
+    })
+  );
+
+  unsubscribers.push(
+    dispatcher.on("LOAD_FILE_FROM_DISK", (action) => {
+      buffer.setContent(action.content);
+      project.setName(stripExtension(action.name));
+      engine
+        .selectEngineEntry({
+          engineId: action.engineId,
+          language: action.language,
+          label: "",
+        })
+        .catch(() => undefined);
+      // Re-arm the trust gate: file-loaded code must be acknowledged
+      // exactly like URL-shared code. No bypass.
+      trust.markTrustRequired();
+      engine.setBlocked(true);
+      overlays.open("trust-required");
+    })
+  );
+
+  unsubscribers.push(
+    dispatcher.on("DOWNLOAD_BUFFER_TO_FILE", () => {
+      const content = buffer.content();
+      const baseName = project.name();
+      const extension = languageToExtension(engine.activeLanguage());
+      const filename = `${baseName}${extension}`;
+      deps.fileIo.writeFile(filename, content).catch((error: unknown) => {
+        const message = error instanceof Error ? error.message : String(error);
+        dispatcher.dispatch({
+          type: "DISPATCH_NOTIFICATION",
+          notificationType: "error",
+          title: "Download failed",
+          description: message,
+        });
+      });
+    })
+  );
+
   function dispose(): void {
     if (autoRunTimer) {
       clearTimeout(autoRunTimer);
@@ -256,6 +355,8 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
     output,
     engine,
     engineRegistry,
+    fileIo: deps.fileIo,
+    fileLoad,
     notifications,
     overlays,
     dispatcher,

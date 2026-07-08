@@ -12,6 +12,12 @@ vi.mock("../../core/context", () => ({
     project: {
       name: () => "TestProject",
     },
+    engine: {
+      activeLanguage: () => "javascript",
+    },
+    buffer: {
+      content: () => "console.log('hi')",
+    },
     overlays: {
       isOpen: (id: string) => id === "share" && mockIsOpen(),
     },
@@ -73,5 +79,20 @@ describe("ShareModal", () => {
 
     const urlAfter = input.value;
     expect(urlBefore).not.toBe(urlAfter);
+  });
+
+  it("renders a Download as file button in the button row", () => {
+    setMockIsOpen(true);
+    const { getByText } = render(() => <ShareModal />);
+    expect(getByText("Download as file")).toBeTruthy();
+  });
+
+  it("when Download as file is clicked, dispatches DOWNLOAD_BUFFER_TO_FILE", () => {
+    setMockIsOpen(true);
+    const { getByText } = render(() => <ShareModal />);
+    fireEvent.click(getByText("Download as file"));
+    expect(dispatchMock).toHaveBeenCalledWith({
+      type: "DOWNLOAD_BUFFER_TO_FILE",
+    });
   });
 });

@@ -48,6 +48,10 @@ export function ShareModal(props: ShareModalProps) {
     setTimeout(() => setHasCopiedIframe(false), 2000);
   };
 
+  const handleDownload = () => {
+    core.dispatcher.dispatch({ type: "DOWNLOAD_BUFFER_TO_FILE" });
+  };
+
   const handleOpenChange = (isOpen: boolean) => {
     core.dispatcher.dispatch({
       type: isOpen ? "OPEN_OVERLAY" : "CLOSE_OVERLAY",
@@ -107,6 +111,14 @@ export function ShareModal(props: ShareModalProps) {
               variant="outline"
             >
               {hasCopiedIframe() ? "Copied!" : "Copy iframe"}
+            </Button>
+            <Button
+              class="flex-1"
+              onClick={handleDownload}
+              size="lg"
+              variant="outline"
+            >
+              Download as file
             </Button>
           </div>
         </div>

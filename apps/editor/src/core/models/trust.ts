@@ -11,6 +11,11 @@ export interface TrustModel {
   grantTrust(): void;
   /** Whether trust is currently required (shared code detected, not yet granted). */
   isTrustRequired: Accessor<boolean>;
+  /**
+   * Re-arms the trust gate. Used by file loads so that file-loaded
+   * code requires the same user acknowledgment as URL-shared code.
+   */
+  markTrustRequired(): void;
   /** The shared code value from the URL, or null if none was present. */
   sharedCode: Accessor<string | null>;
 }
@@ -32,8 +37,15 @@ export function createTrustModel(urlState: UrlStatePort): TrustModel {
     }
   }
 
+  function markTrustRequired(): void {
+    if (!isTrustRequired()) {
+      setIsTrustRequired(true);
+    }
+  }
+
   return {
     isTrustRequired,
+    markTrustRequired,
     sharedCode,
     grantTrust,
   };

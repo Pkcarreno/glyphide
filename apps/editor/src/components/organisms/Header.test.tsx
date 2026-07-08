@@ -122,6 +122,9 @@ describe("Header - Mobile Dropdown Items", () => {
     const engineSettingsItem = menuItems.find((el) =>
       el.textContent?.includes("Engine Settings")
     );
+    const openFileItem = menuItems.find((el) =>
+      el.textContent?.includes("Open File")
+    );
 
     // New Project should always be present
     expect(
@@ -133,10 +136,32 @@ describe("Header - Mobile Dropdown Items", () => {
     expect(shareItem).toBeTruthy();
     expect(selectEngineItem).toBeTruthy();
     expect(engineSettingsItem).toBeTruthy();
+    expect(openFileItem).toBeTruthy();
     expect(settingsItem?.textContent).toContain("Settings");
     expect(shareItem?.textContent).toContain("Share");
     expect(selectEngineItem?.textContent).toContain("Select Engine");
     expect(engineSettingsItem?.textContent).toContain("Engine Settings");
+    expect(openFileItem?.textContent).toContain("Open File");
+  });
+
+  it("when dropdown Open File item is clicked, dispatches OPEN_OVERLAY for load-file", () => {
+    const { getByRole } = render(() => <Header />);
+
+    const triggerButton = getByRole("button", { name: "Project Menu" });
+    triggerButton.click();
+
+    const menuItems = screen.getAllByRole("menuitem");
+    const openFileItem = menuItems.find((el) =>
+      el.textContent?.includes("Open File")
+    );
+
+    expect(openFileItem).toBeTruthy();
+    openFileItem?.click();
+
+    expect(dispatchMock).toHaveBeenCalledWith({
+      type: "OPEN_OVERLAY",
+      overlayId: "load-file",
+    });
   });
 
   it("when dropdown Settings item is clicked, dispatches TOGGLE_OVERLAY for settings", () => {

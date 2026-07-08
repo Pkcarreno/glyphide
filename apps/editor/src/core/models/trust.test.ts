@@ -96,4 +96,30 @@ describe("TrustModel", () => {
       expect(trust.isTrustRequired()).toBe(false);
     });
   });
+
+  describe("markTrustRequired()", () => {
+    it("re-arms the trust gate even when initially not required", () => {
+      const urlState = createMockUrlState({});
+      const trust = createTrustModel(urlState);
+
+      expect(trust.isTrustRequired()).toBe(false);
+
+      trust.markTrustRequired();
+
+      expect(trust.isTrustRequired()).toBe(true);
+    });
+
+    it("re-arms the trust gate after grantTrust was called", () => {
+      const urlState = createMockUrlState({
+        code: "console.log('shared')",
+      });
+      const trust = createTrustModel(urlState);
+
+      trust.grantTrust();
+      expect(trust.isTrustRequired()).toBe(false);
+
+      trust.markTrustRequired();
+      expect(trust.isTrustRequired()).toBe(true);
+    });
+  });
 });

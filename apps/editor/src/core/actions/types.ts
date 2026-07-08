@@ -33,7 +33,16 @@ export type EditorAction =
       notificationType?: "info" | "success" | "warning" | "error";
     }
   | { type: "DISMISS_TOAST"; id: string }
-  | { type: "GRANT_TRUST" };
+  | { type: "GRANT_TRUST" }
+  | {
+      type: "LOAD_FILE_FROM_DISK";
+      name: string;
+      content: string;
+      engineId: EngineId;
+      language: string;
+    }
+  | { type: "DOWNLOAD_BUFFER_TO_FILE" }
+  | { type: "RESET_PROJECT_STATE" };
 
 /** Uniquely identifies an overlay (modal, menu, etc). */
 export type OverlayId =

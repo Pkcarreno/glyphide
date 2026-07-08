@@ -3,6 +3,7 @@ import { migrateUrl } from "@glyphide/url-migration/migrate";
 import type { JSX } from "solid-js";
 import { createContext, onCleanup, onMount, useContext } from "solid-js";
 import { createFflateCodecAdapter } from "./adapters/fflate-codec.ts";
+import { createBrowserFileIoAdapter } from "./adapters/file-io.ts";
 import { createLocalStorageAdapter } from "./adapters/local-storage.ts";
 import { createBrowserUrlStateAdapter } from "./adapters/url-state.ts";
 import { composeCompressedUrlState } from "./decorators/url-state-compression.ts";
@@ -55,6 +56,7 @@ export function EditorProvider(props: { children: JSX.Element }) {
   ]);
 
   core = createEditorCore({
+    fileIo: createBrowserFileIoAdapter(),
     persistence: createLocalStorageAdapter(),
     urlState: finalUrlState,
   });
