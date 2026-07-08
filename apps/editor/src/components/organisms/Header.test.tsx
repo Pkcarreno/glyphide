@@ -105,7 +105,7 @@ describe("Header - Mobile Dropdown Items", () => {
     const { getByRole } = render(() => <Header />);
 
     // Open the dropdown by clicking the trigger (LogoSquare) - use aria-label to be specific
-    const triggerButton = getByRole("button", { name: "Project Menu" });
+    const triggerButton = getByRole("button", { name: "Menu" });
     triggerButton.click();
 
     // Query for all menu items in the dropdown using screen (finds in document.body portal)
@@ -147,7 +147,7 @@ describe("Header - Mobile Dropdown Items", () => {
   it("when dropdown Open File item is clicked, dispatches OPEN_OVERLAY for load-file", () => {
     const { getByRole } = render(() => <Header />);
 
-    const triggerButton = getByRole("button", { name: "Project Menu" });
+    const triggerButton = getByRole("button", { name: "Menu" });
     triggerButton.click();
 
     const menuItems = screen.getAllByRole("menuitem");
@@ -168,7 +168,7 @@ describe("Header - Mobile Dropdown Items", () => {
     const { getByRole } = render(() => <Header />);
 
     // Open the dropdown
-    const triggerButton = getByRole("button", { name: "Project Menu" });
+    const triggerButton = getByRole("button", { name: "Menu" });
     triggerButton.click();
 
     // Find and click Settings menu item
@@ -190,7 +190,7 @@ describe("Header - Mobile Dropdown Items", () => {
     const { getByRole } = render(() => <Header />);
 
     // Open the dropdown
-    const triggerButton = getByRole("button", { name: "Project Menu" });
+    const triggerButton = getByRole("button", { name: "Menu" });
     triggerButton.click();
 
     // Find and click Share menu item
@@ -210,7 +210,7 @@ describe("Header - Mobile Dropdown Items", () => {
     const { getByRole } = render(() => <Header />);
 
     // Open the dropdown
-    const triggerButton = getByRole("button", { name: "Project Menu" });
+    const triggerButton = getByRole("button", { name: "Menu" });
     triggerButton.click();
 
     // Find and click Select Engine menu item
@@ -232,7 +232,7 @@ describe("Header - Mobile Dropdown Items", () => {
     const { getByRole } = render(() => <Header />);
 
     // Open the dropdown
-    const triggerButton = getByRole("button", { name: "Project Menu" });
+    const triggerButton = getByRole("button", { name: "Menu" });
     triggerButton.click();
 
     // Find and click Engine Settings menu item

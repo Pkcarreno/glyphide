@@ -58,11 +58,11 @@ function Header(props: HeaderProps) {
       <div class="flex items-center gap-3">
         <Dropdown.Root>
           <ActionTooltip
-            aria-label="Project Menu"
+            aria-label="Menu"
             as={Dropdown.Trigger}
             class="pointer-coarse:min-h-11 pointer-coarse:min-w-11"
             position="bottom"
-            text="File / Project Menu"
+            text="Menu"
             variant="ghost"
           >
             <LogoSquare alt="Glyphide Logo" />
