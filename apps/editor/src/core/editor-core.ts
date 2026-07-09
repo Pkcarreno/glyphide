@@ -285,6 +285,10 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
         language: engine.activeLanguage(),
         label: def.label,
       });
+      // Reset the engine URL tracker. The batch above removed `engine` from
+      // the URL, but the model's `lastWrittenEngineId` would otherwise stay
+      // stale and silently swallow the next buffer update.
+      engine.onBufferUpdated("");
     })
   );
 
@@ -299,6 +303,11 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
           label: "",
         })
         .catch(() => undefined);
+      // Defense-in-depth: selectEngineEntry may early-return when the
+      // requested engine matches the current one. In that case, the URL is
+      // not seeded by selectEngineEntry. Re-running the buffer reconciliation
+      // ensures the engine is written to the URL when the file has code.
+      engine.onBufferUpdated(action.content);
       // Re-arm the trust gate: file-loaded code must be acknowledged
       // exactly like URL-shared code. No bypass.
       trust.markTrustRequired();

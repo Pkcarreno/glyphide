@@ -113,6 +113,18 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     resolvedLanguage ?? def.supportedLanguages[0]
   );
 
+  // Tracks the engine ID we have most recently written to the URL.
+  // - Initialized from URL when URL had an engine (no redundant write on first
+  //   buffer update per REQ-ENG-005).
+  // - Initialized to null when URL had no engine, so the first buffer update
+  //   with code writes the active engine (REQ-ENG-001 scenario 1).
+  // - Reset to null whenever the URL's engine is removed (empty buffer) or
+  //   when selectEngineEntry runs against an empty buffer (URL stays stale
+  //   until the next buffer update re-seeds it).
+  let lastWrittenEngineId: EngineId | null = initialEngineState
+    ? resolvedEngineId
+    : null;
+
   const [activeInitParams, setActiveInitParams] =
     createSignal<EngineInitParams | null>(null);
   const [activeCapabilities, setActiveCapabilities] =
@@ -124,6 +136,23 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
 
   function handleOutput(payload: EngineOutputPayload): void {
     deps.output.appendEntry(payload.type, payload.data);
+  }
+
+  /** Returns true when the buffer has non-whitespace content. */
+  function shouldPersistEngine(): boolean {
+    return deps.buffer.content().trim() !== "";
+  }
+
+  /**
+   * Serializes the active engine ID for URL storage.
+   * Multi-language engines include the language suffix; single-language
+   * engines store only the ID.
+   */
+  function serializeEngineId(): string {
+    const def = deps.registry.getDefinition(activeEngineId());
+    return def.supportedLanguages.length > 1
+      ? `${activeEngineId()}:${activeLanguage()}`
+      : activeEngineId();
   }
 
   async function initializeEngine(
@@ -183,13 +212,17 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     setActiveEngineId(entry.engineId);
     setActiveLanguage(entry.language);
 
-    // Only persist to URL if the engine has multiple languages
-    // For single-language engines, just save the engineId
+    // Only persist engine to URL if the buffer has code. The URL is a
+    // reflection of state — `engine` is only meaningful when there is code
+    // to execute. With an empty buffer, internal state is updated but the
+    // URL is left untouched; the tracker is reset to null so the next
+    // buffer update with code re-seeds the URL with the new engine.
     const def = deps.registry.getDefinition(entry.engineId);
-    if (def.supportedLanguages.length > 1) {
-      deps.urlState.set("engine", `${entry.engineId}:${entry.language}`);
+    if (shouldPersistEngine()) {
+      deps.urlState.set("engine", serializeEngineId());
+      lastWrittenEngineId = entry.engineId;
     } else {
-      deps.urlState.set("engine", entry.engineId);
+      lastWrittenEngineId = null;
     }
 
     const params: EngineInitParams = {
@@ -290,13 +323,12 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
   }
 
   function onBufferUpdated(newCode: string): void {
-    if (newCode.trim() !== "" && deps.urlState.get("engine") === null) {
-      const def = deps.registry.getDefinition(activeEngineId());
-      if (def.supportedLanguages.length > 1) {
-        deps.urlState.set("engine", `${activeEngineId()}:${activeLanguage()}`);
-      } else {
-        deps.urlState.set("engine", activeEngineId());
-      }
+    if (newCode.trim() === "") {
+      deps.urlState.remove("engine");
+      lastWrittenEngineId = null;
+    } else if (activeEngineId() !== lastWrittenEngineId) {
+      deps.urlState.set("engine", serializeEngineId());
+      lastWrittenEngineId = activeEngineId();
     }
     if (engineStatus() === "running") {
       setIsDirty(true);

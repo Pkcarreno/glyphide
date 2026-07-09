@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createEditorCore } from "./editor-core.ts";
+import { createBrowserUrlStateAdapter } from "./adapters/url-state.ts";
+import { composeSizeLimitedUrlState } from "./decorators/url-state-limit.ts";
+import { createEditorCore, type EditorCore } from "./editor-core.ts";
 import type { FileIoPort } from "./ports/file-io.ts";
 import type { PersistencePort } from "./ports/persistence.ts";
 import type { UrlStatePort } from "./ports/url-state.ts";
@@ -634,6 +636,166 @@ describe("EditorCore", () => {
 
         expect(writeFile).toHaveBeenCalledWith("untitled_project.js", "");
       });
+    });
+  });
+
+  describe("Engine URL conditional persistence (engine-state-url-sync)", () => {
+    function createSpyUrlState(): UrlStatePort & {
+      setCalls: Array<{ key: string; value: string }>;
+      removeCalls: string[];
+    } {
+      const data = new Map<string, string>();
+      const setCalls: Array<{ key: string; value: string }> = [];
+      const removeCalls: string[] = [];
+      return {
+        get: (key) => data.get(key) ?? null,
+        set: (key, val) => {
+          data.set(key, val);
+          setCalls.push({ key, value: val });
+        },
+        remove: (key) => {
+          data.delete(key);
+          removeCalls.push(key);
+        },
+        setCalls,
+        removeCalls,
+      };
+    }
+
+    // REQ-ENG-007: LOAD_FILE_FROM_DISK with same engine as active → engine
+    // must be seeded in URL. selectEngineEntry is a same-engine early-return,
+    // so the onBufferUpdated wiring in editor-core is what seeds the URL.
+    it("LOAD_FILE_FROM_DISK with same engine seeds engine in URL", async () => {
+      const urlState = createSpyUrlState();
+      const core = createEditorCore({
+        fileIo: createMockFileIoDeps(),
+        persistence: createMockPersistence(),
+        urlState,
+      });
+
+      expect(urlState.get("engine")).toBeNull();
+
+      core.dispatcher.dispatch({
+        type: "LOAD_FILE_FROM_DISK",
+        name: "hello.js",
+        content: "print('hi')",
+        engineId: "quickjs",
+        language: "javascript",
+      });
+
+      // selectEngineEntry is fire-and-forget. Wait for it to settle.
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Real registry: quickjs is single-language, so URL stores "quickjs"
+      expect(urlState.get("engine")).toBe("quickjs");
+    });
+
+    // REQ-ENG-002 + tracker reset: after RESET_PROJECT_STATE, typing code
+    // must re-seed the URL with the active engine. The onBufferUpdated("")
+    // wiring in editor-core is what resets the tracker so the next buffer
+    // update is not a false no-op.
+    it("after RESET_PROJECT_STATE, typing code writes engine to URL", () => {
+      const urlState = createSpyUrlState();
+      // Real registry: mock engine is single-language ("plaintext")
+      urlState.set("engine", "mock");
+      const core = createEditorCore({
+        fileIo: createMockFileIoDeps(),
+        persistence: createMockPersistence(),
+        urlState,
+      });
+
+      // Prime the model with some code so the tracker is consistent
+      core.dispatcher.dispatch({ type: "UPDATE_BUFFER", content: "hi" });
+      expect(urlState.get("engine")).toBe("mock");
+
+      // Reset the project
+      core.dispatcher.dispatch({ type: "RESET_PROJECT_STATE" });
+      expect(urlState.get("engine")).toBeNull();
+
+      // Type code again. The tracker MUST have been reset by the reset flow,
+      // so this must write the engine to URL.
+      core.dispatcher.dispatch({ type: "UPDATE_BUFFER", content: "world" });
+      expect(urlState.get("engine")).toBe("mock");
+    });
+  });
+
+  describe("REQ-ENG-006: URL limit exceeded handling", () => {
+    beforeEach(() => {
+      // Reset URL to a clean state before each test
+      window.history.replaceState(null, "", "/");
+      // Suppress the expected warning from the size-limit decorator
+      vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("strips URL when limit exceeded, resets tracker on empty buffer, re-seeds on next valid write", () => {
+      // Use the real browser URL adapter so the decorator's
+      // replaceState-based strip actually clears window.location.
+      // When the limit is exceeded, base.set is never called and
+      // the URL is reset to the pathname — subsequent get() returns null.
+      const baseUrlState = createBrowserUrlStateAdapter();
+      const MAX_LENGTH = 100;
+      let coreRef: EditorCore | undefined;
+      const limitedUrlState = composeSizeLimitedUrlState(
+        baseUrlState,
+        MAX_LENGTH,
+        (isShareable) => {
+          coreRef?.project.setShareableState(isShareable);
+        }
+      );
+
+      const core = createEditorCore({
+        fileIo: createMockFileIoDeps(),
+        persistence: createMockPersistence(),
+        urlState: limitedUrlState,
+      });
+      coreRef = core;
+
+      // Step 1: Load editor with initial code. Default engine is "quickjs";
+      // the first non-empty buffer update seeds it to the URL.
+      core.dispatcher.dispatch({
+        type: "UPDATE_BUFFER",
+        content: "initial code",
+      });
+
+      expect(baseUrlState.get("engine")).toBe("quickjs");
+      expect(core.project.isUrlShareable()).toBe(true);
+
+      // Step 2: Type code that exceeds the URL limit. The decorator
+      // strips window.location via replaceState and notifies the
+      // project model that the URL is no longer shareable.
+      const longCode = "a".repeat(200);
+      core.dispatcher.dispatch({
+        type: "UPDATE_BUFFER",
+        content: longCode,
+      });
+
+      expect(baseUrlState.get("engine")).toBeNull();
+      expect(core.project.isUrlShareable()).toBe(false);
+
+      // Step 3: Clear the buffer. onBufferUpdated("") removes the
+      // engine from the URL and resets lastWrittenEngineId to null.
+      core.dispatcher.dispatch({
+        type: "UPDATE_BUFFER",
+        content: "",
+      });
+
+      // Engine is NOT re-written (buffer is empty).
+      expect(baseUrlState.get("engine")).toBeNull();
+
+      // Step 4: Type new code that fits within the limit. The tracker
+      // was reset, so this non-empty buffer update re-seeds the
+      // active engine to the URL.
+      core.dispatcher.dispatch({
+        type: "UPDATE_BUFFER",
+        content: "short code",
+      });
+
+      expect(baseUrlState.get("engine")).toBe("quickjs");
+      expect(core.project.isUrlShareable()).toBe(true);
     });
   });
 });

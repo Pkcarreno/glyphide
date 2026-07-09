@@ -17,16 +17,25 @@ function createMockPersistence(): PersistencePort {
   };
 }
 
-function createMockUrlState(): UrlStatePort {
+function createMockUrlState(): UrlStatePort & {
+  setCalls: Array<{ key: string; value: string }>;
+  removeCalls: string[];
+} {
   const data = new Map();
+  const setCalls: Array<{ key: string; value: string }> = [];
+  const removeCalls: string[] = [];
   return {
     get: (key) => data.get(key) ?? null,
     set: (key, val) => {
       data.set(key, val);
+      setCalls.push({ key, value: val });
     },
     remove: (key) => {
       data.delete(key);
+      removeCalls.push(key);
     },
+    setCalls,
+    removeCalls,
   };
 }
 
@@ -118,9 +127,13 @@ describe("EngineModel (Integration)", () => {
   let settings: ReturnType<typeof createSettingsModel>;
   let registry: ReturnType<typeof createEngineRegistry>;
   let urlState: ReturnType<typeof createMockUrlState>;
+  const freshUrlState = () => {
+    const state = createMockUrlState();
+    return state;
+  };
 
   beforeEach(() => {
-    urlState = createMockUrlState();
+    urlState = freshUrlState();
     buffer = createBufferModel(urlState);
     output = createOutputModel();
     settings = createSettingsModel(createMockPersistence());
@@ -409,5 +422,203 @@ describe("EngineModel (Integration)", () => {
     expect(output.entries().some((e) => e.data === "pre-switch log")).toBe(
       false
     );
+  });
+});
+
+describe("EngineModel URL conditional persistence (REQ-ENG-001..007)", () => {
+  let buffer: ReturnType<typeof createBufferModel>;
+  let output: ReturnType<typeof createOutputModel>;
+  let settings: ReturnType<typeof createSettingsModel>;
+  let registry: ReturnType<typeof createEngineRegistry>;
+  let urlState: ReturnType<typeof createMockUrlState>;
+
+  beforeEach(() => {
+    urlState = createMockUrlState();
+    buffer = createBufferModel(urlState);
+    output = createOutputModel();
+    settings = createSettingsModel(createMockPersistence());
+    registry = createTestRegistry();
+    settings.updateSettings({ isClearOnRunEnabled: false });
+  });
+
+  // REQ-ENG-002: clearing the buffer removes the engine from the URL
+  it("onBufferUpdated('') removes engine from URL", () => {
+    urlState.set("engine", "mock:javascript");
+    const model = createEngineModel({
+      buffer,
+      output,
+      settings,
+      registry,
+      urlState,
+    });
+    expect(urlState.get("engine")).toBe("mock:javascript");
+
+    model.onBufferUpdated("");
+
+    expect(urlState.get("engine")).toBeNull();
+    expect(urlState.removeCalls).toContain("engine");
+  });
+
+  // REQ-ENG-002 triangulation: clearing when no engine in URL is a no-op
+  it("onBufferUpdated('') with no engine in URL leaves URL unchanged", () => {
+    const model = createEngineModel({
+      buffer,
+      output,
+      settings,
+      registry,
+      urlState,
+    });
+    expect(urlState.get("engine")).toBeNull();
+
+    model.onBufferUpdated("");
+
+    // No engine in URL before, no engine in URL after — observable: no change
+    expect(urlState.get("engine")).toBeNull();
+  });
+
+  // REQ-ENG-001 happy path: empty buffer + no engine in URL → user types code → engine written
+  it("onBufferUpdated('code') with no engine in URL writes the active engine", () => {
+    const model = createEngineModel({
+      buffer,
+      output,
+      settings,
+      registry,
+      urlState,
+    });
+    expect(urlState.get("engine")).toBeNull();
+
+    model.onBufferUpdated("code");
+
+    // The default engine "quickjs" is multi-language, so URL gets "quickjs:javascript"
+    expect(urlState.get("engine")).toBe("quickjs:javascript");
+  });
+
+  // REQ-ENG-001 no-op: URL has engine with current value → user types code → no set call
+  it("onBufferUpdated('code') with matching engine in URL is a no-op (no set call)", () => {
+    urlState.set("engine", "quickjs:javascript");
+    const model = createEngineModel({
+      buffer,
+      output,
+      settings,
+      registry,
+      urlState,
+    });
+    urlState.setCalls.length = 0;
+
+    model.onBufferUpdated("code");
+
+    // No-op: tracker already matches active engine, URL must not be re-touched
+    expect(urlState.setCalls.find((c) => c.key === "engine")).toBeUndefined();
+    expect(urlState.get("engine")).toBe("quickjs:javascript");
+  });
+
+  // REQ-ENG-003 scenario 1: selectEngineEntry with code present writes engine
+  it("selectEngineEntry with non-empty buffer writes engine to URL", async () => {
+    const model = createEngineModel({
+      buffer,
+      output,
+      settings,
+      registry,
+      urlState,
+    });
+    buffer.setContent("hello world");
+
+    await model.selectEngineEntry({
+      engineId: "mock",
+      language: "javascript",
+      label: "",
+    });
+
+    // Buffer is non-empty, so engine should be persisted
+    expect(urlState.get("engine")).toBe("mock:javascript");
+  });
+
+  // REQ-ENG-003 scenario 2: selectEngineEntry with empty buffer skips URL write
+  it("selectEngineEntry with empty buffer skips URL write but updates internal state", async () => {
+    urlState.set("engine", "quickjs:javascript");
+    const model = createEngineModel({
+      buffer,
+      output,
+      settings,
+      registry,
+      urlState,
+    });
+    // Tracker is "quickjs" (from URL), active is "quickjs", buffer is empty.
+    const setCallsBefore = urlState.setCalls.length;
+    const removeCallsBefore = urlState.removeCalls.length;
+
+    await model.selectEngineEntry({
+      engineId: "mock",
+      language: "javascript",
+      label: "",
+    });
+
+    // Internal state should reflect the new engine
+    expect(model.activeEngineId()).toBe("mock");
+    expect(model.activeLanguage()).toBe("javascript");
+
+    // URL must not be touched (no set, no remove) by selectEngineEntry
+    const newSetCalls = urlState.setCalls.slice(setCallsBefore);
+    const newRemoveCalls = urlState.removeCalls.slice(removeCallsBefore);
+    expect(newSetCalls.find((c) => c.key === "engine")).toBeUndefined();
+    expect(newRemoveCalls).not.toContain("engine");
+
+    // URL still has the old engine from initial state
+    expect(urlState.get("engine")).toBe("quickjs:javascript");
+  });
+
+  // REQ-ENG-003 + REQ-ENG-002: after empty-buffer selection, typing code
+  // re-seeds the URL with the new engine
+  it("after empty-buffer engine switch, typing code writes the new engine to URL", async () => {
+    urlState.set("engine", "quickjs:javascript");
+    const model = createEngineModel({
+      buffer,
+      output,
+      settings,
+      registry,
+      urlState,
+    });
+    await model.selectEngineEntry({
+      engineId: "mock",
+      language: "javascript",
+      label: "",
+    });
+    expect(urlState.get("engine")).toBe("quickjs:javascript"); // unchanged (empty buffer)
+
+    buffer.setContent("hello");
+    model.onBufferUpdated("hello");
+
+    expect(urlState.get("engine")).toBe("mock:javascript");
+  });
+
+  // REQ-ENG-007: file load with code should result in engine in URL.
+  // Tested at the engine-model level: selectEngineEntry with non-empty buffer
+  // writes engine; the second call with same engine is a no-op.
+  it("selectEngineEntry with non-empty buffer seeds engine URL once, not on re-select", async () => {
+    const model = createEngineModel({
+      buffer,
+      output,
+      settings,
+      registry,
+      urlState,
+    });
+    buffer.setContent("print('hi')");
+
+    // First call: writes engine
+    await model.selectEngineEntry({
+      engineId: "mock",
+      language: "javascript",
+      label: "",
+    });
+    expect(urlState.get("engine")).toBe("mock:javascript");
+
+    // Second call with same engine + same content: tracker matches, no URL write
+    urlState.setCalls.length = 0;
+    await model.selectEngineEntry({
+      engineId: "mock",
+      language: "javascript",
+      label: "",
+    });
+    expect(urlState.setCalls.find((c) => c.key === "engine")).toBeUndefined();
   });
 });
