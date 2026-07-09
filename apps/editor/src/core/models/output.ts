@@ -57,11 +57,7 @@ export function createOutputModel(): OutputModel {
     });
 
     if (rafId === null) {
-      rafId = -1; // Placeholder to detect synchronous execution in tests
-      const id = requestAnimationFrame(flush);
-      if (rafId === -1) {
-        rafId = id;
-      }
+      rafId = requestAnimationFrame(flush);
     }
   }
 

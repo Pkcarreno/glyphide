@@ -1,4 +1,5 @@
 import { EngineMethod } from "@glyphide/rpc-protocol/constants";
+import { waitFor } from "@solidjs/testing-library";
 import { beforeEach, describe, expect, it } from "vitest";
 import type { createEngineRegistry } from "../engine/registry.ts";
 import type { PersistencePort } from "../ports/persistence.ts";
@@ -263,8 +264,12 @@ describe("EngineModel (Integration)", () => {
       label: "",
     });
     expect(model.engineStatus()).toBe("error");
-    const entries = output.entries();
-    expect(entries.at(-1)?.data).toContain("Factory failed");
+    // OutputModel batches entries via requestAnimationFrame; wait for the
+    // error message to flush before asserting on it.
+    await waitFor(() => {
+      const entries = output.entries();
+      expect(entries.at(-1)?.data).toContain("Factory failed");
+    });
   });
 
   it("clears output on run if setting is enabled", async () => {
@@ -381,7 +386,13 @@ describe("EngineModel (Integration)", () => {
     });
 
     output.appendEntry("log", "important log");
-    expect(output.entries().some((e) => e.data === "important log")).toBe(true);
+    // OutputModel batches entries via requestAnimationFrame; wait for the
+    // append to flush before asserting.
+    await waitFor(() => {
+      expect(output.entries().some((e) => e.data === "important log")).toBe(
+        true
+      );
+    });
 
     // Re-select the same engine and language
     await model.selectEngineEntry({

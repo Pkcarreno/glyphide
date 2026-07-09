@@ -16,32 +16,33 @@ if (
     };
 }
 
+// requestAnimationFrame must be asynchronous to match real-browser semantics.
+// A synchronous mock fires callbacks before constructors finish assigning
+// internal state, which crashes CodeMirror's EditorView during plugin
+// initialization ("Cannot read properties of undefined (reading
+// 'delayedAndroidKey')").
 if (
   typeof (globalThis as unknown as Record<string, unknown>)
     .requestAnimationFrame === "undefined"
 ) {
   (globalThis as unknown as Record<string, unknown>).requestAnimationFrame = (
     callback: (time: number) => void
+  ) => setTimeout(callback, 0, Date.now()) as unknown as number;
+  (globalThis as unknown as Record<string, unknown>).cancelAnimationFrame = (
+    id: number
   ) => {
-    callback(Date.now());
-    return 0;
+    clearTimeout(id);
   };
-  (globalThis as unknown as Record<string, unknown>).cancelAnimationFrame =
-    () => {
-      /* mocked */
-    };
 } else {
-  // If jsdom provides it, override it for synchronous test execution
+  // If jsdom provides it, override it for asynchronous test execution
   (globalThis as unknown as Record<string, unknown>).requestAnimationFrame = (
     callback: (time: number) => void
+  ) => setTimeout(callback, 0, Date.now()) as unknown as number;
+  (globalThis as unknown as Record<string, unknown>).cancelAnimationFrame = (
+    id: number
   ) => {
-    callback(Date.now());
-    return 0;
+    clearTimeout(id);
   };
-  (globalThis as unknown as Record<string, unknown>).cancelAnimationFrame =
-    () => {
-      /* mocked */
-    };
 }
 
 if (typeof window !== "undefined" && typeof window.matchMedia === "undefined") {
