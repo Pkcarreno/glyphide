@@ -25,6 +25,8 @@ export function ShareModal(props: ShareModalProps) {
   const [hasCopiedLink, setHasCopiedLink] = createSignal(false);
   const [hasCopiedIframe, setHasCopiedIframe] = createSignal(false);
 
+  const isUrlShareable = () => core.project.isUrlShareable();
+
   const buildShareUrl = () => {
     const url = new URL(window.location.href);
     if (!isNameIncluded()) {
@@ -89,15 +91,23 @@ export function ShareModal(props: ShareModalProps) {
             </label>
             <Input
               class="font-mono text-on-surface-variant text-sm"
+              disabled={!isUrlShareable()}
               id="share-link-input"
               readOnly
               value={buildShareUrl()}
             />
+            {!isUrlShareable() && (
+              <p class="text-warning text-xs">
+                Project is too large to share via URL. Use "Download as file"
+                instead.
+              </p>
+            )}
           </div>
 
           <div class="flex gap-3">
             <Button
               class="flex-1"
+              disabled={!isUrlShareable()}
               onClick={handleCopyLink}
               size="lg"
               variant="primary"
@@ -106,6 +116,7 @@ export function ShareModal(props: ShareModalProps) {
             </Button>
             <Button
               class="flex-1"
+              disabled={!isUrlShareable()}
               onClick={handleCopyIframe}
               size="lg"
               variant="outline"

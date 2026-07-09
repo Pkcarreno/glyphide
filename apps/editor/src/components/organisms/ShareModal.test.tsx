@@ -11,6 +11,7 @@ vi.mock("../../core/context", () => ({
     dispatcher: { dispatch: dispatchMock },
     project: {
       name: () => "TestProject",
+      isUrlShareable: () => true,
     },
     engine: {
       activeLanguage: () => "javascript",
