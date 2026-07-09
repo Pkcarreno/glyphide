@@ -49,10 +49,10 @@ describe("TrustRequiredModal", () => {
     expect(getByText(UNKNOWN_SOURCE_REGEX)).toBeTruthy();
   });
 
-  it("has a Trust & Run button that dispatches GRANT_TRUST", () => {
+  it("has a Trust button that dispatches GRANT_TRUST", () => {
     setMockIsOpen(true);
     const { getByText } = render(() => <TrustRequiredModal />);
-    const button = getByText("Trust & Run");
+    const button = getByText("Trust");
     fireEvent.click(button);
     expect(dispatchMock).toHaveBeenCalledWith({ type: "GRANT_TRUST" });
   });

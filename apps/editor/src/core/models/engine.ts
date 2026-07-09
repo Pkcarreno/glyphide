@@ -55,6 +55,13 @@ export interface EngineModel {
 
   /** Executes the current buffer content in the active engine. */
   executeCode(): Promise<void>;
+  /**
+   * Initializes the currently selected engine. Spawns a worker for the
+   * active engine/language pair. Idempotent: no-op when the engine is
+   * already ready, initializing, running, or blocked. Retries on error
+   * (terminates the failed worker first).
+   */
+  initializeSelectedEngine(): Promise<void>;
   /** Forcefully interrupts the running execution. */
   interruptExecution(): Promise<void>;
   /** Indicates if the buffer was modified while an execution is in progress. */
@@ -63,8 +70,12 @@ export interface EngineModel {
   onBufferUpdated(newCode: string): void;
   /** Retries initialization for the current entry. */
   retryInit(): Promise<void>;
-  /** Selects an engine entry and triggers INIT immediately. */
-  selectEngineEntry(entry: EngineEntry): Promise<void>;
+  /**
+   * Selects an engine entry — updates `activeEngineId` and `activeLanguage`
+   * signals and persists the engine to the URL — but does NOT spawn or
+   * initialize any engine worker. Use `initializeSelectedEngine` to spawn.
+   */
+  selectEngineEntry(entry: EngineEntry): void;
   /** Sets the engine status to blocked (used when trust is required). */
   setBlocked(isBlocked: boolean): void;
   /** Tears down the orchestrator and releases resources. */
@@ -195,15 +206,15 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     }
   }
 
-  async function selectEngineEntry(entry: EngineEntry): Promise<void> {
+  function selectEngineEntry(entry: EngineEntry): void {
     if (
       entry.engineId === activeEngineId() &&
       entry.language === activeLanguage()
     ) {
-      // Same entry, but if we are in error state, retry init
-      if (engineStatus() === "error") {
-        await retryInit();
-      }
+      // Same entry: pure no-op. The caller is responsible for calling
+      // `initializeSelectedEngine()` if a retry is needed (e.g., recovery
+      // from an error state). Internal retry here would bypass the trust
+      // gate on the `LOAD_FILE_FROM_DISK` same-engine edge case.
       return;
     }
 
@@ -217,19 +228,40 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     // to execute. With an empty buffer, internal state is updated but the
     // URL is left untouched; the tracker is reset to null so the next
     // buffer update with code re-seeds the URL with the new engine.
-    const def = deps.registry.getDefinition(entry.engineId);
     if (shouldPersistEngine()) {
       deps.urlState.set("engine", serializeEngineId());
       lastWrittenEngineId = entry.engineId;
     } else {
       lastWrittenEngineId = null;
     }
+  }
 
+  /**
+   * Spawns (or respawns) a worker for the currently selected engine.
+   * No-op when the engine is already healthy (ready/initializing/running)
+   * or blocked (trust gate active). On error state, terminates the failed
+   * worker before retrying.
+   */
+  async function initializeSelectedEngine(): Promise<void> {
+    const status = engineStatusAccessor();
+    if (
+      status === "ready" ||
+      status === "initializing" ||
+      status === "running" ||
+      status === "blocked"
+    ) {
+      return;
+    }
+
+    if (status === "error") {
+      terminate();
+    }
+
+    const def = deps.registry.getDefinition(activeEngineId());
     const params: EngineInitParams = {
-      language: entry.language,
+      language: activeLanguage(),
       ...def.defaultInitParams,
     };
-
     await initializeEngine(params);
   }
 
@@ -277,12 +309,8 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
       if (isInitialized && orchestrator) {
         await orchestrator.reset();
       } else {
-        // Fallback eager init just in case
-        const def = deps.registry.getDefinition(activeEngineId());
-        await initializeEngine({
-          language: activeLanguage(),
-          ...def.defaultInitParams,
-        });
+        // Fallback: ensure the engine is initialized before running.
+        await initializeSelectedEngine();
       }
 
       setEngineStatus("running");
@@ -360,6 +388,7 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     isDirty,
     executeCode,
     interruptExecution,
+    initializeSelectedEngine,
     selectEngineEntry,
     updateEngineConfig,
     retryInit,

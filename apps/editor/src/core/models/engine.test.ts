@@ -1,6 +1,6 @@
 import { EngineMethod } from "@glyphide/rpc-protocol/constants";
 import { waitFor } from "@solidjs/testing-library";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { createEngineRegistry } from "../engine/registry.ts";
 import type { PersistencePort } from "../ports/persistence.ts";
 import type { UrlStatePort } from "../ports/url-state.ts";
@@ -155,7 +155,7 @@ describe("EngineModel (Integration)", () => {
     expect(model.activeLanguage()).toBe("javascript");
   });
 
-  it("selectEngineEntry eagerly initializes the engine", async () => {
+  it("selectEngineEntry is selection-only; initializeSelectedEngine transitions to ready", async () => {
     const model = createEngineModel({
       buffer,
       output,
@@ -163,11 +163,18 @@ describe("EngineModel (Integration)", () => {
       registry,
       urlState,
     });
-    const p = model.selectEngineEntry({
+    model.selectEngineEntry({
       engineId: "mock",
       language: "typescript",
       label: "",
     });
+    // Selection updates signals but does NOT spawn a worker — status stays idle
+    expect(model.activeEngineId()).toBe("mock");
+    expect(model.activeLanguage()).toBe("typescript");
+    expect(model.engineStatus()).toBe("idle");
+
+    // initializeSelectedEngine spawns the worker
+    const p = model.initializeSelectedEngine();
     expect(model.engineStatus()).toBe("initializing");
     await p;
     expect(model.engineStatus()).toBe("ready");
@@ -182,11 +189,12 @@ describe("EngineModel (Integration)", () => {
       registry,
       urlState,
     });
-    await model.selectEngineEntry({
+    model.selectEngineEntry({
       engineId: "mock",
       language: "javascript",
       label: "",
     });
+    await model.initializeSelectedEngine();
     buffer.setContent("test code");
 
     await model.executeCode();
@@ -207,11 +215,12 @@ describe("EngineModel (Integration)", () => {
       registry,
       urlState,
     });
-    await model.selectEngineEntry({
+    model.selectEngineEntry({
       engineId: "mock",
       language: "javascript",
       label: "",
     });
+    await model.initializeSelectedEngine();
 
     buffer.setContent("test");
     const execPromise = model.executeCode();
@@ -258,11 +267,12 @@ describe("EngineModel (Integration)", () => {
       registry: brokenRegistry,
       urlState,
     });
-    await model.selectEngineEntry({
+    model.selectEngineEntry({
       engineId: "mock",
       language: "plaintext",
       label: "",
     });
+    await model.initializeSelectedEngine();
     expect(model.engineStatus()).toBe("error");
     // OutputModel batches entries via requestAnimationFrame; wait for the
     // error message to flush before asserting on it.
@@ -281,11 +291,12 @@ describe("EngineModel (Integration)", () => {
       registry,
       urlState,
     });
-    await model.selectEngineEntry({
+    model.selectEngineEntry({
       engineId: "mock",
       language: "javascript",
       label: "",
     });
+    await model.initializeSelectedEngine();
 
     output.appendEntry("system", "old logs");
     expect(output.entries().length).toBeGreaterThan(0);
@@ -306,11 +317,12 @@ describe("EngineModel (Integration)", () => {
       urlState,
     });
 
-    await model.selectEngineEntry({
+    model.selectEngineEntry({
       engineId: "mock",
       language: "javascript",
       label: "",
     });
+    await model.initializeSelectedEngine();
 
     expect(model.isDirty()).toBe(false);
 
@@ -347,18 +359,19 @@ describe("EngineModel (Integration)", () => {
       registry,
       urlState,
     });
-    await model.selectEngineEntry({
+    model.selectEngineEntry({
       engineId: "mock",
       language: "javascript",
       label: "",
     });
+    await model.initializeSelectedEngine();
 
     // Manually add an output entry simulating prior engine output
     output.appendEntry("log", "previous engine log");
     expect(output.entries().length).toBeGreaterThan(0);
 
     // Switch to a different engine
-    await model.selectEngineEntry({
+    model.selectEngineEntry({
       engineId: "quickjs",
       language: "javascript",
       label: "",
@@ -379,11 +392,12 @@ describe("EngineModel (Integration)", () => {
       registry,
       urlState,
     });
-    await model.selectEngineEntry({
+    model.selectEngineEntry({
       engineId: "mock",
       language: "javascript",
       label: "",
     });
+    await model.initializeSelectedEngine();
 
     output.appendEntry("log", "important log");
     // OutputModel batches entries via requestAnimationFrame; wait for the
@@ -395,7 +409,7 @@ describe("EngineModel (Integration)", () => {
     });
 
     // Re-select the same engine and language
-    await model.selectEngineEntry({
+    model.selectEngineEntry({
       engineId: "mock",
       language: "javascript",
       label: "",
@@ -416,15 +430,16 @@ describe("EngineModel (Integration)", () => {
       registry,
       urlState,
     });
-    await model.selectEngineEntry({
+    model.selectEngineEntry({
       engineId: "mock",
       language: "javascript",
       label: "",
     });
+    await model.initializeSelectedEngine();
 
     output.appendEntry("log", "pre-switch log");
 
-    await model.selectEngineEntry({
+    model.selectEngineEntry({
       engineId: "micropython",
       language: "python",
       label: "",
@@ -524,7 +539,7 @@ describe("EngineModel URL conditional persistence (REQ-ENG-001..007)", () => {
   });
 
   // REQ-ENG-003 scenario 1: selectEngineEntry with code present writes engine
-  it("selectEngineEntry with non-empty buffer writes engine to URL", async () => {
+  it("selectEngineEntry with non-empty buffer writes engine to URL", () => {
     const model = createEngineModel({
       buffer,
       output,
@@ -534,7 +549,7 @@ describe("EngineModel URL conditional persistence (REQ-ENG-001..007)", () => {
     });
     buffer.setContent("hello world");
 
-    await model.selectEngineEntry({
+    model.selectEngineEntry({
       engineId: "mock",
       language: "javascript",
       label: "",
@@ -545,7 +560,7 @@ describe("EngineModel URL conditional persistence (REQ-ENG-001..007)", () => {
   });
 
   // REQ-ENG-003 scenario 2: selectEngineEntry with empty buffer skips URL write
-  it("selectEngineEntry with empty buffer skips URL write but updates internal state", async () => {
+  it("selectEngineEntry with empty buffer skips URL write but updates internal state", () => {
     urlState.set("engine", "quickjs:javascript");
     const model = createEngineModel({
       buffer,
@@ -558,7 +573,7 @@ describe("EngineModel URL conditional persistence (REQ-ENG-001..007)", () => {
     const setCallsBefore = urlState.setCalls.length;
     const removeCallsBefore = urlState.removeCalls.length;
 
-    await model.selectEngineEntry({
+    model.selectEngineEntry({
       engineId: "mock",
       language: "javascript",
       label: "",
@@ -580,7 +595,7 @@ describe("EngineModel URL conditional persistence (REQ-ENG-001..007)", () => {
 
   // REQ-ENG-003 + REQ-ENG-002: after empty-buffer selection, typing code
   // re-seeds the URL with the new engine
-  it("after empty-buffer engine switch, typing code writes the new engine to URL", async () => {
+  it("after empty-buffer engine switch, typing code writes the new engine to URL", () => {
     urlState.set("engine", "quickjs:javascript");
     const model = createEngineModel({
       buffer,
@@ -589,7 +604,7 @@ describe("EngineModel URL conditional persistence (REQ-ENG-001..007)", () => {
       registry,
       urlState,
     });
-    await model.selectEngineEntry({
+    model.selectEngineEntry({
       engineId: "mock",
       language: "javascript",
       label: "",
@@ -605,7 +620,7 @@ describe("EngineModel URL conditional persistence (REQ-ENG-001..007)", () => {
   // REQ-ENG-007: file load with code should result in engine in URL.
   // Tested at the engine-model level: selectEngineEntry with non-empty buffer
   // writes engine; the second call with same engine is a no-op.
-  it("selectEngineEntry with non-empty buffer seeds engine URL once, not on re-select", async () => {
+  it("selectEngineEntry with non-empty buffer seeds engine URL once, not on re-select", () => {
     const model = createEngineModel({
       buffer,
       output,
@@ -616,7 +631,7 @@ describe("EngineModel URL conditional persistence (REQ-ENG-001..007)", () => {
     buffer.setContent("print('hi')");
 
     // First call: writes engine
-    await model.selectEngineEntry({
+    model.selectEngineEntry({
       engineId: "mock",
       language: "javascript",
       label: "",
@@ -625,11 +640,237 @@ describe("EngineModel URL conditional persistence (REQ-ENG-001..007)", () => {
 
     // Second call with same engine + same content: tracker matches, no URL write
     urlState.setCalls.length = 0;
-    await model.selectEngineEntry({
+    model.selectEngineEntry({
       engineId: "mock",
       language: "javascript",
       label: "",
     });
     expect(urlState.setCalls.find((c) => c.key === "engine")).toBeUndefined();
+  });
+});
+
+describe("EngineModel select/init split contract", () => {
+  let buffer: ReturnType<typeof createBufferModel>;
+  let output: ReturnType<typeof createOutputModel>;
+  let settings: ReturnType<typeof createSettingsModel>;
+  let registry: ReturnType<typeof createEngineRegistry>;
+  let urlState: ReturnType<typeof createMockUrlState>;
+
+  beforeEach(() => {
+    urlState = createMockUrlState();
+    buffer = createBufferModel(urlState);
+    output = createOutputModel();
+    settings = createSettingsModel(createMockPersistence());
+    registry = createTestRegistry();
+    settings.updateSettings({ isClearOnRunEnabled: false });
+  });
+
+  it("selectEngineEntry is synchronous (void return type) and does NOT spawn worker", () => {
+    const model = createEngineModel({
+      buffer,
+      output,
+      settings,
+      registry,
+      urlState,
+    });
+    const factorySpy = vi.spyOn(registry, "loadFactory");
+
+    // The method must be callable WITHOUT await and return undefined
+    const result = model.selectEngineEntry({
+      engineId: "mock",
+      language: "javascript",
+      label: "",
+    });
+    expect(result).toBeUndefined();
+
+    // Signals updated, but no worker spawned
+    expect(model.activeEngineId()).toBe("mock");
+    expect(model.activeLanguage()).toBe("javascript");
+    expect(model.engineStatus()).toBe("idle");
+    expect(factorySpy).not.toHaveBeenCalled();
+  });
+
+  it("initializeSelectedEngine on idle transitions to ready and populates capabilities", async () => {
+    const model = createEngineModel({
+      buffer,
+      output,
+      settings,
+      registry,
+      urlState,
+    });
+    model.selectEngineEntry({
+      engineId: "mock",
+      language: "javascript",
+      label: "",
+    });
+
+    const p = model.initializeSelectedEngine();
+    expect(model.engineStatus()).toBe("initializing");
+    await p;
+    expect(model.engineStatus()).toBe("ready");
+    expect(model.activeCapabilities()?.id).toBe("test");
+  });
+
+  it("initializeSelectedEngine is idempotent on ready (no worker restart)", async () => {
+    const model = createEngineModel({
+      buffer,
+      output,
+      settings,
+      registry,
+      urlState,
+    });
+    model.selectEngineEntry({
+      engineId: "mock",
+      language: "javascript",
+      label: "",
+    });
+    await model.initializeSelectedEngine();
+    expect(model.engineStatus()).toBe("ready");
+
+    // Second call: must NOT spawn a new worker
+    const factorySpy = vi.spyOn(registry, "loadFactory");
+    await model.initializeSelectedEngine();
+    expect(factorySpy).not.toHaveBeenCalled();
+    expect(model.engineStatus()).toBe("ready");
+  });
+
+  it("initializeSelectedEngine retries on error: terminate first, then init", async () => {
+    // Mutable registry: starts failing, then recovers
+    let shouldFail = true;
+    const mutableRegistry = {
+      ...registry,
+      loadFactory: () =>
+        shouldFail
+          ? Promise.reject(new Error("Factory failed"))
+          : registry.loadFactory("mock"),
+    };
+    const model = createEngineModel({
+      buffer,
+      output,
+      settings,
+      registry: mutableRegistry,
+      urlState,
+    });
+    model.selectEngineEntry({
+      engineId: "mock",
+      language: "javascript",
+      label: "",
+    });
+
+    // First init: fails → error state
+    await model.initializeSelectedEngine();
+    expect(model.engineStatus()).toBe("error");
+
+    // Recover the underlying cause
+    shouldFail = false;
+
+    // Second init: must terminate the failed worker and retry
+    await model.initializeSelectedEngine();
+    expect(model.engineStatus()).toBe("ready");
+  });
+
+  it("initializeSelectedEngine is no-op on blocked (no worker spawn)", async () => {
+    const model = createEngineModel({
+      buffer,
+      output,
+      settings,
+      registry,
+      urlState,
+    });
+    model.selectEngineEntry({
+      engineId: "mock",
+      language: "javascript",
+      label: "",
+    });
+    model.setBlocked(true);
+    expect(model.engineStatus()).toBe("blocked");
+
+    const factorySpy = vi.spyOn(registry, "loadFactory");
+    await model.initializeSelectedEngine();
+
+    expect(factorySpy).not.toHaveBeenCalled();
+    expect(model.engineStatus()).toBe("blocked");
+  });
+
+  it("same-entry selectEngineEntry is a no-op when idle (no terminate, no init)", () => {
+    const model = createEngineModel({
+      buffer,
+      output,
+      settings,
+      registry,
+      urlState,
+    });
+    // Initial entry is quickjs:javascript
+    const factorySpy = vi.spyOn(registry, "loadFactory");
+
+    model.selectEngineEntry({
+      engineId: "quickjs",
+      language: "javascript",
+      label: "",
+    });
+
+    expect(factorySpy).not.toHaveBeenCalled();
+    expect(model.engineStatus()).toBe("idle");
+    expect(model.activeEngineId()).toBe("quickjs");
+    expect(model.activeLanguage()).toBe("javascript");
+  });
+
+  it("same-entry selectEngineEntry is a no-op when ready (no worker restart)", async () => {
+    const model = createEngineModel({
+      buffer,
+      output,
+      settings,
+      registry,
+      urlState,
+    });
+    model.selectEngineEntry({
+      engineId: "quickjs",
+      language: "javascript",
+      label: "",
+    });
+    await model.initializeSelectedEngine();
+    expect(model.engineStatus()).toBe("ready");
+
+    const factorySpy = vi.spyOn(registry, "loadFactory");
+    // Same entry: must NOT re-terminate and re-init
+    model.selectEngineEntry({
+      engineId: "quickjs",
+      language: "javascript",
+      label: "",
+    });
+    expect(factorySpy).not.toHaveBeenCalled();
+    expect(model.engineStatus()).toBe("ready");
+  });
+
+  it("same-entry selectEngineEntry in error state does NOT internally retry", async () => {
+    const brokenRegistry = {
+      ...registry,
+      loadFactory: () => Promise.reject(new Error("Factory failed")),
+    };
+    const model = createEngineModel({
+      buffer,
+      output,
+      settings,
+      registry: brokenRegistry,
+      urlState,
+    });
+    model.selectEngineEntry({
+      engineId: "quickjs",
+      language: "javascript",
+      label: "",
+    });
+    await model.initializeSelectedEngine();
+    expect(model.engineStatus()).toBe("error");
+
+    // Spy on the broken registry — it would be called again if select auto-retried
+    const factorySpy = vi.spyOn(brokenRegistry, "loadFactory");
+    model.selectEngineEntry({
+      engineId: "quickjs",
+      language: "javascript",
+      label: "",
+    });
+    expect(factorySpy).not.toHaveBeenCalled();
+    // Status remains "error" — caller is responsible for retry via initializeSelectedEngine
+    expect(model.engineStatus()).toBe("error");
   });
 });

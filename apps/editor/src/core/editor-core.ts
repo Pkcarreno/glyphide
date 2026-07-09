@@ -146,6 +146,9 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
         language: action.language,
         label: "",
       });
+      // Selection-only method; explicit init spawns the worker for the
+      // newly selected entry.
+      engine.initializeSelectedEngine();
     })
   );
 
@@ -251,12 +254,8 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
       trust.grantTrust();
       engine.setBlocked(false);
       overlays.close("trust-required");
-      const def = engineRegistry.getDefinition(engine.activeEngineId());
-      engine.selectEngineEntry({
-        engineId: engine.activeEngineId(),
-        language: engine.activeLanguage(),
-        label: def.label,
-      });
+      // Engine initialization is deferred to RUN_CODE (lazy-init).
+      // Granting trust only removes the security gate.
     })
   );
 
@@ -277,14 +276,16 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
         engine.terminate();
       });
       // Re-arm the default engine entry so the editor is runnable.
-      // selectEngineEntry is a no-op if the entry is identical and the
-      // engine is not in an error state — that's fine, the engine is now idle.
+      // selectEngineEntry is a no-op if the entry is identical — that's
+      // fine, the engine is now idle. Explicit initializeSelectedEngine()
+      // transitions idle → ready without relying on the executeCode fallback.
       const def = engineRegistry.getDefinition(engine.activeEngineId());
       engine.selectEngineEntry({
         engineId: engine.activeEngineId(),
         language: engine.activeLanguage(),
         label: def.label,
       });
+      engine.initializeSelectedEngine();
       // Reset the engine URL tracker. The batch above removed `engine` from
       // the URL, but the model's `lastWrittenEngineId` would otherwise stay
       // stale and silently swallow the next buffer update.
@@ -296,13 +297,14 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
     dispatcher.on("LOAD_FILE_FROM_DISK", (action) => {
       buffer.setContent(action.content);
       project.setName(stripExtension(action.name));
-      engine
-        .selectEngineEntry({
-          engineId: action.engineId,
-          language: action.language,
-          label: "",
-        })
-        .catch(() => undefined);
+      // Selection only — file-loaded code is untrusted, so we MUST NOT
+      // spawn an engine worker here. Engine initialization is deferred
+      // to GRANT_TRUST.
+      engine.selectEngineEntry({
+        engineId: action.engineId,
+        language: action.language,
+        label: "",
+      });
       // Defense-in-depth: selectEngineEntry may early-return when the
       // requested engine matches the current one. In that case, the URL is
       // not seeded by selectEngineEntry. Re-running the buffer reconciliation
@@ -348,6 +350,8 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
   if (trust.isTrustRequired()) {
     engine.setBlocked(true);
     overlays.open("trust-required");
+    // Signals already seeded from URL in the engine constructor — do NOT
+    // init here. Initialization is deferred to RUN_CODE (lazy-init).
   } else {
     const initialDef = engineRegistry.getDefinition(engine.activeEngineId());
     engine.selectEngineEntry({
@@ -355,6 +359,9 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
       language: engine.activeLanguage(),
       label: initialDef.label,
     });
+    // Non-trust startup: explicit init spawns the worker for the
+    // URL-seeded (or default) engine.
+    engine.initializeSelectedEngine();
   }
 
   return {

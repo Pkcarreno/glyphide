@@ -47,8 +47,8 @@ export function TrustRequiredModal(props: TrustRequiredModalProps) {
           </p>
           <p class="text-on-surface-variant text-sm leading-relaxed">
             Only grant trust if you understand what the code does and trust its
-            source. You can dismiss this dialog and continue inspecting the code
-            before granting trust.
+            source. After granting trust, use the Run button to execute the
+            code.
           </p>
         </div>
 
@@ -59,7 +59,7 @@ export function TrustRequiredModal(props: TrustRequiredModalProps) {
               onClick={() => core.dispatcher.dispatch({ type: "GRANT_TRUST" })}
               variant="outline"
             >
-              Trust & Run
+              Trust
             </Button>
             <Button
               autofocus={true}
