@@ -23,6 +23,12 @@ export interface FileIoPort {
    */
   readFile(): Promise<FileReadResult>;
   /**
+   * Reads the text content of a `File` object the caller already has
+   * (e.g. from a drop or paste). Same shape as {@link readFile}.
+   * The file is consumed by the FileReader and cannot be re-read.
+   */
+  readFileFromFile(file: File): Promise<FileReadResult>;
+  /**
    * Triggers a browser download of `content` saved as `filename`.
    * Errors are surfaced to the caller.
    */

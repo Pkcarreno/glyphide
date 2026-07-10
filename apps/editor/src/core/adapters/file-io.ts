@@ -10,6 +10,26 @@ function detectExtension(name: string): string {
 }
 
 /**
+ * Reads the text content of a `File` and resolves with a normalized
+ * `FileReadResult`. Centralizes the FileReader + extension logic so
+ * `readFile()` and `readFileFromFile()` stay in lockstep.
+ */
+function parseFile(file: File): Promise<FileReadResult> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      resolve({
+        content: typeof reader.result === "string" ? reader.result : "",
+        extension: detectExtension(file.name),
+        name: file.name,
+      });
+    };
+    reader.onerror = () => reject(new Error("Failed to read file."));
+    reader.readAsText(file);
+  });
+}
+
+/**
  * Reads a file from the user's disk via a hidden `<input type="file">` click.
  * Falls back to `FileReader` for text content extraction.
  */
@@ -26,16 +46,7 @@ function pickFile(): Promise<FileReadResult> {
         reject(new Error(CANCEL_MESSAGE));
         return;
       }
-      const reader = new FileReader();
-      reader.onload = () => {
-        resolve({
-          content: typeof reader.result === "string" ? reader.result : "",
-          extension: detectExtension(file.name),
-          name: file.name,
-        });
-      };
-      reader.onerror = () => reject(new Error("Failed to read file."));
-      reader.readAsText(file);
+      parseFile(file).then(resolve, reject);
     };
 
     // Some browsers fire `cancel` on the input when the picker is dismissed.
@@ -53,6 +64,7 @@ function pickFile(): Promise<FileReadResult> {
 export function createBrowserFileIoAdapter(): FileIoPort {
   return {
     readFile: () => pickFile(),
+    readFileFromFile: (file) => parseFile(file),
     writeFile: (filename, content) =>
       Promise.resolve().then(() => {
         const blob = new Blob([content], {

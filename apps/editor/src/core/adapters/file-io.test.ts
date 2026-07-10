@@ -83,6 +83,100 @@ describe("BrowserFileIoAdapter — readFile", () => {
   });
 });
 
+describe("BrowserFileIoAdapter — readFileFromFile", () => {
+  let originalFileReader: typeof FileReader;
+
+  /**
+   * A controllable FileReader. By default it delegates `readAsText` to
+   * the real jsdom FileReader so unrelated `readFile` tests in this
+   * file continue to work asynchronously. Tests that need deterministic
+   * sync results call `setReadBehavior` to override.
+   */
+  interface FakeFileReader {
+    onerror: ((ev: ProgressEvent) => void) | null;
+    onload: ((ev: ProgressEvent) => void) | null;
+    readAsText: (file: File) => void;
+    result: string | ArrayBuffer | null;
+  }
+
+  function setReadBehavior(
+    behavior: (self: FakeFileReader, file: File) => void
+  ): void {
+    const FakeCtor =
+      globalThis.FileReader as unknown as new () => FakeFileReader;
+    FakeCtor.prototype.readAsText = function (this: unknown, file: File) {
+      behavior(this as FakeFileReader, file);
+    };
+  }
+
+  beforeEach(() => {
+    originalFileReader = globalThis.FileReader;
+    class FakeReader {
+      onload: ((ev: ProgressEvent) => void) | null = null;
+      onerror: ((ev: ProgressEvent) => void) | null = null;
+      result: string | ArrayBuffer | null = null;
+      // Default: delegate to the real FileReader so async reads still
+      // resolve. Per-test overrides via `setReadBehavior`.
+      readAsText(file: File): void {
+        const real = new originalFileReader();
+        real.onload = () => {
+          this.result = real.result;
+          this.onload?.({} as ProgressEvent);
+        };
+        real.onerror = () => {
+          this.onerror?.({} as ProgressEvent);
+        };
+        real.readAsText(file);
+      }
+    }
+    globalThis.FileReader = FakeReader as unknown as typeof FileReader;
+  });
+
+  afterEach(() => {
+    globalThis.FileReader = originalFileReader;
+    vi.restoreAllMocks();
+  });
+
+  it("returns a FileReadResult with name, content, and extension", async () => {
+    setReadBehavior((self) => {
+      self.result = "print(1)";
+      self.onload?.({} as ProgressEvent);
+    });
+
+    const adapter = createBrowserFileIoAdapter();
+    const file = new File(["print(1)"], "script.py", { type: "text/x-python" });
+    const result = await adapter.readFileFromFile(file);
+
+    expect(result.name).toBe("script.py");
+    expect(result.content).toBe("print(1)");
+    expect(result.extension).toBe(".py");
+  });
+
+  it("lowercases the detected extension (script.PY -> .py)", async () => {
+    setReadBehavior((self) => {
+      self.result = "x";
+      self.onload?.({} as ProgressEvent);
+    });
+
+    const adapter = createBrowserFileIoAdapter();
+    const file = new File(["x"], "script.PY", { type: "text/x-python" });
+    const result = await adapter.readFileFromFile(file);
+
+    expect(result.extension).toBe(".py");
+  });
+
+  it("rejects when FileReader fires onerror", async () => {
+    setReadBehavior((self) => {
+      self.onerror?.({} as ProgressEvent);
+    });
+
+    const adapter = createBrowserFileIoAdapter();
+    const file = new File(["x"], "broken.js");
+
+    await expect(adapter.readFileFromFile(file)).rejects.toThrow();
+  });
+});
+
 describe("BrowserFileIoAdapter — writeFile", () => {
   let createObjectURLSpy: ReturnType<typeof vi.fn>;
   let revokeObjectURLSpy: ReturnType<typeof vi.fn>;

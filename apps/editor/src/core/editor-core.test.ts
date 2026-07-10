@@ -17,6 +17,7 @@ function createMockUrlState(): UrlStatePort {
 function createMockFileIoDeps() {
   return {
     readFile: vi.fn(),
+    readFileFromFile: vi.fn(),
     writeFile: vi.fn().mockResolvedValue(undefined),
   };
 }
@@ -24,16 +25,20 @@ function createMockFileIoDeps() {
 function createMockFileIo(): {
   fileIo: FileIoPort;
   readFile: ReturnType<typeof vi.fn>;
+  readFileFromFile: ReturnType<typeof vi.fn>;
   writeFile: ReturnType<typeof vi.fn>;
 } {
   const readFile = vi.fn();
+  const readFileFromFile = vi.fn();
   const writeFile = vi.fn().mockResolvedValue(undefined);
   return {
     fileIo: {
       readFile: readFile as FileIoPort["readFile"],
+      readFileFromFile: readFileFromFile as FileIoPort["readFileFromFile"],
       writeFile: writeFile as FileIoPort["writeFile"],
     },
     readFile,
+    readFileFromFile,
     writeFile,
   };
 }

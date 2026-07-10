@@ -1,9 +1,9 @@
-import File from "lucide-solid/icons/file";
 import X from "lucide-solid/icons/x";
 import { createSignal, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type { FileReadResult } from "../../core/ports/file-io.ts";
 import { Button } from "../atoms/Button.tsx";
+import { FileDrop } from "../atoms/FileDrop.tsx";
 import { Icon } from "../atoms/Icon.tsx";
 import {
   Dialog,
@@ -69,24 +69,38 @@ export function LoadFileModal() {
     closeModal();
   }
 
-  async function handlePickFile(): Promise<void> {
+  /**
+   * Handles a file selected via the FileDrop atom (drop OR click-to-pick).
+   * Reads the file through `readFileFromFile`, validates the engine, and
+   * either loads directly (empty buffer) or stages the overwrite prompt.
+   */
+  async function handleFileSelected(file: File): Promise<void> {
     setError(null);
     try {
-      const file = await core.fileIo.readFile();
-      const engine = core.fileLoad.resolveEngine(file.extension);
+      const result = await core.fileIo.readFileFromFile(file);
+      const engine = core.fileLoad.resolveEngine(result.extension);
       if (!engine) {
         setError("Unsupported file type. Please choose a .js or .py file.");
         return;
       }
-      setPendingFile(file);
+      setPendingFile(result);
       if (core.buffer.content() === "") {
         commitLoad();
       } else {
         setNeedsConfirm(true);
       }
     } catch {
-      // User canceled the file picker — no state change.
+      // File read failed — no state change.
     }
+  }
+
+  function handleFileError(): void {
+    setError("Unsupported file type. Please choose a .js or .py file.");
+  }
+
+  function handleFileRemoved(): void {
+    setPendingFile(null);
+    setNeedsConfirm(false);
   }
 
   return (
@@ -105,22 +119,17 @@ export function LoadFileModal() {
         </DialogHeader>
 
         <div class="flex flex-col gap-5 bg-surface px-5 py-6">
-          <div class="flex flex-col gap-3">
-            <Icon class="text-on-surface-variant" icon={File} size={28} />
-            <p
-              class="text-on-surface text-sm leading-relaxed"
-              data-testid="load-file-instructions"
-            >
-              Choose a file from your disk to load into the editor. Only{" "}
-              <code class="font-mono text-on-surface-variant">.js</code> and{" "}
-              <code class="font-mono text-on-surface-variant">.py</code> files
-              are supported.
-            </p>
-          </div>
+          <FileDrop
+            accept=".js,.py"
+            onError={handleFileError}
+            onFileRemoved={handleFileRemoved}
+            onFileSelected={handleFileSelected}
+            size="full-width"
+          />
 
           <Show when={error()}>
             <p
-              class="rounded-md border border-log-error/40 bg-log-error/10 px-3 py-2 text-log-error text-sm"
+              class="rounded-md border border-error/40 bg-error/10 px-3 py-2 text-error text-sm"
               role="alert"
             >
               {error()}
@@ -153,11 +162,6 @@ export function LoadFileModal() {
             </Button>
             <Button onClick={commitLoad} size="md" variant="primary">
               Overwrite
-            </Button>
-          </Show>
-          <Show when={!needsConfirm()}>
-            <Button onClick={handlePickFile} size="md" variant="primary">
-              Choose File
             </Button>
           </Show>
         </div>
