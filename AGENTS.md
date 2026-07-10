@@ -47,6 +47,10 @@ A SolidJS Single Page Application (SPA) providing the user interface for the cod
 - **Atomic Design**: It must strictly follow the **Atomic Design methodology** (quarks, atoms, molecules, organisms, templates, pages) to organize UI components, ensuring a highly modular and maintainable frontend architecture.
 - **Compound Primitives vs Opinionated Atoms**: UI structures that require flexible composition, internal context sharing, and modular layouts (e.g., Modals, Tooltips, Accordions) MUST be developed agnostically using the **Compound Component pattern** (Root, Trigger, Portal, Content). However, highly opinionated primitives that impose strict hierarchies and manage atomic state or have standard HTML counterparts (e.g., Buttons, Switches, Icons, Inputs) are exempt and should be developed as standalone components.
 
+### 7. @glyphide/url-migration
+
+Framework-agnostic library that detects, parses, and re-encodes legacy glyphide share URLs into the current format.
+
 ## CI/CD & Infraestructure
 
 ### GitHub Actions
