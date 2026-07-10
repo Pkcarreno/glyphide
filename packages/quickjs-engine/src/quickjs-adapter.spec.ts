@@ -700,7 +700,7 @@ describe("QuickJSEngineAdapter", () => {
           (n) =>
             n.method === EngineMethod.Output &&
             Array.isArray(n.params?.data) &&
-            (n.params?.data as Array<{ type: string; value?: string }>)[0]
+            (n.params?.data as Array<{ type: string; value?: string }>)?.[0]
               ?.value === "after reset"
         )
       ).toBe(true);
