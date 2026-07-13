@@ -1,10 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <!-- Essential -->
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1" name="viewport">
-    <meta content="#000000" name="theme-color">
-    <title>Glyphide Editor</title>
+    <title>Glyphide — Code Editor in Your Browser</title>
+
+    <!-- SEO -->
+    <meta
+      content="Browser-based code editor for JavaScript and Python with sandboxed WebAssembly execution. Share via URL. No backend, no accounts."
+      name="description"
+    >
+    <meta
+      content="javascript editor, python editor, online code editor, browser editor, quickjs, micropython, wasm, webassembly, code sharing, solidjs, no backend, client-side"
+      name="keywords"
+    >
+    <meta content="Glyphide" name="author">
+    <link href="https://glyphide.com/" rel="canonical">
+
+    <!-- Open Graph -->
+    <meta content="Glyphide — Code Editor in Your Browser" property="og:title">
+    <meta
+      content="Browser-based code editor for JavaScript and Python with sandboxed WebAssembly execution. Share via URL. No backend, no accounts."
+      property="og:description"
+    >
+    <meta content="website" property="og:type">
+    <meta content="/og.png" property="og:image">
+    <meta content="https://glyphide.com/" property="og:url">
+    <meta content="Glyphide" property="og:site_name">
+
+    <!-- Twitter -->
+    <meta content="summary_large_image" name="twitter:card">
+    <meta content="Glyphide — Code Editor in Your Browser" name="twitter:title">
+    <meta
+      content="Browser-based code editor for JavaScript and Python with sandboxed WebAssembly execution. Share via URL. No backend, no accounts."
+      name="twitter:description"
+    >
+    <meta content="/og.png" name="twitter:image">
+
+    <!-- Theme Color -->
+    <meta
+      content="#fdfefb"
+      media="(prefers-color-scheme: light)"
+      name="theme-color"
+    >
+    <meta
+      content="#0c0f07"
+      media="(prefers-color-scheme: dark)"
+      name="theme-color"
+    >
+
+    <!-- Favicons -->
+    <link href="/favicon.ico" rel="icon" sizes="any">
+    <link href="/favicon.svg" rel="icon" type="image/svg+xml">
+    <link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png">
+    <link href="/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png">
+    <link href="/apple-touch-icon.png" rel="apple-touch-icon">
+
+    <!-- PWA -->
+    <link href="/manifest.webmanifest" rel="manifest">
+
+    <!-- Anti-FOUC style block (PRESERVED — do not modify) -->
     <style>
     html {
       color-scheme: light;
