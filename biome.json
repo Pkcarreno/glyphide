@@ -6,7 +6,7 @@
     "ultracite/biome/vitest"
   ],
   "vcs": {
-    "enabled": false,
+    "enabled": true,
     "clientKind": "git",
     "useIgnoreFile": true,
     "defaultBranch": "master"

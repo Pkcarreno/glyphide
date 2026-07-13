@@ -42,7 +42,9 @@ export type EditorAction =
       language: string;
     }
   | { type: "DOWNLOAD_BUFFER_TO_FILE" }
-  | { type: "RESET_PROJECT_STATE" };
+  | { type: "RESET_PROJECT_STATE" }
+  | { type: "PWA_UPDATE_AVAILABLE" }
+  | { type: "PWA_OFFLINE_READY" };
 
 /** Uniquely identifies an overlay (modal, menu, etc). */
 export type OverlayId =

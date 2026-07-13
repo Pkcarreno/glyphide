@@ -46,6 +46,7 @@ vi.mock("../../core/context", () => ({
     dispatcher: { dispatch: dispatchMock },
     overlays: { isOpen: (id: string) => id === "settings" && mockIsOpen() },
     trust: { isTrustRequired: () => false },
+    pwa: { updateAvailable: () => false, applyUpdate: vi.fn() },
     notifications: {
       unreadCount: () => 0,
       items: () => [],

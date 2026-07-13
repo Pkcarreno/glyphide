@@ -6,19 +6,26 @@ import { Header } from "./Header.tsx";
 vi.stubGlobal("console", { info: vi.fn() });
 
 const dispatchMock = vi.fn();
+const applyUpdateMock = vi.fn();
 const [mockIsTrustRequired, setMockIsTrustRequired] = createSignal(false);
+const [mockUpdateAvailable, setMockUpdateAvailable] = createSignal(false);
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
     project: { name: () => "TEST_PROJECT", displayName: () => "TEST_PROJECT" },
     engine: { engineStatus: () => "idle" },
     dispatcher: { dispatch: dispatchMock },
     trust: { isTrustRequired: () => mockIsTrustRequired() },
+    pwa: {
+      updateAvailable: () => mockUpdateAvailable(),
+      applyUpdate: applyUpdateMock,
+    },
   }),
 }));
 
 const TEST_PROJECT_REGEX = /TEST_PROJECT/;
 const RUN_REGEX = /Run/;
 const TRUST_REGEX = /trust/i;
+const UPDATE_REGEX = /update/i;
 
 describe("Header", () => {
   beforeEach(() => {
@@ -247,6 +254,32 @@ describe("Header - Mobile Dropdown Items", () => {
     expect(dispatchMock).toHaveBeenCalledWith({
       type: "OPEN_OVERLAY",
       overlayId: "engine-settings",
+    });
+  });
+
+  describe("PWA update button", () => {
+    beforeEach(() => {
+      applyUpdateMock.mockClear();
+      setMockUpdateAvailable(false);
+    });
+
+    it("when updateAvailable is false, update button is not visible", () => {
+      const { queryByRole } = render(() => <Header />);
+      expect(queryByRole("button", { name: UPDATE_REGEX })).toBeNull();
+    });
+
+    it("when updateAvailable is true, update button is visible", () => {
+      setMockUpdateAvailable(true);
+      const { getByRole } = render(() => <Header />);
+      expect(getByRole("button", { name: UPDATE_REGEX })).toBeTruthy();
+    });
+
+    it("when update button is clicked, calls pwa.applyUpdate()", () => {
+      setMockUpdateAvailable(true);
+      const { getByRole } = render(() => <Header />);
+      const updateButton = getByRole("button", { name: UPDATE_REGEX });
+      updateButton.click();
+      expect(applyUpdateMock).toHaveBeenCalled();
     });
   });
 

@@ -60,6 +60,9 @@ describe("EditorCore", () => {
     expect(core.notifications).toBeDefined();
     expect(core.dispatcher).toBeDefined();
     expect(core.shortcuts).toBeDefined();
+    expect(core.pwa).toBeDefined();
+    expect(core.pwa.updateAvailable()).toBe(false);
+    expect(core.pwa.offlineReady()).toBe(false);
   });
 
   it("wires action dispatcher to models", () => {
@@ -126,6 +129,34 @@ describe("EditorCore", () => {
       description: undefined,
       type: "success",
     });
+  });
+
+  it("dispatching PWA_UPDATE_AVAILABLE sets core.pwa.updateAvailable() to true", () => {
+    const core = createEditorCore({
+      persistence: createMockPersistence(),
+      urlState: createMockUrlState(),
+      fileIo: createMockFileIoDeps(),
+    });
+
+    expect(core.pwa.updateAvailable()).toBe(false);
+
+    core.dispatcher.dispatch({ type: "PWA_UPDATE_AVAILABLE" });
+
+    expect(core.pwa.updateAvailable()).toBe(true);
+  });
+
+  it("dispatching PWA_OFFLINE_READY sets core.pwa.offlineReady() to true", () => {
+    const core = createEditorCore({
+      persistence: createMockPersistence(),
+      urlState: createMockUrlState(),
+      fileIo: createMockFileIoDeps(),
+    });
+
+    expect(core.pwa.offlineReady()).toBe(false);
+
+    core.dispatcher.dispatch({ type: "PWA_OFFLINE_READY" });
+
+    expect(core.pwa.offlineReady()).toBe(true);
   });
 
   it("cleans up resources on dispose", () => {

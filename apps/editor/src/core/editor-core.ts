@@ -17,6 +17,8 @@ import type { OverlayModel } from "./models/overlay.ts";
 import { createOverlayModel } from "./models/overlay.ts";
 import type { ProjectModel } from "./models/project.ts";
 import { createProjectModel } from "./models/project.ts";
+import type { PwaModel } from "./models/pwa.ts";
+import { createPwaModel } from "./models/pwa.ts";
 import type { SettingsModel } from "./models/settings.ts";
 import { createSettingsModel } from "./models/settings.ts";
 import type { TrustModel } from "./models/trust.ts";
@@ -56,6 +58,7 @@ export interface EditorCore {
   output: OutputModel;
   overlays: OverlayModel;
   project: ProjectModel;
+  pwa: PwaModel;
   settings: SettingsModel;
   shortcuts: ShortcutRegistry;
   trust: TrustModel;
@@ -99,6 +102,7 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
   const output = createOutputModel();
   const overlays = createOverlayModel();
   const notifications = createNotificationModel();
+  const pwa = createPwaModel();
   const engineRegistry = createEngineRegistry();
   const trust = createTrustModel(deps.urlState);
   const fileLoad = createFileLoadModel();
@@ -250,6 +254,18 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
   );
 
   unsubscribers.push(
+    dispatcher.on("PWA_UPDATE_AVAILABLE", () => {
+      pwa.setUpdateAvailable(true);
+    })
+  );
+
+  unsubscribers.push(
+    dispatcher.on("PWA_OFFLINE_READY", () => {
+      pwa.setOfflineReady(true);
+    })
+  );
+
+  unsubscribers.push(
     dispatcher.on("GRANT_TRUST", () => {
       trust.grantTrust();
       engine.setBlocked(false);
@@ -375,6 +391,7 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
     fileLoad,
     notifications,
     overlays,
+    pwa,
     dispatcher,
     shortcuts,
     trust,

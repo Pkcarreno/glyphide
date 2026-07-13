@@ -1,4 +1,5 @@
 import Play from "lucide-solid/icons/play";
+import RefreshCw from "lucide-solid/icons/refresh-cw";
 import Settings from "lucide-solid/icons/settings";
 import Share2 from "lucide-solid/icons/share-2";
 import ShieldAlert from "lucide-solid/icons/shield-alert";
@@ -154,6 +155,20 @@ function Header(props: HeaderProps) {
           >
             <Icon class="mr-1" icon={ShieldAlert} />
             Trust Required
+          </ActionTooltip>
+        </Show>
+
+        <Show when={core.pwa.updateAvailable()}>
+          <ActionTooltip
+            aria-label="Update Available"
+            as={Button}
+            onClick={() => core.pwa.applyUpdate()}
+            position="bottom"
+            text="New version available"
+            variant="primary"
+          >
+            <Icon class="mr-1" icon={RefreshCw} />
+            Update
           </ActionTooltip>
         </Show>
       </div>
