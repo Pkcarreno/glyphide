@@ -162,13 +162,14 @@ function Header(props: HeaderProps) {
           <ActionTooltip
             aria-label="Update Available"
             as={Button}
+            class="border-outline bg-primary text-on-primary hover:bg-primary/90"
             onClick={() => core.pwa.applyUpdate()}
             position="bottom"
             text="New version available"
             variant="primary"
           >
             <Icon class="mr-1" icon={RefreshCw} />
-            Update
+            Update App
           </ActionTooltip>
         </Show>
       </div>
