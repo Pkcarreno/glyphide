@@ -115,6 +115,14 @@ function Header(props: HeaderProps) {
                   Engine Settings
                 </Dropdown.Item>
               </Dropdown.Group>
+              <Show when={core.pwa.updateAvailable()}>
+                <Dropdown.Separator class="block md:hidden" />
+                <Dropdown.Group class="block md:hidden">
+                  <Dropdown.Item onSelect={() => core.pwa.applyUpdate()}>
+                    Update App
+                  </Dropdown.Item>
+                </Dropdown.Group>
+              </Show>
             </Dropdown.Content>
           </Dropdown.Portal>
         </Dropdown.Root>
@@ -159,18 +167,20 @@ function Header(props: HeaderProps) {
         </Show>
 
         <Show when={core.pwa.updateAvailable()}>
-          <ActionTooltip
-            aria-label="Update Available"
-            as={Button}
-            class="border-outline bg-primary text-on-primary hover:bg-primary/90"
-            onClick={() => core.pwa.applyUpdate()}
-            position="bottom"
-            text="New version available"
-            variant="primary"
-          >
-            <Icon class="mr-1" icon={RefreshCw} />
-            Update App
-          </ActionTooltip>
+          <span class="hidden md:flex">
+            <ActionTooltip
+              aria-label="Update Available"
+              as={Button}
+              class="border-outline bg-primary text-on-primary hover:bg-primary/90"
+              onClick={() => core.pwa.applyUpdate()}
+              position="bottom"
+              text="New version available"
+              variant="primary"
+            >
+              <Icon class="mr-1" icon={RefreshCw} />
+              Update App
+            </ActionTooltip>
+          </span>
         </Show>
       </div>
 
