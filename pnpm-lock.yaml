@@ -59,9 +59,6 @@ importers:
       '@glyphide/micropython-engine':
         specifier: workspace:*
         version: link:../../packages/micropython-engine
-      '@glyphide/mock-engine':
-        specifier: workspace:*
-        version: link:../../packages/mock-engine
       '@glyphide/orchestrator':
         specifier: workspace:*
         version: link:../../packages/orchestrator
@@ -102,6 +99,9 @@ importers:
         specifier: ^7.3.0
         version: 7.4.1
     devDependencies:
+      '@glyphide/mock-engine':
+        specifier: workspace:*
+        version: link:../../packages/mock-engine
       '@solidjs/testing-library':
         specifier: ^0.8.10
         version: 0.8.10(solid-js@1.9.13)

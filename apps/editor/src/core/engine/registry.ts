@@ -158,37 +158,48 @@ export function createEngineRegistry(): EngineRegistry {
         },
       },
     },
-    {
-      id: "mock",
-      label: "Mock Test Engine",
-      supportedLanguages: ["plaintext"],
-      defaultInitParams: { timeout: 30_000 },
-      paramDescriptors: [
-        { key: "timeout", label: "Execution Timeout (ms)", isEditable: true },
-      ],
-      loadFactory: async () => {
-        const { createMockWorker } = await import(
-          "@glyphide/mock-engine/adapter"
-        );
-        return createMockWorker;
-      },
-      outputFormatter: {
-        format(entry) {
-          const text = String(entry.data ?? "");
-          switch (entry.type) {
-            case "log":
-            case "print":
-              return { variant: "log", text };
-            case "warn":
-              return { variant: "warn", text };
-            case "system":
-              return { variant: "system", text };
-            default:
-              return defaultFormat(entry);
-          }
-        },
-      },
-    },
+    // Mock engine is dev/test only — Vite statically replaces
+    // `import.meta.env.DEV` to `false` in production, so Rollup tree-shakes
+    // the entire `@glyphide/mock-engine` dynamic import and chunk.
+    ...(import.meta.env.DEV
+      ? ([
+          {
+            id: "mock",
+            label: "Mock Test Engine",
+            supportedLanguages: ["plaintext"],
+            defaultInitParams: { timeout: 30_000 },
+            paramDescriptors: [
+              {
+                key: "timeout",
+                label: "Execution Timeout (ms)",
+                isEditable: true,
+              },
+            ],
+            loadFactory: async () => {
+              const { createMockWorker } = await import(
+                "@glyphide/mock-engine/adapter"
+              );
+              return createMockWorker;
+            },
+            outputFormatter: {
+              format(entry) {
+                const text = String(entry.data ?? "");
+                switch (entry.type) {
+                  case "log":
+                  case "print":
+                    return { variant: "log", text };
+                  case "warn":
+                    return { variant: "warn", text };
+                  case "system":
+                    return { variant: "system", text };
+                  default:
+                    return defaultFormat(entry);
+                }
+              },
+            },
+          },
+        ] satisfies EngineDefinition[])
+      : []),
   ];
 
   const definitionMap = new Map(definitions.map((d) => [d.id, d]));

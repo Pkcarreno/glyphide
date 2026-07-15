@@ -22,7 +22,6 @@
     "@fontsource/ibm-plex-mono": "^5.2.7",
     "@fontsource/ibm-plex-sans": "^5.2.8",
     "@glyphide/micropython-engine": "workspace:*",
-    "@glyphide/mock-engine": "workspace:*",
     "@glyphide/orchestrator": "workspace:*",
     "@glyphide/quickjs-engine": "workspace:*",
     "@glyphide/rpc-protocol": "workspace:*",
@@ -38,6 +37,7 @@
     "tailwind-merge": "3.5.0"
   },
   "devDependencies": {
+    "@glyphide/mock-engine": "workspace:*",
     "@solidjs/testing-library": "^0.8.10",
     "@tailwindcss/vite": "^4.2.2",
     "@vite-pwa/assets-generator": "^1.0.2",
