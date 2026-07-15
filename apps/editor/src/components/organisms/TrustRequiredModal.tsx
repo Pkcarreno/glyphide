@@ -2,7 +2,12 @@ import { splitProps } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { cn } from "../../helpers/cn.ts";
 import { Button } from "../atoms/Button.tsx";
-import { Dialog, DialogContent, DialogHeader } from "../molecules/Dialog.tsx";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../molecules/Dialog.tsx";
 
 interface TrustRequiredModalProps {
   class?: string;
@@ -34,10 +39,8 @@ export function TrustRequiredModal(props: TrustRequiredModalProps) {
         preventBackdropClose
         {...rest}
       >
-        <DialogHeader class="border-outline-variant border-b bg-surface px-5 py-4">
-          <h2 class="font-semibold text-on-surface text-sm tracking-wide">
-            Trust Required
-          </h2>
+        <DialogHeader>
+          <DialogTitle>Trust Required</DialogTitle>
         </DialogHeader>
 
         <div class="flex flex-col gap-4 bg-surface px-5 py-6">

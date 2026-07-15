@@ -6,6 +6,7 @@ import {
   DialogClose,
   DialogContent,
   DialogHeader,
+  DialogTitle,
   DialogTrigger,
 } from "./Dialog.tsx";
 
@@ -21,7 +22,7 @@ function renderDialog(defaultOpen = false) {
       <DialogTrigger data-testid="trigger">Open</DialogTrigger>
       <DialogContent data-testid="content">
         <DialogHeader>
-          <h2>Title</h2>
+          <DialogTitle>Title</DialogTitle>
           <DialogClose data-testid="close-btn">X</DialogClose>
         </DialogHeader>
         <p>Body content</p>
@@ -173,5 +174,136 @@ describe("Dialog", () => {
       overlay.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     }
     expect(handler).toHaveBeenCalledWith(false);
+  });
+});
+
+describe("DialogTitle", () => {
+  it("when rendered with default settings, renders an h2 element with the title text", () => {
+    const { getByRole } = render(() => (
+      <Dialog defaultOpen>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Default Title</DialogTitle>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    ));
+    const heading = getByRole("heading", { level: 2 });
+    expect(heading.textContent).toBe("Default Title");
+  });
+
+  it("when as prop is h3, renders an h3 element with the title text", () => {
+    const { getByRole } = render(() => (
+      <Dialog defaultOpen>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle as="h3">Sub Title</DialogTitle>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    ));
+    const heading = getByRole("heading", { level: 3 });
+    expect(heading.textContent).toBe("Sub Title");
+  });
+
+  it("when rendered, applies default typography classes (font-semibold, text-on-surface, text-sm, tracking-wide)", () => {
+    const { getByRole } = render(() => (
+      <Dialog defaultOpen>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Title</DialogTitle>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    ));
+    const heading = getByRole("heading", { level: 2 });
+    expect(heading.className).toContain("font-semibold");
+    expect(heading.className).toContain("text-on-surface");
+    expect(heading.className).toContain("text-sm");
+    expect(heading.className).toContain("tracking-wide");
+  });
+
+  it("when class prop is provided, merges it with the default classes", () => {
+    const { getByRole } = render(() => (
+      <Dialog defaultOpen>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle class="mb-2">Title</DialogTitle>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    ));
+    const heading = getByRole("heading", { level: 2 });
+    expect(heading.className).toContain("font-semibold");
+    expect(heading.className).toContain("mb-2");
+  });
+
+  it("when as prop is an invalid heading value, still renders without throwing", () => {
+    const { queryByText } = render(() => (
+      <Dialog defaultOpen>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle as="div">Div Title</DialogTitle>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    ));
+    expect(queryByText("Div Title")).toBeTruthy();
+  });
+
+  it("when children include JSX elements, renders them inside the heading", () => {
+    const { getByRole } = render(() => (
+      <Dialog defaultOpen>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              <span>Icon</span> Title
+            </DialogTitle>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    ));
+    const heading = getByRole("heading", { level: 2 });
+    expect(heading.textContent).toBe("Icon Title");
+    expect(heading.querySelector("span")).not.toBeNull();
+  });
+});
+
+describe("DialogHeader default classes", () => {
+  it("when rendered without overrides, includes px-5 py-4 bg-surface border-b border-outline-variant", () => {
+    const { getByRole } = render(() => (
+      <Dialog defaultOpen>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Title</DialogTitle>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    ));
+    // DialogHeader is the parent of the heading
+    const heading = getByRole("heading", { level: 2 });
+    const header = heading.parentElement as HTMLElement;
+    expect(header.className).toContain("px-5");
+    expect(header.className).toContain("py-4");
+    expect(header.className).toContain("bg-surface");
+    expect(header.className).toContain("border-b");
+    expect(header.className).toContain("border-outline-variant");
+  });
+
+  it("when consumer class overrides padding, the consumer value wins via cn merge", () => {
+    const { getByRole } = render(() => (
+      <Dialog defaultOpen>
+        <DialogContent>
+          <DialogHeader class="px-3">
+            <DialogTitle>Title</DialogTitle>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    ));
+    const heading = getByRole("heading", { level: 2 });
+    const header = heading.parentElement as HTMLElement;
+    expect(header.className).toContain("px-3");
+    // py-4 should remain because consumer only overrode px
+    expect(header.className).toContain("py-4");
   });
 });

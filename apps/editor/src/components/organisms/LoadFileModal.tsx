@@ -10,6 +10,7 @@ import {
   DialogClose,
   DialogContent,
   DialogHeader,
+  DialogTitle,
 } from "../molecules/Dialog.tsx";
 
 /**
@@ -109,10 +110,8 @@ export function LoadFileModal() {
       onOpenChange={handleOpenChange}
     >
       <DialogContent class="w-full max-w-md overflow-hidden p-0">
-        <DialogHeader class="border-outline-variant border-b bg-surface px-5 py-4">
-          <h2 class="font-semibold text-on-surface text-sm tracking-wide">
-            Load Project from File
-          </h2>
+        <DialogHeader>
+          <DialogTitle>Load Project from File</DialogTitle>
           <DialogClose aria-label="Close load file dialog">
             <Icon icon={X} size={16} />
           </DialogClose>

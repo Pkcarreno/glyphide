@@ -10,6 +10,7 @@ import {
   DialogClose,
   DialogContent,
   DialogHeader,
+  DialogTitle,
 } from "../molecules/Dialog.tsx";
 
 /* ---------- Internal Components ---------- */
@@ -171,10 +172,8 @@ function EngineSettingsModal() {
       onOpenChange={handleOpenChange}
     >
       <DialogContent class="max-w-xs p-0">
-        <DialogHeader class="justify-between px-3 py-2">
-          <span class="font-semibold text-xs uppercase tracking-wider">
-            Engine Settings
-          </span>
+        <DialogHeader>
+          <DialogTitle>Engine Settings</DialogTitle>
           <DialogClose aria-label="Close engine settings">
             <Icon icon={X} size={16} />
           </DialogClose>

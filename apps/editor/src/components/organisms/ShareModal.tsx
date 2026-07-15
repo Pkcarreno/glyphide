@@ -11,6 +11,7 @@ import {
   DialogClose,
   DialogContent,
   DialogHeader,
+  DialogTitle,
 } from "../molecules/Dialog.tsx";
 
 interface ShareModalProps {
@@ -72,10 +73,8 @@ export function ShareModal(props: ShareModalProps) {
         class={cn("w-full max-w-lg overflow-hidden p-0", local.class)}
         {...rest}
       >
-        <DialogHeader class="border-outline-variant border-b bg-surface px-5 py-4">
-          <h2 class="font-semibold text-on-surface text-sm tracking-wide">
-            Share Project
-          </h2>
+        <DialogHeader>
+          <DialogTitle>Share Project</DialogTitle>
           <DialogClose aria-label="Close share dialog">
             <Icon icon={X} size={16} />
           </DialogClose>

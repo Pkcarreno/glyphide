@@ -1,4 +1,4 @@
-import type { Accessor, JSX } from "solid-js";
+import type { Accessor, ComponentProps, JSX, ValidComponent } from "solid-js";
 import {
   createContext,
   createSignal,
@@ -6,6 +6,7 @@ import {
   splitProps,
   useContext,
 } from "solid-js";
+import { Dynamic } from "solid-js/web";
 import { cn } from "../../helpers/cn.ts";
 import { ActionTooltip } from "./ActionTooltip.tsx";
 
@@ -190,14 +191,57 @@ function DialogHeader(props: DialogHeaderProps) {
   return (
     <div
       class={cn(
-        "flex items-center justify-between p-3",
-        "border-outline-variant border-b",
+        "flex items-center justify-between px-5 py-4",
+        "border-outline-variant border-b bg-surface",
         local.class
       )}
       {...rest}
     >
       {local.children}
     </div>
+  );
+}
+
+/* ---------- Title ---------- */
+
+/**
+ * Properties for the DialogTitle component.
+ *
+ * @public
+ */
+type DialogTitleProps<T extends ValidComponent = "h2"> = {
+  /** The HTML tag or Solid component to render the title as. Default is "h2". */
+  as?: T;
+  /** The title text or rich children. */
+  children: JSX.Element;
+  /** Optional CSS classes merged with the canonical title typography. */
+  class?: string;
+} & Omit<ComponentProps<T>, "as" | "children" | "class">;
+
+/**
+ * Canonical title atom for modal dialogs. Renders a semantic heading with
+ * the standard dialog-title typography. The `as` prop lets consumers
+ * override the heading level (or, discouraged, switch to a non-heading
+ * element) without losing the canonical style.
+ *
+ * @public
+ */
+function DialogTitle<T extends ValidComponent = "h2">(
+  props: DialogTitleProps<T>
+) {
+  const [local, rest] = splitProps(props, ["as", "class", "children"]);
+
+  return (
+    <Dynamic
+      class={cn(
+        "font-semibold text-on-surface text-sm tracking-wide",
+        local.class
+      )}
+      component={local.as ?? "h2"}
+      {...rest}
+    >
+      {local.children}
+    </Dynamic>
   );
 }
 
@@ -243,6 +287,8 @@ export {
   type DialogHeaderProps,
   DialogOverlay,
   type DialogProps,
+  DialogTitle,
+  type DialogTitleProps,
   DialogTrigger,
   type DialogTriggerProps,
   useDialog,
