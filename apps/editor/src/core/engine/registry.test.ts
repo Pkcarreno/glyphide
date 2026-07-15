@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { PYTHON_DEFAULT_BUFFER_CODE } from "../data/python-default-buffer-code.ts";
+import { QUICKJS_DEFAULT_BUFFER_CODE } from "../data/quickjs-default-buffer-code.ts";
 import { createEngineRegistry, getEngineEntries } from "./registry.ts";
 
 describe("EngineRegistry", () => {
@@ -47,6 +49,23 @@ describe("EngineRegistry", () => {
     expect(
       entries.some((e) => e.engineId === "mock" && e.language === "plaintext")
     ).toBe(true);
+  });
+
+  describe("Per-engine default buffer code", () => {
+    it("quickjs definition exposes QUICKJS_DEFAULT_BUFFER_CODE as defaultBufferCode", () => {
+      const def = createEngineRegistry().getDefinition("quickjs");
+      expect(def.defaultBufferCode).toBe(QUICKJS_DEFAULT_BUFFER_CODE);
+    });
+
+    it("micropython definition exposes PYTHON_DEFAULT_BUFFER_CODE as defaultBufferCode", () => {
+      const def = createEngineRegistry().getDefinition("micropython");
+      expect(def.defaultBufferCode).toBe(PYTHON_DEFAULT_BUFFER_CODE);
+    });
+
+    it("mock definition does NOT define a defaultBufferCode (dev-only)", () => {
+      const def = createEngineRegistry().getDefinition("mock");
+      expect(def.defaultBufferCode).toBeUndefined();
+    });
   });
 });
 

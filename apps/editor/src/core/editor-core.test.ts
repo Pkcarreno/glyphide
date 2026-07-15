@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createBrowserUrlStateAdapter } from "./adapters/url-state.ts";
+import { PYTHON_DEFAULT_BUFFER_CODE } from "./data/python-default-buffer-code.ts";
+import { QUICKJS_DEFAULT_BUFFER_CODE } from "./data/quickjs-default-buffer-code.ts";
 import { composeSizeLimitedUrlState } from "./decorators/url-state-limit.ts";
 import { createEditorCore, type EditorCore } from "./editor-core.ts";
 import type { FileIoPort } from "./ports/file-io.ts";
@@ -74,7 +76,7 @@ describe("EditorCore", () => {
 
     const setContentSpy = vi.spyOn(core.buffer, "setContent");
     core.dispatcher.dispatch({ type: "UPDATE_BUFFER", content: "hello" });
-    expect(setContentSpy).toHaveBeenCalledWith("hello");
+    expect(setContentSpy).toHaveBeenCalledWith("hello", { source: "user" });
 
     const clearEntriesSpy = vi.spyOn(core.output, "clearEntries");
     core.dispatcher.dispatch({ type: "CLEAR_OUTPUT" });
@@ -490,7 +492,9 @@ describe("EditorCore", () => {
 
         core.dispatcher.dispatch({ type: "RESET_PROJECT_STATE" });
 
-        expect(core.buffer.content()).toBe("");
+        // Default settings (isDefaultCodeEnabled: true) re-insert the
+        // curated starter snippet. Cursor and output are still reset.
+        expect(core.buffer.content()).toBe(QUICKJS_DEFAULT_BUFFER_CODE);
         expect(core.buffer.cursorPosition()).toEqual({
           line: 1,
           column: 1,
@@ -1009,6 +1013,385 @@ describe("EditorCore", () => {
 
       expect(selectSpy).toHaveBeenCalled();
       expect(initSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe("Default buffer content (default-code)", () => {
+    /**
+     * Returns a URL state with an explicit `code` value (or none), to drive
+     * the three init branches documented in the design.
+     */
+    function createUrlStateWithCode(code: string | null): UrlStatePort {
+      const store = new Map<string, string | null>();
+      if (code !== null) {
+        store.set("code", code);
+      }
+      return {
+        get: vi.fn((key: string) => store.get(key) ?? null),
+        set: vi.fn(),
+        remove: vi.fn(),
+      };
+    }
+
+    /**
+     * Returns a persistence port whose `settings` entry reflects the caller's
+     * intent. Used to flip `isDefaultCodeEnabled` without going through
+     * the UI.
+     */
+    function createPersistenceWithSettings(
+      settings: Record<string, unknown>
+    ): PersistencePort {
+      const data = new Map<string, string>();
+      data.set("settings", JSON.stringify(settings));
+      return {
+        get: (key) => data.get(key) ?? null,
+        set: (key, val) => data.set(key, val),
+        remove: (key) => data.delete(key),
+      };
+    }
+
+    it("new project + setting enabled → buffer starts with QUICKJS_DEFAULT_BUFFER_CODE", () => {
+      const core = createEditorCore({
+        persistence: createPersistenceWithSettings({
+          isDefaultCodeEnabled: true,
+        }),
+        urlState: createUrlStateWithCode(null),
+        fileIo: createMockFileIoDeps(),
+      });
+
+      expect(core.buffer.content()).toBe(QUICKJS_DEFAULT_BUFFER_CODE);
+    });
+
+    it("new project + setting disabled → buffer starts empty", () => {
+      const core = createEditorCore({
+        persistence: createPersistenceWithSettings({
+          isDefaultCodeEnabled: false,
+        }),
+        urlState: createUrlStateWithCode(null),
+        fileIo: createMockFileIoDeps(),
+      });
+
+      expect(core.buffer.content()).toBe("");
+    });
+
+    it("URL-shared project ignores the setting — buffer = URL code (not default)", () => {
+      const sharedCode = "console.log('shared-from-url')";
+      const core = createEditorCore({
+        // Setting is on, but URL has the user's shared code.
+        persistence: createPersistenceWithSettings({
+          isDefaultCodeEnabled: true,
+        }),
+        urlState: createUrlStateWithCode(sharedCode),
+        fileIo: createMockFileIoDeps(),
+      });
+
+      expect(core.buffer.content()).toBe(sharedCode);
+      expect(core.buffer.content()).not.toBe(QUICKJS_DEFAULT_BUFFER_CODE);
+    });
+
+    it("URL stays clean on first paint — `code` is NOT written when default snippet is shown", () => {
+      const urlState = createUrlStateWithCode(null);
+      const setSpy = vi.spyOn(urlState, "set");
+
+      createEditorCore({
+        persistence: createPersistenceWithSettings({
+          isDefaultCodeEnabled: true,
+        }),
+        urlState,
+        fileIo: createMockFileIoDeps(),
+      });
+
+      // initialContent path uses createSignal directly, never urlState.set("code", ...)
+      const codeWrites = setSpy.mock.calls.filter(([key]) => key === "code");
+      expect(codeWrites).toHaveLength(0);
+    });
+
+    it("RESET_PROJECT_STATE with setting enabled → buffer = QUICKJS_DEFAULT_BUFFER_CODE", () => {
+      const core = createEditorCore({
+        persistence: createPersistenceWithSettings({
+          isDefaultCodeEnabled: true,
+        }),
+        urlState: createUrlStateWithCode(null),
+        fileIo: createMockFileIoDeps(),
+      });
+
+      // User edits the buffer
+      core.buffer.setContent("// user code");
+      expect(core.buffer.content()).toBe("// user code");
+
+      core.dispatcher.dispatch({ type: "RESET_PROJECT_STATE" });
+
+      expect(core.buffer.content()).toBe(QUICKJS_DEFAULT_BUFFER_CODE);
+    });
+
+    it("RESET_PROJECT_STATE with setting disabled → buffer is empty", () => {
+      const core = createEditorCore({
+        persistence: createPersistenceWithSettings({
+          isDefaultCodeEnabled: false,
+        }),
+        urlState: createUrlStateWithCode(null),
+        fileIo: createMockFileIoDeps(),
+      });
+
+      core.buffer.setContent("// user code");
+      expect(core.buffer.content()).toBe("// user code");
+
+      core.dispatcher.dispatch({ type: "RESET_PROJECT_STATE" });
+
+      expect(core.buffer.content()).toBe("");
+    });
+  });
+
+  describe("Per-engine default code (per-engine-default-code)", () => {
+    function createUrlStateWithCodeAndEngine(
+      code: string | null,
+      engine: string | null
+    ): UrlStatePort {
+      const store = new Map<string, string | null>();
+      if (code !== null) {
+        store.set("code", code);
+      }
+      if (engine !== null) {
+        store.set("engine", engine);
+      }
+      return {
+        get: vi.fn((key: string) => store.get(key) ?? null),
+        set: vi.fn(),
+        remove: vi.fn(),
+      };
+    }
+
+    function createPersistenceWithSettings(
+      settings: Record<string, unknown>
+    ): PersistencePort {
+      const data = new Map<string, string>();
+      data.set("settings", JSON.stringify(settings));
+      return {
+        get: (key) => data.get(key) ?? null,
+        set: (key, val) => data.set(key, val),
+        remove: (key) => data.delete(key),
+      };
+    }
+
+    it("new project + URL engine=quickjs + setting enabled → QuickJS default loads and flag is armed", () => {
+      const core = createEditorCore({
+        persistence: createPersistenceWithSettings({
+          isDefaultCodeEnabled: true,
+        }),
+        urlState: createUrlStateWithCodeAndEngine(null, "quickjs"),
+        fileIo: createMockFileIoDeps(),
+      });
+
+      expect(core.buffer.content()).toBe(QUICKJS_DEFAULT_BUFFER_CODE);
+      expect(core.buffer.isShowingDefaultCode()).toBe(true);
+    });
+
+    it("new project + URL engine=micropython + setting enabled → MicroPython default loads and flag is armed", () => {
+      const core = createEditorCore({
+        persistence: createPersistenceWithSettings({
+          isDefaultCodeEnabled: true,
+        }),
+        urlState: createUrlStateWithCodeAndEngine(null, "micropython"),
+        fileIo: createMockFileIoDeps(),
+      });
+
+      expect(core.buffer.content()).toBe(PYTHON_DEFAULT_BUFFER_CODE);
+      expect(core.buffer.isShowingDefaultCode()).toBe(true);
+    });
+
+    it("new project + URL engine=micropython + setting disabled → empty buffer (flag disarmed)", () => {
+      const core = createEditorCore({
+        persistence: createPersistenceWithSettings({
+          isDefaultCodeEnabled: false,
+        }),
+        urlState: createUrlStateWithCodeAndEngine(null, "micropython"),
+        fileIo: createMockFileIoDeps(),
+      });
+
+      expect(core.buffer.content()).toBe("");
+      expect(core.buffer.isShowingDefaultCode()).toBe(false);
+    });
+
+    it("URL-shared code is never replaced — flag is disarmed and content is preserved", () => {
+      const sharedCode = "user-custom-code";
+      const core = createEditorCore({
+        persistence: createPersistenceWithSettings({
+          isDefaultCodeEnabled: true,
+        }),
+        urlState: createUrlStateWithCodeAndEngine(sharedCode, "quickjs"),
+        fileIo: createMockFileIoDeps(),
+      });
+
+      expect(core.buffer.content()).toBe(sharedCode);
+      expect(core.buffer.isShowingDefaultCode()).toBe(false);
+    });
+
+    it("SELECT_ENGINE_ENTRY on pristine buffer → replaces with new engine's default and re-arms flag", () => {
+      const core = createEditorCore({
+        persistence: createPersistenceWithSettings({
+          isDefaultCodeEnabled: true,
+        }),
+        urlState: createUrlStateWithCodeAndEngine(null, "quickjs"),
+        fileIo: createMockFileIoDeps(),
+      });
+
+      expect(core.buffer.content()).toBe(QUICKJS_DEFAULT_BUFFER_CODE);
+      expect(core.buffer.isShowingDefaultCode()).toBe(true);
+
+      // Suppress engine initialization side-effects for the switch.
+      vi.spyOn(core.engine, "initializeSelectedEngine").mockResolvedValue(
+        undefined
+      );
+
+      core.dispatcher.dispatch({
+        type: "SELECT_ENGINE_ENTRY",
+        engineId: "micropython",
+        language: "python",
+      });
+
+      expect(core.buffer.content()).toBe(PYTHON_DEFAULT_BUFFER_CODE);
+      expect(core.buffer.isShowingDefaultCode()).toBe(true);
+    });
+
+    it("SELECT_ENGINE_ENTRY on user-edited buffer → content is preserved (not replaced)", () => {
+      const core = createEditorCore({
+        persistence: createPersistenceWithSettings({
+          isDefaultCodeEnabled: true,
+        }),
+        urlState: createUrlStateWithCodeAndEngine(null, "quickjs"),
+        fileIo: createMockFileIoDeps(),
+      });
+
+      // User edits the buffer (pristine flag disarmed).
+      core.dispatcher.dispatch({
+        type: "UPDATE_BUFFER",
+        content: "user-typed-something",
+      });
+      expect(core.buffer.isShowingDefaultCode()).toBe(false);
+
+      vi.spyOn(core.engine, "initializeSelectedEngine").mockResolvedValue(
+        undefined
+      );
+
+      core.dispatcher.dispatch({
+        type: "SELECT_ENGINE_ENTRY",
+        engineId: "micropython",
+        language: "python",
+      });
+
+      // User's content is preserved — engine switch does NOT touch the buffer.
+      expect(core.buffer.content()).toBe("user-typed-something");
+      expect(core.buffer.isShowingDefaultCode()).toBe(false);
+    });
+
+    it("URL-shared code is never replaced by engine switch (flag stays disarmed)", () => {
+      const sharedCode = "user-shared-code";
+      const core = createEditorCore({
+        persistence: createPersistenceWithSettings({
+          isDefaultCodeEnabled: true,
+        }),
+        urlState: createUrlStateWithCodeAndEngine(sharedCode, "quickjs"),
+        fileIo: createMockFileIoDeps(),
+      });
+
+      expect(core.buffer.content()).toBe(sharedCode);
+      expect(core.buffer.isShowingDefaultCode()).toBe(false);
+
+      vi.spyOn(core.engine, "initializeSelectedEngine").mockResolvedValue(
+        undefined
+      );
+
+      core.dispatcher.dispatch({
+        type: "SELECT_ENGINE_ENTRY",
+        engineId: "micropython",
+        language: "python",
+      });
+
+      // URL-shared code survives the engine switch.
+      expect(core.buffer.content()).toBe(sharedCode);
+      expect(core.buffer.isShowingDefaultCode()).toBe(false);
+    });
+
+    it("RESET_PROJECT_STATE → uses active engine's default (MicroPython when active)", () => {
+      const core = createEditorCore({
+        persistence: createPersistenceWithSettings({
+          isDefaultCodeEnabled: true,
+        }),
+        urlState: createUrlStateWithCodeAndEngine(null, "micropython"),
+        fileIo: createMockFileIoDeps(),
+      });
+
+      // Sanity: editor started on MicroPython with its default.
+      expect(core.buffer.content()).toBe(PYTHON_DEFAULT_BUFFER_CODE);
+
+      vi.spyOn(core.engine, "initializeSelectedEngine").mockResolvedValue(
+        undefined
+      );
+
+      core.dispatcher.dispatch({ type: "RESET_PROJECT_STATE" });
+
+      // Active engine is still MicroPython — default must be the Python snippet.
+      expect(core.buffer.content()).toBe(PYTHON_DEFAULT_BUFFER_CODE);
+      expect(core.buffer.isShowingDefaultCode()).toBe(true);
+    });
+
+    it("UPDATE_BUFFER action passes source: 'user' to setContent (disarms the flag)", () => {
+      const core = createEditorCore({
+        persistence: createPersistenceWithSettings({
+          isDefaultCodeEnabled: true,
+        }),
+        urlState: createUrlStateWithCodeAndEngine(null, "quickjs"),
+        fileIo: createMockFileIoDeps(),
+      });
+
+      // Buffer was pristine.
+      expect(core.buffer.isShowingDefaultCode()).toBe(true);
+
+      // Spy on setContent to assert the second argument.
+      const setContentSpy = vi.spyOn(core.buffer, "setContent");
+
+      core.dispatcher.dispatch({
+        type: "UPDATE_BUFFER",
+        content: "user-edit",
+      });
+
+      expect(setContentSpy).toHaveBeenCalledWith("user-edit", {
+        source: "user",
+      });
+      expect(core.buffer.isShowingDefaultCode()).toBe(false);
+    });
+
+    it("engine switch to engine with no defaultBufferCode (mock) on pristine buffer → buffer cleared (no replacement content)", () => {
+      // DEV-only engine: its definition has no defaultBufferCode, so the
+      // pristine replacement falls back to empty. This matches the spec
+      // ("engines without defaultBufferCode fall back to ''").
+      const core = createEditorCore({
+        persistence: createPersistenceWithSettings({
+          isDefaultCodeEnabled: true,
+        }),
+        urlState: createUrlStateWithCodeAndEngine(null, "quickjs"),
+        fileIo: createMockFileIoDeps(),
+      });
+
+      expect(core.buffer.content()).toBe(QUICKJS_DEFAULT_BUFFER_CODE);
+      expect(core.buffer.isShowingDefaultCode()).toBe(true);
+
+      vi.spyOn(core.engine, "initializeSelectedEngine").mockResolvedValue(
+        undefined
+      );
+
+      core.dispatcher.dispatch({
+        type: "SELECT_ENGINE_ENTRY",
+        engineId: "mock",
+        language: "plaintext",
+      });
+
+      // Mock has no defaultBufferCode → empty fallback, flag still armed
+      // (because the empty fallback was set with source: "default", but our
+      // rule says empty + source default → disarmed). The behavior is:
+      // empty buffer post-switch.
+      expect(core.buffer.content()).toBe("");
+      expect(core.buffer.isShowingDefaultCode()).toBe(false);
     });
   });
 });

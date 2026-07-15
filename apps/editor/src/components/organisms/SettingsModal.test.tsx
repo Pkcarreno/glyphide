@@ -13,6 +13,7 @@ const [mockSettings, setMockSettings] = createSignal({
   isWordWrapEnabled: false,
   isAutoRunEnabled: false,
   isClearOnRunEnabled: true,
+  isDefaultCodeEnabled: true,
   uiFontSize: 14,
   bufferFontSize: 15,
   bufferLineHeight: 1.3,
@@ -180,5 +181,45 @@ describe("SettingsModal", () => {
     expect(closeButtons[0].classList.contains("top-3")).toBe(true);
     expect(closeButtons[0].classList.contains("right-3")).toBe(true);
     expect(closeButtons[0].classList.contains("z-10")).toBe(true);
+  });
+
+  it("Editor tab exposes a Default Code toggle that updates the setting", () => {
+    setMockSettings((prev) => ({ ...prev, isDefaultCodeEnabled: true }));
+    setMockIsOpen(true);
+    updateSettingsMock.mockClear();
+
+    const { getByRole } = render(() => <SettingsModal />);
+
+    // Switch to Editor tab
+    getByRole("tab", { name: "Editor" }).click();
+
+    const defaultCodeSwitch = getByRole("switch", {
+      name: "Default Code on New Project",
+    });
+    expect(defaultCodeSwitch).toBeTruthy();
+
+    // Toggling off should call updateSettings
+    defaultCodeSwitch.click();
+    expect(updateSettingsMock).toHaveBeenCalledWith({
+      isDefaultCodeEnabled: false,
+    });
+  });
+
+  it("Default Code toggle reflects setting's modified state via reset button", () => {
+    setMockSettings((prev) => ({ ...prev, isDefaultCodeEnabled: false }));
+    setMockIsOpen(true);
+    resetSettingMock.mockClear();
+
+    const { getByRole } = render(() => <SettingsModal />);
+
+    getByRole("tab", { name: "Editor" }).click();
+
+    const resetButton = getByRole("button", {
+      name: "Reset Default Code on New Project to default",
+    });
+    expect(resetButton).toBeTruthy();
+
+    resetButton.click();
+    expect(resetSettingMock).toHaveBeenCalledWith("isDefaultCodeEnabled");
   });
 });

@@ -26,6 +26,26 @@ describe("SettingsModel", () => {
     expect(model.settings.autoRunDelay).toBe(750);
   });
 
+  it("defaults isDefaultCodeEnabled to true so new projects ship with starter code", () => {
+    const persistence = createMockPersistence();
+    const model = createSettingsModel(persistence);
+
+    expect(model.settings.isDefaultCodeEnabled).toBe(true);
+  });
+
+  it("merges legacy localStorage settings by defaulting missing isDefaultCodeEnabled to true", () => {
+    // Simulate a returning user whose persisted settings predate the field.
+    const persistence = createMockPersistence({
+      settings: JSON.stringify({ theme: "dark", isWordWrapEnabled: true }),
+    });
+    const model = createSettingsModel(persistence);
+
+    expect(model.settings.theme).toBe("dark");
+    expect(model.settings.isWordWrapEnabled).toBe(true);
+    // Missing key falls back to DEFAULT_SETTINGS
+    expect(model.settings.isDefaultCodeEnabled).toBe(true);
+  });
+
   it("loads settings from persistence port", () => {
     const persistence = createMockPersistence({
       settings: JSON.stringify({ theme: "dark", isWordWrapEnabled: true }),

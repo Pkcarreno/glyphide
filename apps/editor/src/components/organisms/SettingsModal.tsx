@@ -305,6 +305,23 @@ function SettingsModal(props: SettingsModalProps) {
                           core.settings.resetSetting("isWordWrapEnabled")
                         }
                       />
+                      <SettingsSwitchItem
+                        checked={core.settings.settings.isDefaultCodeEnabled}
+                        description="Show a guided tour snippet in new projects so users can see how to print values."
+                        isModified={
+                          core.settings.settings.isDefaultCodeEnabled !==
+                          DEFAULT_SETTINGS.isDefaultCodeEnabled
+                        }
+                        label="Default Code on New Project"
+                        onCheckedChange={(checked) =>
+                          core.settings.updateSettings({
+                            isDefaultCodeEnabled: checked,
+                          })
+                        }
+                        onReset={() =>
+                          core.settings.resetSetting("isDefaultCodeEnabled")
+                        }
+                      />
                     </div>
                   </section>
                 </div>

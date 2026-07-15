@@ -1,7 +1,7 @@
 import { batch } from "solid-js";
 import type { ActionDispatcher } from "./actions/dispatcher.ts";
 import { createActionDispatcher } from "./actions/dispatcher.ts";
-import type { EngineRegistry } from "./engine/registry.ts";
+import type { EngineId, EngineRegistry } from "./engine/registry.ts";
 import { createEngineRegistry } from "./engine/registry.ts";
 import type { BufferModel } from "./models/buffer.ts";
 import { createBufferModel } from "./models/buffer.ts";
@@ -90,20 +90,70 @@ function stripExtension(filename: string): string {
 }
 
 /**
+ * Resolves the engine ID the editor should start with, given the URL state
+ * and the registry. Returns the default `quickjs` when the URL is absent
+ * or the engine is unknown.
+ */
+function resolveInitialEngineId(
+  urlState: UrlStatePort,
+  registry: EngineRegistry
+): EngineId {
+  const raw = urlState.get("engine");
+  if (!raw) {
+    return "quickjs";
+  }
+  const id = raw.split(":")[0] ?? "quickjs";
+  try {
+    registry.getDefinition(id);
+    return id;
+  } catch {
+    return "quickjs";
+  }
+}
+
+/**
+ * Resolves the default snippet for the active engine. Engines without a
+ * curated snippet (e.g., the dev-only mock engine) fall back to `""`.
+ */
+function resolveDefaultBufferCode(
+  engineId: EngineId,
+  registry: EngineRegistry
+): string {
+  try {
+    return registry.getDefinition(engineId).defaultBufferCode ?? "";
+  } catch {
+    return "";
+  }
+}
+
+/**
  * Factory that wires all models, registries, and the dispatcher.
  * This is the single composition root for the entire editor.
  */
 export function createEditorCore(deps: EditorCoreDeps): EditorCore {
   const dispatcher = createActionDispatcher();
   const shortcuts = createShortcutRegistry(defaultShortcutBindings);
-  const buffer = createBufferModel(deps.urlState);
+  // The registry is created before the buffer so the buffer can seed its
+  // initial content from the active engine's `defaultBufferCode`.
+  const engineRegistry = createEngineRegistry();
+  // Settings must exist before the buffer so the buffer can read
+  // `isDefaultCodeEnabled` for its initial content. createBufferModel uses
+  // `initialContent` only when the URL has no `code` param, and the
+  // initial value is set via createSignal (never via setContent), so the
+  // URL stays clean on first paint.
   const settings = createSettingsModel(deps.persistence);
+  const initialEngineId = resolveInitialEngineId(deps.urlState, engineRegistry);
+  const initialContent = settings.settings.isDefaultCodeEnabled
+    ? resolveDefaultBufferCode(initialEngineId, engineRegistry)
+    : "";
+  const buffer = createBufferModel(deps.urlState, initialContent, {
+    source: "default",
+  });
   const project = createProjectModel(deps.urlState);
   const output = createOutputModel();
   const overlays = createOverlayModel();
   const notifications = createNotificationModel();
   const pwa = createPwaModel();
-  const engineRegistry = createEngineRegistry();
   const trust = createTrustModel(deps.urlState);
   const fileLoad = createFileLoadModel();
   const engine = createEngineModel({
@@ -145,6 +195,18 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
         overlays.open("trust-required");
         return;
       }
+      // Pristine buffer rule: when the buffer is still showing the active
+      // engine's default snippet (the user has not edited it), swapping
+      // engines also swaps the buffer to the new engine's default and
+      // keeps the pristine flag armed. User-edited buffers and URL-shared
+      // code are NEVER replaced by an engine switch.
+      if (buffer.isShowingDefaultCode()) {
+        const newDefault = resolveDefaultBufferCode(
+          action.engineId,
+          engineRegistry
+        );
+        buffer.setContent(newDefault, { source: "default" });
+      }
       engine.selectEngineEntry({
         engineId: action.engineId,
         language: action.language,
@@ -174,7 +236,10 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
 
   unsubscribers.push(
     dispatcher.on("UPDATE_BUFFER", (action) => {
-      buffer.setContent(action.content);
+      // Source is "user" — any user input (typing, paste, programmatic
+      // edit) disarms the pristine flag so the next engine switch will
+      // NOT touch the buffer.
+      buffer.setContent(action.content, { source: "user" });
       engine.onBufferUpdated(action.content);
 
       if (autoRunTimer) {
@@ -283,7 +348,14 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
         deps.urlState.remove("code");
         deps.urlState.remove("name");
         deps.urlState.remove("engine");
-        buffer.setContent("");
+        // Reset re-inserts the active engine's curated default snippet
+        // when the user has the feature enabled; otherwise it clears to
+        // empty. Source is "default" so the pristine flag is re-armed —
+        // the next engine switch can swap the buffer again.
+        const resetContent = settings.settings.isDefaultCodeEnabled
+          ? resolveDefaultBufferCode(engine.activeEngineId(), engineRegistry)
+          : "";
+        buffer.setContent(resetContent, { source: "default" });
         buffer.setCursorPosition(1, 1, 0, 0);
         output.clearEntries();
         trust.grantTrust();
@@ -311,6 +383,8 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
 
   unsubscribers.push(
     dispatcher.on("LOAD_FILE_FROM_DISK", (action) => {
+      // File-loaded content is untrusted and user-owned, so the pristine
+      // flag must be disarmed (no source arg → defaults to "user").
       buffer.setContent(action.content);
       project.setName(stripExtension(action.name));
       // Selection only — file-loaded code is untrusted, so we MUST NOT

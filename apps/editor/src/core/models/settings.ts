@@ -20,6 +20,7 @@ export interface EditorSettings {
   bufferLineHeight: number;
   isAutoRunEnabled: boolean;
   isClearOnRunEnabled: boolean;
+  isDefaultCodeEnabled: boolean;
   isWordWrapEnabled: boolean;
   theme: ThemePreference;
   uiFontSize: number;
@@ -32,6 +33,7 @@ export const DEFAULT_SETTINGS: EditorSettings = {
   isAutoRunEnabled: true,
   autoRunDelay: 750,
   isClearOnRunEnabled: true,
+  isDefaultCodeEnabled: true,
   uiFontSize: 16,
   bufferFontSize: 15,
   bufferLineHeight: 1.3,

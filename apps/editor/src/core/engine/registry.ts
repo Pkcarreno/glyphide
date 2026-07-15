@@ -1,6 +1,8 @@
 import type { EngineWorkerFactory } from "@glyphide/orchestrator";
 import type { ConsoleToken } from "@glyphide/quickjs-engine/types";
 import type { EngineInitParams } from "@glyphide/rpc-protocol/types";
+import { PYTHON_DEFAULT_BUFFER_CODE } from "../data/python-default-buffer-code.ts";
+import { QUICKJS_DEFAULT_BUFFER_CODE } from "../data/quickjs-default-buffer-code.ts";
 import {
   type ConsoleVariant,
   defaultFormat,
@@ -48,6 +50,13 @@ export interface EngineParamDescriptor {
  * @public
  */
 export interface EngineDefinition {
+  /**
+   * Curated default snippet for new projects using this engine.
+   * Optional: engines without it (e.g., dev-only mock) fall back to `""`.
+   * Consumed by the editor core to seed the buffer at startup, on engine
+   * switch over a pristine buffer, and on `RESET_PROJECT_STATE`.
+   */
+  defaultBufferCode?: string;
   /** Default INIT params sent to this engine (language is overridden per entry). */
   defaultInitParams: Omit<EngineInitParams, "language">;
   id: EngineId;
@@ -87,6 +96,7 @@ export function createEngineRegistry(): EngineRegistry {
       id: "micropython",
       label: "MicroPython Engine",
       supportedLanguages: ["python"],
+      defaultBufferCode: PYTHON_DEFAULT_BUFFER_CODE,
       defaultInitParams: { timeout: 30_000 },
       paramDescriptors: [
         {
@@ -125,6 +135,7 @@ export function createEngineRegistry(): EngineRegistry {
       id: "quickjs",
       label: "QuickJS Engine",
       supportedLanguages: ["javascript"],
+      defaultBufferCode: QUICKJS_DEFAULT_BUFFER_CODE,
       defaultInitParams: { timeout: 30_000 },
       paramDescriptors: [
         {
