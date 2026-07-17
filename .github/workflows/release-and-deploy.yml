@@ -2,6 +2,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -28,9 +29,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [release]
     if: ${{ needs.release.outputs.release-created }}
+    env:
+      VITE_BASE_URL: "/"
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -45,7 +48,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dist
-          path: apps/glyphide/dist
+          path: apps/editor/dist
 
   deploy:
     runs-on: ubuntu-latest
@@ -54,14 +57,12 @@ jobs:
       contents: read
       pages: write
       id-token: write
-    env:
-      VITE_BASE_URL: "/release-please-test/"
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -69,12 +70,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: dist
-          path: apps/glyphide/dist
+          path: apps/editor/dist
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/glyphide/dist
+          path: apps/editor/dist
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

@@ -4,6 +4,7 @@ import { VitePWA } from "vite-plugin-pwa";
 import solidPlugin from "vite-plugin-solid";
 
 export default defineConfig({
+  base: process.env.VITE_BASE_URL ?? "/",
   plugins: [
     tailwindcss(),
     solidPlugin(),
