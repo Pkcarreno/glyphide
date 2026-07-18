@@ -8,6 +8,7 @@
   "private": true,
   "scripts": {
     "test": "turbo run test",
+    "test:security": "turbo run test:security",
     "typecheck": "turbo run typecheck",
     "build": "turbo run build",
     "dev": "turbo run dev",

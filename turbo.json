@@ -9,6 +9,17 @@
     "test": {
       "dependsOn": ["^build"]
     },
+    "test:security": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "inputs": [
+        "vitest.security.config.ts",
+        "src/security/**",
+        "tsconfig.json",
+        "package.json"
+      ],
+      "outputs": ["../../docs/security/audit-2026-07.md"]
+    },
     "dev": {
       "cache": false,
       "persistent": true
