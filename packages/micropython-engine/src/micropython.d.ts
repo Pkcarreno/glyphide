@@ -1,5 +1,6 @@
 declare module "@micropython/micropython-webassembly-pyscript/micropython.mjs" {
   export interface MicroPythonOptions {
+    heapsize?: number;
     stderr?: (text: string) => void;
     stdout?: (text: string) => void;
     url?: string;

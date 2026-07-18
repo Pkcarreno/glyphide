@@ -97,12 +97,21 @@ export class EngineOrchestrator<
       this.#spawnWorker();
     }
 
-    const response = await this.#sendRequest({
-      method: EngineMethod.Init,
-      params: configParams,
-    });
+    let response: JsonRpcOkResponse<EngineInitResult>;
+    try {
+      response = (await this.#sendRequest({
+        method: EngineMethod.Init,
+        params: configParams,
+      })) as JsonRpcOkResponse<EngineInitResult>;
+    } catch (error) {
+      const message =
+        typeof error === "object" && error !== null && "message" in error
+          ? String((error as { message: unknown }).message)
+          : String(error);
+      throw new Error(`Init failed: ${message}`);
+    }
 
-    const result = response.result as EngineInitResult;
+    const result = response.result;
     this.#timeout = result.timeout ?? 30_000;
     this.#config.events.onEngineReady?.(result);
 

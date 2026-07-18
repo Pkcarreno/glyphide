@@ -115,6 +115,18 @@ export class QuickJSEngineAdapter {
         };
       }
 
+      if (this.#config.timeout <= 0 || !Number.isFinite(this.#config.timeout)) {
+        throw new Error("Invalid timeout");
+      }
+
+      if (
+        this.#config.memoryLimit < 0 ||
+        this.#config.memoryLimit > 1024 * 1024 * 1024
+      ) {
+        // Max 1GB
+        throw new Error("Invalid memory limit");
+      }
+
       const qjs = await getQuickJS();
       this.dispose();
 
@@ -124,6 +136,7 @@ export class QuickJSEngineAdapter {
       }
 
       this.#context = this.#runtime.newContext();
+      this.#injectSecurityPrelude();
       this.#injectConsole();
       this.#injectFetch();
 
@@ -235,6 +248,7 @@ export class QuickJSEngineAdapter {
     try {
       this.#context?.dispose();
       this.#context = this.#runtime.newContext();
+      this.#injectSecurityPrelude();
       this.#injectConsole();
       this.#injectFetch();
 
@@ -292,6 +306,47 @@ export class QuickJSEngineAdapter {
     }
 
     return;
+  }
+
+  #injectSecurityPrelude(): void {
+    if (!this.#context) {
+      return;
+    }
+
+    const ctx = this.#context;
+
+    // 1. Freeze critical Object.prototype properties and prevent extensions
+    const prelude = `
+      (function() {
+        var props = [
+          'constructor', '__proto__', 'toString', 'valueOf',
+          'hasOwnProperty', '__defineGetter__', '__defineSetter__',
+          '__lookupGetter__', '__lookupSetter__'
+        ];
+        for (var i = 0; i < props.length; i++) {
+          var prop = props[i];
+          try {
+            Object.defineProperty(Object.prototype, prop, {
+              configurable: false,
+              writable: false,
+              value: Object.prototype[prop]
+            });
+          } catch (e) {}
+        }
+        Object.preventExtensions(Object.prototype);
+      })();
+    `;
+    const result = ctx.evalCode(prelude);
+    if (result.error) {
+      result.error.dispose();
+    } else {
+      result.value.dispose();
+    }
+
+    // 2. Shadow Function and eval via host API — guest-side
+    //    defineProperty fails on non-configurable QuickJS built-ins
+    ctx.setProp(ctx.global, "Function", ctx.undefined);
+    ctx.setProp(ctx.global, "eval", ctx.undefined);
   }
 
   #injectConsole(): void {

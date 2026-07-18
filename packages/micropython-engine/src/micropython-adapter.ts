@@ -15,7 +15,7 @@ import {
   type MicroPythonInstance,
 } from "@micropython/micropython-webassembly-pyscript/micropython.mjs";
 import wasmUrl from "@micropython/micropython-webassembly-pyscript/micropython.wasm?url";
-import { installHttpClient } from "./http-client.ts";
+import { captureHostXMLHttpRequest, installHttpClient } from "./http-client.ts";
 import {
   defaultCapabilities,
   type MicropythonEngineConfig,
@@ -126,9 +126,12 @@ export class MicropythonEngineAdapter {
 
   async #initializeEngine(): Promise<void> {
     this.dispose();
+    captureHostXMLHttpRequest();
 
     this.#mp = await loadMicroPython({
       url: resolvedWasmUrl,
+      heapsize:
+        this.#config.memoryLimit > 0 ? this.#config.memoryLimit : undefined,
       stdout: (text: string) => {
         this.#onNotification(EngineMethod.Output, {
           type: "stdout",
@@ -142,6 +145,41 @@ export class MicropythonEngineAdapter {
         } satisfies MicropythonOutputPayload);
       },
     });
+
+    const sensitiveGlobals = [
+      "indexedDB",
+      "localStorage",
+      "Worker",
+      "SharedWorker",
+      "WebSocket",
+      "fetch",
+      "XMLHttpRequest",
+      "importScripts",
+      "document",
+    ];
+    for (const key of sensitiveGlobals) {
+      if (!(key in globalThis)) {
+        continue;
+      }
+      try {
+        const deleted = delete (globalThis as Record<string, unknown>)[key];
+        if (deleted && !(key in globalThis)) {
+          continue;
+        }
+      } catch {
+        // non-configurable — fall through to defineProperty
+      }
+      try {
+        Object.defineProperty(globalThis, key, {
+          value: undefined,
+          writable: false,
+          configurable: false,
+          enumerable: false,
+        });
+      } catch {
+        // Already non-configurable from a prior init cycle
+      }
+    }
 
     installHttpClient(this.#mp);
   }

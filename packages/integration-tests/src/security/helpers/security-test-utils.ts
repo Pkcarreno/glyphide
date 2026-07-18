@@ -207,8 +207,8 @@ export const MP_RESOURCE_MEMORY_BOMB_LIST: SecurityScenario = {
   // pinning the host process.
   poc: `try:
     bomb = []
-    for _ in range(50_000):
-        bomb.append(b"A" * 2048)
+    for i in range(50_000):
+        bomb.append(str(i) * 2048)
     print(f"VULNERABILITY: allocated {len(bomb)} items")
 except Exception as e:
     print(f"BLOCKED: {e}")
@@ -225,7 +225,7 @@ export const MP_RESOURCE_MEMORY_BOMB_DICT: SecurityScenario = {
   poc: `try:
     bomb = {}
     for i in range(50_000):
-        bomb[i] = b"B" * 2048
+        bomb[i] = str(i) * 2048
     print(f"VULNERABILITY: allocated {len(bomb)} dict entries")
 except Exception as e:
     print(f"BLOCKED: {e}")

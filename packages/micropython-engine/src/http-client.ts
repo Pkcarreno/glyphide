@@ -22,6 +22,22 @@ declare global {
 
 const NEWLINE_REGEX = /[\r\n]+/;
 
+let HostXMLHttpRequest: typeof XMLHttpRequest;
+
+/**
+ * Captures the host's XMLHttpRequest constructor before it is deleted by the security layer.
+ * @public
+ */
+export function captureHostXMLHttpRequest(): void {
+  if (!HostXMLHttpRequest) {
+    HostXMLHttpRequest =
+      typeof XMLHttpRequest === "undefined"
+        ? ((globalThis as Record<string, unknown>)
+            .XMLHttpRequest as typeof XMLHttpRequest)
+        : XMLHttpRequest;
+  }
+}
+
 /**
  * Installs an HTTP client bridge for MicroPython to perform synchronous network requests.
  *
@@ -32,10 +48,14 @@ const NEWLINE_REGEX = /[\r\n]+/;
  * @param mp - The MicroPython runtime instance
  */
 export function installHttpClient(mp: MicroPythonInstance): void {
+  if (!HostXMLHttpRequest) {
+    captureHostXMLHttpRequest();
+  }
+
   globalThis.__micropython_fetch_sync = (reqStr: string): string => {
     try {
       const req: SyncFetchRequest = JSON.parse(reqStr);
-      const xhr = new XMLHttpRequest();
+      const xhr = new HostXMLHttpRequest();
       xhr.open(req.method, req.url, false);
 
       if (req.headers) {
