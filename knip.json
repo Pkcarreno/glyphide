@@ -2,8 +2,7 @@
   "$schema": "https://unpkg.com/knip@latest/schema.json",
   "ignore": [
     "legacy/**",
-    "packages/integration-tests/src/shared/run-server.mjs",
-    "apps/editor/pwa-assets.config.ts"
+    "packages/integration-tests/src/shared/run-server.mjs"
   ],
   "ignoreDependencies": ["@biomejs/biome"]
 }
