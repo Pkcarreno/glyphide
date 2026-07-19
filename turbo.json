@@ -7,11 +7,10 @@
       "outputs": ["dist/**"]
     },
     "test": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build", "test:security"]
     },
     "test:security": {
       "dependsOn": ["^build"],
-      "cache": false,
       "inputs": [
         "vitest.security.config.ts",
         "src/security/**",
