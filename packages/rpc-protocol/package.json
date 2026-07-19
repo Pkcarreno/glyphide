@@ -32,7 +32,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "tsdown": "^0.22.0",
+    "tsdown": "^0.22.9",
     "typescript": "^6.0.2",
     "vitest": "^4.1.10"
   }
