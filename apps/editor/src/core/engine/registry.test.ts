@@ -77,14 +77,13 @@ describe("Engine output formatters", () => {
   const registry = createEngineRegistry();
 
   describe("each engine has an outputFormatter defined", () => {
-    it.each([
-      "quickjs",
-      "micropython",
-      "mock",
-    ])("%s engine has outputFormatter", (engineId) => {
-      const engineDefinition = registry.getDefinition(engineId);
-      expect(engineDefinition.outputFormatter).toBeDefined();
-    });
+    it.each(["quickjs", "micropython", "mock"])(
+      "%s engine has outputFormatter",
+      (engineId) => {
+        const engineDefinition = registry.getDefinition(engineId);
+        expect(engineDefinition.outputFormatter).toBeDefined();
+      }
+    );
   });
 
   describe("QuickJS formatter", () => {
