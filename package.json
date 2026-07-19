@@ -28,7 +28,7 @@
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
     "knip": "^6.24.0",
-    "lefthook": "^2.1.4",
+    "lefthook": "^2.1.10",
     "turbo": "^2.9.1",
     "ultracite": "^7.8.1"
   },
