@@ -263,8 +263,8 @@ importers:
         specifier: ^0.8.3
         version: 0.8.3
       js-base64:
-        specifier: ^3.7.8
-        version: 3.8.0
+        specifier: ^3.9.1
+        version: 3.9.1
     devDependencies:
       tsdown:
         specifier: ^0.22.9
@@ -3195,8 +3195,8 @@ packages:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
     hasBin: true
 
-  js-base64@3.8.0:
-    resolution: {integrity: sha512-65kvbemyZhj+ExQt1PEFyBEjL5vAHysu1lJdW1AwhhChkO8ZBPizYk/m9GVrpbS2Je1hF+UYZ+6KywqtZV8mHw==}
+  js-base64@3.9.1:
+    resolution: {integrity: sha512-U73qptcvf/HIOauFOmqT3a0mDUp0MYlfd15oqoe9kqZt5XhiXVb+HG09sLvI9PQ9tZIBFS4nlErai8zbWazP0g==}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -7087,7 +7087,7 @@ snapshots:
 
   jiti@2.7.0: {}
 
-  js-base64@3.8.0: {}
+  js-base64@3.9.1: {}
 
   js-tokens@4.0.0: {}
 
