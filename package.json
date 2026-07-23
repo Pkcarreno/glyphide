@@ -30,7 +30,7 @@
     "knip": "^6.27.0",
     "lefthook": "^2.1.10",
     "turbo": "^2.10.5",
-    "ultracite": "^7.8.1"
+    "ultracite": "^7.9.4"
   },
   "workspaces": [
     "packages/*",
