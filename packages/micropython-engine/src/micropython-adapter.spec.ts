@@ -38,4 +38,34 @@ describe("MicropythonEngineAdapter", () => {
       })
     );
   });
+
+  it("should handle reset successfully after init", async () => {
+    const initRequest: JsonRpcRequest = {
+      id: 1,
+      jsonrpc: "2.0",
+      method: EngineMethod.Init,
+      params: {},
+    };
+
+    adapter.handleMessage(initRequest);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    const resetRequest: JsonRpcRequest = {
+      id: 2,
+      jsonrpc: "2.0",
+      method: EngineMethod.Reset,
+    };
+
+    adapter.handleMessage(resetRequest);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    expect(sendResponse).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        id: 2,
+        result: expect.objectContaining({
+          reset: true,
+        }),
+      })
+    );
+  });
 });

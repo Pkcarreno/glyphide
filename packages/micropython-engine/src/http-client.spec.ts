@@ -2,7 +2,11 @@
 import { loadMicroPython } from "@micropython/micropython-webassembly-pyscript/micropython.mjs";
 import wasmUrl from "@micropython/micropython-webassembly-pyscript/micropython.wasm?url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { installHttpClient } from "./http-client.ts";
+import {
+  captureHostApis,
+  installHttpClient,
+  restoreHostApis,
+} from "./http-client.ts";
 
 declare global {
   var testOutput: boolean | string;
@@ -111,10 +115,10 @@ import js
 try:
     res = requests.post("https://api.example.com/data", json={"test": 123})
     data = res.json()
-    
+
     urllib_res = urllib.request.urlopen("https://api.example.com/data")
     urllib_text = urllib_res.read().decode('utf-8')
-    
+
     js.globalThis.testOutputRequests = data["success"]
     js.globalThis.testOutputUrllib = "success" in urllib_text
 except Exception as e:
@@ -124,5 +128,23 @@ except Exception as e:
 
     expect(globalThis.testOutputRequests).toBe(true);
     expect(globalThis.testOutputUrllib).toBe(true);
+  });
+
+  it("should capture and restore host APIs correctly", () => {
+    captureHostApis();
+
+    const capturedFetch = globalThis.fetch;
+    const capturedXHR = globalThis.XMLHttpRequest;
+
+    (globalThis as Record<string, unknown>).fetch = undefined;
+    (globalThis as Record<string, unknown>).XMLHttpRequest = undefined;
+
+    expect(globalThis.fetch).toBeUndefined();
+    expect(globalThis.XMLHttpRequest).toBeUndefined();
+
+    restoreHostApis();
+
+    expect(globalThis.fetch).toBe(capturedFetch);
+    expect(globalThis.XMLHttpRequest).toBe(capturedXHR);
   });
 });

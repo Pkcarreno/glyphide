@@ -66,4 +66,13 @@ describe("Orchestrator + Micropython Engine Integration", () => {
       ).toBe(true);
     });
   });
+
+  describe("reset", () => {
+    it("resets execution context and allows code execution afterwards", async () => {
+      await orchestrator.init();
+      await expect(orchestrator.run("x = 42")).resolves.toBeUndefined();
+      await expect(orchestrator.reset()).resolves.toBeUndefined();
+      await expect(orchestrator.run("y = 100")).resolves.toBeUndefined();
+    });
+  });
 });

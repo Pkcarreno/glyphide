@@ -22,19 +22,66 @@ declare global {
 
 const NEWLINE_REGEX = /[\r\n]+/;
 
-let HostXMLHttpRequest: typeof XMLHttpRequest;
+let HostXMLHttpRequest: typeof XMLHttpRequest | undefined;
+let HostFetch: typeof fetch | undefined;
 
 /**
- * Captures the host's XMLHttpRequest constructor before it is deleted by the security layer.
+ * Captures the host's XMLHttpRequest and fetch before they are deleted by the security layer.
  * @public
  */
-export function captureHostXMLHttpRequest(): void {
+export function captureHostApis(): void {
   if (!HostXMLHttpRequest) {
     HostXMLHttpRequest =
       typeof XMLHttpRequest === "undefined"
         ? ((globalThis as Record<string, unknown>)
             .XMLHttpRequest as typeof XMLHttpRequest)
         : XMLHttpRequest;
+  }
+  if (!HostFetch) {
+    HostFetch =
+      typeof fetch === "undefined"
+        ? ((globalThis as Record<string, unknown>).fetch as typeof fetch)
+        : fetch;
+  }
+}
+
+/**
+ * Captures the host's XMLHttpRequest constructor before it is deleted by the security layer.
+ * @public
+ */
+export function captureHostXMLHttpRequest(): void {
+  captureHostApis();
+}
+
+/**
+ * Restores host APIs (fetch and XMLHttpRequest) if they were previously captured.
+ * @public
+ */
+export function restoreHostApis(): void {
+  if (HostXMLHttpRequest !== undefined) {
+    try {
+      (globalThis as Record<string, unknown>).XMLHttpRequest =
+        HostXMLHttpRequest;
+    } catch {
+      Object.defineProperty(globalThis, "XMLHttpRequest", {
+        configurable: true,
+        enumerable: true,
+        value: HostXMLHttpRequest,
+        writable: true,
+      });
+    }
+  }
+  if (HostFetch !== undefined) {
+    try {
+      (globalThis as Record<string, unknown>).fetch = HostFetch;
+    } catch {
+      Object.defineProperty(globalThis, "fetch", {
+        configurable: true,
+        enumerable: true,
+        value: HostFetch,
+        writable: true,
+      });
+    }
   }
 }
 
@@ -49,12 +96,16 @@ export function captureHostXMLHttpRequest(): void {
  */
 export function installHttpClient(mp: MicroPythonInstance): void {
   if (!HostXMLHttpRequest) {
-    captureHostXMLHttpRequest();
+    captureHostApis();
   }
 
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: HTTP client bridge function requires parsing headers and managing synchronous XHR error states in a single atomic scope.
   globalThis.__micropython_fetch_sync = (reqStr: string): string => {
     try {
       const req: SyncFetchRequest = JSON.parse(reqStr);
+      if (!HostXMLHttpRequest) {
+        throw new Error("XMLHttpRequest is not available");
+      }
       const xhr = new HostXMLHttpRequest();
       xhr.open(req.method, req.url, false);
 

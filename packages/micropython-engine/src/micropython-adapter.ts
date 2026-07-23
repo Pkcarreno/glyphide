@@ -15,7 +15,11 @@ import {
   type MicroPythonInstance,
 } from "@micropython/micropython-webassembly-pyscript/micropython.mjs";
 import wasmUrl from "@micropython/micropython-webassembly-pyscript/micropython.wasm?url";
-import { captureHostXMLHttpRequest, installHttpClient } from "./http-client.ts";
+import {
+  captureHostApis,
+  installHttpClient,
+  restoreHostApis,
+} from "./http-client.ts";
 import {
   defaultCapabilities,
   type MicropythonEngineConfig,
@@ -126,7 +130,8 @@ export class MicropythonEngineAdapter {
 
   async #initializeEngine(): Promise<void> {
     this.dispose();
-    captureHostXMLHttpRequest();
+    restoreHostApis();
+    captureHostApis();
 
     this.#mp = await loadMicroPython({
       heapsize:
@@ -171,7 +176,7 @@ export class MicropythonEngineAdapter {
       }
       try {
         Object.defineProperty(globalThis, key, {
-          configurable: false,
+          configurable: true,
           enumerable: false,
           value: undefined,
           writable: false,
