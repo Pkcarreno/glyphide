@@ -15,6 +15,7 @@
     "lint": "ultracite check",
     "lint:fix": "ultracite fix",
     "preinstall": "npx only-allow pnpm",
+    "preview": "turbo run preview",
     "commitlint": "commitlint",
     "prepare": "lefthook install",
     "root:knip": "knip",
