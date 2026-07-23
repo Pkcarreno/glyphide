@@ -152,8 +152,8 @@ function StatusBar(props: StatusBarProps) {
 
   function openEngineSelector() {
     core.dispatcher.dispatch({
-      type: "OPEN_OVERLAY",
       overlayId: "engine-selector",
+      type: "OPEN_OVERLAY",
     });
   }
 
@@ -199,8 +199,8 @@ function StatusBar(props: StatusBarProps) {
             onClick={openEngineSelector}
             tooltip="Select Engine"
             tooltipAction={{
-              type: "OPEN_OVERLAY",
               overlayId: "engine-selector",
+              type: "OPEN_OVERLAY",
             }}
             tooltipDescription="Switch the active execution engine."
           >
@@ -225,8 +225,8 @@ function StatusBar(props: StatusBarProps) {
               id="engine-settings-trigger"
               onClick={() =>
                 core.dispatcher.dispatch({
-                  type: "OPEN_OVERLAY",
                   overlayId: "engine-settings",
+                  type: "OPEN_OVERLAY",
                 })
               }
               tooltip="Engine Settings"

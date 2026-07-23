@@ -23,9 +23,9 @@ adapter.setup(
   // Request sender - sends JSON-RPC requests from engine to host
   (method, id, params) => {
     self.postMessage({
+      id,
       jsonrpc: "2.0",
       method,
-      id,
       params,
     });
   }

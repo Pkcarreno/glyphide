@@ -5,53 +5,56 @@ import solidPlugin from "vite-plugin-solid";
 
 export default defineConfig({
   base: process.env.VITE_BASE_URL ?? "/",
+  build: {
+    target: "esnext",
+  },
   plugins: [
     tailwindcss(),
     solidPlugin(),
     VitePWA({
-      registerType: "prompt",
-      strategies: "generateSW",
       devOptions: {
         enabled: process.env.VITE_SW_DEV === "true",
       },
       injectRegister: "auto",
       manifest: {
-        name: "Glyphide — Code Editor in Your Browser",
-        short_name: "Glyphide",
-        display: "standalone",
-        theme_color: "#fdfefb",
         background_color: "#fdfefb",
         categories: ["developer"],
+        display: "standalone",
+        name: "Glyphide — Code Editor in Your Browser",
+        short_name: "Glyphide",
+        theme_color: "#fdfefb",
       },
       pwaAssets: {
         config: true,
-        overrideManifestIcons: true,
         includeHtmlHeadLinks: true,
         injectThemeColor: false,
+        overrideManifestIcons: true,
       },
+      registerType: "prompt",
+      strategies: "generateSW",
       workbox: {
         runtimeCaching: [
           {
-            urlPattern: /\.(?:wasm|js|wasm\.map)$/,
             handler: "CacheFirst",
             options: {
               cacheName: "engine-bundles",
               expiration: {
-                maxEntries: 50,
                 maxAgeSeconds: 30 * 24 * 60 * 60,
+                maxEntries: 50,
               },
             },
+            urlPattern: /\.(?:wasm|js|wasm\.map)$/,
           },
           {
-            urlPattern: /\.(?:woff2?|ttf|otf|eot)$/,
             handler: "CacheFirst",
             options: {
               cacheName: "fonts",
               expiration: {
-                maxEntries: 20,
                 maxAgeSeconds: 365 * 24 * 60 * 60,
+                maxEntries: 20,
               },
             },
+            urlPattern: /\.(?:woff2?|ttf|otf|eot)$/,
           },
         ],
       },
@@ -59,9 +62,6 @@ export default defineConfig({
   ],
   server: {
     port: 3000,
-  },
-  build: {
-    target: "esnext",
   },
   worker: {
     format: "es",

@@ -8,8 +8,8 @@ function createMockUrlState(
   const data = new Map(Object.entries(initialData));
   return {
     get: (key) => data.get(key) ?? null,
-    set: (key, val) => data.set(key, val),
     remove: (key) => data.delete(key),
+    set: (key, val) => data.set(key, val),
   };
 }
 

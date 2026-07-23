@@ -40,10 +40,10 @@ export class MessageBus {
    */
   sendRequest(message: OutgoingRequest, id: number): void {
     const request: JsonRpcRequest = {
+      id,
       jsonrpc: "2.0",
       method: message.method,
       params: message.params,
-      id,
     };
     this.#worker.postMessage(request);
   }
@@ -64,7 +64,7 @@ export class MessageBus {
    * Classifies and routes an incoming message.
    */
   #handleMessage(event: MessageEvent): void {
-    const data = event.data;
+    const { data } = event;
 
     // Response (success or fail)
     if (isJsonRpcOk(data) || isJsonRpcFail(data)) {
@@ -96,8 +96,8 @@ export class MessageBus {
    */
   sendResponse(id: JsonRpcId, result: unknown): void {
     const response: JsonRpcOkResponse = {
-      jsonrpc: "2.0",
       id,
+      jsonrpc: "2.0",
       result,
     };
     this.#worker.postMessage(response);

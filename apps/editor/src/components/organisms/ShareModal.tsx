@@ -57,8 +57,8 @@ export function ShareModal(props: ShareModalProps) {
 
   const handleOpenChange = (isOpen: boolean) => {
     core.dispatcher.dispatch({
-      type: isOpen ? "OPEN_OVERLAY" : "CLOSE_OVERLAY",
       overlayId: "share",
+      type: isOpen ? "OPEN_OVERLAY" : "CLOSE_OVERLAY",
     });
   };
 

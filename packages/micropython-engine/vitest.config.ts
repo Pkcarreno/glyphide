@@ -1,11 +1,7 @@
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  test: {
-    include: ["src/**/*.spec.ts"],
-  },
   build: {
-    target: "esnext",
     lib: {
       entry: "src/micropython-adapter.ts",
       formats: ["es"],
@@ -17,5 +13,9 @@ export default defineConfig({
         "@micropython/micropython-webassembly-pyscript/micropython.mjs",
       ],
     },
+    target: "esnext",
+  },
+  test: {
+    include: ["src/**/*.spec.ts"],
   },
 });

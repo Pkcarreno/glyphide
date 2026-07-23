@@ -37,9 +37,9 @@ describe("FileLoadModel — state accessors", () => {
   it("setPendingFile updates the pendingFile accessor", () => {
     const model = createFileLoadModel();
     const file: FileReadResult = {
-      name: "script.js",
       content: "console.log(1)",
       extension: ".js",
+      name: "script.js",
     };
     model.setPendingFile(file);
     expect(model.pendingFile()).toEqual(file);
@@ -47,7 +47,7 @@ describe("FileLoadModel — state accessors", () => {
 
   it("setPendingFile(null) clears the pending file", () => {
     const model = createFileLoadModel();
-    model.setPendingFile({ name: "a.js", content: "x", extension: ".js" });
+    model.setPendingFile({ content: "x", extension: ".js", name: "a.js" });
     model.setPendingFile(null);
     expect(model.pendingFile()).toBeNull();
   });

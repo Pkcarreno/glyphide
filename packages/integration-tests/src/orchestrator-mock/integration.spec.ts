@@ -23,7 +23,7 @@ describe("Orchestrator + Mock Engine Integration", () => {
   });
 
   afterEach(() => {
-    orchestrator?.terminate();
+    orchestrator.terminate();
   });
 
   describe("init", () => {
@@ -39,10 +39,10 @@ describe("Orchestrator + Mock Engine Integration", () => {
     it("accepts and applies configuration overrides via init parameters", async () => {
       const customConfig = createMockConfig({
         capabilities: {
-          isStateful: false,
           isInterruptible: false,
-          supportedLanguages: ["plaintext"],
+          isStateful: false,
           outputTypes: ["log"],
+          supportedLanguages: ["plaintext"],
         },
       });
 
@@ -177,15 +177,15 @@ describe("Orchestrator + Mock Engine Integration", () => {
       orchestrator = new EngineOrchestrator({
         createWorker: createMockWorker,
         events: {
+          onInputRequest: (prompt, reply) => {
+            capturedPrompt = prompt;
+            setTimeout(() => reply("Alice"), 10);
+          },
           onOutput: (payload) =>
             outputs.push({
               content: String(payload.data ?? ""),
               type: payload.type,
             }),
-          onInputRequest: (prompt, reply) => {
-            capturedPrompt = prompt;
-            setTimeout(() => reply("Alice"), 10);
-          },
         },
       });
 
@@ -214,11 +214,6 @@ describe("Orchestrator + Mock Engine Integration", () => {
       orchestrator = new EngineOrchestrator({
         createWorker: createMockWorker,
         events: {
-          onOutput: (payload) =>
-            outputs.push({
-              content: String(payload.data ?? ""),
-              type: payload.type,
-            }),
           onInputRequest: (prompt, reply) => {
             prompts.push(prompt);
             setTimeout(() => {
@@ -231,6 +226,11 @@ describe("Orchestrator + Mock Engine Integration", () => {
               }
             }, 10);
           },
+          onOutput: (payload) =>
+            outputs.push({
+              content: String(payload.data ?? ""),
+              type: payload.type,
+            }),
         },
       });
 
@@ -287,14 +287,14 @@ describe("Orchestrator + Mock Engine Integration", () => {
     it("rejects execution if engine exceeds timeout", async () => {
       // Override timeout capability to 100ms via never casting
       const mockConfig = createMockConfig({
-        runDelay: 300,
         capabilities: {
-          timeout: 50,
-          isStateful: true,
           isInterruptible: true,
-          supportedLanguages: ["plaintext"],
+          isStateful: true,
           outputTypes: ["print"],
+          supportedLanguages: ["plaintext"],
+          timeout: 50,
         } as Partial<EngineInitResult>,
+        runDelay: 300,
       });
 
       await orchestrator.init(mockConfig);

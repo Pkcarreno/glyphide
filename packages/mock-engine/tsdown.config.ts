@@ -1,6 +1,8 @@
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
+  clean: true,
+  dts: true,
   entry: [
     "src/**/*.ts",
     "worker/**/*.ts",
@@ -10,8 +12,6 @@ export default defineConfig({
     "!worker/**/*.test.ts",
   ],
   format: ["esm"],
-  unbundle: true,
-  dts: true,
-  clean: true,
   outDir: "dist",
+  unbundle: true,
 });

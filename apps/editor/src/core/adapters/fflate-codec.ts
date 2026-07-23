@@ -14,7 +14,7 @@ function fromUrlSafeBase64(value: string): string {
  * Substitutes `+` → `-`, `/` → `_`, and strips `=` padding.
  */
 function toUrlSafeBase64(value: string): string {
-  return value.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+  return value.replace(/\+/g, "-").replace(/\//g, "_").replace(/[=]/g, "");
 }
 
 /**
@@ -23,12 +23,6 @@ function toUrlSafeBase64(value: string): string {
  */
 export function createFflateCodecAdapter(): CodecPort {
   return {
-    encode(value: string): string {
-      const bytes = new TextEncoder().encode(value);
-      const compressed = deflateSync(bytes);
-      const binaryString = String.fromCharCode(...compressed);
-      return toUrlSafeBase64(btoa(binaryString));
-    },
     decode(value: string): string | null {
       try {
         const standardBase64 = fromUrlSafeBase64(value);
@@ -39,6 +33,12 @@ export function createFflateCodecAdapter(): CodecPort {
       } catch {
         return null;
       }
+    },
+    encode(value: string): string {
+      const bytes = new TextEncoder().encode(value);
+      const compressed = deflateSync(bytes);
+      const binaryString = String.fromCharCode(...compressed);
+      return toUrlSafeBase64(btoa(binaryString));
     },
   };
 }

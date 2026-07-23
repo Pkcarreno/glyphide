@@ -9,6 +9,7 @@ import type {
 import {
   defaultFormat,
   isConsoleTokenArray,
+  type OutputFormatter,
 } from "../../core/engine/output-formatter.ts";
 import type { OutputEntry } from "../../core/models/output.ts";
 import { cn } from "../../helpers/cn.ts";
@@ -46,14 +47,14 @@ function ConsolePane(props: ConsolePaneProps) {
     setToggledGroups(new Set<number>());
   }
 
-  function getFormatter() {
+  function getFormatter(): OutputFormatter | undefined {
     try {
       const engineDefinition = core.engineRegistry.getDefinition(
         core.engine.activeEngineId()
       );
       return engineDefinition.outputFormatter;
     } catch {
-      return;
+      // Fallback
     }
   }
 
@@ -62,9 +63,12 @@ function ConsolePane(props: ConsolePaneProps) {
       entry.type === "system" ||
       (entry.type === "error" && typeof entry.data === "string");
 
-    return isBypassEntry
-      ? defaultFormat(entry)
-      : (getFormatter()?.format(entry) ?? defaultFormat(entry));
+    if (isBypassEntry) {
+      return defaultFormat(entry);
+    }
+
+    const formatter = getFormatter();
+    return formatter ? formatter.format(entry) : defaultFormat(entry);
   }
 
   // Referential Stability Cache for Formatted Entries
@@ -90,7 +94,7 @@ function ConsolePane(props: ConsolePaneProps) {
       cachedGroupStack.length = 0;
     }
 
-    for (let i = cachedFormatted.length; i < current.length; i++) {
+    for (let i = cachedFormatted.length; i < current.length; i += 1) {
       cachedFormatted.push({
         entry: current[i],
         rendered: formatEntry(current[i]),

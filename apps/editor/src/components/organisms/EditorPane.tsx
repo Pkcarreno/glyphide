@@ -17,7 +17,7 @@ function EditorPane(props: EditorPaneProps) {
   const core = useEditor();
 
   function handleValueChange(value: string) {
-    core.dispatcher.dispatch({ type: "UPDATE_BUFFER", content: value });
+    core.dispatcher.dispatch({ content: value, type: "UPDATE_BUFFER" });
   }
 
   function handleCursorChange(
@@ -27,16 +27,16 @@ function EditorPane(props: EditorPaneProps) {
     selectionLines: number
   ) {
     core.dispatcher.dispatch({
-      type: "UPDATE_CURSOR_POSITION",
-      line,
       column,
+      line,
       selectionLength,
       selectionLines,
+      type: "UPDATE_CURSOR_POSITION",
     });
   }
 
   const isDark = () => {
-    const theme = core.settings.settings.theme;
+    const { theme } = core.settings.settings;
     if (theme === "dark") {
       return true;
     }

@@ -16,7 +16,7 @@ describe("flattenConsoleEntries", () => {
   ): { entry: OutputEntry; rendered: RenderedOutput } {
     return {
       entry: mockEntry,
-      rendered: { variant, tokens: tokens ?? [] },
+      rendered: { tokens: tokens ?? [], variant },
     };
   }
 
@@ -111,7 +111,7 @@ describe("flattenConsoleEntries", () => {
       () => false,
       2, // startIndex
       result, // pass existing visibleItems
-      [{ id: 0, hidden: false }] // manually passing the groupStack state
+      [{ hidden: false, id: 0 }] // manually passing the groupStack state
     );
 
     expect(incrementalResult.length).toBe(3);

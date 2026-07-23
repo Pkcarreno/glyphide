@@ -32,7 +32,7 @@ describe("Orchestrator: worker cleanup", () => {
     orchestrator = new EngineOrchestrator({
       createWorker: createQuickJSWorker,
     });
-    await orchestrator.init({ timeout: 5000, memoryLimit: 2 * 1024 * 1024 });
+    await orchestrator.init({ memoryLimit: 2 * 1024 * 1024, timeout: 5000 });
 
     // Trigger a memory bomb. The adapter should reject the alloc
     // OR throw a graceful error; in either case the run promise
@@ -57,7 +57,7 @@ describe("Orchestrator: worker cleanup", () => {
     // A fresh init must produce a working engine. If the worker
     // is leaking, this will fail with "Orchestrator not initialized"
     // or with a worker-spawn error.
-    await orchestrator.init({ timeout: 5000, memoryLimit: 10 * 1024 * 1024 });
+    await orchestrator.init({ memoryLimit: 10 * 1024 * 1024, timeout: 5000 });
     await expect(orchestrator.run("1 + 1")).resolves.toBeUndefined();
   });
 });

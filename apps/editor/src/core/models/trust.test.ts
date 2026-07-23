@@ -13,8 +13,8 @@ function createMockUrlState(
   }
   return {
     get: vi.fn((key: string) => store.get(key) ?? null),
-    set: vi.fn(),
     remove: vi.fn(),
+    set: vi.fn(),
   };
 }
 

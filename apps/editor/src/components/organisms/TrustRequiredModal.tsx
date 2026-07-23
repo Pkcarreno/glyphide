@@ -24,8 +24,8 @@ export function TrustRequiredModal(props: TrustRequiredModalProps) {
 
   const handleOpenChange = (isOpen: boolean) => {
     core.dispatcher.dispatch({
-      type: isOpen ? "OPEN_OVERLAY" : "CLOSE_OVERLAY",
       overlayId: "trust-required",
+      type: isOpen ? "OPEN_OVERLAY" : "CLOSE_OVERLAY",
     });
   };
 
@@ -69,8 +69,8 @@ export function TrustRequiredModal(props: TrustRequiredModalProps) {
               class="flex-1"
               onClick={() =>
                 core.dispatcher.dispatch({
-                  type: "CLOSE_OVERLAY",
                   overlayId: "trust-required",
+                  type: "CLOSE_OVERLAY",
                 })
               }
               variant="primary"

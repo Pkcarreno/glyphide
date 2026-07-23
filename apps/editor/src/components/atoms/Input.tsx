@@ -5,24 +5,24 @@ import { cn } from "../../helpers/cn.ts";
 const inputWrapperVariants = cva(
   "flex items-center text-on-surface transition-colors",
   {
+    defaultVariants: {
+      size: "default",
+      variant: "default",
+    },
     variants: {
+      size: {
+        default: "h-7 text-xs",
+        lg: "h-9 text-sm",
+        sm: "h-6 text-xs",
+      },
       variant: {
+        bottomBorder:
+          "rounded-none border-outline-variant border-b bg-transparent px-2",
         default:
           "rounded-sm border border-outline-variant bg-surface px-2 focus-within:ring-2 focus-within:ring-primary/30",
         ghost:
           "rounded-sm border-none bg-transparent px-2 focus-within:bg-surface-variant/30",
-        bottomBorder:
-          "rounded-none border-outline-variant border-b bg-transparent px-2",
       },
-      size: {
-        sm: "h-6 text-xs",
-        default: "h-7 text-xs",
-        lg: "h-9 text-sm",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
     },
   }
 );
@@ -67,7 +67,7 @@ export function Input(props: InputProps) {
   return (
     <div
       class={cn(
-        inputWrapperVariants({ variant: local.variant, size: local.inputSize }),
+        inputWrapperVariants({ size: local.inputSize, variant: local.variant }),
         local.wrapperClass
       )}
     >

@@ -10,27 +10,27 @@ import { handleV3 } from "./v3.ts";
  * be reused by the public `migrateUrl` API and any future tooling.
  */
 export interface VersionHandler {
-  canHandle(url: URL): boolean;
-  parse(url: URL): import("../types.ts").CanonicalState;
+  canHandle: (url: URL) => boolean;
+  parse: (url: URL) => import("../types.ts").CanonicalState;
   readonly version: VersionLiteral;
 }
 
 const v1Handler: VersionHandler = {
-  version: "v1",
   canHandle: (url) => url.hash.startsWith("#code="),
   parse: handleV1,
+  version: "v1",
 };
 
 const v2Handler: VersionHandler = {
-  version: "v2",
   canHandle: (url) => url.searchParams.has("c") || url.searchParams.has("t"),
   parse: handleV2,
+  version: "v2",
 };
 
 const v3Handler: VersionHandler = {
-  version: "v3",
   canHandle: (url) => url.searchParams.has("code"),
   parse: handleV3,
+  version: "v3",
 };
 
 /**

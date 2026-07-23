@@ -40,11 +40,11 @@ function Header(props: HeaderProps) {
   }
 
   function handleSettingsClick() {
-    core.dispatcher.dispatch({ type: "TOGGLE_OVERLAY", overlayId: "settings" });
+    core.dispatcher.dispatch({ overlayId: "settings", type: "TOGGLE_OVERLAY" });
   }
 
   function handleShareClick() {
-    core.dispatcher.dispatch({ type: "OPEN_OVERLAY", overlayId: "share" });
+    core.dispatcher.dispatch({ overlayId: "share", type: "OPEN_OVERLAY" });
   }
 
   return (
@@ -77,8 +77,8 @@ function Header(props: HeaderProps) {
                 <Dropdown.Item
                   onSelect={() =>
                     core.dispatcher.dispatch({
-                      type: "OPEN_OVERLAY",
                       overlayId: "load-file",
+                      type: "OPEN_OVERLAY",
                     })
                   }
                 >
@@ -97,8 +97,8 @@ function Header(props: HeaderProps) {
                 <Dropdown.Item
                   onSelect={() =>
                     core.dispatcher.dispatch({
-                      type: "OPEN_OVERLAY",
                       overlayId: "engine-selector",
+                      type: "OPEN_OVERLAY",
                     })
                   }
                 >
@@ -107,8 +107,8 @@ function Header(props: HeaderProps) {
                 <Dropdown.Item
                   onSelect={() =>
                     core.dispatcher.dispatch({
-                      type: "OPEN_OVERLAY",
                       overlayId: "engine-settings",
+                      type: "OPEN_OVERLAY",
                     })
                   }
                 >
@@ -127,14 +127,14 @@ function Header(props: HeaderProps) {
           </Dropdown.Portal>
         </Dropdown.Root>
         <ActionTooltip
-          action={{ type: "OPEN_OVERLAY", overlayId: "project-rename" }}
+          action={{ overlayId: "project-rename", type: "OPEN_OVERLAY" }}
           aria-label="Rename Project"
           as={Button}
           class="font-sans font-semibold text-on-surface tracking-wide"
           onClick={() =>
             core.dispatcher.dispatch({
-              type: "OPEN_OVERLAY",
               overlayId: "project-rename",
+              type: "OPEN_OVERLAY",
             })
           }
           position="bottom"
@@ -146,15 +146,15 @@ function Header(props: HeaderProps) {
 
         <Show when={core.trust.isTrustRequired()}>
           <ActionTooltip
-            action={{ type: "OPEN_OVERLAY", overlayId: "trust-required" }}
+            action={{ overlayId: "trust-required", type: "OPEN_OVERLAY" }}
             aria-label="Trust Required"
             as={Button}
             class="border-log-warn bg-log-warn/10 text-log-warn hover:bg-log-warn/20"
             meta="Review before running"
             onClick={() =>
               core.dispatcher.dispatch({
-                type: "OPEN_OVERLAY",
                 overlayId: "trust-required",
+                type: "OPEN_OVERLAY",
               })
             }
             position="bottom"
@@ -188,7 +188,7 @@ function Header(props: HeaderProps) {
         {/* Hidden on mobile, visible md+ */}
         <span class="hidden md:block">
           <ActionTooltip
-            action={{ type: "TOGGLE_OVERLAY", overlayId: "settings" }}
+            action={{ overlayId: "settings", type: "TOGGLE_OVERLAY" }}
             aria-label="Settings"
             as={Button}
             onClick={handleSettingsClick}
@@ -202,7 +202,7 @@ function Header(props: HeaderProps) {
         </span>
         <span class="hidden md:block">
           <ActionTooltip
-            action={{ type: "OPEN_OVERLAY", overlayId: "share" }}
+            action={{ overlayId: "share", type: "OPEN_OVERLAY" }}
             aria-label="Share workspace"
             as={Button}
             onClick={handleShareClick}

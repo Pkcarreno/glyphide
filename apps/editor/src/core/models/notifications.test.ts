@@ -24,7 +24,7 @@ describe("NotificationModel", () => {
   it("dismisses an active toast", () => {
     const model = createNotificationModel();
     model.dispatchNotification({ title: "To dismiss", type: "success" });
-    const id = model.activeToasts()[0].id;
+    const [{ id }] = model.activeToasts();
 
     expect(model.activeToasts().length).toBe(1);
 

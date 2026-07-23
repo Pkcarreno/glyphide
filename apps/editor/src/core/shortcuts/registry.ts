@@ -29,7 +29,7 @@ export interface ShortcutRegistry {
   /** All registered bindings (for rendering in UI tooltips). */
   bindings: readonly ShortcutBinding[];
   /** Returns the matching action for a key combo, or `null`. */
-  matchShortcut(combo: KeyCombo, core?: EditorCore): EditorAction | null;
+  matchShortcut: (combo: KeyCombo, core?: EditorCore) => EditorAction | null;
 }
 
 /**
@@ -58,7 +58,7 @@ export function createShortcutRegistry(
     return null;
   }
 
-  return { matchShortcut, bindings };
+  return { bindings, matchShortcut };
 }
 
 /** Converts a native keyboard event into a platform-agnostic `KeyCombo`. */
@@ -70,35 +70,35 @@ export function parseKeyCombo(event: {
   altKey: boolean;
 }): KeyCombo {
   return {
-    key: event.key,
-    ctrlOrMeta: event.ctrlKey || event.metaKey,
-    shift: event.shiftKey,
     alt: event.altKey,
+    ctrlOrMeta: event.ctrlKey || event.metaKey,
+    key: event.key,
+    shift: event.shiftKey,
   };
 }
 
 /** Default keyboard shortcuts for the editor. */
 export const defaultShortcutBindings: ShortcutBinding[] = [
   {
-    combo: { key: "Enter", ctrlOrMeta: true, shift: false, alt: false },
     action: { type: "RUN_CODE" },
+    combo: { alt: false, ctrlOrMeta: true, key: "Enter", shift: false },
     label: "Ctrl+Enter",
   },
   {
-    combo: { key: "Escape", ctrlOrMeta: false, shift: false, alt: false },
     action: { type: "CLOSE_ALL_OVERLAYS" },
+    combo: { alt: false, ctrlOrMeta: false, key: "Escape", shift: false },
     label: "Escape",
     when: (core) => core.overlays.hasActiveOverlays(),
   },
   {
-    combo: { key: "Escape", ctrlOrMeta: false, shift: false, alt: false },
     action: { type: "INTERRUPT_EXECUTION" },
+    combo: { alt: false, ctrlOrMeta: false, key: "Escape", shift: false },
     label: "Escape",
     when: (core) => !core.overlays.hasActiveOverlays(),
   },
   {
-    combo: { key: ",", ctrlOrMeta: true, shift: false, alt: false },
-    action: { type: "TOGGLE_OVERLAY", overlayId: "settings" },
+    action: { overlayId: "settings", type: "TOGGLE_OVERLAY" },
+    combo: { alt: false, ctrlOrMeta: true, key: ",", shift: false },
     label: "Ctrl+,",
   },
 ];

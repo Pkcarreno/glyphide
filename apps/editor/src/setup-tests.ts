@@ -47,16 +47,16 @@ if (
 
 if (typeof window !== "undefined" && typeof window.matchMedia === "undefined") {
   Object.defineProperty(window, "matchMedia", {
-    writable: true,
     value: (query: string) => ({
+      addEventListener: () => undefined,
+      addListener: () => undefined,
+      dispatchEvent: () => true,
       matches: false,
       media: query,
       onchange: null,
-      addListener: () => undefined,
-      removeListener: () => undefined,
-      addEventListener: () => undefined,
       removeEventListener: () => undefined,
-      dispatchEvent: () => true,
+      removeListener: () => undefined,
     }),
+    writable: true,
   });
 }

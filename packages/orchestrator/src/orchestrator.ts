@@ -22,6 +22,22 @@ import { MessageBus } from "./message-bus.ts";
 import { PromiseRegistry } from "./promise-registry.ts";
 
 /**
+ * Extracts a human-readable message from an unknown catch value.
+ * Handles Error instances, plain JSON-RPC error objects ({ code, message }),
+ * and any other value via String coercion.
+ */
+function extractMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  const asRecord = error as Record<string, unknown>;
+  if (typeof asRecord.message === "string") {
+    return asRecord.message;
+  }
+  return String(error);
+}
+
+/**
  * Phantom-typed worker factory.
  * The generic parameter carries the engine's output payload shape
  * through the type system without adding runtime overhead.
@@ -80,8 +96,8 @@ export class EngineOrchestrator<
         ((() => {
           throw new Error("createWorker factory not provided");
         }) as unknown as TFactory),
-      useWorker: config.useWorker ?? true,
       events: config.events ?? {},
+      useWorker: config.useWorker ?? true,
     };
     this.#registry = new PromiseRegistry();
   }
@@ -104,14 +120,12 @@ export class EngineOrchestrator<
         params: configParams,
       })) as JsonRpcOkResponse<EngineInitResult>;
     } catch (error) {
-      const message =
-        typeof error === "object" && error !== null && "message" in error
-          ? String((error as { message: unknown }).message)
-          : String(error);
-      throw new Error(`Init failed: ${message}`);
+      throw new Error(`Init failed: ${extractMessage(error)}`, {
+        cause: error,
+      });
     }
 
-    const result = response.result;
+    const { result } = response;
     this.#timeout = result.timeout ?? 30_000;
     this.#config.events.onEngineReady?.(result);
 
@@ -133,11 +147,9 @@ export class EngineOrchestrator<
         params: { code },
       });
     } catch (error) {
-      const message =
-        typeof error === "object" && error !== null && "message" in error
-          ? String((error as { message: unknown }).message)
-          : String(error);
-      throw new Error(`Execution failed: ${message}`);
+      throw new Error(`Execution failed: ${extractMessage(error)}`, {
+        cause: error,
+      });
     }
 
     if (isJsonRpcFail(response)) {
@@ -165,8 +177,8 @@ export class EngineOrchestrator<
 
     // Notify listeners that execution was forcefully interrupted
     this.#config.events.onOutput?.({
-      type: "system",
       data: "Execution interrupted",
+      type: "system",
     } as InferEnginePayload<TFactory>);
 
     this.#recoveryPromise = (async () => {
@@ -285,7 +297,8 @@ export class EngineOrchestrator<
       throw new Error("Orchestrator not initialized");
     }
 
-    const id = this.#nextId++;
+    const id = this.#nextId;
+    this.#nextId += 1;
     const [promise, _resolve, reject] = this.#registry.register<T>(id);
     this.#bus?.sendRequest(message, id);
 
@@ -309,7 +322,7 @@ export class EngineOrchestrator<
         clearTimeout(requestTimeoutId);
       })
       .then(
-        (result) => ({ jsonrpc: "2.0", id, result }) as JsonRpcOkResponse<T>
+        (result) => ({ id, jsonrpc: "2.0", result }) as JsonRpcOkResponse<T>
       ) as Promise<JsonRpcOkResponse<T>>;
   }
 

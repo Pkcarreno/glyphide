@@ -15,14 +15,14 @@ const fileDropVariants = cva(
     "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
   ],
   {
+    defaultVariants: {
+      size: "default",
+    },
     variants: {
       size: {
         default: "h-34 px-4",
         "full-width": "h-34 w-full px-4",
       },
-    },
-    defaultVariants: {
-      size: "default",
     },
   }
 );
@@ -201,7 +201,7 @@ export function FileDrop(props: FileDropProps) {
 
   // Visual state classes — derived at render time, not via CVA.
   const stateClasses = createMemo(() => {
-    switch (visualState()) {
+    switch (visualState() as VisualState) {
       case "idle":
         return "border-dashed border-outline-variant bg-transparent text-on-surface-variant";
       case "drag-over":

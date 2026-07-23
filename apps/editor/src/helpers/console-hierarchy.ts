@@ -40,7 +40,7 @@ function processConsoleEntry(
   oldItemMap?: Map<number, FlatConsoleItem>
 ) {
   const { entry, rendered } = formattedEntry;
-  const variant = rendered.variant;
+  const { variant } = rendered;
 
   if (variant === "groupEnd") {
     if (groupStack.length > 0) {
@@ -56,7 +56,7 @@ function processConsoleEntry(
     // Even if hidden, if this is a group we must push it to the stack
     // to ensure its corresponding groupEnd pops correctly.
     if (variant === "group" || variant === "groupCollapsed") {
-      groupStack.push({ id: i, hidden: true });
+      groupStack.push({ hidden: true, id: i });
     }
     return;
   }
@@ -72,6 +72,11 @@ function processConsoleEntry(
   const depth = groupStack.length;
   const oldItem = oldItemMap?.get(i);
 
+  let groupLabel: ConsoleToken[] | undefined;
+  if (isGroup) {
+    groupLabel = rendered.tokens ? (rendered.tokens as ConsoleToken[]) : [];
+  }
+
   if (
     oldItem &&
     oldItem.depth === depth &&
@@ -81,20 +86,18 @@ function processConsoleEntry(
     visibleItems.push(oldItem);
   } else {
     visibleItems.push({
-      id: i,
-      entry,
-      rendered,
       depth,
-      isGroup,
+      entry,
+      groupLabel,
+      id: i,
       isCollapsed,
-      groupLabel: isGroup
-        ? ((rendered.tokens as ConsoleToken[]) ?? [])
-        : undefined,
+      isGroup,
+      rendered,
     });
   }
 
   if (isGroup) {
-    groupStack.push({ id: i, hidden: isCollapsed });
+    groupStack.push({ hidden: isCollapsed, id: i });
   }
 }
 
@@ -138,7 +141,7 @@ export function flattenConsoleEntries(
     groupStack.length = 0;
   }
 
-  for (let i = startIndex; i < formattedEntries.length; i++) {
+  for (let i = startIndex; i < formattedEntries.length; i += 1) {
     processConsoleEntry(
       i,
       formattedEntries[i],

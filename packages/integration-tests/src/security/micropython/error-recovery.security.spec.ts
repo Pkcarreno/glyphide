@@ -51,7 +51,8 @@ describe("MicroPython: error recovery", () => {
       ) {
         throw new Error(
           `[${MP_RECOVERY_AFTER_GLOBALTHIS_ACCESS.id}] VULNERABILITY CONFIRMED — ` +
-            `globalThis access was permitted (no exception). Output: ${output.slice(0, 400)}`
+            `globalThis access was permitted (no exception). Output: ${output.slice(0, 400)}`,
+          { cause: err }
         );
       }
       // The PoC is structured so that even if the access is denied
@@ -61,7 +62,8 @@ describe("MicroPython: error recovery", () => {
         !output.includes(MP_RECOVERY_AFTER_GLOBALTHIS_ACCESS.secureSubstring)
       ) {
         throw new Error(
-          `[${MP_RECOVERY_AFTER_GLOBALTHIS_ACCESS.id}] engine did not recover — output: ${output.slice(0, 400)}`
+          `[${MP_RECOVERY_AFTER_GLOBALTHIS_ACCESS.id}] engine did not recover — output: ${output.slice(0, 400)}`,
+          { cause: err }
         );
       }
       throw err;

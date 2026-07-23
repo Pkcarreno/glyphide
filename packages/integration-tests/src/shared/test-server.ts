@@ -27,9 +27,6 @@ export function createTestServer(): TestServer {
     get port() {
       return port;
     },
-    get url() {
-      return `http://127.0.0.1:${port}`;
-    },
     start: () =>
       new Promise<void>((resolve, reject) => {
         const scriptPath = path.join(
@@ -61,5 +58,8 @@ export function createTestServer(): TestServer {
         cp.on("exit", () => resolve());
         cp.kill();
       }),
+    get url() {
+      return `http://127.0.0.1:${port}`;
+    },
   };
 }

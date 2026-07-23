@@ -47,14 +47,14 @@ export interface BufferModel {
    * Replaces the buffer content entirely.
    * `source: "default"` arms the pristine flag; anything else disarms it.
    */
-  setContent(code: string, options?: SetContentOptions): void;
+  setContent: (code: string, options?: SetContentOptions) => void;
   /** Updates the cursor position. */
-  setCursorPosition(
+  setCursorPosition: (
     line: number,
     column: number,
     selectionLength: number,
     selectionLines: number
-  ): void;
+  ) => void;
 }
 
 /**
@@ -78,8 +78,8 @@ export function createBufferModel(
     urlCode === null ? (options.source ?? "user") : "user";
   const [content, setContentSignal] = createSignal(startContent);
   const [cursorPosition, setCursorPositionSignal] = createSignal({
-    line: 1,
     column: 1,
+    line: 1,
     selectionLength: 0,
     selectionLines: 0,
   });
@@ -105,7 +105,7 @@ export function createBufferModel(
     selectionLength: number,
     selectionLines: number
   ): void {
-    setCursorPositionSignal({ line, column, selectionLength, selectionLines });
+    setCursorPositionSignal({ column, line, selectionLength, selectionLines });
   }
 
   return {

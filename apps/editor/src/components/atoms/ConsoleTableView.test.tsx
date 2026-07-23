@@ -8,12 +8,12 @@ describe("ConsoleTableView", () => {
       const { container } = render(() => (
         <ConsoleTableView
           token={{
-            type: "array",
-            length: 2,
             elements: [
               { type: "number", value: 42 },
               { type: "string", value: "hello" },
             ],
+            length: 2,
+            type: "array",
           }}
         />
       ));
@@ -45,21 +45,21 @@ describe("ConsoleTableView", () => {
       const { container } = render(() => (
         <ConsoleTableView
           token={{
-            type: "array",
-            length: 2,
             elements: [
               {
-                type: "object",
                 properties: { a: { type: "number", value: 1 } },
+                type: "object",
               },
               {
-                type: "object",
                 properties: {
                   a: { type: "number", value: 2 },
                   b: { type: "string", value: "hi" },
                 },
+                type: "object",
               },
             ],
+            length: 2,
+            type: "array",
           }}
         />
       ));
@@ -93,11 +93,11 @@ describe("ConsoleTableView", () => {
       const { container } = render(() => (
         <ConsoleTableView
           token={{
-            type: "object",
             properties: {
               a: { type: "number", value: 10 },
               b: { type: "string", value: "test" },
             },
+            type: "object",
           }}
         />
       ));

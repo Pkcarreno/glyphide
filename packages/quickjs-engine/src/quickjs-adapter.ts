@@ -141,18 +141,18 @@ export class QuickJSEngineAdapter {
       this.#injectFetch();
 
       this.#sendResponse({
-        jsonrpc: "2.0",
         id,
+        jsonrpc: "2.0",
         result: { timeout: this.#config.timeout, ...defaultCapabilities },
       });
     } catch (error) {
       this.#sendResponse({
-        jsonrpc: "2.0",
-        id,
         error: {
           code: RpcErrorCode.ServerError,
           message: `Init failed: ${error instanceof Error ? error.message : String(error)}`,
         },
+        id,
+        jsonrpc: "2.0",
       });
     }
   }
@@ -160,12 +160,12 @@ export class QuickJSEngineAdapter {
   #handleRun(id: string | number | null, params?: unknown): void {
     if (!(this.#context && this.#runtime)) {
       this.#sendResponse({
-        jsonrpc: "2.0",
-        id,
         error: {
           code: RpcErrorCode.ServerError,
           message: "Engine not initialized",
         },
+        id,
+        jsonrpc: "2.0",
       });
       return;
     }
@@ -192,9 +192,9 @@ export class QuickJSEngineAdapter {
             : String(errorVal);
 
         this.#sendResponse({
-          jsonrpc: "2.0",
-          id,
           error: { code: RpcErrorCode.InternalError, message: errorMsg },
+          id,
+          jsonrpc: "2.0",
         });
         return;
       }
@@ -206,18 +206,18 @@ export class QuickJSEngineAdapter {
       this.#runtime.executePendingJobs();
 
       this.#sendResponse({
-        jsonrpc: "2.0",
         id,
+        jsonrpc: "2.0",
         result: { executed: true, value: valueMsg },
       });
     } catch (error) {
       this.#sendResponse({
-        jsonrpc: "2.0",
-        id,
         error: {
           code: RpcErrorCode.InternalError,
           message: `Execution failed: ${error instanceof Error ? error.message : String(error)}`,
         },
+        id,
+        jsonrpc: "2.0",
       });
     } finally {
       this.#runtime.removeInterruptHandler();
@@ -235,12 +235,12 @@ export class QuickJSEngineAdapter {
   #handleReset(id: string | number | null): void {
     if (!this.#runtime) {
       this.#sendResponse({
-        jsonrpc: "2.0",
-        id,
         error: {
           code: RpcErrorCode.ServerError,
           message: "Engine not initialized",
         },
+        id,
+        jsonrpc: "2.0",
       });
       return;
     }
@@ -253,18 +253,18 @@ export class QuickJSEngineAdapter {
       this.#injectFetch();
 
       this.#sendResponse({
-        jsonrpc: "2.0",
         id,
+        jsonrpc: "2.0",
         result: { reset: true },
       });
     } catch (error) {
       this.#sendResponse({
-        jsonrpc: "2.0",
-        id,
         error: {
           code: RpcErrorCode.ServerError,
           message: `Reset failed: ${error instanceof Error ? error.message : String(error)}`,
         },
+        id,
+        jsonrpc: "2.0",
       });
     }
   }
@@ -304,8 +304,6 @@ export class QuickJSEngineAdapter {
     if (state.type === "rejected") {
       state.error.dispose();
     }
-
-    return;
   }
 
   #injectSecurityPrelude(): void {
@@ -370,8 +368,8 @@ export class QuickJSEngineAdapter {
         }
 
         this.#onNotification(EngineMethod.Output, {
-          type: method as Exclude<QuickJSOutputPayload["type"], "system">,
           data: tokens,
+          type: method as Exclude<QuickJSOutputPayload["type"], "system">,
         } satisfies QuickJSOutputPayload);
       }
     );

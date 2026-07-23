@@ -137,12 +137,12 @@ export function CommandRoot(props: CommandRootProps) {
   return (
     <CommandContext.Provider
       value={{
-        search,
-        setSearch,
         registerItem,
-        unregisterItem,
+        search,
         selectedId,
+        setSearch,
         setSelectedId,
+        unregisterItem,
         visibleItems,
       }}
     >
@@ -292,7 +292,7 @@ export function CommandItem(props: CommandItemProps) {
 
   createEffect(() => {
     if (isSelected() && ref && typeof ref.scrollIntoView === "function") {
-      ref.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      ref.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   });
 

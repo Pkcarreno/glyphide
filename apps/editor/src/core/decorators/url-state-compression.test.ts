@@ -6,13 +6,13 @@ import { composeCompressedUrlState } from "./url-state-compression.ts";
 describe("composeCompressedUrlState", () => {
   const mockBasePort: UrlStatePort = {
     get: vi.fn(),
-    set: vi.fn(),
     remove: vi.fn(),
+    set: vi.fn(),
   };
 
   const mockCodec: CodecPort = {
-    encode: vi.fn((val) => `ENCODED_${val}`),
     decode: vi.fn((val) => val.replace("ENCODED_", "")),
+    encode: vi.fn((val) => `ENCODED_${val}`),
   };
 
   const keysToCompress = ["code", "engine"];

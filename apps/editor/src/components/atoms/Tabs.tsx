@@ -237,12 +237,12 @@ function TabsList(props: TabsListProps) {
   const buildKeyMap = (): Record<string, (triggers: HTMLElement[]) => void> => {
     const isHorizontal = ctx.orientation() === "horizontal";
     return {
-      ArrowRight: isHorizontal ? stepBy(1) : goToLast,
-      ArrowLeft: isHorizontal ? stepBy(-1) : goToFirst,
       ArrowDown: isHorizontal ? goToLast : stepBy(1),
+      ArrowLeft: isHorizontal ? stepBy(-1) : goToFirst,
+      ArrowRight: isHorizontal ? stepBy(1) : goToLast,
       ArrowUp: isHorizontal ? goToFirst : stepBy(-1),
-      Home: goToFirst,
       End: goToLast,
+      Home: goToFirst,
     };
   };
 

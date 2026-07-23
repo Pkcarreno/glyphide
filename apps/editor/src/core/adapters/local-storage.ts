@@ -19,18 +19,18 @@ export function createLocalStorageAdapter(): PersistencePort {
         return null;
       }
     },
-    set(key, value) {
-      try {
-        localStorage.setItem(prefixed(key), value);
-      } catch {
-        // Storage quota exceeded or unavailable — fail silently.
-      }
-    },
     remove(key) {
       try {
         localStorage.removeItem(prefixed(key));
       } catch {
         // Unavailable — fail silently.
+      }
+    },
+    set(key, value) {
+      try {
+        localStorage.setItem(prefixed(key), value);
+      } catch {
+        // Storage quota exceeded or unavailable — fail silently.
       }
     },
   };

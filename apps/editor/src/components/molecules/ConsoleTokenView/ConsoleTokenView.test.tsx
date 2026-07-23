@@ -59,7 +59,7 @@ describe("ConsoleTokenView", () => {
   describe("function token", () => {
     it("renders function name with ƒ prefix", () => {
       const { container } = render(() => (
-        <ConsoleTokenView tokens={[{ type: "function", name: "myFn" }]} />
+        <ConsoleTokenView tokens={[{ name: "myFn", type: "function" }]} />
       ));
       expect(container.textContent).toContain("ƒ");
       expect(container.textContent).toContain("myFn");
@@ -70,7 +70,7 @@ describe("ConsoleTokenView", () => {
     it("renders Symbol with description", () => {
       const { container } = render(() => (
         <ConsoleTokenView
-          tokens={[{ type: "symbol", description: "mySymbol" }]}
+          tokens={[{ description: "mySymbol", type: "symbol" }]}
         />
       ));
       expect(container.textContent).toContain("Symbol(mySymbol)");
@@ -92,12 +92,12 @@ describe("ConsoleTokenView", () => {
         <ConsoleTokenView
           tokens={[
             {
-              type: "array",
-              length: 2,
               elements: [
                 { type: "number", value: 1 },
                 { type: "number", value: 2 },
               ],
+              length: 2,
+              type: "array",
             },
           ]}
         />
@@ -112,12 +112,12 @@ describe("ConsoleTokenView", () => {
         <ConsoleTokenView
           tokens={[
             {
-              type: "array",
-              length: 2,
               elements: [
                 { type: "number", value: 100 },
                 { type: "number", value: 200 },
               ],
+              length: 2,
+              type: "array",
             },
           ]}
         />
@@ -142,12 +142,12 @@ describe("ConsoleTokenView", () => {
 
     it("persists expanded state when remounted with the same token reference", () => {
       const tokenArray = {
-        type: "array" as const,
-        length: 2,
         elements: [
           { type: "number" as const, value: 50 },
           { type: "number" as const, value: 60 },
         ],
+        length: 2,
+        type: "array" as const,
       };
 
       const { container, unmount } = render(() => (
@@ -176,12 +176,12 @@ describe("ConsoleTokenView", () => {
         <ConsoleTokenView
           tokens={[
             {
-              type: "array",
-              length: 6,
               elements: Array.from({ length: 6 }).map((_, i) => ({
                 type: "number",
                 value: i,
               })),
+              length: 6,
+              type: "array",
             },
           ]}
         />
@@ -197,11 +197,11 @@ describe("ConsoleTokenView", () => {
         <ConsoleTokenView
           tokens={[
             {
-              type: "object",
               properties: {
                 a: { type: "number", value: 1 },
                 b: { type: "string", value: "hi" },
               },
+              type: "object",
             },
           ]}
         />
@@ -217,10 +217,10 @@ describe("ConsoleTokenView", () => {
         <ConsoleTokenView
           tokens={[
             {
-              type: "object",
               properties: {
                 deepKey: { type: "number", value: 999 },
               },
+              type: "object",
             },
           ]}
         />
@@ -245,7 +245,6 @@ describe("ConsoleTokenView", () => {
         <ConsoleTokenView
           tokens={[
             {
-              type: "object",
               properties: {
                 a: { type: "number", value: 1 },
                 b: { type: "number", value: 2 },
@@ -254,6 +253,7 @@ describe("ConsoleTokenView", () => {
                 e: { type: "number", value: 5 },
                 f: { type: "number", value: 6 },
               },
+              type: "object",
             },
           ]}
         />
@@ -291,14 +291,14 @@ describe("ConsoleTokenView", () => {
         <ConsoleTokenView
           tokens={[
             {
-              type: "map",
-              size: 1,
               entries: [
                 [
                   { type: "string", value: "key" },
                   { type: "number", value: 100 },
                 ],
               ],
+              size: 1,
+              type: "map",
             },
           ]}
         />
@@ -314,14 +314,14 @@ describe("ConsoleTokenView", () => {
         <ConsoleTokenView
           tokens={[
             {
-              type: "map",
-              size: 1,
               entries: [
                 [
                   { type: "string", value: "key" },
                   { type: "number", value: 100 },
                 ],
               ],
+              size: 1,
+              type: "map",
             },
           ]}
         />
@@ -345,12 +345,12 @@ describe("ConsoleTokenView", () => {
         <ConsoleTokenView
           tokens={[
             {
-              type: "set",
-              size: 2,
               elements: [
                 { type: "string", value: "one" },
                 { type: "string", value: "two" },
               ],
+              size: 2,
+              type: "set",
             },
           ]}
         />
@@ -365,12 +365,12 @@ describe("ConsoleTokenView", () => {
         <ConsoleTokenView
           tokens={[
             {
-              type: "set",
-              size: 2,
               elements: [
                 { type: "string", value: "one" },
                 { type: "string", value: "two" },
               ],
+              size: 2,
+              type: "set",
             },
           ]}
         />
@@ -394,13 +394,13 @@ describe("ConsoleTokenView", () => {
         <ConsoleTokenView
           tokens={[
             {
-              type: "object",
               properties: {
                 nestedObject: {
-                  type: "object",
                   properties: { inner: { type: "number", value: 1 } },
+                  type: "object",
                 },
               },
+              type: "object",
             },
           ]}
         />
@@ -428,7 +428,7 @@ describe("ConsoleTokenView", () => {
     it("renders RegExp source and flags", () => {
       const { container } = render(() => (
         <ConsoleTokenView
-          tokens={[{ type: "regexp", source: "abc", flags: "gi" }]}
+          tokens={[{ flags: "gi", source: "abc", type: "regexp" }]}
         />
       ));
       expect(container.textContent).toContain("/abc/gi");
@@ -461,7 +461,7 @@ describe("ConsoleTokenView", () => {
       const { container } = render(() => (
         <ConsoleTokenView
           tokens={[
-            { type: "error", name: "TypeError", message: "invalid operation" },
+            { message: "invalid operation", name: "TypeError", type: "error" },
           ]}
         />
       ));

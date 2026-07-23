@@ -3,13 +3,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { StatusBar } from "./StatusBar.tsx";
 
 const { mockCursorPositionFn, dispatchMock } = vi.hoisted(() => ({
+  dispatchMock: vi.fn(),
   mockCursorPositionFn: vi.fn(() => ({
-    line: 1,
     column: 5,
+    line: 1,
     selectionLength: 0,
     selectionLines: 0,
   })),
-  dispatchMock: vi.fn(),
 }));
 
 let mockStatus = "idle";
@@ -22,20 +22,20 @@ vi.mock("../../core/context.tsx", () => ({
       content: () => "line1\nline2",
       cursorPosition: mockCursorPositionFn,
     },
+    dispatcher: { dispatch: dispatchMock },
     engine: {
-      engineStatus: () => mockStatus,
       activeEngineId: () => mockEngineId,
       activeLanguage: () => "javascript",
+      engineStatus: () => mockStatus,
       isDirty: () => mockIsDirty,
     },
-    notifications: {
-      unreadCount: () => 0,
-      items: () => [],
-      activeToasts: () => [],
-    },
-    dispatcher: { dispatch: dispatchMock },
     engineRegistry: {
       getDefinition: () => ({ paramDescriptors: [] }),
+    },
+    notifications: {
+      activeToasts: () => [],
+      items: () => [],
+      unreadCount: () => 0,
     },
     overlays: {
       isOpen: () => false,
@@ -49,8 +49,8 @@ afterEach(() => {
   mockEngineId = "quickjs";
   mockIsDirty = false;
   mockCursorPositionFn.mockReturnValue({
-    line: 1,
     column: 5,
+    line: 1,
     selectionLength: 0,
     selectionLines: 0,
   });
@@ -85,8 +85,8 @@ describe("StatusBar", () => {
 
   it("when there is a selection, displays the selection lines and length", () => {
     mockCursorPositionFn.mockReturnValue({
-      line: 2,
       column: 10,
+      line: 2,
       selectionLength: 42,
       selectionLines: 4,
     });

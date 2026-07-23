@@ -5,9 +5,9 @@
  */
 export interface PersistencePort {
   /** Retrieves a stored value by key. Returns `null` if absent. */
-  get(key: string): string | null;
+  get: (key: string) => string | null;
   /** Removes a stored entry by key. */
-  remove(key: string): void;
+  remove: (key: string) => void;
   /** Persists a value under the given key. */
-  set(key: string, value: string): void;
+  set: (key: string, value: string) => void;
 }

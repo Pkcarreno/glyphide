@@ -54,7 +54,8 @@ describe("QuickJS: sandbox isolation", () => {
           throw new Error(
             `[${scenario.id}] VULNERABILITY CONFIRMED — observed: ` +
               `"${scenario.vulnerableSubstring}". ` +
-              `Hardening required. Output: ${output.slice(0, 400)}`
+              `Hardening required. Output: ${output.slice(0, 400)}`,
+            { cause: err }
           );
         }
         throw err;

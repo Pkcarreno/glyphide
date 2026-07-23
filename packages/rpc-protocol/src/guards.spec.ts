@@ -16,7 +16,7 @@ import {
 describe("JSON-RPC Type Guards", () => {
   describe("isJsonRpcMessage", () => {
     it("returns true for valid response", () => {
-      expect(isJsonRpcMessage({ jsonrpc: "2.0", result: "ok", id: 1 })).toBe(
+      expect(isJsonRpcMessage({ id: 1, jsonrpc: "2.0", result: "ok" })).toBe(
         true
       );
     });
@@ -30,7 +30,7 @@ describe("JSON-RPC Type Guards", () => {
     });
 
     it("returns false for wrong version", () => {
-      expect(isJsonRpcMessage({ jsonrpc: "1.0", result: "ok", id: 1 })).toBe(
+      expect(isJsonRpcMessage({ id: 1, jsonrpc: "1.0", result: "ok" })).toBe(
         false
       );
     });
@@ -39,10 +39,10 @@ describe("JSON-RPC Type Guards", () => {
   describe("isJsonRpcRequest", () => {
     it("returns true for valid request", () => {
       const msg = {
+        id: 1,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: {},
-        id: 1,
       };
       expect(isJsonRpcRequest(msg)).toBe(true);
     });
@@ -53,16 +53,16 @@ describe("JSON-RPC Type Guards", () => {
     });
 
     it("returns false when id is undefined", () => {
-      const msg = { jsonrpc: "2.0", method: EngineMethod.Run, id: undefined };
+      const msg = { id: undefined, jsonrpc: "2.0", method: EngineMethod.Run };
       expect(isJsonRpcRequest(msg)).toBe(false);
     });
 
     it("returns true for ENGINE.INPUT_REQUEST", () => {
       const msg = {
+        id: 42,
         jsonrpc: "2.0",
         method: EngineMethod.InputRequest,
         params: { prompt: "Name: " },
-        id: 42,
       };
       expect(isJsonRpcRequest(msg)).toBe(true);
     });
@@ -79,23 +79,23 @@ describe("JSON-RPC Type Guards", () => {
     });
 
     it("returns false for request", () => {
-      const msg = { jsonrpc: "2.0", method: EngineMethod.Run, id: 1 };
+      const msg = { id: 1, jsonrpc: "2.0", method: EngineMethod.Run };
       expect(isJsonRpcNotification(msg)).toBe(false);
     });
   });
 
   describe("isJsonRpcResponse", () => {
     it("returns true for success response", () => {
-      expect(isJsonRpcResponse({ jsonrpc: "2.0", result: "ok", id: 1 })).toBe(
+      expect(isJsonRpcResponse({ id: 1, jsonrpc: "2.0", result: "ok" })).toBe(
         true
       );
     });
 
     it("returns true for fail response", () => {
       const msg = {
-        jsonrpc: "2.0",
         error: { code: -1, message: "bad" },
         id: 1,
+        jsonrpc: "2.0",
       };
       expect(isJsonRpcResponse(msg)).toBe(true);
     });
@@ -103,14 +103,14 @@ describe("JSON-RPC Type Guards", () => {
 
   describe("isJsonRpcOk", () => {
     it("returns true for success", () => {
-      expect(isJsonRpcOk({ jsonrpc: "2.0", result: "ok", id: 1 })).toBe(true);
+      expect(isJsonRpcOk({ id: 1, jsonrpc: "2.0", result: "ok" })).toBe(true);
     });
 
     it("returns false for fail", () => {
       const msg = {
-        jsonrpc: "2.0",
         error: { code: -1, message: "err" },
         id: 1,
+        jsonrpc: "2.0",
       };
       expect(isJsonRpcOk(msg)).toBe(false);
     });
@@ -119,15 +119,15 @@ describe("JSON-RPC Type Guards", () => {
   describe("isJsonRpcFail", () => {
     it("returns true for fail response", () => {
       const msg = {
-        jsonrpc: "2.0",
         error: { code: -1, message: "fail" },
         id: 1,
+        jsonrpc: "2.0",
       };
       expect(isJsonRpcFail(msg)).toBe(true);
     });
 
     it("returns false for success response", () => {
-      const msg = { jsonrpc: "2.0", result: "ok", id: 1 };
+      const msg = { id: 1, jsonrpc: "2.0", result: "ok" };
       expect(isJsonRpcFail(msg)).toBe(false);
     });
   });

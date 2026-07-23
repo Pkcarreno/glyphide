@@ -14,8 +14,8 @@ describe("EditorAction — trust mode types", () => {
 
   it("CLOSE_OVERLAY with trust-required is a valid EditorAction member", () => {
     const action: EditorAction = {
-      type: "CLOSE_OVERLAY",
       overlayId: "trust-required",
+      type: "CLOSE_OVERLAY",
     };
     expect(typeof action.type).toBe("string");
     expect(action.type.length).toBeGreaterThan(0);
@@ -24,8 +24,8 @@ describe("EditorAction — trust mode types", () => {
 
   it("OPEN_OVERLAY with trust-required is a valid EditorAction member", () => {
     const action: EditorAction = {
-      type: "OPEN_OVERLAY",
       overlayId: "trust-required",
+      type: "OPEN_OVERLAY",
     };
     expect(typeof action.type).toBe("string");
     expect(action.type.length).toBeGreaterThan(0);
@@ -42,11 +42,11 @@ describe("EditorAction — trust mode types", () => {
 describe("EditorAction — file backup flow types", () => {
   it("LOAD_FILE_FROM_DISK carries name, content, engineId, and language", () => {
     const action: EditorAction = {
-      type: "LOAD_FILE_FROM_DISK",
-      name: "script.js",
       content: "console.log(1)",
       engineId: "quickjs",
       language: "javascript",
+      name: "script.js",
+      type: "LOAD_FILE_FROM_DISK",
     };
     expect(action.type).toBe("LOAD_FILE_FROM_DISK");
     expect(action.name).toBe("script.js");

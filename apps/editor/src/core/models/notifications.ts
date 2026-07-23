@@ -27,11 +27,11 @@ export interface NotificationModel {
   /** The currently active notifications shown as floating toasts. */
   activeToasts: () => NotificationItem[];
   /** Removes a toast from the active display. */
-  dismissToast(id: string): void;
+  dismissToast: (id: string) => void;
   /** Adds a new notification and displays it as an active toast. */
-  dispatchNotification(payload: NotificationPayload): string;
+  dispatchNotification: (payload: NotificationPayload) => string;
   /** Tears down timers (used on core disposal). */
-  dispose(): void;
+  dispose: () => void;
 }
 
 /**
@@ -56,11 +56,11 @@ export function createNotificationModel(): NotificationModel {
     const id = crypto.randomUUID();
     const newItem: NotificationItem = {
       action: payload.action,
-      id,
-      title: payload.title,
       description: payload.description,
-      type: payload.type || "info",
+      id,
       timestamp: Date.now(),
+      title: payload.title,
+      type: payload.type || "info",
     };
 
     setActiveToasts((prev) => [...prev, newItem]);

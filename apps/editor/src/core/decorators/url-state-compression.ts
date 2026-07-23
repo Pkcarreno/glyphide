@@ -24,12 +24,12 @@ export function composeCompressedUrlState(
       }
       return value;
     },
+    remove(key: string): void {
+      base.remove(key);
+    },
     set(key: string, value: string): void {
       const finalValue = keys.has(key) ? codec.encode(value) : value;
       base.set(key, finalValue);
-    },
-    remove(key: string): void {
-      base.remove(key);
     },
   };
 }

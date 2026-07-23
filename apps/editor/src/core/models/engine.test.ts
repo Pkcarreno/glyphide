@@ -13,8 +13,8 @@ function createMockPersistence(): PersistencePort {
   const data = new Map();
   return {
     get: (key) => data.get(key) ?? null,
-    set: (key, val) => data.set(key, val),
     remove: (key) => data.delete(key),
+    set: (key, val) => data.set(key, val),
   };
 }
 
@@ -27,16 +27,16 @@ function createMockUrlState(): UrlStatePort & {
   const removeCalls: string[] = [];
   return {
     get: (key) => data.get(key) ?? null,
-    set: (key, val) => {
-      data.set(key, val);
-      setCalls.push({ key, value: val });
-    },
     remove: (key) => {
       data.delete(key);
       removeCalls.push(key);
     },
-    setCalls,
     removeCalls,
+    set: (key, val) => {
+      data.set(key, val);
+      setCalls.push({ key, value: val });
+    },
+    setCalls,
   };
 }
 
@@ -48,11 +48,11 @@ function createTestRegistry(): ReturnType<typeof createEngineRegistry> {
         throw new Error(`Unknown engine: "${id}"`);
       }
       return {
+        defaultInitParams: { timeout: 30_000 },
         id,
         label: "Test Engine",
-        supportedLanguages: ["javascript", "typescript"],
-        defaultInitParams: { timeout: 30_000 },
         paramDescriptors: [],
+        supportedLanguages: ["javascript", "typescript"],
       } as unknown as ReturnType<
         ReturnType<typeof createEngineRegistry>["getDefinition"]
       >;
@@ -70,14 +70,14 @@ function createTestRegistry(): ReturnType<typeof createEngineRegistry> {
             if (msg.method === EngineMethod.Init) {
               onMessage({
                 data: {
-                  jsonrpc: "2.0",
                   id: msg.id,
+                  jsonrpc: "2.0",
                   result: {
                     id: "test",
-                    timeout: 30_000,
-                    supportedLanguages: ["javascript"],
-                    isStateful: true,
                     isInterruptible: true,
+                    isStateful: true,
+                    supportedLanguages: ["javascript"],
+                    timeout: 30_000,
                   },
                 },
               });
@@ -87,13 +87,13 @@ function createTestRegistry(): ReturnType<typeof createEngineRegistry> {
                 data: {
                   jsonrpc: "2.0",
                   method: EngineMethod.Output,
-                  params: { type: "print", data: params?.code },
+                  params: { data: params.code, type: "print" },
                 },
               });
               onMessage({
                 data: {
-                  jsonrpc: "2.0",
                   id: msg.id,
+                  jsonrpc: "2.0",
                   result: { executed: true },
                 },
               });
@@ -103,9 +103,9 @@ function createTestRegistry(): ReturnType<typeof createEngineRegistry> {
             ) {
               onMessage({
                 data: {
-                  jsonrpc: "2.0",
                   id: msg.id,
-                  result: { reset: true, interrupted: true },
+                  jsonrpc: "2.0",
+                  result: { interrupted: true, reset: true },
                 },
               });
             }
@@ -146,8 +146,8 @@ describe("EngineModel (Integration)", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     expect(model.engineStatus()).toBe("idle");
@@ -159,14 +159,14 @@ describe("EngineModel (Integration)", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     model.selectEngineEntry({
       engineId: "mock",
-      language: "typescript",
       label: "",
+      language: "typescript",
     });
     // Selection updates signals but does NOT spawn a worker — status stays idle
     expect(model.activeEngineId()).toBe("mock");
@@ -185,14 +185,14 @@ describe("EngineModel (Integration)", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     model.selectEngineEntry({
       engineId: "mock",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
     await model.initializeSelectedEngine();
     buffer.setContent("test code");
@@ -211,14 +211,14 @@ describe("EngineModel (Integration)", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     model.selectEngineEntry({
       engineId: "mock",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
     await model.initializeSelectedEngine();
 
@@ -234,8 +234,8 @@ describe("EngineModel (Integration)", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     expect(model.activeEngineId()).toBe("mock");
@@ -247,8 +247,8 @@ describe("EngineModel (Integration)", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     expect(model.activeEngineId()).toBe("quickjs");
@@ -263,14 +263,14 @@ describe("EngineModel (Integration)", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry: brokenRegistry,
+      settings,
       urlState,
     });
     model.selectEngineEntry({
       engineId: "mock",
-      language: "plaintext",
       label: "",
+      language: "plaintext",
     });
     await model.initializeSelectedEngine();
     expect(model.engineStatus()).toBe("error");
@@ -287,14 +287,14 @@ describe("EngineModel (Integration)", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     model.selectEngineEntry({
       engineId: "mock",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
     await model.initializeSelectedEngine();
 
@@ -312,15 +312,15 @@ describe("EngineModel (Integration)", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
 
     model.selectEngineEntry({
       engineId: "mock",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
     await model.initializeSelectedEngine();
 
@@ -334,10 +334,16 @@ describe("EngineModel (Integration)", () => {
     buffer.setContent("new code");
     const execPromise = model.executeCode();
 
-    // Wait until the engine actually enters the running state
-    while (model.engineStatus() !== "running") {
+    // Wait until the engine actually enters the running state.
+    // Recursive polling to comply with noAwaitInLoops.
+    const waitForRunning = async (): Promise<void> => {
+      if (model.engineStatus() === "running") {
+        return;
+      }
       await sleep(2);
-    }
+      await waitForRunning();
+    };
+    await waitForRunning();
 
     // Modifying the buffer now should mark it as dirty
     model.onBufferUpdated("modified while running");
@@ -355,14 +361,14 @@ describe("EngineModel (Integration)", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     model.selectEngineEntry({
       engineId: "mock",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
     await model.initializeSelectedEngine();
 
@@ -373,8 +379,8 @@ describe("EngineModel (Integration)", () => {
     // Switch to a different engine
     model.selectEngineEntry({
       engineId: "quickjs",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
 
     // Output must be cleared before the new engine initializes
@@ -388,14 +394,14 @@ describe("EngineModel (Integration)", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     model.selectEngineEntry({
       engineId: "mock",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
     await model.initializeSelectedEngine();
 
@@ -411,8 +417,8 @@ describe("EngineModel (Integration)", () => {
     // Re-select the same engine and language
     model.selectEngineEntry({
       engineId: "mock",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
 
     // Entry should still be present (same-entry path does not clear)
@@ -426,14 +432,14 @@ describe("EngineModel (Integration)", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     model.selectEngineEntry({
       engineId: "mock",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
     await model.initializeSelectedEngine();
 
@@ -441,8 +447,8 @@ describe("EngineModel (Integration)", () => {
 
     model.selectEngineEntry({
       engineId: "micropython",
-      language: "python",
       label: "",
+      language: "python",
     });
 
     expect(output.entries().some((e) => e.data === "pre-switch log")).toBe(
@@ -473,8 +479,8 @@ describe("EngineModel URL conditional persistence (REQ-ENG-001..007)", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     expect(urlState.get("engine")).toBe("mock:javascript");
@@ -490,8 +496,8 @@ describe("EngineModel URL conditional persistence (REQ-ENG-001..007)", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     expect(urlState.get("engine")).toBeNull();
@@ -507,8 +513,8 @@ describe("EngineModel URL conditional persistence (REQ-ENG-001..007)", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     expect(urlState.get("engine")).toBeNull();
@@ -525,8 +531,8 @@ describe("EngineModel URL conditional persistence (REQ-ENG-001..007)", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     urlState.setCalls.length = 0;
@@ -543,16 +549,16 @@ describe("EngineModel URL conditional persistence (REQ-ENG-001..007)", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     buffer.setContent("hello world");
 
     model.selectEngineEntry({
       engineId: "mock",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
 
     // Buffer is non-empty, so engine should be persisted
@@ -565,8 +571,8 @@ describe("EngineModel URL conditional persistence (REQ-ENG-001..007)", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     // Tracker is "quickjs" (from URL), active is "quickjs", buffer is empty.
@@ -575,8 +581,8 @@ describe("EngineModel URL conditional persistence (REQ-ENG-001..007)", () => {
 
     model.selectEngineEntry({
       engineId: "mock",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
 
     // Internal state should reflect the new engine
@@ -600,14 +606,14 @@ describe("EngineModel URL conditional persistence (REQ-ENG-001..007)", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     model.selectEngineEntry({
       engineId: "mock",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
     expect(urlState.get("engine")).toBe("quickjs:javascript"); // unchanged (empty buffer)
 
@@ -624,8 +630,8 @@ describe("EngineModel URL conditional persistence (REQ-ENG-001..007)", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     buffer.setContent("print('hi')");
@@ -633,8 +639,8 @@ describe("EngineModel URL conditional persistence (REQ-ENG-001..007)", () => {
     // First call: writes engine
     model.selectEngineEntry({
       engineId: "mock",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
     expect(urlState.get("engine")).toBe("mock:javascript");
 
@@ -642,8 +648,8 @@ describe("EngineModel URL conditional persistence (REQ-ENG-001..007)", () => {
     urlState.setCalls.length = 0;
     model.selectEngineEntry({
       engineId: "mock",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
     expect(urlState.setCalls.find((c) => c.key === "engine")).toBeUndefined();
   });
@@ -669,8 +675,8 @@ describe("EngineModel select/init split contract", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     const factorySpy = vi.spyOn(registry, "loadFactory");
@@ -678,8 +684,8 @@ describe("EngineModel select/init split contract", () => {
     // The method must be callable WITHOUT await and return undefined
     const result = model.selectEngineEntry({
       engineId: "mock",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
     expect(result).toBeUndefined();
 
@@ -694,14 +700,14 @@ describe("EngineModel select/init split contract", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     model.selectEngineEntry({
       engineId: "mock",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
 
     const p = model.initializeSelectedEngine();
@@ -715,14 +721,14 @@ describe("EngineModel select/init split contract", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     model.selectEngineEntry({
       engineId: "mock",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
     await model.initializeSelectedEngine();
     expect(model.engineStatus()).toBe("ready");
@@ -736,7 +742,8 @@ describe("EngineModel select/init split contract", () => {
 
   it("initializeSelectedEngine retries on error: terminate first, then init", async () => {
     // Mutable registry: starts failing, then recovers
-    let shouldFail = true;
+    let shouldFail: boolean;
+    shouldFail = true;
     const mutableRegistry = {
       ...registry,
       loadFactory: () =>
@@ -747,14 +754,14 @@ describe("EngineModel select/init split contract", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry: mutableRegistry,
+      settings,
       urlState,
     });
     model.selectEngineEntry({
       engineId: "mock",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
 
     // First init: fails → error state
@@ -773,14 +780,14 @@ describe("EngineModel select/init split contract", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     model.selectEngineEntry({
       engineId: "mock",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
     model.setBlocked(true);
     expect(model.engineStatus()).toBe("blocked");
@@ -796,8 +803,8 @@ describe("EngineModel select/init split contract", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     // Initial entry is quickjs:javascript
@@ -805,8 +812,8 @@ describe("EngineModel select/init split contract", () => {
 
     model.selectEngineEntry({
       engineId: "quickjs",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
 
     expect(factorySpy).not.toHaveBeenCalled();
@@ -819,14 +826,14 @@ describe("EngineModel select/init split contract", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry,
+      settings,
       urlState,
     });
     model.selectEngineEntry({
       engineId: "quickjs",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
     await model.initializeSelectedEngine();
     expect(model.engineStatus()).toBe("ready");
@@ -835,8 +842,8 @@ describe("EngineModel select/init split contract", () => {
     // Same entry: must NOT re-terminate and re-init
     model.selectEngineEntry({
       engineId: "quickjs",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
     expect(factorySpy).not.toHaveBeenCalled();
     expect(model.engineStatus()).toBe("ready");
@@ -850,14 +857,14 @@ describe("EngineModel select/init split contract", () => {
     const model = createEngineModel({
       buffer,
       output,
-      settings,
       registry: brokenRegistry,
+      settings,
       urlState,
     });
     model.selectEngineEntry({
       engineId: "quickjs",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
     await model.initializeSelectedEngine();
     expect(model.engineStatus()).toBe("error");
@@ -866,8 +873,8 @@ describe("EngineModel select/init split contract", () => {
     const factorySpy = vi.spyOn(brokenRegistry, "loadFactory");
     model.selectEngineEntry({
       engineId: "quickjs",
-      language: "javascript",
       label: "",
+      language: "javascript",
     });
     expect(factorySpy).not.toHaveBeenCalled();
     // Status remains "error" — caller is responsible for retry via initializeSelectedEngine

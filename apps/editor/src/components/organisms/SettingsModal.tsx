@@ -146,8 +146,8 @@ function SettingsModal(props: SettingsModalProps) {
 
   const handleOpenChange = (isOpen: boolean) => {
     core.dispatcher.dispatch({
-      type: isOpen ? "OPEN_OVERLAY" : "CLOSE_OVERLAY",
       overlayId: "settings",
+      type: isOpen ? "OPEN_OVERLAY" : "CLOSE_OVERLAY",
     });
   };
 

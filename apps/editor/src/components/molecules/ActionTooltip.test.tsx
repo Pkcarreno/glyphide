@@ -11,7 +11,7 @@ vi.mock("../../core/context.tsx", () => ({
           label: "Ctrl+Enter",
         },
         {
-          action: { type: "TOGGLE_OVERLAY", overlayId: "settings" },
+          action: { overlayId: "settings", type: "TOGGLE_OVERLAY" },
           label: "Ctrl+,",
         },
       ],
@@ -42,7 +42,7 @@ describe("ActionTooltip", () => {
   it("when complex action is provided, matches correctly", () => {
     const { getByRole } = render(() => (
       <ActionTooltip
-        action={{ type: "TOGGLE_OVERLAY", overlayId: "settings" } as const}
+        action={{ overlayId: "settings", type: "TOGGLE_OVERLAY" } as const}
         as="button"
         text="Settings"
       >

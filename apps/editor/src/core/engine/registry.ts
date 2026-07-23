@@ -84,31 +84,19 @@ export interface EngineRegistry {
   /** All registered engine definitions. */
   engines: readonly EngineDefinition[];
   /** Retrieves a definition by ID. Throws if not found. */
-  getDefinition(id: EngineId): EngineDefinition;
+  getDefinition: (id: EngineId) => EngineDefinition;
   /** Dynamically loads and returns the worker factory for an engine. */
-  loadFactory(id: EngineId): Promise<EngineWorkerFactory>;
+  loadFactory: (id: EngineId) => Promise<EngineWorkerFactory>;
 }
 
 /** Creates the default `EngineRegistry` with QuickJS, MicroPython, and Mock engines. */
 export function createEngineRegistry(): EngineRegistry {
   const definitions: EngineDefinition[] = [
     {
-      id: "micropython",
-      label: "MicroPython Engine",
-      supportedLanguages: ["python"],
       defaultBufferCode: PYTHON_DEFAULT_BUFFER_CODE,
       defaultInitParams: { timeout: 30_000 },
-      paramDescriptors: [
-        {
-          key: "timeout",
-          label: "Execution Timeout (s)",
-          isEditable: true,
-          inputType: "compact-number",
-          inputProps: { min: 1, max: 120, step: 1 },
-          toModel: (val) => Number(val) * 1000,
-          toView: (val) => Number(val) / 1000,
-        },
-      ],
+      id: "micropython",
+      label: "MicroPython Engine",
       loadFactory: async () => {
         const { createMicropythonWorker } = await import(
           "@glyphide/micropython-engine/adapter"
@@ -118,36 +106,36 @@ export function createEngineRegistry(): EngineRegistry {
       outputFormatter: {
         format(entry) {
           const text = String(entry.data ?? "");
-          switch (entry.type) {
+          switch (entry.type as string) {
             case "stdout":
-              return { variant: "log", text };
+              return { text, variant: "log" };
             case "stderr":
-              return { variant: "error", text };
+              return { text, variant: "error" };
             case "system":
-              return { variant: "system", text };
+              return { text, variant: "system" };
             default:
               return defaultFormat(entry);
           }
         },
       },
-    },
-    {
-      id: "quickjs",
-      label: "QuickJS Engine",
-      supportedLanguages: ["javascript"],
-      defaultBufferCode: QUICKJS_DEFAULT_BUFFER_CODE,
-      defaultInitParams: { timeout: 30_000 },
       paramDescriptors: [
         {
+          inputProps: { max: 120, min: 1, step: 1 },
+          inputType: "compact-number",
+          isEditable: true,
           key: "timeout",
           label: "Execution Timeout (s)",
-          isEditable: true,
-          inputType: "compact-number",
-          inputProps: { min: 1, max: 120, step: 1 },
           toModel: (val) => Number(val) * 1000,
           toView: (val) => Number(val) / 1000,
         },
       ],
+      supportedLanguages: ["python"],
+    },
+    {
+      defaultBufferCode: QUICKJS_DEFAULT_BUFFER_CODE,
+      defaultInitParams: { timeout: 30_000 },
+      id: "quickjs",
+      label: "QuickJS Engine",
       loadFactory: async () => {
         const { createQuickJSWorker } = await import(
           "@glyphide/quickjs-engine/adapter"
@@ -157,17 +145,29 @@ export function createEngineRegistry(): EngineRegistry {
       outputFormatter: {
         format(entry) {
           if (entry.type === "system") {
-            return { variant: "system", text: String(entry.data ?? "") };
+            return { text: String(entry.data ?? ""), variant: "system" };
           }
           // Guard: data must be ConsoleToken[] — falls back to string on mismatch
           if (isConsoleTokenArray(entry.data)) {
             const tokens = entry.data as ConsoleToken[];
             const variant: ConsoleVariant = typeToVariant(entry.type);
-            return { variant, tokens };
+            return { tokens, variant };
           }
           return defaultFormat(entry);
         },
       },
+      paramDescriptors: [
+        {
+          inputProps: { max: 120, min: 1, step: 1 },
+          inputType: "compact-number",
+          isEditable: true,
+          key: "timeout",
+          label: "Execution Timeout (s)",
+          toModel: (val) => Number(val) * 1000,
+          toView: (val) => Number(val) / 1000,
+        },
+      ],
+      supportedLanguages: ["javascript"],
     },
     // Mock engine is dev/test only — Vite statically replaces
     // `import.meta.env.DEV` to `false` in production, so Rollup tree-shakes
@@ -175,17 +175,9 @@ export function createEngineRegistry(): EngineRegistry {
     ...(import.meta.env.DEV
       ? ([
           {
+            defaultInitParams: { timeout: 30_000 },
             id: "mock",
             label: "Mock Test Engine",
-            supportedLanguages: ["plaintext"],
-            defaultInitParams: { timeout: 30_000 },
-            paramDescriptors: [
-              {
-                key: "timeout",
-                label: "Execution Timeout (ms)",
-                isEditable: true,
-              },
-            ],
             loadFactory: async () => {
               const { createMockWorker } = await import(
                 "@glyphide/mock-engine/adapter"
@@ -195,19 +187,27 @@ export function createEngineRegistry(): EngineRegistry {
             outputFormatter: {
               format(entry) {
                 const text = String(entry.data ?? "");
-                switch (entry.type) {
+                switch (entry.type as string) {
                   case "log":
                   case "print":
-                    return { variant: "log", text };
+                    return { text, variant: "log" };
                   case "warn":
-                    return { variant: "warn", text };
+                    return { text, variant: "warn" };
                   case "system":
-                    return { variant: "system", text };
+                    return { text, variant: "system" };
                   default:
                     return defaultFormat(entry);
                 }
               },
             },
+            paramDescriptors: [
+              {
+                isEditable: true,
+                key: "timeout",
+                label: "Execution Timeout (ms)",
+              },
+            ],
+            supportedLanguages: ["plaintext"],
           },
         ] satisfies EngineDefinition[])
       : []),
@@ -241,8 +241,8 @@ export function getEngineEntries(registry: EngineRegistry): EngineEntry[] {
       const langLabel = language.charAt(0).toUpperCase() + language.slice(1);
       return {
         engineId: def.id,
-        language,
         label: `${def.label} - ${langLabel}`,
+        language,
       };
     })
   );

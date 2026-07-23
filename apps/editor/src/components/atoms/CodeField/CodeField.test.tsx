@@ -10,13 +10,13 @@ beforeAll(() => {
       height: 0,
       left: 0,
       right: 0,
+      toJSON: () => {
+        /* mock */
+      },
       top: 0,
       width: 0,
       x: 0,
       y: 0,
-      toJSON: () => {
-        /* mock */
-      },
     });
     window.Range.prototype.getClientRects = () =>
       ({
@@ -54,7 +54,7 @@ describe("CodeField", () => {
     setVal("new test");
     await waitFor(() => {
       expect(onCursorChange).toHaveBeenCalled();
-      const callArgs = onCursorChange.mock.calls[0];
+      const [callArgs] = onCursorChange.mock.calls;
       // Expected to be called with at least line and column
       expect(callArgs[0]).toBe(1);
     });

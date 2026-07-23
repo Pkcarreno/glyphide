@@ -36,32 +36,32 @@ function v3Url(code: string, name: string, engine?: string): string {
 }
 
 export const FIXTURES = {
+  invalid: {
+    empty: "",
+    notAUrl: "not-a-url",
+    unknownVersion: "https://glyphide.com/?foo=bar",
+    whitespace: "   ",
+  },
   v1: {
-    simple: v1Url("console.log(1)", "Hello"),
     long: v1Url(
       "function add(a, b) {\n  return a + b;\n}\nconsole.log(add(2, 3));",
       "Add Function"
     ),
     noTitle: v1Url("console.log(1)", ""),
+    simple: v1Url("console.log(1)", "Hello"),
     unicodeName: v1Url("print('hi')", "Título con ñ y 🚀"),
   },
   v2: {
-    simple: v2Url("console.log(1)", "Hello"),
     codeOnly: v2Url("console.log(1)"),
     long: v2Url(
       "function add(a, b) {\n  return a + b;\n}\nconsole.log(add(2, 3));",
       "Add Function"
     ),
+    simple: v2Url("console.log(1)", "Hello"),
   },
   v3: {
-    quickjs: v3Url("console.log(1)", "Hello", "quickjs"),
-    micropython: v3Url("print('hi')", "Greet", "micropython:python"),
     codeAndName: v3Url("console.log(1)", "Hello"),
-  },
-  invalid: {
-    empty: "",
-    whitespace: "   ",
-    notAUrl: "not-a-url",
-    unknownVersion: "https://glyphide.com/?foo=bar",
+    micropython: v3Url("print('hi')", "Greet", "micropython:python"),
+    quickjs: v3Url("console.log(1)", "Hello", "quickjs"),
   },
 } as const;

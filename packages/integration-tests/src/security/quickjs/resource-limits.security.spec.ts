@@ -74,7 +74,8 @@ describe("QuickJS: resource limits", () => {
       const msg = err instanceof Error ? err.message : String(err);
       if (!TIMEOUT_ERROR_RE.test(msg)) {
         throw new Error(
-          `[${QJS_RESOURCE_NEGATIVE_TIMEOUT.id}] unexpected init error: ${msg}`
+          `[${QJS_RESOURCE_NEGATIVE_TIMEOUT.id}] unexpected init error: ${msg}`,
+          { cause: err }
         );
       }
     }
@@ -129,7 +130,8 @@ describe("QuickJS: resource limits", () => {
       if (!MEMORY_ERROR_RE.test(msg)) {
         throw new Error(
           `[${QJS_RESOURCE_EXTREME_MEMORY.id}] VULNERABILITY CONFIRMED — ` +
-            `engine accepted 100GB memoryLimit or crashed ungracefully. Error: ${msg.slice(0, 200)}`
+            `engine accepted 100GB memoryLimit or crashed ungracefully. Error: ${msg.slice(0, 200)}`,
+          { cause: err }
         );
       }
     }
@@ -144,7 +146,8 @@ describe("QuickJS: resource limits", () => {
       if (isVulnerabilityObserved(output, QJS_RESOURCE_DYNAMIC_IMPORT)) {
         throw new Error(
           `[${QJS_RESOURCE_DYNAMIC_IMPORT.id}] VULNERABILITY CONFIRMED — ` +
-            `dynamic import() reached a remote module. Output: ${output.slice(0, 400)}`
+            `dynamic import() reached a remote module. Output: ${output.slice(0, 400)}`,
+          { cause: err }
         );
       }
       throw err;
@@ -159,7 +162,8 @@ describe("QuickJS: resource limits", () => {
       if (isVulnerabilityObserved(output, QJS_RESOURCE_NESTED_EVAL)) {
         throw new Error(
           `[${QJS_RESOURCE_NESTED_EVAL.id}] VULNERABILITY CONFIRMED — ` +
-            `indirect eval observed host global. Output: ${output.slice(0, 400)}`
+            `indirect eval observed host global. Output: ${output.slice(0, 400)}`,
+          { cause: err }
         );
       }
       throw err;

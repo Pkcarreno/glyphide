@@ -46,23 +46,25 @@ export function ActionTooltip<T extends ValidComponent = "div">(
     }
     if (local.action) {
       const binding = core.shortcuts.bindings.find((b) => {
-        const bAction = b.action as Record<string, unknown>;
-        const lAction = local.action as Record<string, unknown>;
+        const bAction = b.action;
+        const lAction = local.action;
 
         if (!(bAction && lAction)) {
           return false;
         }
 
-        const keys = Object.keys(lAction);
-        if (Object.keys(bAction).length !== keys.length) {
+        const bActionObj = bAction as Record<string, unknown>;
+        const lActionObj = lAction as Record<string, unknown>;
+
+        const keys = Object.keys(lActionObj);
+        if (Object.keys(bActionObj).length !== keys.length) {
           return false;
         }
 
-        return keys.every((k) => bAction[k] === lAction[k]);
+        return keys.every((k) => bActionObj[k] === lActionObj[k]);
       });
       return binding?.label;
     }
-    return;
   };
 
   return (

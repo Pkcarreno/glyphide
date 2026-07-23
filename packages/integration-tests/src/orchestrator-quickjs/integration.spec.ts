@@ -12,7 +12,7 @@ describe("Orchestrator + QuickJS Engine Integration", () => {
   });
 
   afterEach(() => {
-    orchestrator?.terminate();
+    orchestrator.terminate();
   });
 
   describe("init", () => {

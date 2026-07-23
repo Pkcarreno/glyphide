@@ -40,29 +40,33 @@ export function handleV2(url: URL): CanonicalState {
   try {
     code = rawCode ? base64Decode(rawCode) : "";
   } catch (error) {
+    // biome-ignore lint/style/useErrorCause: MigrationError has cause as the third argument
     throw new MigrationError(
       "DECODE_FAILED",
       `Failed to decode v2 'c' param: ${
         error instanceof Error ? error.message : "unknown error"
-      }`
+      }`,
+      { cause: error }
     );
   }
 
   try {
     name = rawTitle ? base64Decode(rawTitle) : "";
   } catch (error) {
+    // biome-ignore lint/style/useErrorCause: MigrationError has cause as the third argument
     throw new MigrationError(
       "DECODE_FAILED",
       `Failed to decode v2 't' param: ${
         error instanceof Error ? error.message : "unknown error"
-      }`
+      }`,
+      { cause: error }
     );
   }
 
   return {
     code,
-    name,
     engine: DEFAULT_ENGINE,
     language: DEFAULT_LANGUAGE,
+    name,
   };
 }

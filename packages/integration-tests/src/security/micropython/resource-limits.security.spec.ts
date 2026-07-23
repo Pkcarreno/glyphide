@@ -69,11 +69,12 @@ describe("MicroPython: resource limits", () => {
     const output = await runWithTimeout(MP_RESOURCE_MEMORY_BOMB_LIST.poc, 50);
     try {
       expectSecureRejection(output, MP_RESOURCE_MEMORY_BOMB_LIST);
-    } catch {
+    } catch (err) {
       if (isVulnerabilityObserved(output, MP_RESOURCE_MEMORY_BOMB_LIST)) {
         throw new Error(
           `[${MP_RESOURCE_MEMORY_BOMB_LIST.id}] VULNERABILITY CONFIRMED — ` +
-            `memory bomb via list succeeded. Output: ${output.slice(0, 400)}`
+            `memory bomb via list succeeded. Output: ${output.slice(0, 400)}`,
+          { cause: err }
         );
       }
       // Worker may have been force-terminated; any non-vulnerable
@@ -93,11 +94,12 @@ describe("MicroPython: resource limits", () => {
     const output = await runWithTimeout(MP_RESOURCE_MEMORY_BOMB_DICT.poc, 50);
     try {
       expectSecureRejection(output, MP_RESOURCE_MEMORY_BOMB_DICT);
-    } catch {
+    } catch (err) {
       if (isVulnerabilityObserved(output, MP_RESOURCE_MEMORY_BOMB_DICT)) {
         throw new Error(
           `[${MP_RESOURCE_MEMORY_BOMB_DICT.id}] VULNERABILITY CONFIRMED — ` +
-            `memory bomb via dict succeeded. Output: ${output.slice(0, 400)}`
+            `memory bomb via dict succeeded. Output: ${output.slice(0, 400)}`,
+          { cause: err }
         );
       }
       expect(output).toBeDefined();

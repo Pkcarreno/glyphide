@@ -1,6 +1,8 @@
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
+  clean: true,
+  dts: true,
   entry: [
     "src/**/*.ts",
     "!src/**/*.spec.ts",
@@ -8,8 +10,6 @@ export default defineConfig({
     "!src/**/test-fixtures.ts",
   ],
   format: ["esm"],
-  unbundle: true,
-  dts: true,
-  clean: true,
   outDir: "dist",
+  unbundle: true,
 });

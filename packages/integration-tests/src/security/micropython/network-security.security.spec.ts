@@ -65,7 +65,8 @@ describe("MicroPython: network security", () => {
       if (isVulnerabilityObserved(output, MP_NETWORK_XHR_ARBITRARY_URL)) {
         throw new Error(
           `[${MP_NETWORK_XHR_ARBITRARY_URL.id}] VULNERABILITY CONFIRMED — ` +
-            `HTTP to arbitrary origin accepted. Output: ${output.slice(0, 400)}`
+            `HTTP to arbitrary origin accepted. Output: ${output.slice(0, 400)}`,
+          { cause: err }
         );
       }
       throw err;
@@ -85,7 +86,8 @@ describe("MicroPython: network security", () => {
       if (isVulnerabilityObserved(output, poc)) {
         throw new Error(
           `[${poc.id}] VULNERABILITY CONFIRMED — ` +
-            `localhost fetch reachable from MicroPython. Output: ${output.slice(0, 400)}`
+            `localhost fetch reachable from MicroPython. Output: ${output.slice(0, 400)}`,
+          { cause: err }
         );
       }
       throw err;

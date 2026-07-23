@@ -12,8 +12,8 @@ import { composeSizeLimitedUrlState } from "./url-state-limit.ts";
 describe("composeSizeLimitedUrlState", () => {
   const mockBasePort: UrlStatePort = {
     get: vi.fn(),
-    set: vi.fn(),
     remove: vi.fn(),
+    set: vi.fn(),
   };
 
   const onShareabilityChange = vi.fn();

@@ -21,16 +21,16 @@ export interface FileIoPort {
    * Prompts the user to pick a file and reads its text content.
    * Resolves to the file's name, content, and extension.
    */
-  readFile(): Promise<FileReadResult>;
+  readFile: () => Promise<FileReadResult>;
   /**
    * Reads the text content of a `File` object the caller already has
    * (e.g. from a drop or paste). Same shape as {@link readFile}.
    * The file is consumed by the FileReader and cannot be re-read.
    */
-  readFileFromFile(file: File): Promise<FileReadResult>;
+  readFileFromFile: (file: File) => Promise<FileReadResult>;
   /**
    * Triggers a browser download of `content` saved as `filename`.
    * Errors are surfaced to the caller.
    */
-  writeFile(filename: string, content: string): Promise<void>;
+  writeFile: (filename: string, content: string) => Promise<void>;
 }

@@ -18,7 +18,7 @@ const DEFAULT_LANGUAGE = "javascript";
  * @public
  */
 export function handleV1(url: URL): CanonicalState {
-  const hash = url.hash;
+  const { hash } = url;
   if (!hash.startsWith(V1_HASH_PREFIX)) {
     throw new MigrationError(
       "UNKNOWN_VERSION",
@@ -40,11 +40,13 @@ export function handleV1(url: URL): CanonicalState {
     const decoded = base64Decode(payload);
     parsed = JSON.parse(JSON.parse(decoded));
   } catch (error) {
+    // biome-ignore lint/style/useErrorCause: MigrationError has cause as the third argument
     throw new MigrationError(
       "DECODE_FAILED",
       `Failed to decode v1 payload: ${
         error instanceof Error ? error.message : "unknown error"
-      }`
+      }`,
+      { cause: error }
     );
   }
 
@@ -55,7 +57,7 @@ export function handleV1(url: URL): CanonicalState {
     );
   }
 
-  const state = (parsed as { state?: unknown }).state;
+  const { state } = parsed as { state?: unknown };
   const stateObj =
     state !== null && typeof state === "object"
       ? (state as { code?: unknown; title?: unknown })
@@ -66,8 +68,8 @@ export function handleV1(url: URL): CanonicalState {
 
   return {
     code,
-    name,
     engine: DEFAULT_ENGINE,
     language: DEFAULT_LANGUAGE,
+    name,
   };
 }

@@ -66,7 +66,8 @@ describe("MicroPython: sandbox isolation", () => {
           throw new Error(
             `[${scenario.id}] VULNERABILITY CONFIRMED — observed: ` +
               `"${scenario.vulnerableSubstring}". ` +
-              `Hardening required. Captured output: ${output.slice(0, 400)}`
+              `Hardening required. Captured output: ${output.slice(0, 400)}`,
+            { cause: err }
           );
         }
         throw err;

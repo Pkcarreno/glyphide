@@ -20,20 +20,19 @@ const quickjsFormatter = {
   }) {
     if (Array.isArray(entry.data)) {
       return {
-        variant: entry.type as ConsoleVariant,
         tokens: entry.data as ConsoleToken[],
+        variant: entry.type as ConsoleVariant,
       };
     }
     return {
-      variant: entry.type as ConsoleVariant,
       text: String(entry.data ?? ""),
+      variant: entry.type as ConsoleVariant,
     };
   },
 };
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    output: { entries },
     dispatcher: { dispatch: dispatchMock },
     engine: { activeEngineId: () => "quickjs" },
     engineRegistry: {
@@ -42,6 +41,7 @@ vi.mock("../../core/context", () => ({
         outputFormatter: id === "quickjs" ? quickjsFormatter : undefined,
       }),
     },
+    output: { entries },
   }),
 }));
 
@@ -67,14 +67,14 @@ describe("ConsolePane", () => {
 
   it("renders a plain string entry as text", () => {
     setEntries([
-      { id: "1", type: "log", data: "Server running at http://localhost:3000" },
+      { data: "Server running at http://localhost:3000", id: "1", type: "log" },
     ]);
     const { getByText } = render(() => <ConsolePane />);
     expect(getByText("Server running at http://localhost:3000")).toBeTruthy();
   });
 
   it("system entry renders with system styling (bypasses engine formatter)", () => {
-    setEntries([{ id: "2", type: "system", data: "Engine ready." }]);
+    setEntries([{ data: "Engine ready.", id: "2", type: "system" }]);
     const { getByText } = render(() => <ConsolePane />);
     const messageElement = getByText("Engine ready.");
     // system variant adds italic class via CVA
@@ -83,7 +83,7 @@ describe("ConsolePane", () => {
 
   it("system error entry renders with error styling (bypasses engine formatter)", () => {
     setEntries([
-      { id: "3", type: "error", data: "ReferenceError: x is not defined" },
+      { data: "ReferenceError: x is not defined", id: "3", type: "error" },
     ]);
     const { getByText } = render(() => <ConsolePane />);
     const messageElement = getByText("ReferenceError: x is not defined");
@@ -93,9 +93,9 @@ describe("ConsolePane", () => {
   it("engine error entry renders via ConsoleTokenView using formatter", () => {
     setEntries([
       {
+        data: [{ message: "Engine error", name: "TypeError", type: "error" }],
         id: "3.5",
         type: "error",
-        data: [{ type: "error", name: "TypeError", message: "Engine error" }],
       },
     ]);
     const { container } = render(() => <ConsolePane />);
@@ -107,9 +107,9 @@ describe("ConsolePane", () => {
   it("token entry (ConsoleToken array) renders via ConsoleTokenView", () => {
     setEntries([
       {
+        data: [{ type: "number", value: 42 }],
         id: "4",
         type: "log",
-        data: [{ type: "number", value: 42 }],
       },
     ]);
     const { container } = render(() => <ConsolePane />);
@@ -118,7 +118,7 @@ describe("ConsolePane", () => {
   });
 
   it("unknown output type falls back to log variant (no crash)", () => {
-    setEntries([{ id: "5", type: "unknown-type", data: "some debug info" }]);
+    setEntries([{ data: "some debug info", id: "5", type: "unknown-type" }]);
     // QuickJS formatter falls through to defaultFormat for unknown types
     const { getByText } = render(() => <ConsolePane />);
     expect(getByText("some debug info")).toBeTruthy();
@@ -127,9 +127,9 @@ describe("ConsolePane", () => {
   it("table entry renders via ConsoleTableView", () => {
     setEntries([
       {
+        data: [{ elements: [], length: 0, type: "array" }],
         id: "5.5",
         type: "table",
-        data: [{ type: "array", elements: [], length: 0 }],
       },
     ]);
     const { container } = render(() => <ConsolePane />);
@@ -139,8 +139,8 @@ describe("ConsolePane", () => {
 
   it("renders multiple entries", () => {
     setEntries([
-      { id: "6", type: "log", data: "first" },
-      { id: "7", type: "warn", data: "second" },
+      { data: "first", id: "6", type: "log" },
+      { data: "second", id: "7", type: "warn" },
     ]);
     const { getByText } = render(() => <ConsolePane />);
     expect(getByText("first")).toBeTruthy();
@@ -149,15 +149,15 @@ describe("ConsolePane", () => {
 
   it("renders group and groupCollapsed nodes correctly", () => {
     setEntries([
-      { id: "8", type: "group", data: [{ type: "string", value: "My Group" }] },
-      { id: "9", type: "log", data: "Inside group" },
-      { id: "10", type: "groupEnd", data: undefined },
+      { data: [{ type: "string", value: "My Group" }], id: "8", type: "group" },
+      { data: "Inside group", id: "9", type: "log" },
+      { data: undefined, id: "10", type: "groupEnd" },
       {
+        data: [{ type: "string", value: "Hidden Group" }],
         id: "11",
         type: "groupCollapsed",
-        data: [{ type: "string", value: "Hidden Group" }],
       },
-      { id: "12", type: "log", data: "Inside collapsed" },
+      { data: "Inside collapsed", id: "12", type: "log" },
     ]);
     const { container, getByText } = render(() => <ConsolePane />);
 

@@ -62,5 +62,5 @@ export function handleV3(url: URL): CanonicalState {
     language = split.language || DEFAULT_LANGUAGE;
   }
 
-  return { code, name, engine, language };
+  return { code, engine, language, name };
 }

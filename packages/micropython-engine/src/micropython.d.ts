@@ -7,8 +7,8 @@ declare module "@micropython/micropython-webassembly-pyscript/micropython.mjs" {
   }
 
   export interface MicroPythonInstance {
-    runPython(code: string): void;
-    runPythonAsync(code: string): Promise<void>;
+    runPython: (code: string) => void;
+    runPythonAsync: (code: string) => Promise<void>;
   }
 
   export function loadMicroPython(

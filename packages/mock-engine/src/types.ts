@@ -24,9 +24,9 @@ export interface MockEngineConfig {
 
 export const defaultCapabilities = {
   id: "mock",
-  supportedLanguages: ["plaintext"],
-  isStateful: true,
   isInterruptible: true,
+  isStateful: true,
   outputTypes: ["print", "log", "warn"] as const,
+  supportedLanguages: ["plaintext"],
   supportsInput: false,
 } satisfies EngineCapabilities;

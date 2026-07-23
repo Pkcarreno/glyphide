@@ -66,7 +66,8 @@ function ExpandableNode(props: ExpandableNodeProps) {
     }
     contentId = idForStateKey.get(props.stateKey) ?? "";
   } else {
-    const instanceAutoId = nextExpandableContentId++;
+    const instanceAutoId = nextExpandableContentId;
+    nextExpandableContentId += 1;
     contentId = `expandable-content-${instanceAutoId}`;
   }
 

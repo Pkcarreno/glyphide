@@ -39,14 +39,14 @@ describe("Toaster", () => {
     setMockActiveToasts([
       {
         id: "1",
-        title: "Toast 1",
         timestamp: Date.now(),
+        title: "Toast 1",
         type: "info",
       },
       {
         id: "2",
-        title: "Toast 2",
         timestamp: Date.now(),
+        title: "Toast 2",
         type: "success",
       },
     ]);
@@ -61,8 +61,8 @@ describe("Toaster", () => {
     setMockActiveToasts([
       {
         id: "toast-to-dismiss",
-        title: "Toast to dismiss",
         timestamp: Date.now(),
+        title: "Toast to dismiss",
         type: "info",
       },
     ]);
@@ -76,8 +76,8 @@ describe("Toaster", () => {
     vi.advanceTimersByTime(300);
 
     expect(mockDispatch).toHaveBeenCalledWith({
-      type: "DISMISS_TOAST",
       id: "toast-to-dismiss",
+      type: "DISMISS_TOAST",
     });
   });
 });

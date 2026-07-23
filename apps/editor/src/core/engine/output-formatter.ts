@@ -38,7 +38,7 @@ export interface RenderedOutput {
  * when `entry.data` does not match the expected shape.
  */
 export interface OutputFormatter {
-  format(entry: OutputEntry): RenderedOutput;
+  format: (entry: OutputEntry) => RenderedOutput;
 }
 
 /**
@@ -53,7 +53,12 @@ export function isConsoleTokenArray(value: unknown): value is ConsoleToken[] {
   if (value.length === 0) {
     return true;
   }
-  return typeof (value[0] as Record<string, unknown>)?.type === "string";
+  const [first] = value;
+  return (
+    typeof first === "object" &&
+    first !== null &&
+    typeof (first as Record<string, unknown>).type === "string"
+  );
 }
 
 /** Maps an engine output type string to the nearest visual variant. */
@@ -99,7 +104,7 @@ export function typeToVariant(type: string): ConsoleVariant {
  */
 export function defaultFormat(entry: OutputEntry): RenderedOutput {
   return {
-    variant: typeToVariant(entry.type),
     text: String(entry.data ?? ""),
+    variant: typeToVariant(entry.type),
   };
 }

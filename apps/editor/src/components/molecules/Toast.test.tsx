@@ -11,8 +11,8 @@ describe("Toast", () => {
 
   const baseNotification: NotificationItem = {
     id: "test-id",
-    title: "Test Title",
     timestamp: Date.now(),
+    title: "Test Title",
     type: "info",
   };
 

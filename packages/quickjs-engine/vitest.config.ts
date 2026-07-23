@@ -1,11 +1,7 @@
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  test: {
-    include: ["src/**/*.spec.ts"],
-  },
   build: {
-    target: "esnext",
     lib: {
       entry: "src/index.ts",
       formats: ["es"],
@@ -17,5 +13,9 @@ export default defineConfig({
         "quickjs-emscripten",
       ],
     },
+    target: "esnext",
+  },
+  test: {
+    include: ["src/**/*.spec.ts"],
   },
 });

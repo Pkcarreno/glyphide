@@ -70,7 +70,7 @@ describe("EngineRegistry", () => {
 });
 
 function makeEntry(type: string, data: unknown) {
-  return { id: 0, timestamp: 0, type, data };
+  return { data, id: 0, timestamp: 0, type };
 }
 
 describe("Engine output formatters", () => {

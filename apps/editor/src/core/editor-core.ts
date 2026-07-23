@@ -48,7 +48,7 @@ export interface EditorCore {
   buffer: BufferModel;
   dispatcher: ActionDispatcher;
   /** Tears down all resources (call on unmount). */
-  dispose(): void;
+  dispose: () => void;
   engine: EngineModel;
   engineRegistry: EngineRegistry;
   /** Local file IO port (read/write). */
@@ -159,8 +159,8 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
   const engine = createEngineModel({
     buffer,
     output,
-    settings,
     registry: engineRegistry,
+    settings,
     urlState: deps.urlState,
   });
 
@@ -209,8 +209,8 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
       }
       engine.selectEngineEntry({
         engineId: action.engineId,
-        language: action.language,
         label: "",
+        language: action.language,
       });
       // Selection-only method; explicit init spawns the worker for the
       // newly selected entry.
@@ -305,8 +305,8 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
     dispatcher.on("DISPATCH_NOTIFICATION", (action) => {
       notifications.dispatchNotification({
         action: action.action,
-        title: action.title,
         description: action.description,
+        title: action.title,
         type: action.notificationType,
       });
     })
@@ -370,8 +370,8 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
       const def = engineRegistry.getDefinition(engine.activeEngineId());
       engine.selectEngineEntry({
         engineId: engine.activeEngineId(),
-        language: engine.activeLanguage(),
         label: def.label,
+        language: engine.activeLanguage(),
       });
       engine.initializeSelectedEngine();
       // Reset the engine URL tracker. The batch above removed `engine` from
@@ -392,8 +392,8 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
       // to GRANT_TRUST.
       engine.selectEngineEntry({
         engineId: action.engineId,
-        language: action.language,
         label: "",
+        language: action.language,
       });
       // Defense-in-depth: selectEngineEntry may early-return when the
       // requested engine matches the current one. In that case, the URL is
@@ -417,10 +417,10 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
       deps.fileIo.writeFile(filename, content).catch((error: unknown) => {
         const message = error instanceof Error ? error.message : String(error);
         dispatcher.dispatch({
-          type: "DISPATCH_NOTIFICATION",
+          description: message,
           notificationType: "error",
           title: "Download failed",
-          description: message,
+          type: "DISPATCH_NOTIFICATION",
         });
       });
     })
@@ -446,8 +446,8 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
     const initialDef = engineRegistry.getDefinition(engine.activeEngineId());
     engine.selectEngineEntry({
       engineId: engine.activeEngineId(),
-      language: engine.activeLanguage(),
       label: initialDef.label,
+      language: engine.activeLanguage(),
     });
     // Non-trust startup: explicit init spawns the worker for the
     // URL-seeded (or default) engine.
@@ -456,19 +456,19 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
 
   return {
     buffer,
-    settings,
-    project,
-    output,
+    dispatcher,
+    dispose,
     engine,
     engineRegistry,
     fileIo: deps.fileIo,
     fileLoad,
     notifications,
+    output,
     overlays,
+    project,
     pwa,
-    dispatcher,
+    settings,
     shortcuts,
     trust,
-    dispose,
   };
 }

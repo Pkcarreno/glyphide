@@ -22,6 +22,7 @@ const UNSUPPORTED_RE = /unsupported file type/i;
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
+    buffer: { content: mockBufferContent },
     dispatcher: { dispatch: dispatchMock },
     fileIo: {
       readFile: vi.fn(),
@@ -35,7 +36,6 @@ vi.mock("../../core/context", () => ({
       setError: vi.fn(),
       setPendingFile: vi.fn(),
     },
-    buffer: { content: mockBufferContent },
     overlays: {
       isOpen: (id: string) => id === "load-file" && mockIsOpen(),
     },
@@ -90,8 +90,8 @@ describe("LoadFileModal", () => {
     const { getByText } = render(() => <LoadFileModal />);
     fireEvent.click(getByText("Cancel"));
     expect(dispatchMock).toHaveBeenCalledWith({
-      type: "CLOSE_OVERLAY",
       overlayId: "load-file",
+      type: "CLOSE_OVERLAY",
     });
   });
 
@@ -99,9 +99,9 @@ describe("LoadFileModal", () => {
     setMockIsOpen(true);
     mockBufferContent.mockReturnValue("");
     mockReadFileFromFile.mockResolvedValue({
-      name: "x.js",
       content: "1",
       extension: ".js",
+      name: "x.js",
     });
 
     const { getByTestId } = render(() => <LoadFileModal />);
@@ -113,11 +113,11 @@ describe("LoadFileModal", () => {
 
     expect(mockReadFileFromFile).toHaveBeenCalledWith(file);
     expect(dispatchMock).toHaveBeenCalledWith({
-      type: "LOAD_FILE_FROM_DISK",
-      name: "x.js",
       content: "1",
       engineId: "quickjs",
       language: "javascript",
+      name: "x.js",
+      type: "LOAD_FILE_FROM_DISK",
     });
   });
 
@@ -125,9 +125,9 @@ describe("LoadFileModal", () => {
     setMockIsOpen(true);
     mockBufferContent.mockReturnValue("");
     mockReadFileFromFile.mockResolvedValue({
-      name: "picked.js",
       content: "2",
       extension: ".js",
+      name: "picked.js",
     });
 
     const { container } = render(() => <LoadFileModal />);
@@ -146,11 +146,11 @@ describe("LoadFileModal", () => {
 
     expect(mockReadFileFromFile).toHaveBeenCalledWith(file);
     expect(dispatchMock).toHaveBeenCalledWith({
-      type: "LOAD_FILE_FROM_DISK",
-      name: "picked.js",
       content: "2",
       engineId: "quickjs",
       language: "javascript",
+      name: "picked.js",
+      type: "LOAD_FILE_FROM_DISK",
     });
   });
 
@@ -158,9 +158,9 @@ describe("LoadFileModal", () => {
     setMockIsOpen(true);
     mockBufferContent.mockReturnValue("existing");
     mockReadFileFromFile.mockResolvedValue({
-      name: "x.js",
       content: "1",
       extension: ".js",
+      name: "x.js",
     });
 
     const { getByTestId, getByText } = render(() => <LoadFileModal />);
@@ -179,9 +179,9 @@ describe("LoadFileModal", () => {
     setMockIsOpen(true);
     mockBufferContent.mockReturnValue("existing");
     mockReadFileFromFile.mockResolvedValue({
-      name: "x.js",
       content: "1",
       extension: ".js",
+      name: "x.js",
     });
 
     const { getByTestId, getByText } = render(() => <LoadFileModal />);
@@ -193,24 +193,24 @@ describe("LoadFileModal", () => {
 
     expect(dispatchMock).toHaveBeenCalledWith({ type: "RESET_PROJECT_STATE" });
     expect(dispatchMock).toHaveBeenCalledWith({
-      type: "LOAD_FILE_FROM_DISK",
-      name: "x.js",
       content: "1",
       engineId: "quickjs",
       language: "javascript",
+      name: "x.js",
+      type: "LOAD_FILE_FROM_DISK",
     });
     expect(dispatchMock).toHaveBeenCalledWith({
-      type: "CLOSE_OVERLAY",
       overlayId: "load-file",
+      type: "CLOSE_OVERLAY",
     });
   });
 
   it("dropping a file with unsupported extension surfaces inline error", async () => {
     setMockIsOpen(true);
     mockReadFileFromFile.mockResolvedValue({
-      name: "x.txt",
       content: "1",
       extension: ".txt",
+      name: "x.txt",
     });
 
     const { getByTestId, getByRole } = render(() => <LoadFileModal />);
@@ -224,9 +224,9 @@ describe("LoadFileModal", () => {
   it("does not dispatch LOAD_FILE_FROM_DISK for unsupported extension", async () => {
     setMockIsOpen(true);
     mockReadFileFromFile.mockResolvedValue({
-      name: "x.txt",
       content: "1",
       extension: ".txt",
+      name: "x.txt",
     });
 
     const { getByTestId } = render(() => <LoadFileModal />);
@@ -243,9 +243,9 @@ describe("LoadFileModal", () => {
     setMockIsOpen(true);
     mockBufferContent.mockReturnValue("existing");
     mockReadFileFromFile.mockResolvedValue({
-      name: "x.js",
       content: "1",
       extension: ".js",
+      name: "x.js",
     });
 
     const { getByTestId, queryByText } = render(() => <LoadFileModal />);

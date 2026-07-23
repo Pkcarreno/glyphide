@@ -63,8 +63,8 @@ describe("TrustRequiredModal", () => {
     const denyBtn = getByRole("button", { name: DENY_REGEX });
     fireEvent.click(denyBtn);
     expect(dispatchMock).toHaveBeenCalledWith({
-      type: "CLOSE_OVERLAY",
       overlayId: "trust-required",
+      type: "CLOSE_OVERLAY",
     });
   });
 
@@ -84,8 +84,8 @@ describe("TrustRequiredModal", () => {
     expect(getByRole("dialog")).toBeTruthy();
     // CLOSE_OVERLAY should NOT have been dispatched
     expect(dispatchMock).not.toHaveBeenCalledWith({
-      type: "CLOSE_OVERLAY",
       overlayId: "trust-required",
+      type: "CLOSE_OVERLAY",
     });
   });
 });

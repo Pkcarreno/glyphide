@@ -62,8 +62,8 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(
       JSON.stringify({
-        Code: "Success",
         AccessKeyId: "AKIA-FAKE-LEAKED-CREDENTIAL",
+        Code: "Success",
         SecretAccessKey: "leaked-secret-do-not-use",
         Token: "session-token-leaked",
       })
@@ -82,8 +82,8 @@ const server = http.createServer((req, res) => {
 
   if (req.url === "/large") {
     res.writeHead(200, {
-      "Content-Type": "application/octet-stream",
       "Content-Length": String(LARGE_BYTES),
+      "Content-Type": "application/octet-stream",
     });
     res.end(largeBuffer);
     return;

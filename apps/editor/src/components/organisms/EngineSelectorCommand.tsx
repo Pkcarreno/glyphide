@@ -19,8 +19,8 @@ export function EngineSelectorCommand() {
 
   const handleOpenChange = (isOpen: boolean) => {
     core.dispatcher.dispatch({
-      type: isOpen ? "OPEN_OVERLAY" : "CLOSE_OVERLAY",
       overlayId: "engine-selector",
+      type: isOpen ? "OPEN_OVERLAY" : "CLOSE_OVERLAY",
     });
   };
 
@@ -39,13 +39,13 @@ export function EngineSelectorCommand() {
                 <CommandItem
                   onSelect={() => {
                     core.dispatcher.dispatch({
-                      type: "SELECT_ENGINE_ENTRY",
                       engineId: entry.engineId,
                       language: entry.language,
+                      type: "SELECT_ENGINE_ENTRY",
                     });
                     core.dispatcher.dispatch({
-                      type: "CLOSE_OVERLAY",
                       overlayId: "engine-selector",
+                      type: "CLOSE_OVERLAY",
                     });
                   }}
                   value={entry.label}

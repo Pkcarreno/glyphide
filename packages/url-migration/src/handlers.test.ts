@@ -13,9 +13,9 @@ describe("v1 handler", () => {
 
     expect(state).toEqual({
       code: "console.log(1)",
-      name: "Hello",
       engine: "quickjs",
       language: "javascript",
+      name: "Hello",
     });
   });
 
@@ -71,9 +71,9 @@ describe("v2 handler", () => {
 
     expect(state).toEqual({
       code: "console.log(1)",
-      name: "Hello",
       engine: "quickjs",
       language: "javascript",
+      name: "Hello",
     });
   });
 
@@ -120,9 +120,9 @@ describe("v3 handler", () => {
 
     expect(state).toEqual({
       code: "console.log(1)",
-      name: "Hello",
       engine: "quickjs",
       language: "javascript",
+      name: "Hello",
     });
   });
 

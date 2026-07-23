@@ -15,11 +15,11 @@ import type {
 export function migrateUrl(input: string): MigrationResult {
   if (typeof input !== "string" || input.trim().length === 0) {
     return {
-      ok: false,
       error: new MigrationError(
         "EMPTY_INPUT",
         "The provided URL is empty or whitespace-only."
       ),
+      ok: false,
     };
   }
 
@@ -30,32 +30,30 @@ export function migrateUrl(input: string): MigrationResult {
     url = new URL(trimmed);
   } catch {
     return {
-      ok: false,
       error: new MigrationError(
         "INVALID_URL",
         "The provided string is not a valid URL."
       ),
+      ok: false,
     };
   }
 
   let state: CanonicalState;
   let version: VersionLiteral;
   try {
-    const parsed = parseByRegistry(url);
-    state = parsed.state;
-    version = parsed.version;
+    ({ state, version } = parseByRegistry(url));
   } catch (error) {
     if (error instanceof MigrationError) {
-      return { ok: false, error };
+      return { error, ok: false };
     }
     return {
-      ok: false,
       error: new MigrationError(
         "UNKNOWN_VERSION",
         `Could not parse URL: ${
           error instanceof Error ? error.message : "unknown error"
         }`
       ),
+      ok: false,
     };
   }
 

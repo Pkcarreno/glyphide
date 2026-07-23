@@ -4,13 +4,13 @@ import { createShortcutRegistry, parseKeyCombo } from "./registry.ts";
 
 const mockBindings: ShortcutBinding[] = [
   {
-    combo: { key: "Enter", ctrlOrMeta: true, shift: false, alt: false },
     action: { type: "RUN_CODE" },
+    combo: { alt: false, ctrlOrMeta: true, key: "Enter", shift: false },
     label: "Ctrl+Enter",
   },
   {
-    combo: { key: "S", ctrlOrMeta: true, shift: true, alt: false },
     action: { type: "CLEAR_OUTPUT" },
+    combo: { alt: false, ctrlOrMeta: true, key: "S", shift: true },
     label: "Ctrl+Shift+S",
   },
 ];
@@ -20,18 +20,18 @@ describe("ShortcutRegistry", () => {
     const registry = createShortcutRegistry(mockBindings);
 
     const match1 = registry.matchShortcut({
-      key: "Enter",
-      ctrlOrMeta: true,
-      shift: false,
       alt: false,
+      ctrlOrMeta: true,
+      key: "Enter",
+      shift: false,
     });
     expect(match1).toEqual({ type: "RUN_CODE" });
 
     const match2 = registry.matchShortcut({
-      key: "S",
-      ctrlOrMeta: true,
-      shift: true,
       alt: false,
+      ctrlOrMeta: true,
+      key: "S",
+      shift: true,
     });
     expect(match2).toEqual({ type: "CLEAR_OUTPUT" });
   });
@@ -40,36 +40,36 @@ describe("ShortcutRegistry", () => {
     const registry = createShortcutRegistry(mockBindings);
 
     const match1 = registry.matchShortcut({
-      key: "Enter",
-      ctrlOrMeta: false,
-      shift: false,
       alt: false,
+      ctrlOrMeta: false,
+      key: "Enter",
+      shift: false,
     });
     expect(match1).toBeNull();
 
     const match2 = registry.matchShortcut({
-      key: "Enter",
-      ctrlOrMeta: true,
-      shift: true,
       alt: false,
+      ctrlOrMeta: true,
+      key: "Enter",
+      shift: true,
     });
     expect(match2).toBeNull();
   });
 
   it("parses native KeyboardEvent mock to KeyCombo correctly", () => {
     const mockEvent = {
-      key: "Enter",
+      altKey: false,
       ctrlKey: true,
+      key: "Enter",
       metaKey: false,
       shiftKey: false,
-      altKey: false,
     };
     const combo = parseKeyCombo(mockEvent);
     expect(combo).toEqual({
-      key: "Enter",
-      ctrlOrMeta: true,
-      shift: false,
       alt: false,
+      ctrlOrMeta: true,
+      key: "Enter",
+      shift: false,
     });
   });
 });

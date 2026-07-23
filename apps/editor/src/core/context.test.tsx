@@ -5,7 +5,7 @@ import { EditorProvider, useEditor } from "./context.tsx";
 
 const PLUS_GLOBAL_REGEX = /\+/g;
 const SLASH_GLOBAL_REGEX = /\//g;
-const TRAILING_EQUALS_REGEX = /=+$/;
+const TRAILING_EQUALS_REGEX = /[=]+$/;
 const V3_URL_PREFIX_REGEX = /^https:\/\/glyphide\.com\/\?/;
 const LOCAL_URL_PREFIX_REGEX = /^http:\/\/localhost:3000\/\?/;
 
@@ -45,9 +45,9 @@ function v3Href(code: string, name: string, engine = "quickjs"): string {
 
 function setLocationHref(href: string) {
   Object.defineProperty(window, "location", {
+    configurable: true,
     value: new URL(href),
     writable: true,
-    configurable: true,
   });
 }
 
@@ -81,9 +81,9 @@ describe("EditorContext URL migration", () => {
   afterEach(() => {
     cleanup();
     Object.defineProperty(window, "location", {
+      configurable: true,
       value: originalLocation,
       writable: true,
-      configurable: true,
     });
     vi.restoreAllMocks();
   });

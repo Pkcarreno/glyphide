@@ -75,7 +75,7 @@ function Dialog(props: DialogProps) {
   }
 
   return (
-    <DialogContext.Provider value={{ isOpen, open, close }}>
+    <DialogContext.Provider value={{ close, isOpen, open }}>
       {local.children}
     </DialogContext.Provider>
   );

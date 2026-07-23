@@ -17,9 +17,9 @@ export interface ProjectModel {
   /** Reactive accessor for the project name. */
   name: Accessor<string>;
   /** Updates the project name and persists it to URL state. */
-  setName(newName: string): void;
+  setName: (newName: string) => void;
   /** Sets the shareability state of the URL. */
-  setShareableState(isShareable: boolean): void;
+  setShareableState: (isShareable: boolean) => void;
 }
 
 /** Creates a `ProjectModel` backed by the given URL state port. */
@@ -41,5 +41,5 @@ export function createProjectModel(urlState: UrlStatePort): ProjectModel {
     setIsUrlShareableSignal(isShareable);
   }
 
-  return { name, displayName, isUrlShareable, setName, setShareableState };
+  return { displayName, isUrlShareable, name, setName, setShareableState };
 }

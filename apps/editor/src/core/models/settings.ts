@@ -28,15 +28,15 @@ export interface EditorSettings {
 
 /** Safe defaults when no persisted settings exist. */
 export const DEFAULT_SETTINGS: EditorSettings = {
-  theme: "system",
-  isWordWrapEnabled: false,
-  isAutoRunEnabled: true,
   autoRunDelay: 750,
-  isClearOnRunEnabled: true,
-  isDefaultCodeEnabled: true,
-  uiFontSize: 16,
   bufferFontSize: 15,
   bufferLineHeight: 1.3,
+  isAutoRunEnabled: true,
+  isClearOnRunEnabled: true,
+  isDefaultCodeEnabled: true,
+  isWordWrapEnabled: false,
+  theme: "system",
+  uiFontSize: 16,
 };
 
 /**
@@ -46,11 +46,11 @@ export const DEFAULT_SETTINGS: EditorSettings = {
  */
 export interface SettingsModel {
   /** Resets a specific setting to its default value. */
-  resetSetting<K extends keyof EditorSettings>(key: K): void;
+  resetSetting: <K extends keyof EditorSettings>(key: K) => void;
   /** Reactive store — read any property reactively. */
   settings: EditorSettings;
   /** Applies a partial patch and persists the result. */
-  updateSettings(patch: Partial<EditorSettings>): void;
+  updateSettings: (patch: Partial<EditorSettings>) => void;
 }
 
 /** Creates a `SettingsModel` backed by the given persistence port. */
@@ -69,7 +69,7 @@ export function createSettingsModel(
     updateSettings({ [key]: DEFAULT_SETTINGS[key] } as Partial<EditorSettings>);
   }
 
-  return { settings, updateSettings, resetSetting };
+  return { resetSetting, settings, updateSettings };
 }
 
 function loadSettings(persistence: PersistencePort): EditorSettings {

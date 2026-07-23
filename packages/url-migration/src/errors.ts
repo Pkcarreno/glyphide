@@ -10,8 +10,12 @@ import type { MigrationErrorCode, MigrationErrorShape } from "./types.ts";
 export class MigrationError extends Error implements MigrationErrorShape {
   readonly code: MigrationErrorCode;
 
-  constructor(code: MigrationErrorCode, message: string) {
-    super(message);
+  constructor(
+    code: MigrationErrorCode,
+    message: string,
+    options?: ErrorOptions
+  ) {
+    super(message, options);
     this.name = "MigrationError";
     this.code = code;
     // Maintain prototype chain across transpilation targets.

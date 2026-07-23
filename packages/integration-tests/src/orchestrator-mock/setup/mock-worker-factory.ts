@@ -14,8 +14,14 @@ export const createMockWorker: EngineWorkerFactory<MockOutputPayload> = () => {
   const adapter = new MockEngineAdapter();
 
   const worker = {
-    onmessage: null as ((ev: MessageEvent) => void) | null,
+    addEventListener() {
+      /* noop */
+    },
+    dispatchEvent() {
+      return true;
+    },
     onerror: null as ((ev: ErrorEvent) => void) | null,
+    onmessage: null as ((ev: MessageEvent) => void) | null,
 
     postMessage(message: unknown) {
       setTimeout(() => {
@@ -28,19 +34,12 @@ export const createMockWorker: EngineWorkerFactory<MockOutputPayload> = () => {
         }
       }, 0);
     },
-
-    terminate() {
-      adapter.dispose();
-    },
-
-    addEventListener() {
-      /* noop */
-    },
     removeEventListener() {
       /* noop */
     },
-    dispatchEvent() {
-      return true;
+
+    terminate() {
+      adapter.dispose();
     },
   };
 
@@ -65,7 +64,7 @@ export const createMockWorker: EngineWorkerFactory<MockOutputPayload> = () => {
       setTimeout(() => {
         if (worker.onmessage) {
           worker.onmessage({
-            data: { jsonrpc: "2.0", method, id, params },
+            data: { id, jsonrpc: "2.0", method, params },
           } as MessageEvent);
         }
       }, 0);
@@ -83,10 +82,10 @@ export function createMockConfig(
   config?: Partial<MockEngineConfig>
 ): MockEngineConfig {
   return {
+    capabilities: config?.capabilities,
     initDelay: config?.initDelay ?? 0,
     inputPrompts: config?.inputPrompts,
     runDelay: config?.runDelay ?? 0,
     runError: config?.runError ?? null,
-    capabilities: config?.capabilities,
   };
 }

@@ -17,8 +17,8 @@ describe("MicropythonEngineAdapter", () => {
 
   it("should initialize successfully", async () => {
     const request: JsonRpcRequest = {
-      jsonrpc: "2.0",
       id: 1,
+      jsonrpc: "2.0",
       method: EngineMethod.Init,
       params: {},
     };

@@ -25,8 +25,8 @@ function DispatchSpyHost(props: { setHost: (host: DispatchSpyHost) => void }) {
   const core = useEditor();
   const dispatchSpy = vi.spyOn(core.dispatcher, "dispatch");
   props.setHost({
-    dispatch: dispatchSpy,
     applyUpdate: () => core.pwa.applyUpdate(),
+    dispatch: dispatchSpy,
   });
   return null;
 }
@@ -48,7 +48,11 @@ describe("PwaRegistration", () => {
   it("mounts inside EditorProvider and renders nothing", () => {
     const { container } = render(() => (
       <EditorProvider>
-        <DispatchSpyHost setHost={(h) => (host = h)} />
+        <DispatchSpyHost
+          setHost={(h) => {
+            host = h;
+          }}
+        />
         <PwaRegistration />
       </EditorProvider>
     ));
@@ -61,7 +65,11 @@ describe("PwaRegistration", () => {
   it("does not dispatch PWA_UPDATE_AVAILABLE when needRefresh is initially false", () => {
     render(() => (
       <EditorProvider>
-        <DispatchSpyHost setHost={(h) => (host = h)} />
+        <DispatchSpyHost
+          setHost={(h) => {
+            host = h;
+          }}
+        />
         <PwaRegistration />
       </EditorProvider>
     ));
@@ -75,7 +83,11 @@ describe("PwaRegistration", () => {
   it("dispatches PWA_UPDATE_AVAILABLE exactly once when needRefresh becomes true", async () => {
     render(() => (
       <EditorProvider>
-        <DispatchSpyHost setHost={(h) => (host = h)} />
+        <DispatchSpyHost
+          setHost={(h) => {
+            host = h;
+          }}
+        />
         <PwaRegistration />
       </EditorProvider>
     ));
@@ -99,7 +111,11 @@ describe("PwaRegistration", () => {
   it("dispatches PWA_OFFLINE_READY exactly once when offlineReady becomes true", async () => {
     render(() => (
       <EditorProvider>
-        <DispatchSpyHost setHost={(h) => (host = h)} />
+        <DispatchSpyHost
+          setHost={(h) => {
+            host = h;
+          }}
+        />
         <PwaRegistration />
       </EditorProvider>
     ));
@@ -123,7 +139,11 @@ describe("PwaRegistration", () => {
   it("does not re-dispatch when needRefresh toggles (effect re-runs but flag is set)", async () => {
     render(() => (
       <EditorProvider>
-        <DispatchSpyHost setHost={(h) => (host = h)} />
+        <DispatchSpyHost
+          setHost={(h) => {
+            host = h;
+          }}
+        />
         <PwaRegistration />
       </EditorProvider>
     ));
@@ -154,7 +174,11 @@ describe("PwaRegistration", () => {
   it("wires applyUpdate to updateServiceWorker from the virtual module", () => {
     render(() => (
       <EditorProvider>
-        <DispatchSpyHost setHost={(h) => (host = h)} />
+        <DispatchSpyHost
+          setHost={(h) => {
+            host = h;
+          }}
+        />
         <PwaRegistration />
       </EditorProvider>
     ));

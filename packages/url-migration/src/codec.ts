@@ -12,7 +12,7 @@ function fromUrlSafeBase64(value: string): string {
  * `+` → `-`, `/` → `_`, and stripping `=` padding.
  */
 function toUrlSafeBase64(value: string): string {
-  return value.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+  return value.replace(/\+/g, "-").replace(/\//g, "_").replace(/[=]/g, "");
 }
 
 /**

@@ -51,9 +51,8 @@ export type QuickJSOutputPayload =
 
 export const defaultCapabilities = {
   id: "quickjs",
-  supportedLanguages: ["javascript"] as const,
-  isStateful: true,
   isInterruptible: true,
+  isStateful: true,
   outputTypes: [
     "log",
     "warn",
@@ -70,4 +69,5 @@ export const defaultCapabilities = {
     "assert",
     "trace",
   ] as const,
+  supportedLanguages: ["javascript"] as const,
 } satisfies EngineCapabilities;

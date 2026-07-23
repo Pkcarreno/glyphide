@@ -16,7 +16,7 @@ function EditorPage() {
   const core = useEditor();
 
   createEffect(() => {
-    const theme = core.settings.settings.theme;
+    const { theme } = core.settings.settings;
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
     const updateTheme = () => {

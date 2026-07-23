@@ -49,16 +49,16 @@ function InputGroup(props: InputGroupProps) {
 const inputGroupAddonVariants = cva(
   "flex h-auto cursor-text select-none items-center justify-center gap-1 py-2 font-medium text-on-surface-variant text-xs/relaxed group-data-[disabled=true]/input-group:opacity-50",
   {
-    variants: {
-      align: {
-        "inline-start": "order-first pl-2 has-[>button]:ml-[-0.275rem]",
-        "inline-end": "order-last pr-2 has-[>button]:mr-[-0.275rem]",
-        "block-start": "order-first w-full justify-start px-2 pt-2",
-        "block-end": "order-last w-full justify-start px-2 pb-2",
-      },
-    },
     defaultVariants: {
       align: "inline-start",
+    },
+    variants: {
+      align: {
+        "block-end": "order-last w-full justify-start px-2 pb-2",
+        "block-start": "order-first w-full justify-start px-2 pt-2",
+        "inline-end": "order-last pr-2 has-[>button]:mr-[-0.275rem]",
+        "inline-start": "order-first pl-2 has-[>button]:ml-[-0.275rem]",
+      },
     },
   }
 );
@@ -94,16 +94,16 @@ function InputGroupAddon(props: InputGroupAddonProps) {
 const inputGroupButtonVariants = cva(
   "flex items-center gap-2 rounded-sm text-xs/relaxed shadow-none",
   {
-    variants: {
-      size: {
-        xs: "h-5 gap-1 px-1 [&>svg:not([class*='size-'])]:size-3",
-        sm: "gap-1",
-        "icon-xs": "size-5 p-0 has-[>svg]:p-0",
-        "icon-sm": "size-6 p-0 has-[>svg]:p-0",
-      },
-    },
     defaultVariants: {
       size: "xs",
+    },
+    variants: {
+      size: {
+        "icon-sm": "size-6 p-0 has-[>svg]:p-0",
+        "icon-xs": "size-5 p-0 has-[>svg]:p-0",
+        sm: "gap-1",
+        xs: "h-5 gap-1 px-1 [&>svg:not([class*='size-'])]:size-3",
+      },
     },
   }
 );

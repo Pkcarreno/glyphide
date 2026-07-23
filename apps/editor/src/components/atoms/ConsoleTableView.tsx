@@ -51,7 +51,7 @@ function getColumns(rows: RowData[]): string[] {
         colSet.add(k);
       }
     } else if (val.type === "array") {
-      for (let i = 0; i < val.elements.length; i++) {
+      for (let i = 0; i < val.elements.length; i += 1) {
         colSet.add(String(i));
       }
     } else {
@@ -90,7 +90,6 @@ function getCellToken(
   ) {
     return rowValue;
   }
-  return;
 }
 
 /**

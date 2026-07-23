@@ -11,14 +11,14 @@ const [mockIsTrustRequired, setMockIsTrustRequired] = createSignal(false);
 const [mockUpdateAvailable, setMockUpdateAvailable] = createSignal(false);
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    project: { name: () => "TEST_PROJECT", displayName: () => "TEST_PROJECT" },
-    engine: { engineStatus: () => "idle" },
     dispatcher: { dispatch: dispatchMock },
-    trust: { isTrustRequired: () => mockIsTrustRequired() },
+    engine: { engineStatus: () => "idle" },
+    project: { displayName: () => "TEST_PROJECT", name: () => "TEST_PROJECT" },
     pwa: {
-      updateAvailable: () => mockUpdateAvailable(),
       applyUpdate: applyUpdateMock,
+      updateAvailable: () => mockUpdateAvailable(),
     },
+    trust: { isTrustRequired: () => mockIsTrustRequired() },
   }),
 }));
 
@@ -42,8 +42,8 @@ describe("Header", () => {
     const { getByRole } = render(() => <Header />);
     getByRole("button", { name: "Settings" }).click();
     expect(dispatchMock).toHaveBeenCalledWith({
-      type: "TOGGLE_OVERLAY",
       overlayId: "settings",
+      type: "TOGGLE_OVERLAY",
     });
   });
 
@@ -51,8 +51,8 @@ describe("Header", () => {
     const { getByRole } = render(() => <Header />);
     getByRole("button", { name: "Share workspace" }).click();
     expect(dispatchMock).toHaveBeenCalledWith({
-      type: "OPEN_OVERLAY",
       overlayId: "share",
+      type: "OPEN_OVERLAY",
     });
   });
 
@@ -86,8 +86,8 @@ describe("Header", () => {
       const indicator = getByRole("button", { name: TRUST_REGEX });
       indicator.click();
       expect(dispatchMock).toHaveBeenCalledWith({
-        type: "OPEN_OVERLAY",
         overlayId: "trust-required",
+        type: "OPEN_OVERLAY",
       });
     });
 
@@ -166,8 +166,8 @@ describe("Header - Mobile Dropdown Items", () => {
     openFileItem?.click();
 
     expect(dispatchMock).toHaveBeenCalledWith({
-      type: "OPEN_OVERLAY",
       overlayId: "load-file",
+      type: "OPEN_OVERLAY",
     });
   });
 
@@ -188,8 +188,8 @@ describe("Header - Mobile Dropdown Items", () => {
     settingsItem?.click();
 
     expect(dispatchMock).toHaveBeenCalledWith({
-      type: "TOGGLE_OVERLAY",
       overlayId: "settings",
+      type: "TOGGLE_OVERLAY",
     });
   });
 
@@ -208,8 +208,8 @@ describe("Header - Mobile Dropdown Items", () => {
     shareItem?.click();
 
     expect(dispatchMock).toHaveBeenCalledWith({
-      type: "OPEN_OVERLAY",
       overlayId: "share",
+      type: "OPEN_OVERLAY",
     });
   });
 
@@ -230,8 +230,8 @@ describe("Header - Mobile Dropdown Items", () => {
     selectEngineItem?.click();
 
     expect(dispatchMock).toHaveBeenCalledWith({
-      type: "OPEN_OVERLAY",
       overlayId: "engine-selector",
+      type: "OPEN_OVERLAY",
     });
   });
 
@@ -252,8 +252,8 @@ describe("Header - Mobile Dropdown Items", () => {
     engineSettingsItem?.click();
 
     expect(dispatchMock).toHaveBeenCalledWith({
-      type: "OPEN_OVERLAY",
       overlayId: "engine-settings",
+      type: "OPEN_OVERLAY",
     });
   });
 

@@ -8,11 +8,11 @@ const createMockUrlState = (
   const store = new Map(Object.entries(initialValues));
   return {
     get: (key) => store.get(key) ?? null,
-    set: (key, val) => {
-      store.set(key, val);
-    },
     remove: (key) => {
       store.delete(key);
+    },
+    set: (key, val) => {
+      store.set(key, val);
     },
   };
 };
@@ -50,15 +50,15 @@ describe("BufferModel", () => {
     const mockState = createMockUrlState();
     const buffer = createBufferModel(mockState);
     expect(buffer.cursorPosition()).toEqual({
-      line: 1,
       column: 1,
+      line: 1,
       selectionLength: 0,
       selectionLines: 0,
     });
     buffer.setCursorPosition(5, 10, 15, 2);
     expect(buffer.cursorPosition()).toEqual({
-      line: 5,
       column: 10,
+      line: 5,
       selectionLength: 15,
       selectionLines: 2,
     });

@@ -38,7 +38,7 @@ function ProjectRenameContent() {
       e.preventDefault();
       const newName = name().trim();
       if (newName) {
-        core.dispatcher.dispatch({ type: "RENAME_PROJECT", name: newName });
+        core.dispatcher.dispatch({ name: newName, type: "RENAME_PROJECT" });
       }
       close();
     }
@@ -78,8 +78,8 @@ export function ProjectRenameModal() {
 
   const handleOpenChange = (isOpen: boolean) => {
     core.dispatcher.dispatch({
-      type: isOpen ? "OPEN_OVERLAY" : "CLOSE_OVERLAY",
       overlayId: "project-rename",
+      type: isOpen ? "OPEN_OVERLAY" : "CLOSE_OVERLAY",
     });
   };
 

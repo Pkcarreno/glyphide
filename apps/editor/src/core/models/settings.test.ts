@@ -8,8 +8,8 @@ function createMockPersistence(
   const data = new Map(Object.entries(initialData));
   return {
     get: (key) => data.get(key) ?? null,
-    set: (key, val) => data.set(key, val),
     remove: (key) => data.delete(key),
+    set: (key, val) => data.set(key, val),
   };
 }
 
@@ -36,7 +36,7 @@ describe("SettingsModel", () => {
   it("merges legacy localStorage settings by defaulting missing isDefaultCodeEnabled to true", () => {
     // Simulate a returning user whose persisted settings predate the field.
     const persistence = createMockPersistence({
-      settings: JSON.stringify({ theme: "dark", isWordWrapEnabled: true }),
+      settings: JSON.stringify({ isWordWrapEnabled: true, theme: "dark" }),
     });
     const model = createSettingsModel(persistence);
 
@@ -48,7 +48,7 @@ describe("SettingsModel", () => {
 
   it("loads settings from persistence port", () => {
     const persistence = createMockPersistence({
-      settings: JSON.stringify({ theme: "dark", isWordWrapEnabled: true }),
+      settings: JSON.stringify({ isWordWrapEnabled: true, theme: "dark" }),
     });
     const model = createSettingsModel(persistence);
 

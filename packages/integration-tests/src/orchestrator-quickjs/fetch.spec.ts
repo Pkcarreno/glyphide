@@ -40,7 +40,7 @@ describe("Orchestrator + QuickJS Fetch Integration", () => {
   });
 
   afterEach(() => {
-    orchestrator?.terminate();
+    orchestrator.terminate();
   });
 
   it("performs GET requests and parses JSON", async () => {

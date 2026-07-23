@@ -36,29 +36,29 @@ vi.mock("../../core/context.tsx", () => ({
     dispatcher: { dispatch: dispatchMock },
     engine: {
       activeEngineId: () => "mock-engine",
-      activeInitParams: () => ({ timeout: 5000, retries: 3 }),
+      activeInitParams: () => ({ retries: 3, timeout: 5000 }),
       engineStatus: () => mockEngineStatus(),
     },
     engineRegistry: {
       getDefinition: () => ({
+        defaultInitParams: {},
         paramDescriptors: [
           {
+            inputProps: { max: 120, min: 1, step: 1 },
+            inputType: "compact-number",
+            isEditable: true,
             key: "timeout",
             label: "Timeout (s)",
-            isEditable: true,
-            inputType: "compact-number",
-            inputProps: { min: 1, max: 120, step: 1 },
             toModel: (val: unknown) => Number(val) * 1000,
             toView: (val: unknown) => Number(val) / 1000,
           },
           {
+            inputType: "text",
+            isEditable: false,
             key: "retries",
             label: "Retries",
-            isEditable: false,
-            inputType: "text",
           },
         ],
-        defaultInitParams: {},
       }),
     },
     overlays: {
@@ -119,12 +119,12 @@ describe("EngineSettingsModal Apply behavior", () => {
     fireEvent.click(applyButton);
 
     expect(dispatchMock).toHaveBeenCalledWith({
-      type: "UPDATE_ENGINE_CONFIG",
       patch: { retries: 3, timeout: 2000 },
+      type: "UPDATE_ENGINE_CONFIG",
     });
     expect(dispatchMock).toHaveBeenCalledWith({
-      type: "CLOSE_OVERLAY",
       overlayId: "engine-settings",
+      type: "CLOSE_OVERLAY",
     });
   });
 
@@ -144,8 +144,8 @@ describe("EngineSettingsModal Apply behavior", () => {
       expect.objectContaining({ type: "UPDATE_ENGINE_CONFIG" })
     );
     expect(dispatchMock).toHaveBeenCalledWith({
-      type: "CLOSE_OVERLAY",
       overlayId: "engine-settings",
+      type: "CLOSE_OVERLAY",
     });
   });
 

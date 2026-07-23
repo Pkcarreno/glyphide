@@ -40,7 +40,7 @@ describe("QuickJS: error recovery", () => {
     const output = await ctx.runPoC(QJS_RECOVERY_AFTER_BLOCKED_FETCH.poc, 200);
     try {
       expectSecureRejection(output, QJS_RECOVERY_AFTER_BLOCKED_FETCH);
-    } catch {
+    } catch (err) {
       // The PoC swallows the rejected promise, so the only output
       // we ever see is the RECOVERED line. The "VULNERABILITY"
       // branch never fires here, so we instead verify that the
@@ -49,7 +49,8 @@ describe("QuickJS: error recovery", () => {
       if (!output.includes(QJS_RECOVERY_AFTER_BLOCKED_FETCH.secureSubstring)) {
         throw new Error(
           `[${QJS_RECOVERY_AFTER_BLOCKED_FETCH.id}] engine did not recover — ` +
-            `output: ${output.slice(0, 400)}`
+            `output: ${output.slice(0, 400)}`,
+          { cause: err }
         );
       }
       // The PoC is structured so that, in the RED phase, the fetch
@@ -58,7 +59,8 @@ describe("QuickJS: error recovery", () => {
       throw new Error(
         `[${QJS_RECOVERY_AFTER_BLOCKED_FETCH.id}] VULNERABILITY CONFIRMED — ` +
           "loopback fetch was permitted (engine did not enforce URL policy). " +
-          `Output: ${output.slice(0, 400)}`
+          `Output: ${output.slice(0, 400)}`,
+        { cause: err }
       );
     }
   });

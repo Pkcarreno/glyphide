@@ -91,7 +91,8 @@ describe("QuickJS: network security", () => {
           throw new Error(
             `[${scenario.id}] VULNERABILITY CONFIRMED — observed: ` +
               `"${scenario.vulnerableSubstring}" (engine did not block). ` +
-              `Output: ${output.slice(0, 400)}`
+              `Output: ${output.slice(0, 400)}`,
+            { cause: err }
           );
         }
         throw err;
@@ -112,7 +113,8 @@ describe("QuickJS: network security", () => {
       if (isVulnerabilityObserved(output, poc)) {
         throw new Error(
           `[${poc.id}] VULNERABILITY CONFIRMED — ` +
-            `sensitive headers forwarded to host. Output: ${output.slice(0, 400)}`
+            `sensitive headers forwarded to host. Output: ${output.slice(0, 400)}`,
+          { cause: err }
         );
       }
       throw err;
@@ -132,7 +134,8 @@ describe("QuickJS: network security", () => {
       if (isVulnerabilityObserved(output, poc)) {
         throw new Error(
           `[${poc.id}] VULNERABILITY CONFIRMED — ` +
-            `response body of unbounded size was returned. Output: ${output.slice(0, 400)}`
+            `response body of unbounded size was returned. Output: ${output.slice(0, 400)}`,
+          { cause: err }
         );
       }
       throw err;

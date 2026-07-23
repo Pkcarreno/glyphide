@@ -16,7 +16,8 @@ interface ConsoleGroupViewProps {
  * manages or renders its own children. It only triggers the toggle event.
  */
 function ConsoleGroupView(props: ConsoleGroupViewProps) {
-  const hasLabel = () => (props.item.groupLabel?.length ?? 0) > 0;
+  const hasLabel = () =>
+    props.item.groupLabel ? props.item.groupLabel.length > 0 : false;
   const isExpanded = () => !props.item.isCollapsed;
 
   const preview = (

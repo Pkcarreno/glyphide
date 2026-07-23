@@ -45,15 +45,15 @@ describe("Resizer", () => {
     const sep = getByRole("separator");
     sep.dispatchEvent(
       new PointerEvent("pointerdown", {
-        pointerId: 1,
-        clientX: 100,
         bubbles: true,
+        clientX: 100,
+        pointerId: 1,
       })
     );
     expect(document.body.style.cursor).toBe("col-resize");
 
     sep.dispatchEvent(
-      new PointerEvent("pointerup", { pointerId: 1, bubbles: true })
+      new PointerEvent("pointerup", { bubbles: true, pointerId: 1 })
     );
     expect(document.body.style.cursor).toBe("");
   });
@@ -67,21 +67,21 @@ describe("Resizer", () => {
 
     sep.dispatchEvent(
       new PointerEvent("pointerdown", {
-        pointerId: 1,
         bubbles: true,
+        pointerId: 1,
       })
     );
     sep.dispatchEvent(
       new PointerEvent("pointermove", {
-        pointerId: 1,
-        movementX: 50,
         bubbles: true,
+        movementX: 50,
+        pointerId: 1,
       })
     );
     expect(onResizeDelta).toHaveBeenCalledWith(50);
 
     sep.dispatchEvent(
-      new PointerEvent("pointerup", { pointerId: 1, bubbles: true })
+      new PointerEvent("pointerup", { bubbles: true, pointerId: 1 })
     );
   });
 
@@ -92,13 +92,13 @@ describe("Resizer", () => {
 
     sep.dispatchEvent(
       new PointerEvent("pointerdown", {
-        pointerId: 1,
-        clientX: 100,
         bubbles: true,
+        clientX: 100,
+        pointerId: 1,
       })
     );
     sep.dispatchEvent(
-      new PointerEvent("pointerup", { pointerId: 1, bubbles: true })
+      new PointerEvent("pointerup", { bubbles: true, pointerId: 1 })
     );
     expect(onResizeEnd).toHaveBeenCalledOnce();
   });

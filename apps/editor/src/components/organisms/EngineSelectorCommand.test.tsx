@@ -13,13 +13,13 @@ vi.mock("../../core/engine/registry", async (importOriginal) => {
     getEngineEntries: () => [
       {
         engineId: "quickjs",
-        language: "javascript",
         label: "QuickJS — JavaScript",
+        language: "javascript",
       },
       {
         engineId: "mock",
-        language: "plaintext",
         label: "Mock Engine — Plaintext",
+        language: "plaintext",
       },
     ],
   };
@@ -28,10 +28,10 @@ vi.mock("../../core/engine/registry", async (importOriginal) => {
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
     dispatcher: { dispatch: dispatchMock },
+    engineRegistry: {},
     overlays: {
       isOpen: (id: string) => id === "engine-selector" && mockIsOpen(),
     },
-    engineRegistry: {},
   }),
 }));
 
@@ -65,13 +65,13 @@ describe("EngineSelectorCommand", () => {
     fireEvent.click(getByText("Mock Engine — Plaintext"));
 
     expect(dispatchMock).toHaveBeenCalledWith({
-      type: "SELECT_ENGINE_ENTRY",
       engineId: "mock",
       language: "plaintext",
+      type: "SELECT_ENGINE_ENTRY",
     });
     expect(dispatchMock).toHaveBeenCalledWith({
-      type: "CLOSE_OVERLAY",
       overlayId: "engine-selector",
+      type: "CLOSE_OVERLAY",
     });
   });
 });

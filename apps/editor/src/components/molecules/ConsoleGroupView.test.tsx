@@ -6,20 +6,20 @@ import { ConsoleGroupView } from "./ConsoleGroupView.tsx";
 
 describe("ConsoleGroupView", () => {
   const mockOutputEntry = {
+    data: "",
     id: 0,
     timestamp: 0,
     type: "log",
-    data: "",
   } as OutputEntry;
 
   const mockItem: FlatConsoleItem = {
-    id: 0,
-    entry: mockOutputEntry,
-    rendered: { variant: "group" },
     depth: 0,
-    isGroup: true,
-    isCollapsed: false,
+    entry: mockOutputEntry,
     groupLabel: [],
+    id: 0,
+    isCollapsed: false,
+    isGroup: true,
+    rendered: { variant: "group" },
   };
 
   it("renders a <no label> preview when label is empty", () => {

@@ -36,9 +36,9 @@ type RequestSender = (method: string, id: JsonRpcId, params?: object) => void;
 export class MockEngineAdapter {
   readonly id = defaultCapabilities.id;
   #config: Required<MockEngineConfig>;
-  #interrupted = false;
-  #running = false;
-  #disposed = false;
+  #interrupted: boolean;
+  #running: boolean;
+  #disposed: boolean;
   #timers: ReturnType<typeof setTimeout>[] = [];
   #sendResponse: ResponseSender;
   #onNotification: NotificationHandler;
@@ -47,12 +47,15 @@ export class MockEngineAdapter {
   readonly #pendingInputs = new Map<JsonRpcId, (value: string) => void>();
 
   constructor(config: MockEngineConfig = {}) {
+    this.#interrupted = false;
+    this.#running = false;
+    this.#disposed = false;
     this.#config = {
+      capabilities: config.capabilities ?? defaultCapabilities,
       initDelay: config.initDelay ?? 0,
       inputPrompts: config.inputPrompts ?? [],
       runDelay: config.runDelay ?? 0,
       runError: config.runError ?? null,
-      capabilities: config.capabilities ?? defaultCapabilities,
     };
     this.#sendResponse = () => {
       throw new Error("Response sender not configured");
@@ -150,8 +153,8 @@ export class MockEngineAdapter {
         return;
       }
       this.#sendResponse({
-        jsonrpc: "2.0",
         id,
+        jsonrpc: "2.0",
         result: {
           timeout: 30_000,
           ...defaultCapabilities,
@@ -176,8 +179,8 @@ export class MockEngineAdapter {
 
       if (this.#interrupted) {
         this.#sendResponse({
-          jsonrpc: "2.0",
           id,
+          jsonrpc: "2.0",
           result: { interrupted: true },
         });
         return;
@@ -185,12 +188,12 @@ export class MockEngineAdapter {
 
       if (this.#config.runError) {
         this.#sendResponse({
-          jsonrpc: "2.0",
-          id,
           error: {
             code: RpcErrorCode.InternalError,
             message: this.#config.runError,
           },
+          id,
+          jsonrpc: "2.0",
         });
         return;
       }
@@ -205,12 +208,12 @@ export class MockEngineAdapter {
       }
 
       this.#onNotification(EngineMethod.Output, {
-        type: "print",
         data: code,
+        type: "print",
       } satisfies MockOutputPayload);
       this.#sendResponse({
-        jsonrpc: "2.0",
         id,
+        jsonrpc: "2.0",
         result: { executed: true },
       });
     }, this.#config.runDelay);
@@ -223,34 +226,42 @@ export class MockEngineAdapter {
    * and emits collected values as output.
    */
   async #handleInputSequence(runId: JsonRpcId, code: string): Promise<void> {
-    const values: string[] = [];
-    for (const prompt of this.#config.inputPrompts) {
-      if (this.#disposed) {
-        return;
+    // Sequential prompt collection: each prompt must await the user's reply
+    // before the next one is sent, so parallelism is intentionally forbidden.
+    // Implemented as a recursive accumulator to comply with noAwaitInLoops.
+    const collectInputs = async (
+      prompts: readonly string[],
+      accumulated: string[]
+    ): Promise<string[]> => {
+      const [first, ...rest] = prompts;
+      if (first === undefined || this.#disposed) {
+        return accumulated;
       }
-      const value = await this.#requestInput(prompt);
-      values.push(value);
-    }
+      const value = await this.#requestInput(first);
+      return collectInputs(rest, [...accumulated, value]);
+    };
+
+    const values = await collectInputs(this.#config.inputPrompts, []);
 
     if (this.#disposed) {
       return;
     }
 
     this.#onNotification(EngineMethod.Output, {
-      type: "print",
       data: code,
+      type: "print",
     } satisfies MockOutputPayload);
 
     if (values.length > 0) {
       this.#onNotification(EngineMethod.Output, {
-        type: "print",
         data: values.join(", "),
+        type: "print",
       } satisfies MockOutputPayload);
     }
 
     this.#sendResponse({
-      jsonrpc: "2.0",
       id: runId,
+      jsonrpc: "2.0",
       result: { executed: true },
     });
   }
@@ -261,7 +272,9 @@ export class MockEngineAdapter {
    */
   #requestInput(prompt: string): Promise<string> {
     return new Promise<string>((resolve) => {
-      const id = `input-${this.#nextInputId++}`;
+      const currentInputId = this.#nextInputId;
+      this.#nextInputId += 1;
+      const id = `input-${currentInputId}`;
       this.#pendingInputs.set(id, resolve);
       this.#sendRequest(EngineMethod.InputRequest, id, { prompt });
     });
@@ -283,8 +296,8 @@ export class MockEngineAdapter {
     if (this.#running) {
       this.#interrupted = true;
       this.#onNotification(EngineMethod.Output, {
-        type: "log",
         data: "Execution interrupted",
+        type: "log",
       } satisfies MockOutputPayload);
     }
   }
@@ -293,8 +306,8 @@ export class MockEngineAdapter {
     this.#interrupted = false;
     this.#running = false;
     this.#sendResponse({
-      jsonrpc: "2.0",
       id,
+      jsonrpc: "2.0",
       result: { reset: true },
     });
   }

@@ -25,8 +25,8 @@ describe("cn", () => {
   });
 
   it("when given conditional expressions, includes only truthy ones", () => {
-    const isActive = true;
-    const isDisabled = false;
+    const isActive: boolean = true;
+    const isDisabled: boolean = false;
     const result = cn(
       "base",
       isActive && "bg-primary",

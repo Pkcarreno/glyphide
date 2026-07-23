@@ -98,9 +98,9 @@ describe("buildCurrentUrl", () => {
   it("returns a URL targeting https://glyphide.com/ with all params", () => {
     const state: CanonicalState = {
       code: "console.log(1)",
-      name: "Test",
       engine: "quickjs",
       language: "javascript",
+      name: "Test",
     };
     const result = buildCurrentUrl(state);
     expect(result.url.startsWith("https://glyphide.com/?")).toBe(true);
@@ -114,9 +114,9 @@ describe("buildCurrentUrl", () => {
   it("encodes the engine param as 'engineId' when language is default", () => {
     const state: CanonicalState = {
       code: "x",
-      name: "y",
       engine: "quickjs",
       language: "javascript",
+      name: "y",
     };
     const result = buildCurrentUrl(state);
     const parsed = new URL(result.url);
@@ -133,9 +133,9 @@ describe("buildCurrentUrl", () => {
   it("encodes the engine param as 'engineId:language' for multi-language engines", () => {
     const state: CanonicalState = {
       code: "print(1)",
-      name: "Greet",
       engine: "micropython",
       language: "python",
+      name: "Greet",
     };
     const result = buildCurrentUrl(state);
     const parsed = new URL(result.url);
@@ -150,9 +150,9 @@ describe("buildCurrentUrl", () => {
   it("omits the name param when the name is empty", () => {
     const state: CanonicalState = {
       code: "console.log(1)",
-      name: "",
       engine: "quickjs",
       language: "javascript",
+      name: "",
     };
     const result = buildCurrentUrl(state);
     const parsed = new URL(result.url);
@@ -165,15 +165,15 @@ describe("buildCurrentUrl", () => {
     // Use a high-entropy payload so deflate cannot compress it.
     // 2M random printable chars → ~11k+ base64 output, well over 8000.
     const chars: string[] = [];
-    for (let i = 0; i < 2_000_000; i++) {
+    for (let i = 0; i < 2_000_000; i += 1) {
       chars.push(String.fromCharCode(33 + ((i * 2_654_435_761) % 94)));
     }
     const longCode = chars.join("");
     const state: CanonicalState = {
       code: longCode,
-      name: "Big",
       engine: "quickjs",
       language: "javascript",
+      name: "Big",
     };
     const result = buildCurrentUrl(state);
     expect(result.url.length).toBeGreaterThan(8000);

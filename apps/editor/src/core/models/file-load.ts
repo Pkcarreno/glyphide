@@ -27,11 +27,11 @@ export interface FileLoadModel {
    * Resolves a file extension to its target engine and language.
    * Returns null for unsupported extensions.
    */
-  resolveEngine(extension: string): ResolvedEngine | null;
+  resolveEngine: (extension: string) => ResolvedEngine | null;
   /** Clears the current error. */
-  setError(message: string | null): void;
+  setError: (message: string | null) => void;
   /** Sets the file that the user picked from disk. */
-  setPendingFile(file: FileReadResult | null): void;
+  setPendingFile: (file: FileReadResult | null) => void;
 }
 
 /** Hardcoded extension→engine map. Add entries here to support more types. */

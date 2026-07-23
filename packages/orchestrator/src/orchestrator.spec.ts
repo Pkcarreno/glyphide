@@ -27,7 +27,7 @@ describe("EngineOrchestrator", () => {
       };
 
       const orchestrator = new EngineOrchestrator({
-        events: { onOutput, onEngineReady },
+        events: { onEngineReady, onOutput },
       });
 
       expect(orchestrator).toBeDefined();
@@ -57,8 +57,8 @@ describe("EngineOrchestrator", () => {
     it("terminates a freezing worker, rejects pending runs, emits system event, and respawns", async () => {
       const mockWorkerFactory = () => {
         return {
-          terminate: () => {
-            /* noop */
+          set onmessage(handler: ((ev: MessageEvent) => void) | null) {
+            mockWorkerFactory.currentOnMessage = handler;
           },
           postMessage: (data: unknown) => {
             const msg = data as JsonRpcRequest;
@@ -66,22 +66,22 @@ describe("EngineOrchestrator", () => {
             if (msg.method === EngineMethod.Init) {
               mockWorkerFactory.currentOnMessage?.({
                 data: {
-                  jsonrpc: "2.0",
                   id: msg.id,
+                  jsonrpc: "2.0",
                   result: {
                     id: "test",
-                    timeout: 30_000,
-                    supportedLanguages: ["javascript"],
-                    isStateful: true,
                     isInterruptible: true,
+                    isStateful: true,
+                    supportedLanguages: ["javascript"],
+                    timeout: 30_000,
                   },
                 },
               } as MessageEvent);
             }
             // For EngineMethod.Run, we do nothing to simulate a FREEZE
           },
-          set onmessage(handler: ((ev: MessageEvent) => void) | null) {
-            mockWorkerFactory.currentOnMessage = handler;
+          terminate: () => {
+            /* noop */
           },
         } as unknown as Worker;
       };
@@ -93,7 +93,6 @@ describe("EngineOrchestrator", () => {
       const systemOutputs: EngineOutputPayload[] = [];
       const orchestrator = new EngineOrchestrator({
         createWorker: mockWorkerFactory,
-        useWorker: true,
         events: {
           onOutput: (payload) => {
             if (payload.type === "system") {
@@ -101,6 +100,7 @@ describe("EngineOrchestrator", () => {
             }
           },
         },
+        useWorker: true,
       });
 
       await orchestrator.init();
@@ -111,8 +111,8 @@ describe("EngineOrchestrator", () => {
 
       await expect(runPromise).rejects.toThrow("Worker terminated");
       expect(systemOutputs).toContainEqual({
-        type: "system",
         data: "Execution interrupted",
+        type: "system",
       });
     });
   });

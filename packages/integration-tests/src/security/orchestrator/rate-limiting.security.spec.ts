@@ -34,12 +34,22 @@ describe("Orchestrator: rate limiting", () => {
   it("R-SEC-ORC-01: rapid engine creation does not leak workers", async () => {
     const cycles = 5;
     const start = Date.now();
-    for (let i = 0; i < cycles; i++) {
+
+    // Sequential init → terminate cycles: intentional ordering to measure
+    // per-cycle timing and verify that sequential resource teardown does
+    // not leak workers (parallelising would defeat the measurement intent).
+    const runCycle = async (index: number): Promise<void> => {
+      if (index >= cycles) {
+        return;
+      }
       const o = new EngineOrchestrator({ createWorker: createQuickJSWorker });
       orchestrators.push(o);
-      await o.init({ timeout: 5000, memoryLimit: 10 * 1024 * 1024 });
+      await o.init({ memoryLimit: 10 * 1024 * 1024, timeout: 5000 });
       o.terminate();
-    }
+      await runCycle(index + 1);
+    };
+    await runCycle(0);
+
     const elapsed = Date.now() - start;
 
     // Document the baseline: if the elapsed time grows non-linearly,
@@ -54,16 +64,18 @@ describe("Orchestrator: rate limiting", () => {
 
     // A second pass re-creates orchestrators without terminating
     // the previous ones to detect worker leaks.
-    const leaks: EngineOrchestrator[] = [];
-    for (let i = 0; i < 3; i++) {
-      const o = new EngineOrchestrator({ createWorker: createQuickJSWorker });
-      leaks.push(o);
-      await o.init({ timeout: 5000, memoryLimit: 10 * 1024 * 1024 });
-    }
+    const leakCount = 3;
+    const leaks = Array.from(
+      { length: leakCount },
+      () => new EngineOrchestrator({ createWorker: createQuickJSWorker })
+    );
+    await Promise.all(
+      leaks.map((o) => o.init({ memoryLimit: 10 * 1024 * 1024, timeout: 5000 }))
+    );
     // Each new orchestrator should be independently functional.
-    for (const o of leaks) {
-      await expect(o.run("1 + 1")).resolves.toBeUndefined();
-    }
+    await Promise.all(
+      leaks.map((o) => expect(o.run("1 + 1")).resolves.toBeUndefined())
+    );
     for (const o of leaks) {
       o.terminate();
     }

@@ -54,34 +54,34 @@ export interface EngineModel {
   engineStatus: Accessor<EngineStatus>;
 
   /** Executes the current buffer content in the active engine. */
-  executeCode(): Promise<void>;
+  executeCode: () => Promise<void>;
   /**
    * Initializes the currently selected engine. Spawns a worker for the
    * active engine/language pair. Idempotent: no-op when the engine is
    * already ready, initializing, running, or blocked. Retries on error
    * (terminates the failed worker first).
    */
-  initializeSelectedEngine(): Promise<void>;
+  initializeSelectedEngine: () => Promise<void>;
   /** Forcefully interrupts the running execution. */
-  interruptExecution(): Promise<void>;
+  interruptExecution: () => Promise<void>;
   /** Indicates if the buffer was modified while an execution is in progress. */
   isDirty: Accessor<boolean>;
   /** Syncs engine state based on buffer updates. */
-  onBufferUpdated(newCode: string): void;
+  onBufferUpdated: (newCode: string) => void;
   /** Retries initialization for the current entry. */
-  retryInit(): Promise<void>;
+  retryInit: () => Promise<void>;
   /**
    * Selects an engine entry — updates `activeEngineId` and `activeLanguage`
    * signals and persists the engine to the URL — but does NOT spawn or
    * initialize any engine worker. Use `initializeSelectedEngine` to spawn.
    */
-  selectEngineEntry(entry: EngineEntry): void;
+  selectEngineEntry: (entry: EngineEntry) => void;
   /** Sets the engine status to blocked (used when trust is required). */
-  setBlocked(isBlocked: boolean): void;
+  setBlocked: (isBlocked: boolean) => void;
   /** Tears down the orchestrator and releases resources. */
-  terminate(): void;
+  terminate: () => void;
   /** Updates the engine config and triggers a re-INIT. */
-  updateEngineConfig(patch: Record<string, unknown>): Promise<void>;
+  updateEngineConfig: (patch: Record<string, unknown>) => Promise<void>;
 }
 
 /** Creates an `EngineModel` wired to the given dependencies. */
@@ -96,11 +96,9 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
   let resolvedLanguage: string | undefined;
 
   if (initialEngineState) {
-    const parts = initialEngineState.split(":");
-    resolvedEngineId = parts[0];
-    if (parts.length > 1) {
-      resolvedLanguage = parts[1];
-    }
+    const [engineId, language] = initialEngineState.split(":");
+    resolvedEngineId = engineId;
+    resolvedLanguage = language;
   }
 
   let def: ReturnType<EngineRegistry["getDefinition"]>;
@@ -160,8 +158,8 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
    * engines store only the ID.
    */
   function serializeEngineId(): string {
-    const def = deps.registry.getDefinition(activeEngineId());
-    return def.supportedLanguages.length > 1
+    const engineDef = deps.registry.getDefinition(activeEngineId());
+    return engineDef.supportedLanguages.length > 1
       ? `${activeEngineId()}:${activeLanguage()}`
       : activeEngineId();
   }
@@ -187,9 +185,9 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
       isInitialized = true;
       setActiveCapabilities({
         id: result.id,
-        supportedLanguages: result.supportedLanguages,
-        isStateful: result.isStateful,
         isInterruptible: result.isInterruptible,
+        isStateful: result.isStateful,
+        supportedLanguages: result.supportedLanguages,
       });
 
       setActiveInitParams({ ...params, timeout: result.timeout });
@@ -198,10 +196,11 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     } catch (error) {
       isInitialized = false;
       setEngineStatus("error");
-      const message = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       deps.output.appendEntry(
         "error",
-        `Engine initialization failed: ${message}`
+        `Engine initialization failed: ${errorMessage}`
       );
     }
   }
@@ -257,10 +256,10 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
       terminate();
     }
 
-    const def = deps.registry.getDefinition(activeEngineId());
+    const engineDef = deps.registry.getDefinition(activeEngineId());
     const params: EngineInitParams = {
       language: activeLanguage(),
-      ...def.defaultInitParams,
+      ...engineDef.defaultInitParams,
     };
     await initializeEngine(params);
   }
@@ -380,20 +379,20 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
   }
 
   return {
-    engineStatus: engineStatusAccessor,
-    activeEngineId,
-    activeLanguage,
-    activeInitParams,
     activeCapabilities,
-    isDirty,
+    activeEngineId,
+    activeInitParams,
+    activeLanguage,
+    engineStatus: engineStatusAccessor,
     executeCode,
-    interruptExecution,
     initializeSelectedEngine,
-    selectEngineEntry,
-    updateEngineConfig,
+    interruptExecution,
+    isDirty,
+    onBufferUpdated,
     retryInit,
+    selectEngineEntry,
     setBlocked,
     terminate,
-    onBufferUpdated,
+    updateEngineConfig,
   };
 }

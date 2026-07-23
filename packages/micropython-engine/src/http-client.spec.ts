@@ -35,8 +35,8 @@ class MockXMLHttpRequest {
       this.status = 200;
       this.statusText = "OK";
       this.responseText = JSON.stringify({
-        success: true,
         method: this._method,
+        success: true,
       });
     } else {
       this.status = 404;
@@ -68,9 +68,9 @@ describe("http-client", () => {
       : wasmUrl;
 
     const mp = await loadMicroPython({
-      url: resolvedWasmUrl,
-      stdout: console.log,
       stderr: console.error,
+      stdout: console.log,
+      url: resolvedWasmUrl,
     });
 
     installHttpClient(mp);
@@ -96,9 +96,9 @@ except Exception as e:
       : wasmUrl;
 
     const mp = await loadMicroPython({
-      url: resolvedWasmUrl,
-      stdout: console.log,
       stderr: console.error,
+      stdout: console.log,
+      url: resolvedWasmUrl,
     });
 
     installHttpClient(mp);

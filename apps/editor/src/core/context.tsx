@@ -45,7 +45,9 @@ export function EditorProvider(props: { children: JSX.Element }) {
     browserUrlAdapter,
     8000,
     (isShareable) => {
-      core?.project.setShareableState(isShareable);
+      if (core) {
+        core.project.setShareableState(isShareable);
+      }
     }
   );
 

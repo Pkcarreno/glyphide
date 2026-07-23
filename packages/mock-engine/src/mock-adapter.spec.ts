@@ -31,9 +31,9 @@ describe("MockEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 1,
         jsonrpc: "2.0",
         method: EngineMethod.Init,
-        id: 1,
       });
 
       await new Promise((r) => setTimeout(r, 10));
@@ -42,11 +42,11 @@ describe("MockEngineAdapter", () => {
       expect(responses[0].id).toBe(1);
       expect(responses[0].result).toMatchObject({
         id: "mock",
-        timeout: 30_000,
-        supportedLanguages: ["plaintext"],
-        isStateful: true,
         isInterruptible: true,
+        isStateful: true,
         outputTypes: ["print", "log", "warn"],
+        supportedLanguages: ["plaintext"],
+        timeout: 30_000,
       });
 
       adapter.dispose();
@@ -66,9 +66,9 @@ describe("MockEngineAdapter", () => {
       const start = Date.now();
 
       adapter.handleMessage({
+        id: 2,
         jsonrpc: "2.0",
         method: EngineMethod.Init,
-        id: 2,
       });
 
       await new Promise((r) => setTimeout(r, 70));
@@ -83,10 +83,10 @@ describe("MockEngineAdapter", () => {
     it("uses custom capabilities when provided", async () => {
       const adapter = new MockEngineAdapter({
         capabilities: {
-          supportedLanguages: ["plaintext"],
-          isStateful: false,
           isInterruptible: false,
+          isStateful: false,
           outputTypes: ["print"],
+          supportedLanguages: ["plaintext"],
         },
       });
       const responses: CapturedResponse[] = [];
@@ -99,18 +99,18 @@ describe("MockEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 3,
         jsonrpc: "2.0",
         method: EngineMethod.Init,
-        id: 3,
       });
 
       await new Promise((r) => setTimeout(r, 10));
 
       expect(responses[0].result).toMatchObject({
-        supportedLanguages: ["plaintext"],
-        isStateful: false,
         isInterruptible: false,
+        isStateful: false,
         outputTypes: ["print"],
+        supportedLanguages: ["plaintext"],
       });
 
       adapter.dispose();
@@ -130,10 +130,10 @@ describe("MockEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 4,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "console.log('hello')" },
-        id: 4,
       });
 
       await new Promise((r) => setTimeout(r, 20));
@@ -158,10 +158,10 @@ describe("MockEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 5,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "test code" },
-        id: 5,
       });
 
       await new Promise((r) => setTimeout(r, 20));
@@ -188,10 +188,10 @@ describe("MockEngineAdapter", () => {
       const start = Date.now();
 
       adapter.handleMessage({
+        id: 6,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "test" },
-        id: 6,
       });
 
       await new Promise((r) => setTimeout(r, 70));
@@ -212,9 +212,9 @@ describe("MockEngineAdapter", () => {
       adapter.setup(
         (r) =>
           responses.push({
+            error: r.error,
             id: r.id,
             result: r.result as object,
-            error: r.error,
           }),
         () => {
           /* noop */
@@ -222,10 +222,10 @@ describe("MockEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 7,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "test" },
-        id: 7,
       });
 
       await new Promise((r) => setTimeout(r, 20));
@@ -252,10 +252,10 @@ describe("MockEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 8,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: {},
-        id: 8,
       });
 
       await new Promise((r) => setTimeout(r, 20));
@@ -280,10 +280,10 @@ describe("MockEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 9,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "test" },
-        id: 9,
       });
 
       adapter.handleMessage({
@@ -312,10 +312,10 @@ describe("MockEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 10,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "test" },
-        id: 10,
       });
 
       adapter.handleMessage({
@@ -345,10 +345,10 @@ describe("MockEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 11,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "test" },
-        id: 11,
       });
 
       await new Promise((r) => setTimeout(r, 80));
@@ -395,10 +395,10 @@ describe("MockEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 12,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "test" },
-        id: 12,
       });
 
       adapter.handleMessage({
@@ -455,9 +455,9 @@ describe("MockEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: null,
         jsonrpc: "2.0",
         method: EngineMethod.Init,
-        id: null,
       });
 
       await new Promise((r) => setTimeout(r, 10));
@@ -480,9 +480,9 @@ describe("MockEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: "req-123",
         jsonrpc: "2.0",
         method: EngineMethod.Init,
-        id: "req-123",
       });
 
       await new Promise((r) => setTimeout(r, 10));
@@ -509,14 +509,14 @@ describe("MockEngineAdapter", () => {
         () => {
           /* noop */
         },
-        (method, id, params) => requests.push({ method, id, params })
+        (method, id, params) => requests.push({ id, method, params })
       );
 
       adapter.handleMessage({
+        id: 1,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "test" },
-        id: 1,
       });
 
       await new Promise((r) => setTimeout(r, 20));
@@ -528,8 +528,8 @@ describe("MockEngineAdapter", () => {
 
       // Reply to first input request
       adapter.handleMessage({
-        jsonrpc: "2.0",
         id: requests[0].id,
+        jsonrpc: "2.0",
         result: { value: "Alice" },
       } as never);
 
@@ -541,8 +541,8 @@ describe("MockEngineAdapter", () => {
 
       // Reply to second
       adapter.handleMessage({
-        jsonrpc: "2.0",
         id: requests[1].id,
+        jsonrpc: "2.0",
         result: { value: "25" },
       } as never);
 
@@ -567,22 +567,22 @@ describe("MockEngineAdapter", () => {
             method: m,
             params: p as { type?: string; data?: unknown },
           }),
-        (method, id, params) => requests.push({ method, id, params })
+        (method, id, params) => requests.push({ id, method, params })
       );
 
       adapter.handleMessage({
+        id: 2,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "hello" },
-        id: 2,
       });
 
       await new Promise((r) => setTimeout(r, 20));
 
       // Reply to input request
       adapter.handleMessage({
-        jsonrpc: "2.0",
         id: requests[0].id,
+        jsonrpc: "2.0",
         result: { value: "World" },
       } as never);
 
@@ -610,14 +610,14 @@ describe("MockEngineAdapter", () => {
         () => {
           /* noop */
         },
-        (method, id) => requests.push({ method, id })
+        (method, id) => requests.push({ id, method })
       );
 
       adapter.handleMessage({
+        id: 3,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "test" },
-        id: 3,
       });
 
       await new Promise((r) => setTimeout(r, 20));

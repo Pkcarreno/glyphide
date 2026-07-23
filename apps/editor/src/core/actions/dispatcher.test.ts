@@ -18,12 +18,12 @@ describe("ActionDispatcher", () => {
     const handler = vi.fn();
 
     dispatcher.on("TOGGLE_OVERLAY", handler);
-    dispatcher.dispatch({ type: "TOGGLE_OVERLAY", overlayId: "settings" });
+    dispatcher.dispatch({ overlayId: "settings", type: "TOGGLE_OVERLAY" });
 
     expect(handler).toHaveBeenCalledOnce();
     expect(handler).toHaveBeenCalledWith({
-      type: "TOGGLE_OVERLAY",
       overlayId: "settings",
+      type: "TOGGLE_OVERLAY",
     });
   });
 

@@ -22,9 +22,9 @@ export interface OutputEntry {
  */
 export interface OutputModel {
   /** Appends a new entry to the log. */
-  appendEntry(type: string, data: unknown): void;
+  appendEntry: (type: string, data: unknown) => void;
   /** Removes all entries from the log. */
-  clearEntries(): void;
+  clearEntries: () => void;
   /** Reactive accessor for the full list of output entries. */
   entries: Accessor<readonly OutputEntry[]>;
 }
@@ -49,11 +49,13 @@ export function createOutputModel(): OutputModel {
   }
 
   function appendEntry(type: string, data: unknown): void {
+    const currentId = nextId;
+    nextId += 1;
     pendingEntries.push({
-      id: nextId++,
-      type,
       data,
+      id: currentId,
       timestamp: Date.now(),
+      type,
     });
 
     if (rafId === null) {
@@ -71,5 +73,5 @@ export function createOutputModel(): OutputModel {
     nextId = 0;
   }
 
-  return { entries, appendEntry, clearEntries };
+  return { appendEntry, clearEntries, entries };
 }

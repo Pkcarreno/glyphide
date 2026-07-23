@@ -9,29 +9,29 @@ const dispatchMock = vi.fn();
 
 const [mockIsOpen, setMockIsOpen] = createSignal(false);
 const [mockSettings, setMockSettings] = createSignal({
-  theme: "system",
-  isWordWrapEnabled: false,
+  autoRunDelay: 750,
+  bufferFontSize: 15,
+  bufferLineHeight: 1.3,
   isAutoRunEnabled: false,
   isClearOnRunEnabled: true,
   isDefaultCodeEnabled: true,
+  isWordWrapEnabled: false,
+  theme: "system",
   uiFontSize: 14,
-  bufferFontSize: 15,
-  bufferLineHeight: 1.3,
-  autoRunDelay: 750,
 });
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
+    dispatcher: { dispatch: dispatchMock },
+    overlays: {
+      isOpen: (id: string) => id === "settings" && mockIsOpen(),
+    },
     settings: {
+      resetSetting: resetSettingMock,
       get settings() {
         return mockSettings();
       },
       updateSettings: updateSettingsMock,
-      resetSetting: resetSettingMock,
-    },
-    dispatcher: { dispatch: dispatchMock },
-    overlays: {
-      isOpen: (id: string) => id === "settings" && mockIsOpen(),
     },
   }),
 }));
@@ -124,8 +124,8 @@ describe("SettingsModal", () => {
     const { getByRole } = render(() => <SettingsModal />);
     getByRole("button", { name: "Close settings" }).click();
     expect(dispatchMock).toHaveBeenCalledWith({
-      type: "CLOSE_OVERLAY",
       overlayId: "settings",
+      type: "CLOSE_OVERLAY",
     });
   });
 

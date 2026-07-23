@@ -9,9 +9,9 @@ const [mockIsTrustRequired, setMockIsTrustRequired] = createSignal(false);
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
     buffer: { content: () => "" },
-    settings: { settings: { theme: "system", isWordWrapEnabled: false } },
-    engine: { activeLanguage: () => "javascript" },
     dispatcher: { dispatch: dispatchMock },
+    engine: { activeLanguage: () => "javascript" },
+    settings: { settings: { isWordWrapEnabled: false, theme: "system" } },
     trust: { isTrustRequired: () => mockIsTrustRequired() },
   }),
 }));
@@ -23,13 +23,13 @@ beforeAll(() => {
       height: 0,
       left: 0,
       right: 0,
+      toJSON: () => {
+        /* mock */
+      },
       top: 0,
       width: 0,
       x: 0,
       y: 0,
-      toJSON: () => {
-        /* mock */
-      },
     });
     window.Range.prototype.getClientRects = () =>
       ({

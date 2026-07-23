@@ -9,11 +9,11 @@ const [mockIsOpen, setMockIsOpen] = createSignal(false);
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
     dispatcher: { dispatch: dispatchMock },
-    project: {
-      name: () => "TestProject",
-    },
     overlays: {
       isOpen: (id: string) => id === "project-rename" && mockIsOpen(),
+    },
+    project: {
+      name: () => "TestProject",
     },
   }),
 }));
@@ -51,8 +51,8 @@ describe("ProjectRenameModal", () => {
     fireEvent.keyDown(input, { key: "Enter" });
 
     expect(dispatchMock).toHaveBeenCalledWith({
-      type: "RENAME_PROJECT",
       name: "NewProjectName",
+      type: "RENAME_PROJECT",
     });
   });
 

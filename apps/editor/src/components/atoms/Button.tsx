@@ -15,13 +15,18 @@ const buttonVariants = cva(
     "[&_svg]:size-3.5",
   ],
   {
+    defaultVariants: {
+      size: "md",
+      variant: "ghost",
+    },
     variants: {
+      size: {
+        icon: "h-7 w-7 px-1 text-xs",
+        lg: "h-9 gap-1.5 px-3 py-2 text-sm",
+        md: "h-7 gap-1 px-2 text-xs",
+        sm: "h-6 gap-1 px-1.5 text-xs",
+      },
       variant: {
-        primary: [
-          "border border-outline-variant bg-surface-variant",
-          "text-on-surface",
-          "hover:bg-outline-variant",
-        ],
         ghost: [
           "bg-transparent",
           "text-on-surface-variant",
@@ -32,17 +37,12 @@ const buttonVariants = cva(
           "text-on-surface-variant",
           "hover:bg-surface-variant hover:text-on-surface",
         ],
+        primary: [
+          "border border-outline-variant bg-surface-variant",
+          "text-on-surface",
+          "hover:bg-outline-variant",
+        ],
       },
-      size: {
-        sm: "h-6 gap-1 px-1.5 text-xs",
-        md: "h-7 gap-1 px-2 text-xs",
-        lg: "h-9 gap-1.5 px-3 py-2 text-sm",
-        icon: "h-7 w-7 px-1 text-xs",
-      },
-    },
-    defaultVariants: {
-      variant: "ghost",
-      size: "md",
     },
   }
 );
@@ -71,7 +71,7 @@ function Button(props: ButtonProps) {
   return (
     <button
       class={cn(
-        buttonVariants({ variant: local.variant, size: local.size }),
+        buttonVariants({ size: local.size, variant: local.variant }),
         local.class
       )}
       {...rest}

@@ -5,8 +5,14 @@ export function createMicropythonWorker(): Worker {
   const adapter = new MicropythonEngineAdapter();
 
   const worker = {
-    onmessage: null as ((ev: MessageEvent) => void) | null,
+    addEventListener() {
+      /* noop */
+    },
+    dispatchEvent() {
+      return true;
+    },
     onerror: null as ((ev: ErrorEvent) => void) | null,
+    onmessage: null as ((ev: MessageEvent) => void) | null,
 
     postMessage(message: unknown) {
       setTimeout(() => {
@@ -19,19 +25,12 @@ export function createMicropythonWorker(): Worker {
         }
       }, 0);
     },
-
-    terminate() {
-      adapter.dispose();
-    },
-
-    addEventListener() {
-      /* noop */
-    },
     removeEventListener() {
       /* noop */
     },
-    dispatchEvent() {
-      return true;
+
+    terminate() {
+      adapter.dispose();
     },
   };
 

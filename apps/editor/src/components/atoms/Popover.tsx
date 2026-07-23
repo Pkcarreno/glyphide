@@ -99,7 +99,7 @@ export function PopoverRoot(props: PopoverRootProps) {
   const isOpen = () => local.isOpen ?? internalIsOpen();
 
   const [isPositioned, setIsPositioned] = createSignal(false);
-  const [coords, setCoords] = createSignal({ top: 0, left: 0 });
+  const [coords, setCoords] = createSignal({ left: 0, top: 0 });
 
   let triggerEl: HTMLElement | undefined;
   let positionerEl: HTMLElement | undefined;
@@ -111,11 +111,11 @@ export function PopoverRoot(props: PopoverRootProps) {
     }
 
     computePosition(triggerEl, positionerEl, {
-      placement: position(),
       middleware: [floatingOffset(offset()), flip(), shift({ padding: 8 })],
+      placement: position(),
     })
       .then(({ x, y }) => {
-        setCoords({ top: Math.round(y), left: Math.round(x) });
+        setCoords({ left: Math.round(x), top: Math.round(y) });
         setIsPositioned(true);
       })
       .catch(() => {
@@ -198,15 +198,15 @@ export function PopoverRoot(props: PopoverRootProps) {
   return (
     <PopoverContext.Provider
       value={{
+        close,
+        coords,
         isOpen,
         isPositioned,
-        position,
         offset,
-        coords,
-        setTriggerRef,
+        position,
         setPositionerRef,
+        setTriggerRef,
         toggle,
-        close,
       }}
     >
       {local.children}
@@ -319,9 +319,9 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
       class={cn("pointer-events-auto fixed z-50 w-max", local.class)}
       ref={ctx.setPositionerRef}
       style={{
-        top: `${ctx.coords().top}px`,
         left: `${ctx.coords().left}px`,
         opacity: ctx.isPositioned() ? 1 : 0,
+        top: `${ctx.coords().top}px`,
       }}
       {...rest}
     >
@@ -378,9 +378,9 @@ export function PopoverPopup(props: PopoverPopupProps) {
  * @public
  */
 export const Popover = {
-  Root: PopoverRoot,
-  Trigger: PopoverTrigger,
+  Popup: PopoverPopup,
   Portal: PopoverPortal,
   Positioner: PopoverPositioner,
-  Popup: PopoverPopup,
+  Root: PopoverRoot,
+  Trigger: PopoverTrigger,
 };

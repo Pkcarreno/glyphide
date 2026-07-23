@@ -19,9 +19,9 @@ export interface PwaModel {
   /** Whether the SW has finished precaching and the app is ready offline. */
   offlineReady: () => boolean;
   /** @internal Called by the dispatcher handler for `PWA_OFFLINE_READY`. */
-  setOfflineReady(value: boolean): void;
+  setOfflineReady: (value: boolean) => void;
   /** @internal Called by the dispatcher handler for `PWA_UPDATE_AVAILABLE`. */
-  setUpdateAvailable(value: boolean): void;
+  setUpdateAvailable: (value: boolean) => void;
   /** Whether a new SW version is waiting to activate. */
   updateAvailable: () => boolean;
 }
@@ -44,10 +44,10 @@ export function createPwaModel(): PwaModel {
   }
 
   return {
-    offlineReady,
-    updateAvailable,
     applyUpdate,
+    offlineReady,
     setOfflineReady,
     setUpdateAvailable,
+    updateAvailable,
   };
 }

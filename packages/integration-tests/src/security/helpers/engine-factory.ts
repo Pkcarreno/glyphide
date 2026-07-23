@@ -65,8 +65,8 @@ const DEFAULT_OPTIONS: Record<
   SecurityEngine,
   Required<SecurityEngineOptions>
 > = {
-  quickjs: { memoryLimit: 10 * 1024 * 1024, timeout: 5000 },
   micropython: { memoryLimit: 10 * 1024 * 1024, timeout: 5000 },
+  quickjs: { memoryLimit: 10 * 1024 * 1024, timeout: 5000 },
 };
 
 /**
@@ -82,7 +82,7 @@ function flattenOutputs(outputs: EngineOutput[]): string {
       // System messages (e.g. "Execution interrupted") are not part of guest output.
       continue;
     }
-    const data = out.data;
+    const { data } = out;
     if (typeof data === "string") {
       lines.push(data);
       continue;
@@ -142,7 +142,7 @@ export async function createSecurityContext(
       engine === "quickjs" ? createQuickJSWorker : createMicropythonWorker,
     events: {
       onOutput: (payload) => {
-        outputs.push({ type: String(payload.type), data: payload.data });
+        outputs.push({ data: payload.data, type: String(payload.type) });
       },
     },
   });
@@ -153,6 +153,9 @@ export async function createSecurityContext(
   });
 
   return {
+    dispose: () => {
+      orchestrator.terminate();
+    },
     engine,
     orchestrator,
     outputs,
@@ -163,8 +166,8 @@ export async function createSecurityContext(
       } catch (err) {
         // Capture the error in the output stream so tests can assert on it.
         outputs.push({
-          type: engine === "quickjs" ? "error" : "stderr",
           data: err instanceof Error ? err.message : String(err),
+          type: engine === "quickjs" ? "error" : "stderr",
         });
       }
       if (microtaskDelayMs > 0) {
@@ -180,7 +183,14 @@ export async function createSecurityContext(
           .map((o) => JSON.stringify(o.data))
           .join("|");
         const deadline = Date.now() + microtaskDelayMs;
-        while (Date.now() < deadline) {
+
+        // Recursive quiet-period poll: waits until no new outputs arrive
+        // within a quiet window, or until the deadline expires.
+        // Implemented recursively to comply with noAwaitInLoops.
+        const pollQuiet = async (): Promise<void> => {
+          if (Date.now() >= deadline) {
+            return;
+          }
           await new Promise((r) => setTimeout(r, quietMs));
           const currentData = outputs
             .map((o) => JSON.stringify(o.data))
@@ -189,15 +199,13 @@ export async function createSecurityContext(
             outputs.length === baselineLength ||
             currentData === baselineData
           ) {
-            // No new outputs for the quiet window — assume flush is done.
-            break;
+            return;
           }
-        }
+          await pollQuiet();
+        };
+        await pollQuiet();
       }
       return flattenOutputs(outputs);
-    },
-    dispose: () => {
-      orchestrator.terminate();
     },
   };
 }

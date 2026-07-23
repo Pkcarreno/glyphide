@@ -46,7 +46,7 @@ export function CodeField(props: CodeFieldProps) {
         props.onValueChange(update.state.doc.toString());
       }
       if ((update.docChanged || update.selectionSet) && props.onCursorChange) {
-        const main = update.state.selection.main;
+        const { main } = update.state.selection;
         const line = update.state.doc.lineAt(main.head);
         const column = main.head - line.from + 1;
         const selectionLength = Math.abs(main.to - main.from);
@@ -82,7 +82,7 @@ export function CodeField(props: CodeFieldProps) {
       ],
     });
 
-    view = new EditorView({ state, parent: containerRef });
+    view = new EditorView({ parent: containerRef, state });
   });
 
   createEffect(() => {
@@ -160,8 +160,8 @@ export function CodeField(props: CodeFieldProps) {
         view.dispatch({
           changes: {
             from: 0,
-            to: currentValue.length,
             insert: newValue,
+            to: currentValue.length,
           },
         });
       }

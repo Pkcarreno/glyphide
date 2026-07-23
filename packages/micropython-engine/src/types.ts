@@ -16,8 +16,8 @@ export type MicropythonOutputPayload =
 
 export const defaultCapabilities = {
   id: "micropython",
-  supportedLanguages: ["python"] as const,
-  isStateful: true,
   isInterruptible: false,
+  isStateful: true,
   outputTypes: ["stderr", "stdout", "system"] as const,
+  supportedLanguages: ["python"] as const,
 } satisfies EngineCapabilities;

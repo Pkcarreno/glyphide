@@ -8,19 +8,19 @@ const [mockIsOpen, setMockIsOpen] = createSignal(false);
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    dispatcher: { dispatch: dispatchMock },
-    project: {
-      name: () => "TestProject",
-      isUrlShareable: () => true,
-    },
-    engine: {
-      activeLanguage: () => "javascript",
-    },
     buffer: {
       content: () => "console.log('hi')",
     },
+    dispatcher: { dispatch: dispatchMock },
+    engine: {
+      activeLanguage: () => "javascript",
+    },
     overlays: {
       isOpen: (id: string) => id === "share" && mockIsOpen(),
+    },
+    project: {
+      isUrlShareable: () => true,
+      name: () => "TestProject",
     },
   }),
 }));

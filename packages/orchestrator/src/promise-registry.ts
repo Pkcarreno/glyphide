@@ -28,7 +28,7 @@ export class PromiseRegistry {
       reject = rej;
     });
 
-    const entry: PendingEntry<T> = { resolve, reject };
+    const entry: PendingEntry<T> = { reject, resolve };
     this.#pending.set(id, entry as PendingEntry<unknown>);
 
     return [

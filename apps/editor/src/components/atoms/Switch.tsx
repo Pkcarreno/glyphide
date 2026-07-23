@@ -5,14 +5,14 @@ import { cn } from "../../helpers/cn.ts";
 const switchVariants = cva(
   "relative inline-flex h-4 pointer-coarse:h-7 pointer-coarse:w-11 w-7 shrink-0 cursor-pointer items-center rounded-sm border border-transparent transition-colors disabled:cursor-not-allowed disabled:opacity-50",
   {
-    variants: {
-      checked: {
-        true: "bg-primary",
-        false: "bg-surface-variant hover:bg-outline-variant",
-      },
-    },
     defaultVariants: {
       checked: false,
+    },
+    variants: {
+      checked: {
+        false: "bg-surface-variant hover:bg-outline-variant",
+        true: "bg-primary",
+      },
     },
   }
 );
@@ -20,14 +20,14 @@ const switchVariants = cva(
 const thumbVariants = cva(
   "pointer-events-none block h-3 pointer-coarse:h-4 pointer-coarse:w-4 w-3 rounded-sm shadow-none ring-0 transition-transform",
   {
-    variants: {
-      checked: {
-        true: "pointer-coarse:translate-x-6 translate-x-[14px] bg-on-primary",
-        false: "pointer-coarse:translate-x-1 translate-x-[2px] bg-on-surface",
-      },
-    },
     defaultVariants: {
       checked: false,
+    },
+    variants: {
+      checked: {
+        false: "pointer-coarse:translate-x-1 translate-x-[2px] bg-on-surface",
+        true: "pointer-coarse:translate-x-6 translate-x-[14px] bg-on-primary",
+      },
     },
   }
 );

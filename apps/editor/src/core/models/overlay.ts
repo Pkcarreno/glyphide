@@ -7,17 +7,17 @@ import type { OverlayId } from "../actions/types.ts";
  */
 export interface OverlayModel {
   /** Closes the specified overlay. */
-  close(overlayId: OverlayId): void;
+  close: (overlayId: OverlayId) => void;
   /** Closes all active overlays. */
-  closeAll(): void;
+  closeAll: () => void;
   /** Returns true if there is at least one active overlay. */
-  hasActiveOverlays(): boolean;
+  hasActiveOverlays: () => boolean;
   /** Returns true if the specified overlay is currently open. */
-  isOpen(overlayId: OverlayId): boolean;
+  isOpen: (overlayId: OverlayId) => boolean;
   /** Opens the specified overlay. */
-  open(overlayId: OverlayId): void;
+  open: (overlayId: OverlayId) => void;
   /** Toggles the specified overlay's state. */
-  toggle(overlayId: OverlayId): void;
+  toggle: (overlayId: OverlayId) => void;
 }
 
 /** Creates an `OverlayModel` instance. */
@@ -66,5 +66,5 @@ export function createOverlayModel(): OverlayModel {
     setActiveOverlays(new Set<OverlayId>());
   }
 
-  return { isOpen, open, close, toggle, hasActiveOverlays, closeAll };
+  return { close, closeAll, hasActiveOverlays, isOpen, open, toggle };
 }

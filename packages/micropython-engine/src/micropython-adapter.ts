@@ -108,18 +108,18 @@ export class MicropythonEngineAdapter {
       await this.#initializeEngine();
 
       this.#sendResponse({
-        jsonrpc: "2.0",
         id,
+        jsonrpc: "2.0",
         result: { timeout: this.#config.timeout, ...defaultCapabilities },
       });
     } catch (error) {
       this.#sendResponse({
-        jsonrpc: "2.0",
-        id,
         error: {
           code: RpcErrorCode.ServerError,
           message: `Init failed: ${error instanceof Error ? error.message : String(error)}`,
         },
+        id,
+        jsonrpc: "2.0",
       });
     }
   }
@@ -129,21 +129,21 @@ export class MicropythonEngineAdapter {
     captureHostXMLHttpRequest();
 
     this.#mp = await loadMicroPython({
-      url: resolvedWasmUrl,
       heapsize:
         this.#config.memoryLimit > 0 ? this.#config.memoryLimit : undefined,
-      stdout: (text: string) => {
-        this.#onNotification(EngineMethod.Output, {
-          type: "stdout",
-          data: text,
-        } satisfies MicropythonOutputPayload);
-      },
       stderr: (text: string) => {
         this.#onNotification(EngineMethod.Output, {
-          type: "stderr",
           data: text,
+          type: "stderr",
         } satisfies MicropythonOutputPayload);
       },
+      stdout: (text: string) => {
+        this.#onNotification(EngineMethod.Output, {
+          data: text,
+          type: "stdout",
+        } satisfies MicropythonOutputPayload);
+      },
+      url: resolvedWasmUrl,
     });
 
     const sensitiveGlobals = [
@@ -171,10 +171,10 @@ export class MicropythonEngineAdapter {
       }
       try {
         Object.defineProperty(globalThis, key, {
-          value: undefined,
-          writable: false,
           configurable: false,
           enumerable: false,
+          value: undefined,
+          writable: false,
         });
       } catch {
         // Already non-configurable from a prior init cycle
@@ -187,12 +187,12 @@ export class MicropythonEngineAdapter {
   #handleRun(id: string | number | null, params?: unknown): void {
     if (!this.#mp) {
       this.#sendResponse({
-        jsonrpc: "2.0",
-        id,
         error: {
           code: RpcErrorCode.ServerError,
           message: "Engine not initialized",
         },
+        id,
+        jsonrpc: "2.0",
       });
       return;
     }
@@ -204,18 +204,18 @@ export class MicropythonEngineAdapter {
       this.#mp.runPython(code);
 
       this.#sendResponse({
-        jsonrpc: "2.0",
         id,
+        jsonrpc: "2.0",
         result: { executed: true, value: "undefined" },
       });
     } catch (error) {
       this.#sendResponse({
-        jsonrpc: "2.0",
-        id,
         error: {
           code: RpcErrorCode.InternalError,
           message: `Execution failed: ${error instanceof Error ? error.message : String(error)}`,
         },
+        id,
+        jsonrpc: "2.0",
       });
     }
   }
@@ -223,12 +223,12 @@ export class MicropythonEngineAdapter {
   async #handleReset(id: string | number | null): Promise<void> {
     if (!this.#mp) {
       this.#sendResponse({
-        jsonrpc: "2.0",
-        id,
         error: {
           code: RpcErrorCode.ServerError,
           message: "Engine not initialized",
         },
+        id,
+        jsonrpc: "2.0",
       });
       return;
     }
@@ -237,18 +237,18 @@ export class MicropythonEngineAdapter {
       await this.#initializeEngine();
 
       this.#sendResponse({
-        jsonrpc: "2.0",
         id,
+        jsonrpc: "2.0",
         result: { reset: true },
       });
     } catch (error) {
       this.#sendResponse({
-        jsonrpc: "2.0",
-        id,
         error: {
           code: RpcErrorCode.ServerError,
           message: `Reset failed: ${error instanceof Error ? error.message : String(error)}`,
         },
+        id,
+        jsonrpc: "2.0",
       });
     }
   }

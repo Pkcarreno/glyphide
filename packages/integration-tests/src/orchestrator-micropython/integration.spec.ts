@@ -12,7 +12,7 @@ describe("Orchestrator + Micropython Engine Integration", () => {
   });
 
   afterEach(() => {
-    orchestrator?.terminate();
+    orchestrator.terminate();
   });
 
   describe("init", () => {

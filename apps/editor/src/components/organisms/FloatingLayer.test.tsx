@@ -11,22 +11,7 @@ const [mockIsOpenTrustRequired, setMockIsOpenTrustRequired] =
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    settings: {
-      settings: {
-        theme: "system",
-        isWordWrapEnabled: false,
-        isAutoRunEnabled: false,
-        isClearOnRunEnabled: true,
-      },
-      updateSettings: vi.fn(),
-    },
     dispatcher: { dispatch: vi.fn() },
-    overlays: {
-      isOpen: (id: string) =>
-        (id === "settings" && mockIsOpenSettings()) ||
-        (id === "engine-settings" && mockIsOpenEngineSettings()) ||
-        (id === "trust-required" && mockIsOpenTrustRequired()),
-    },
     engine: {
       activeEngineId: () => "mock-engine",
       activeInitParams: () => ({ timeout: 1000 }),
@@ -34,27 +19,42 @@ vi.mock("../../core/context", () => ({
     },
     engineRegistry: {
       getDefinition: () => ({
+        defaultInitParams: {},
         paramDescriptors: [
           {
+            inputProps: { max: 120, min: 1, step: 1 },
+            inputType: "compact-number",
+            isEditable: true,
             key: "timeout",
             label: "Timeout (s)",
-            isEditable: true,
-            inputType: "compact-number",
-            inputProps: { min: 1, max: 120, step: 1 },
             toModel: (val: unknown) => Number(val) * 1000,
             toView: (val: unknown) => Number(val) / 1000,
           },
         ],
-        defaultInitParams: {},
       }),
+    },
+    notifications: {
+      activeToasts: () => [],
+      items: () => [],
+      unreadCount: () => 0,
+    },
+    overlays: {
+      isOpen: (id: string) =>
+        (id === "settings" && mockIsOpenSettings()) ||
+        (id === "engine-settings" && mockIsOpenEngineSettings()) ||
+        (id === "trust-required" && mockIsOpenTrustRequired()),
     },
     project: {
       name: () => "TestProject",
     },
-    notifications: {
-      unreadCount: () => 0,
-      items: () => [],
-      activeToasts: () => [],
+    settings: {
+      settings: {
+        isAutoRunEnabled: false,
+        isClearOnRunEnabled: true,
+        isWordWrapEnabled: false,
+        theme: "system",
+      },
+      updateSettings: vi.fn(),
     },
   }),
 }));

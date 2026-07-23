@@ -35,13 +35,13 @@ export function LoadFileModal() {
 
   function closeModal(): void {
     resetState();
-    core.dispatcher.dispatch({ type: "CLOSE_OVERLAY", overlayId: "load-file" });
+    core.dispatcher.dispatch({ overlayId: "load-file", type: "CLOSE_OVERLAY" });
   }
 
   function handleOpenChange(isOpen: boolean): void {
     core.dispatcher.dispatch({
-      type: isOpen ? "OPEN_OVERLAY" : "CLOSE_OVERLAY",
       overlayId: "load-file",
+      type: isOpen ? "OPEN_OVERLAY" : "CLOSE_OVERLAY",
     });
     if (!isOpen) {
       resetState();
@@ -61,11 +61,11 @@ export function LoadFileModal() {
       core.dispatcher.dispatch({ type: "RESET_PROJECT_STATE" });
     }
     core.dispatcher.dispatch({
-      type: "LOAD_FILE_FROM_DISK",
       content: file.content,
       engineId: engine.engineId,
       language: engine.language,
       name: file.name,
+      type: "LOAD_FILE_FROM_DISK",
     });
     closeModal();
   }

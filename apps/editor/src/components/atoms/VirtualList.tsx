@@ -49,13 +49,13 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
 
   const computedLayout = createMemo(() => {
     itemHeightsVersion(); // Recompute when item heights change
-    const items = props.items;
+    const { items } = props;
 
     const defaultSize = defaultItemHeight();
     const itemVerticalOffsets = new Float64Array(items.length);
     let totalScrollHeight = 0;
 
-    for (let i = 0; i < items.length; i++) {
+    for (let i = 0; i < items.length; i += 1) {
       itemVerticalOffsets[i] = totalScrollHeight;
       const cachedHeight = itemHeights.get(items[i]);
       totalScrollHeight +=
@@ -94,7 +94,7 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
     const totalItemsCount = props.items.length;
 
     if (totalItemsCount === 0) {
-      return { start: 0, end: 0 };
+      return { end: 0, start: 0 };
     }
 
     const start = findStartIndex(itemVerticalOffsets, currentScrollTop);
@@ -104,13 +104,13 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
       end < totalItemsCount &&
       itemVerticalOffsets[end] < currentScrollTop + viewportHeight
     ) {
-      end++;
+      end += 1;
     }
 
     const overscan = props.overscan ?? 10;
     return {
-      start: Math.max(0, start - overscan),
       end: Math.min(totalItemsCount, end + overscan),
+      start: Math.max(0, start - overscan),
     };
   });
 

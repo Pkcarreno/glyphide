@@ -40,9 +40,9 @@ describe("QuickJSEngineAdapter", () => {
       adapter.setup(
         (r) =>
           responses.push({
+            error: r.error,
             id: r.id,
             result: r.result as object,
-            error: r.error,
           }),
         () => {
           /* noop */
@@ -50,9 +50,9 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 1,
         jsonrpc: "2.0",
         method: EngineMethod.Init,
-        id: 1,
       });
 
       // Wait for QuickJS init to complete
@@ -63,10 +63,8 @@ describe("QuickJSEngineAdapter", () => {
       expect(responses[0].error).toBeUndefined();
       expect(responses[0].result).toMatchObject({
         id: "quickjs",
-        timeout: 30_000,
-        supportedLanguages: ["javascript"],
-        isStateful: true,
         isInterruptible: true,
+        isStateful: true,
         outputTypes: [
           "log",
           "warn",
@@ -83,6 +81,8 @@ describe("QuickJSEngineAdapter", () => {
           "assert",
           "trace",
         ],
+        supportedLanguages: ["javascript"],
+        timeout: 30_000,
       });
     });
   });
@@ -99,9 +99,9 @@ describe("QuickJSEngineAdapter", () => {
         }
       );
       adapter.handleMessage({
+        id: "init",
         jsonrpc: "2.0",
         method: EngineMethod.Init,
-        id: "init",
       });
       await new Promise((r) => setTimeout(r, 50));
     });
@@ -117,10 +117,10 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 4,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "1 + 1" },
-        id: 4,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -142,10 +142,10 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 5,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "console.log('hello', 'world');" },
-        id: 5,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -171,10 +171,10 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 5,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "console.log(42, true, null, undefined);" },
-        id: 5,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -199,28 +199,28 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 5,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "console.log({ a: 1 }, [1, 'two']);" },
-        id: 5,
       });
 
       await new Promise((r) => setTimeout(r, 50));
 
       expect(notifications[0].params?.data).toEqual([
         {
-          type: "object",
           properties: {
             a: { type: "number", value: 1 },
           },
+          type: "object",
         },
         {
-          type: "array",
           elements: [
             { type: "number", value: 1 },
             { type: "string", value: "two" },
           ],
           length: 2,
+          type: "array",
         },
       ]);
     });
@@ -237,6 +237,7 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 5,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: {
@@ -252,7 +253,6 @@ describe("QuickJSEngineAdapter", () => {
             );
           `,
         },
-        id: 5,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -260,7 +260,6 @@ describe("QuickJSEngineAdapter", () => {
       expect(notifications).toHaveLength(1);
       const tokens = notifications[0].params?.data as ConsoleToken[];
       expect(tokens[0]).toEqual({
-        type: "map",
         entries: [
           [
             { type: "string", value: "k" },
@@ -268,17 +267,18 @@ describe("QuickJSEngineAdapter", () => {
           ],
         ],
         size: 1,
+        type: "map",
       });
       expect(tokens[1]).toEqual({
-        type: "set",
         elements: [{ type: "number", value: 1 }],
         size: 1,
+        type: "set",
       });
       expect(tokens[2].type).toBe("error");
       expect(tokens[2].name).toBe("Error");
       expect(tokens[2].message).toBe("test error");
       expect(typeof tokens[2].stack).toBe("string");
-      expect(tokens[3]).toEqual({ type: "regexp", source: "abc", flags: "g" });
+      expect(tokens[3]).toEqual({ flags: "g", source: "abc", type: "regexp" });
       expect(tokens[4]).toEqual({
         type: "date",
         value: "2020-01-01T00:00:00.000Z",
@@ -299,10 +299,10 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 5,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "const a = {}; a.self = a; console.log(a);" },
-        id: 5,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -328,18 +328,18 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 5,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: {
           code: "function myFn() {}; console.log(myFn);",
         },
-        id: 5,
       });
 
       await new Promise((r) => setTimeout(r, 50));
 
       expect(notifications[0].params?.data).toEqual([
-        { type: "function", name: "myFn", source: "function myFn() {}" },
+        { name: "myFn", source: "function myFn() {}", type: "function" },
       ]);
     });
 
@@ -355,12 +355,12 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 5,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: {
           code: 'console.log("Hello %s, you are %d", "World", 42);',
         },
-        id: 5,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -382,10 +382,10 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 5,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "console.error('oops');" },
-        id: 5,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -399,9 +399,9 @@ describe("QuickJSEngineAdapter", () => {
       adapter.setup(
         (r) =>
           responses.push({
+            error: r.error,
             id: r.id,
             result: r.result as object,
-            error: r.error,
           }),
         () => {
           /* noop */
@@ -409,10 +409,10 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 6,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "invalid code {" },
-        id: 6,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -443,6 +443,7 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 7,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: {
@@ -452,7 +453,6 @@ describe("QuickJSEngineAdapter", () => {
           result;
         `,
         },
-        id: 7,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -476,10 +476,10 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 8,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "console.debug('debug message');" },
-        id: 8,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -504,10 +504,10 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 9,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "console.table([{a: 1}]);" },
-        id: 9,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -517,26 +517,26 @@ describe("QuickJSEngineAdapter", () => {
       expect(notifications[0].params?.type).toBe("table");
       expect(notifications[0].params?.data).toEqual([
         {
-          type: "array",
           elements: [
             {
-              type: "object",
               properties: {
                 a: { type: "number", value: 1 },
               },
+              type: "object",
             },
           ],
           length: 1,
+          type: "array",
         },
       ]);
     });
 
     it("gracefully interrupts execution if timeout is exceeded", async () => {
       adapter.handleMessage({
+        id: "init-short",
         jsonrpc: "2.0",
         method: EngineMethod.Init,
         params: { timeout: 100 },
-        id: "init-short",
       });
       await new Promise((r) => setTimeout(r, 50));
 
@@ -545,9 +545,9 @@ describe("QuickJSEngineAdapter", () => {
       adapter.setup(
         (r) =>
           capturedResponses.push({
+            error: r.error,
             id: r.id,
             result: r.result as object,
-            error: r.error,
           }),
         () => {
           /* noop */
@@ -555,10 +555,10 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 99,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "while(true) {}" },
-        id: 99,
       });
 
       // The runtime's setInterruptHandler will throw an InternalError inside the WASM environment
@@ -583,9 +583,9 @@ describe("QuickJSEngineAdapter", () => {
         }
       );
       adapter.handleMessage({
+        id: "init",
         jsonrpc: "2.0",
         method: EngineMethod.Init,
-        id: "init",
       });
       await new Promise((r) => setTimeout(r, 50));
     });
@@ -596,9 +596,9 @@ describe("QuickJSEngineAdapter", () => {
       adapter.setup(
         (r) =>
           responses.push({
+            error: r.error,
             id: r.id,
             result: r.result as object,
-            error: r.error,
           }),
         () => {
           /* noop */
@@ -607,27 +607,27 @@ describe("QuickJSEngineAdapter", () => {
 
       // Declare a variable in the first run
       adapter.handleMessage({
+        id: 1,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "const x = 42;" },
-        id: 1,
       });
       await new Promise((r) => setTimeout(r, 50));
 
       // Reset the context
       adapter.handleMessage({
+        id: 2,
         jsonrpc: "2.0",
         method: EngineMethod.Reset,
-        id: 2,
       });
       await new Promise((r) => setTimeout(r, 50));
 
       // Re-declare same variable (should succeed)
       adapter.handleMessage({
+        id: 3,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "const x = 99; x;" },
-        id: 3,
       });
       await new Promise((r) => setTimeout(r, 50));
 
@@ -645,9 +645,9 @@ describe("QuickJSEngineAdapter", () => {
       freshAdapter.setup(
         (r) =>
           responses.push({
+            error: r.error,
             id: r.id,
             result: r.result as object,
-            error: r.error,
           }),
         () => {
           /* noop */
@@ -655,9 +655,9 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       freshAdapter.handleMessage({
+        id: 1,
         jsonrpc: "2.0",
         method: EngineMethod.Reset,
-        id: 1,
       });
       await new Promise((r) => setTimeout(r, 50));
 
@@ -680,29 +680,35 @@ describe("QuickJSEngineAdapter", () => {
 
       // Reset the context
       adapter.handleMessage({
+        id: 1,
         jsonrpc: "2.0",
         method: EngineMethod.Reset,
-        id: 1,
       });
       await new Promise((r) => setTimeout(r, 50));
 
       // Verify console still works after reset
       adapter.handleMessage({
+        id: 2,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "console.log('after reset');" },
-        id: 2,
       });
       await new Promise((r) => setTimeout(r, 50));
 
       expect(
-        notifications.some(
-          (n) =>
-            n.method === EngineMethod.Output &&
-            Array.isArray(n.params?.data) &&
-            (n.params?.data as Array<{ type: string; value?: string }>)?.[0]
-              ?.value === "after reset"
-        )
+        notifications.some((n) => {
+          if (n.method !== EngineMethod.Output) {
+            return false;
+          }
+          if (!Array.isArray(n.params?.data)) {
+            return false;
+          }
+          const data = n.params.data as Array<{
+            type: string;
+            value?: string;
+          }>;
+          return data[0]?.value === "after reset";
+        })
       ).toBe(true);
     });
   });
@@ -718,9 +724,9 @@ describe("QuickJSEngineAdapter", () => {
         }
       );
       adapter.handleMessage({
+        id: "init",
         jsonrpc: "2.0",
         method: EngineMethod.Init,
-        id: "init",
       });
       await new Promise((r) => setTimeout(r, 50));
     });
@@ -731,9 +737,9 @@ describe("QuickJSEngineAdapter", () => {
       adapter.setup(
         (r) =>
           responses.push({
+            error: r.error,
             id: r.id,
             result: r.result as object,
-            error: r.error,
           }),
         () => {
           /* noop */
@@ -741,10 +747,10 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 10,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "new Promise(() => {})" },
-        id: 10,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -763,9 +769,9 @@ describe("QuickJSEngineAdapter", () => {
       adapter.setup(
         (r) =>
           responses.push({
+            error: r.error,
             id: r.id,
             result: r.result as object,
-            error: r.error,
           }),
         () => {
           /* noop */
@@ -773,10 +779,10 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 11,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "Promise.resolve(42)" },
-        id: 11,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -792,9 +798,9 @@ describe("QuickJSEngineAdapter", () => {
       adapter.setup(
         (r) =>
           responses.push({
+            error: r.error,
             id: r.id,
             result: r.result as object,
-            error: r.error,
           }),
         () => {
           /* noop */
@@ -802,10 +808,10 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 12,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "Promise.reject('oops')" },
-        id: 12,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -830,9 +836,9 @@ describe("QuickJSEngineAdapter", () => {
         }
       );
       adapter.handleMessage({
+        id: "init",
         jsonrpc: "2.0",
         method: EngineMethod.Init,
-        id: "init",
       });
       await new Promise((r) => setTimeout(r, 50));
     });
@@ -861,9 +867,9 @@ describe("QuickJSEngineAdapter", () => {
       adapter.setup(
         (r) =>
           responses.push({
+            error: r.error,
             id: r.id,
             result: r.result as object,
-            error: r.error,
           }),
         (m, p) =>
           notifications.push({
@@ -873,12 +879,12 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 20,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: {
           code: 'fetch("http://test.com").then(r => r.json()).then(d => console.log(d.msg));',
         },
-        id: 20,
       });
 
       // Run response should arrive immediately without error
@@ -921,12 +927,12 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 21,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: {
           code: 'fetch("http://test.com").then(r => r.text()).then(t => console.log(t));',
         },
-        id: 21,
       });
 
       await new Promise((r) => setTimeout(r, 200));
@@ -949,9 +955,9 @@ describe("QuickJSEngineAdapter", () => {
       adapter.setup(
         (r) =>
           responses.push({
+            error: r.error,
             id: r.id,
             result: r.result as object,
-            error: r.error,
           }),
         (m, p) =>
           notifications.push({
@@ -961,12 +967,12 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 22,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: {
           code: 'fetch("http://bad.url").catch(e => console.error(e));',
         },
-        id: 22,
       });
 
       await new Promise((r) => setTimeout(r, 200));
@@ -1004,6 +1010,7 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 23,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: {
@@ -1014,7 +1021,6 @@ describe("QuickJSEngineAdapter", () => {
               .then(v => console.log("step2", v));
           `,
         },
-        id: 23,
       });
 
       await new Promise((r) => setTimeout(r, 200));
@@ -1046,9 +1052,9 @@ describe("QuickJSEngineAdapter", () => {
         }
       );
       adapter.handleMessage({
+        id: "init",
         jsonrpc: "2.0",
         method: EngineMethod.Init,
-        id: "init",
       });
       await new Promise((r) => setTimeout(r, 50));
     });
@@ -1068,10 +1074,10 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 30,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: 'console.group("Outer");' },
-        id: 30,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -1099,10 +1105,10 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 31,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "console.group();" },
-        id: 31,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -1126,10 +1132,10 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 32,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: 'console.groupCollapsed("Collapsed");' },
-        id: 32,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -1155,10 +1161,10 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 33,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: "console.groupEnd();" },
-        id: 33,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -1182,6 +1188,7 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 34,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: {
@@ -1191,7 +1198,6 @@ describe("QuickJSEngineAdapter", () => {
             "console.groupEnd();",
           ].join("\n"),
         },
-        id: 34,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -1214,9 +1220,9 @@ describe("QuickJSEngineAdapter", () => {
         }
       );
       adapter.handleMessage({
+        id: "init",
         jsonrpc: "2.0",
         method: EngineMethod.Init,
-        id: "init",
       });
       await new Promise((r) => setTimeout(r, 50));
     });
@@ -1233,10 +1239,10 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 40,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: 'console.assert(false, "Expected %d", 42);' },
-        id: 40,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -1259,10 +1265,10 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 41,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: { code: 'console.assert(true, "Expected %d", 42);' },
-        id: 41,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -1281,6 +1287,7 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 42,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: {
@@ -1290,7 +1297,6 @@ describe("QuickJSEngineAdapter", () => {
             'console.timeEnd("foo");',
           ].join("\n"),
         },
-        id: 42,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -1320,6 +1326,7 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 43,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: {
@@ -1331,7 +1338,6 @@ describe("QuickJSEngineAdapter", () => {
             'console.count("foo");',
           ].join("\n"),
         },
-        id: 43,
       });
 
       await new Promise((r) => setTimeout(r, 50));
@@ -1364,12 +1370,12 @@ describe("QuickJSEngineAdapter", () => {
       );
 
       adapter.handleMessage({
+        id: 44,
         jsonrpc: "2.0",
         method: EngineMethod.Run,
         params: {
           code: 'function myTrace() { console.trace("here"); } myTrace();',
         },
-        id: 44,
       });
 
       await new Promise((r) => setTimeout(r, 50));

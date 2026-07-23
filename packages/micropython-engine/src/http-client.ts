@@ -83,20 +83,20 @@ export function installHttpClient(mp: MicroPythonInstance): void {
       }
 
       const response: SyncFetchResponse = {
+        headers,
         status: xhr.status,
         statusText: xhr.statusText,
-        headers,
         text: xhr.responseText,
       };
 
       return JSON.stringify(response);
     } catch (error) {
       const errorResponse: SyncFetchResponse = {
+        error: error instanceof Error ? error.message : String(error),
+        headers: {},
         status: 0,
         statusText: "Error",
-        headers: {},
         text: "",
-        error: error instanceof Error ? error.message : String(error),
       };
       return JSON.stringify(errorResponse);
     }

@@ -25,5 +25,24 @@
       "!!**/legacy/glyphide",
       "!!**/legacy/quickjs"
     ]
-  }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "apps/editor/**/*.tsx",
+        "apps/editor/**/*.ts",
+        "**/apps/editor/**/*.tsx",
+        "**/apps/editor/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.ts"
+      ],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noJsxPropsBind": "off"
+          }
+        }
+      }
+    }
+  ]
 }

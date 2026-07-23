@@ -10,15 +10,15 @@ type ActionHandler<T extends EditorAction = EditorAction> = (action: T) => void;
  */
 export interface ActionDispatcher {
   /** Dispatches an action to all registered handlers for its type. */
-  dispatch(action: EditorAction): void;
+  dispatch: (action: EditorAction) => void;
   /**
    * Registers a handler for a specific action type.
    * Returns an unsubscribe function.
    */
-  on<T extends EditorActionType>(
+  on: <T extends EditorActionType>(
     actionType: T,
     handler: ActionHandler<Extract<EditorAction, { type: T }>>
-  ): () => void;
+  ) => () => void;
 }
 
 /** Creates a new `ActionDispatcher` instance. */
@@ -51,5 +51,5 @@ export function createActionDispatcher(): ActionDispatcher {
     }
   }
 
-  return { on, dispatch };
+  return { dispatch, on };
 }

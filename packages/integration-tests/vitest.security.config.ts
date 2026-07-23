@@ -17,26 +17,26 @@ import { defineConfig } from "vitest/config";
  */
 export default defineConfig({
   test: {
-    include: ["src/security/**/*.security.spec.ts"],
+    environment: "node",
     exclude: [
       "src/shared/**",
       "src/orchestrator-*/**",
       "src/orchestrator-mock/**",
     ],
-    environment: "node",
-    testTimeout: 10_000,
     hookTimeout: 10_000,
-    teardownTimeout: 5000,
-    pool: "forks",
+    include: ["src/security/**/*.security.spec.ts"],
     // One file per fork. The QuickJS runtime aborts the process if
     // dispose() runs with a non-empty GC list, so isolating each
     // test file in its own process prevents one file's abort from
     // killing the rest of the suite.
     maxWorkers: 1,
+    passWithNoTests: true,
+    pool: "forks",
+    reporters: ["default", "./src/security/helpers/security-reporter.ts"],
     sequence: {
       concurrent: false,
     },
-    passWithNoTests: true,
-    reporters: ["default", "./src/security/helpers/security-reporter.ts"],
+    teardownTimeout: 5000,
+    testTimeout: 10_000,
   },
 });

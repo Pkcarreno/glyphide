@@ -54,10 +54,10 @@ describe("VirtualList", () => {
 
   it("persists expandable state of complex items when scrolled out and back into view", () => {
     const items = Array.from({ length: 100 }, (_, i) => ({
-      id: `item-${i}`,
-      type: "object" as const,
       className: "Object",
+      id: `item-${i}`,
       properties: { val: { type: "number" as const, value: i } },
+      type: "object" as const,
     }));
 
     // Mock clientHeight on HTMLDivElement prototype so VirtualList measures it during mount

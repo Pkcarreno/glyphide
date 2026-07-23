@@ -22,7 +22,7 @@ function EngineSettingsForm() {
   const isReady = () => engineStatus() === "ready";
 
   const statusMessage = (): string => {
-    switch (engineStatus()) {
+    switch (engineStatus() as string) {
       case "idle":
         return "The engine initializes when you run code. Parameters can be modified once initialized.";
       case "initializing":
@@ -57,12 +57,12 @@ function EngineSettingsForm() {
 
   const handleApply = () => {
     core.dispatcher.dispatch({
-      type: "UPDATE_ENGINE_CONFIG",
       patch: { ...localPatch },
+      type: "UPDATE_ENGINE_CONFIG",
     });
     core.dispatcher.dispatch({
-      type: "CLOSE_OVERLAY",
       overlayId: "engine-settings",
+      type: "CLOSE_OVERLAY",
     });
   };
 
@@ -161,8 +161,8 @@ function EngineSettingsModal() {
 
   const handleOpenChange = (isOpen: boolean) => {
     core.dispatcher.dispatch({
-      type: isOpen ? "OPEN_OVERLAY" : "CLOSE_OVERLAY",
       overlayId: "engine-settings",
+      type: isOpen ? "OPEN_OVERLAY" : "CLOSE_OVERLAY",
     });
   };
 

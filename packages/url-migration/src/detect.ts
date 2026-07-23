@@ -20,10 +20,12 @@ export function detectVersion(input: string): VersionLiteral {
   let url: URL;
   try {
     url = new URL(input.trim());
-  } catch {
+  } catch (error) {
+    // biome-ignore lint/style/useErrorCause: MigrationError has cause as the third argument
     throw new MigrationError(
       "INVALID_URL",
-      "The provided string is not a valid URL."
+      "The provided string is not a valid URL.",
+      { cause: error }
     );
   }
   return detectVersionFromUrl(url);

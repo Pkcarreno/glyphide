@@ -132,8 +132,8 @@ function DropdownRoot(props: DropdownRootProps) {
     }
 
     computePosition(triggerEl, contentEl, {
-      placement: "bottom-start",
       middleware: [floatingOffset(4), flip(), shift({ padding: 8 })],
+      placement: "bottom-start",
     })
       .then(({ x, y }) => {
         if (contentEl) {
@@ -195,18 +195,18 @@ function DropdownRoot(props: DropdownRootProps) {
   return (
     <DropdownContext.Provider
       value={{
-        isOpen,
         activeIndex,
-        setActiveIndex,
+        close,
+        contentRef: () => contentEl,
+        isOpen,
         itemIds,
         registerItem,
-        unregisterItem,
-        close,
+        setActiveIndex,
+        setContentRef,
+        setTriggerRef,
         toggle,
         triggerRef: () => triggerEl,
-        contentRef: () => contentEl,
-        setTriggerRef,
-        setContentRef,
+        unregisterItem,
       }}
     >
       {local.children}
@@ -341,7 +341,7 @@ function DropdownContent(props: DropdownContentProps) {
   const handleKeyDown = (e: KeyboardEvent) => {
     const itemCount = getFocusableItems().length;
 
-    switch (e.key) {
+    switch (e.key as string) {
       case "ArrowDown": {
         e.preventDefault();
         const nextIndex = ctx.activeIndex() + 1;
@@ -709,14 +709,14 @@ function DropdownShortcut(props: DropdownShortcutProps) {
  * @public
  */
 export const Dropdown = {
-  Root: DropdownRoot,
-  Trigger: DropdownTrigger,
-  Portal: DropdownPortal,
+  CheckboxItem: DropdownCheckboxItem,
   Content: DropdownContent,
   Group: DropdownGroup,
   Item: DropdownItem,
-  CheckboxItem: DropdownCheckboxItem,
   Label: DropdownLabel,
+  Portal: DropdownPortal,
+  Root: DropdownRoot,
   Separator: DropdownSeparator,
   Shortcut: DropdownShortcut,
+  Trigger: DropdownTrigger,
 };

@@ -8,14 +8,14 @@ import type { UrlStatePort } from "../ports/url-state.ts";
  */
 export interface TrustModel {
   /** Grants trust session-wide, deactivating the trust gate. */
-  grantTrust(): void;
+  grantTrust: () => void;
   /** Whether trust is currently required (shared code detected, not yet granted). */
   isTrustRequired: Accessor<boolean>;
   /**
    * Re-arms the trust gate. Used by file loads so that file-loaded
    * code requires the same user acknowledgment as URL-shared code.
    */
-  markTrustRequired(): void;
+  markTrustRequired: () => void;
   /** The shared code value from the URL, or null if none was present. */
   sharedCode: Accessor<string | null>;
 }
@@ -26,7 +26,7 @@ export interface TrustModel {
  */
 export function createTrustModel(urlState: UrlStatePort): TrustModel {
   const codeValue = urlState.get("code");
-  const hasSharedCode = codeValue != null && codeValue !== "";
+  const hasSharedCode = typeof codeValue === "string" && codeValue !== "";
 
   const [isTrustRequired, setIsTrustRequired] = createSignal(hasSharedCode);
   const [sharedCode] = createSignal<string | null>(codeValue || null);
@@ -44,9 +44,9 @@ export function createTrustModel(urlState: UrlStatePort): TrustModel {
   }
 
   return {
+    grantTrust,
     isTrustRequired,
     markTrustRequired,
     sharedCode,
-    grantTrust,
   };
 }
