@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@solidjs/testing-library";
+import { EditorView } from "codemirror";
 import { createSignal } from "solid-js";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { CodeField } from "./CodeField.tsx";
@@ -89,5 +90,38 @@ describe("CodeField", () => {
     await waitFor(() => {
       expect(container.querySelector(".cm-lineWrapping")).toBeNull();
     });
+  });
+
+  it("does not call onValueChange when value prop is updated programmatically", async () => {
+    const onValueChange = vi.fn();
+    const [val, setVal] = createSignal("initial");
+    render(() => <CodeField onValueChange={onValueChange} value={val()} />);
+
+    setVal("updated programmatically");
+    await waitFor(() => {
+      expect(screen.queryByText("updated programmatically")).not.toBeNull();
+    });
+
+    expect(onValueChange).not.toHaveBeenCalled();
+  });
+
+  it("calls onValueChange when user edits document directly in CodeMirror", () => {
+    const onValueChange = vi.fn();
+    const { container } = render(() => (
+      <CodeField onValueChange={onValueChange} value="hello" />
+    ));
+
+    const cmElement = container.querySelector(".cm-editor");
+    expect(cmElement).not.toBeNull();
+
+    const view = EditorView.findFromDOM(cmElement as HTMLElement);
+    expect(view).toBeDefined();
+
+    view?.dispatch({
+      changes: { from: 5, insert: " world" },
+      userEvent: "input",
+    });
+
+    expect(onValueChange).toHaveBeenCalledWith("hello world");
   });
 });

@@ -248,6 +248,65 @@ describe("EditorCore", () => {
       vi.advanceTimersByTime(500);
       expect(executeCodeSpy).not.toHaveBeenCalled();
     });
+
+    it("does not call executeCode when SELECT_ENGINE_ENTRY is dispatched even if isAutoRunEnabled is true", () => {
+      const core = createEditorCore({
+        fileIo: createMockFileIoDeps(),
+        persistence: createMockPersistence(),
+        urlState: createMockUrlState(),
+      });
+      core.settings.updateSettings({
+        autoRunDelay: 500,
+        isAutoRunEnabled: true,
+      });
+      vi.spyOn(core.engine, "engineStatus").mockReturnValue("ready");
+      const executeCodeSpy = vi
+        .spyOn(core.engine, "executeCode")
+        .mockResolvedValue(undefined);
+
+      core.dispatcher.dispatch({
+        engineId: "micropython",
+        language: "python",
+        type: "SELECT_ENGINE_ENTRY",
+      });
+
+      vi.advanceTimersByTime(1000);
+      expect(executeCodeSpy).not.toHaveBeenCalled();
+    });
+
+    it("schedules auto-run when user edits buffer (UPDATE_BUFFER) after engine switch", () => {
+      const core = createEditorCore({
+        fileIo: createMockFileIoDeps(),
+        persistence: createMockPersistence(),
+        urlState: createMockUrlState(),
+      });
+      core.settings.updateSettings({
+        autoRunDelay: 500,
+        isAutoRunEnabled: true,
+      });
+      vi.spyOn(core.engine, "engineStatus").mockReturnValue("ready");
+      const executeCodeSpy = vi
+        .spyOn(core.engine, "executeCode")
+        .mockResolvedValue(undefined);
+
+      core.dispatcher.dispatch({
+        engineId: "micropython",
+        language: "python",
+        type: "SELECT_ENGINE_ENTRY",
+      });
+
+      vi.advanceTimersByTime(1000);
+      expect(executeCodeSpy).not.toHaveBeenCalled();
+
+      core.dispatcher.dispatch({
+        content: "print('hello')",
+        type: "UPDATE_BUFFER",
+      });
+
+      expect(executeCodeSpy).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(500);
+      expect(executeCodeSpy).toHaveBeenCalled();
+    });
   });
 
   describe("Trust gating", () => {

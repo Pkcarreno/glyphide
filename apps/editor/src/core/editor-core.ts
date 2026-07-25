@@ -195,6 +195,9 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
         overlays.open("trust-required");
         return;
       }
+      if (autoRunTimer) {
+        clearTimeout(autoRunTimer);
+      }
       // Pristine buffer rule: when the buffer is still showing the active
       // engine's default snippet (the user has not edited it), swapping
       // engines also swaps the buffer to the new engine's default and

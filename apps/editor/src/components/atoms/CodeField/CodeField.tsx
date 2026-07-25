@@ -34,6 +34,7 @@ export interface CodeFieldProps {
 export function CodeField(props: CodeFieldProps) {
   let containerRef: HTMLDivElement | undefined;
   let view: EditorView | undefined;
+  let isProgrammaticSync = false;
 
   const languageCompartment = new Compartment();
   const appearanceCompartment = new Compartment();
@@ -42,7 +43,7 @@ export function CodeField(props: CodeFieldProps) {
 
   onMount(() => {
     const updateListener = EditorView.updateListener.of((update) => {
-      if (update.docChanged && props.onValueChange) {
+      if (update.docChanged && !isProgrammaticSync && props.onValueChange) {
         props.onValueChange(update.state.doc.toString());
       }
       if ((update.docChanged || update.selectionSet) && props.onCursorChange) {
@@ -157,13 +158,18 @@ export function CodeField(props: CodeFieldProps) {
     if (view && newValue !== undefined) {
       const currentValue = view.state.doc.toString();
       if (newValue !== currentValue) {
-        view.dispatch({
-          changes: {
-            from: 0,
-            insert: newValue,
-            to: currentValue.length,
-          },
-        });
+        isProgrammaticSync = true;
+        try {
+          view.dispatch({
+            changes: {
+              from: 0,
+              insert: newValue,
+              to: currentValue.length,
+            },
+          });
+        } finally {
+          isProgrammaticSync = false;
+        }
       }
     }
   });
