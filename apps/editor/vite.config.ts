@@ -19,8 +19,12 @@ export default defineConfig({
       manifest: {
         background_color: "#fdfefb",
         categories: ["developer"],
+        description:
+          "Browser-based code editor for JavaScript and Python with sandboxed WebAssembly execution.",
         display: "standalone",
-        name: "Glyphide — Code Editor in Your Browser",
+        id: "com.pkcarreno.glyphide",
+        name: "Glyphide",
+        orientation: "portrait",
         short_name: "Glyphide",
         theme_color: "#fdfefb",
       },
