@@ -1,20 +1,35 @@
 # glyphide
 
-A web app for executing JavaScript code locally. It requires no login, works offline, and allows you to share your scripts easily.
+A local-first, web-based code playground for executing JavaScript and Python code instantly in the browser. It requires no login, runs offline using WebAssembly and isolated Web Workers, and allows you to share scripts effortlessly via lightweight URLs.
 
 ## usage
 
-Navigate to [glyphide.com](https://glyphide.com) and start coding.
+Navigate to [glyphide.com](https://glyphide.com) to start coding.
 
-To send data to the output window use the global `console` object. It supports the following methods:
+### printing output
 
-- log
-- warn
-- error
-- info
-- debug
+Unlike standard REPLs that automatically echo the last returned value, Glyphide requires explicit print statements to display output in the terminal.
 
-Use them exactly as you would in any standard JavaScript environment. For example:
+- **JavaScript**: Use the standard `console` API (e.g., `console.log`, `console.table`, etc.).
+- **Python**: Use the standard `print()` function.
+
+You can see an extensive demonstration of how different data types and print methods are rendered by loading the default starter code: [`javascript`](https://glyphide.com/?engine=KyzNTM7OKgYA) & [`python`](https://glyphide.com/?engine=y81MLsovqCzJyM8DAA). _(Note: loading starter code is an opt-out feature in settings)._
+
+### sharing
+
+When you write code in Glyphide, it automatically syncs with the URL, making your project instantly shareable. You can share your script using:
+
+- **Direct Link**: Copy the generated URL and send it to anyone to load your project instantly.
+- **Embeddable iFrame**: Copy an HTML iframe snippet to embed your script in external blog posts or documentation.
+- **Files**: Upload or download your code as local files.
+
+### migration
+
+Glyphide provides a built-in migration tool, so if you have old links from legacy versions or JSoD, just open your link with `glyphide.com` and it will automatically convert it into a current format link.
+
+### examples
+
+#### javascript
 
 ```javascript
 // Calculate compound interest
@@ -26,58 +41,83 @@ const result = principal * Math.pow(1 + rate, years);
 console.log(`$${principal} becomes $${result.toFixed(2)} after ${years} years`);
 ```
 
-[**Check this example on Glyphide**](https://glyphide.com/?c=Ly8gQ2FsY3VsYXRlIGNvbXBvdW5kIGludGVyZXN0CmNvbnN0IHByaW5jaXBhbCA9IDEwMDA7CmNvbnN0IHJhdGUgPSAwLjA1Owpjb25zdCB5ZWFycyA9IDEwOwoKY29uc3QgcmVzdWx0ID0gcHJpbmNpcGFsICogTWF0aC5wb3coMSArIHJhdGUsIHllYXJzKTsKY29uc29sZS5sb2coYCQke3ByaW5jaXBhbH0gYmVjb21lcyAkJHtyZXN1bHQudG9GaXhlZCgyKX0gYWZ0ZXIgJHt5ZWFyc30geWVhcnNgKTs&t=Q29tcG91bmQgaW50ZXJlc3QgY2FsY3VsYXRvcg) 
+[**Open it on Glyphide**](https://glyphide.com/?code=RY6xDoIwFEV3vuINDKCmFBMnwmTi5j9Qy1Ob1LZpH1FD-HcrFVlP7jm5VQVHoeWgBSFI-3B2MD0oQ-gxUCatCQTOKyOVExpaqDnnzY_7r9QCZ_ywoDcKH-ZZky0rDIOmyNbMBs6C7szZZ1HDdu7sklqmkNXItL0VXZ6Pf22CC8aLGCDSVGVkT-qFfbEvJxDX-BrycQ5NqdeVzQc&engine=KyzNTM7OKgYA)
 
-When you run code in Glyphide, it automatically generates a shareable URL like the one above. Send it to anyone and they'll see your working code.
+#### python
 
-### configuration
+```python
+# Calculate compound interest
+principal = 1000
+rate = 0.05
+years = 10
 
-Access the settings panel from the menu in the top-left corner (the app icon) and click on settings in the dropdown. From here, you can customize several aspects of the editor:
+result = principal * (1 + rate) ** years
+print(f"${principal} becomes ${result:.2f} after {years} years")
+```
 
-- Adjust runtime environment parameters.
-- Modify interaction behavior.
-- Enable or disable editor features.
+[**Open it on Glyphide**](https://glyphide.com/?code=RY7LCsMgFET3fsWQZpGkEEyhm0JW_RJrryBYIz4WRfz3GgPN8nLPmZkLnsLIZEQkyO3jtmTf0DaSpxCZ89pK7YTBioVzzvzOreAzv7MvCR_ag7FKJxPrcRoThgVX7MaIaULDW2IcVNfnP1nwolpNAX0-ch7zTRUIVVcgN68cejf-AA&engine=y81MLsovqCzJyM8DAA)
 
-**NOTE:** The runtime environment is set with safe defaults. In some cases, a functional script might trigger an error if it hits these limits, similar to how a faulty script would.
+## technical overview
 
-### share
+### architecture
 
-Use the share button located at the top, near the right corner. Here you have two options: copy the script's current URL or copy an embeddable version (iframe) for your site. Both options use the same URL.
+Glyphide is structured as a monorepo powered by **pnpm workspaces** and **Turborepo**. At runtime, code execution is completely isolated from the main UI thread by leveraging WebAssembly runtimes inside Web Workers.
 
-### limitations
+#### packages
 
-- Does not output `return` statements.
-- No TypeScript support.
-- Cannot import npm packages.
+| Workspace Package              | Type        | Description                                                                                           |
+| ------------------------------ | ----------- | ----------------------------------------------------------------------------------------------------- |
+| `@glyphide/editor`             | Application | SolidJS SPA code editor with `EditorCore` reactive state management.                                  |
+| `@glyphide/rpc-protocol`       | Package     | Pure JSON-RPC 2.0 protocol contract defining Web Worker communication interfaces.                     |
+| `@glyphide/orchestrator`       | Package     | Main-thread engine manager controlling Web Worker lifecycles, execution timeouts, and RPC routing.    |
+| `@glyphide/quickjs-engine`     | Package     | QuickJS JavaScript engine adapter executing code inside a WebAssembly sandbox worker.                 |
+| `@glyphide/micropython-engine` | Package     | MicroPython engine adapter running Python code in a WebAssembly sandbox worker.                       |
+| `@glyphide/mock-engine`        | Package     | Test engine adapter for contract verification and unit testing without real code evaluation.          |
+| `@glyphide/integration-tests`  | Package     | Cross-engine integration and security testing suite validating sandbox isolation and resource limits. |
+| `@glyphide/url-migration`      | Package     | Legacy URL parser and converter for upgrading JSoD and Glyphide V1/V2 links.                          |
 
-### migrate from JSoD
+### running locally
 
-If you have old links from when this project was called JSoD, use the [migration tool](https://glyphide.com/migrate) to convert them. Your code will be exactly the same, just the URL format changes.
+#### prerequisites
 
-## internals
+- **Node.js**: `>= 24.0.0`
+- **pnpm**: managed via [Corepack](https://nodejs.org/api/corepack.html). Run `corepack enable` to activate the correct version automatically.
 
-The project is structured as a monorepo, split between the frontend and a dedicated package for preprocessing the `@sebastianwessel/quickjs` library.
+#### scripts
 
-### core
+Run all commands from the repository root using `pnpm`:
 
-At its core, the project relies on `quickjs` as its JavaScript engine. It is loaded via the [@sebastianwessel/quickjs](https://github.com/sebastianwessel/quickjs) library, which utilizes [quickjs-emscripten](https://github.com/justjake/quickjs-emscripten) to run quickjs through WebAssembly.
+**core workflow**
 
-The execution layer is isolated within a web worker to reduce main thread overhead and provide an extra layer of security. I implemented an asynchronous communication strategy based on the MessageChannel API, paired with Zod schemas to validate data consistency and handle errors.
+- `pnpm dev`: Start development mode across the workspace.
+- `pnpm build`: Build all packages and applications with Turborepo caching.
+- `pnpm test`: Execute unit and integration tests (Vitest).
 
-### frontend architecture
+**quality & maintenance**
 
-The frontend is built with Astro, based on my [astro-minimal-template](https://www.pkcarreno.com/projects/astro-minimal-template), using React for interactive elements via Astro Islands. This allows me to delegate parts of the shipped code directly to the HTML.
-
-For state management, I use Zustand alongside null-return components. This pattern integrates state into the React flow as an alternative to React Context within the scope of Astro Islands.
-
-#### persistence
-
-Code is stored in URL query params, simplifying the sharing process while maintaining a login-free experience. To manage this, I use Nanostores for the code state, which is Base64 encoded before updating the URL to ensure compatibility.
-
-I previously used Zustand for URL persistence, but its serialization method resulted in unnecessarily long strings. Since URL length is a constraint, I opted for a more concise implementation using Nanostores without radically changing the frontend logic.
+- `pnpm test:security`: Run cross-engine security audit test suite.
+- `pnpm typecheck`: Perform TypeScript type checking.
+- `pnpm lint` / `pnpm lint:fix`: Check and automatically fix formatting rules (Ultracite).
+- `pnpm knip`: Check for unused code and exports across packages.
+- `pnpm nuke`: Deep clean all build artifacts, `node_modules`, and lockfiles.
 
 ## faq
 
 ### is it safe?
 
-While Glyphide runs code in a sandboxed environment, be careful with code from untrusted sources. The local-first approach means your code stays on your device, but malicious code could still do browser-level damage.
+Execution safety is a foundational principle of Glyphide. We ensure:
+
+- **WebAssembly Sandbox**: Engines run inside compiled WebAssembly modules, restricting direct access to the host operating system.
+- **Worker Isolation**: Code evaluation is isolated inside Web Workers, keeping execution strictly decoupled from the main DOM and application state.
+- **Resource Limits**: `@glyphide/orchestrator` enforces execution timeouts and memory boundary checks to mitigate infinite loops or memory allocation bombs.
+- **Trust Required**: You will always be prompted to confirm execution of untrusted code when loading from an external or shared URL.
+
+While Glyphide provides a highly sandboxed environment, executing code you do not understand inherently carries some risk. Always review and verify the contents of shared scripts before choosing to run them.
+
+### is there a limit on URL length?
+
+Yes. Glyphide has a hard limit on URL length (8000 characters) that cannot be bypassed. If your code exceeds this limit, the editor automatically switches to **buffer-only mode**, clearing the URL and stopping synchronization. **Since your work is no longer backed up in the URL, you must download it to avoid losing data.** For larger scripts, working with local files (Upload & Download) is the recommended workflow.
+
+### can i use third-party packages?
+
+Glyphide currently executes pure JavaScript (QuickJS) and standard Python (MicroPython). External NPM modules or PyPI packages requiring native extensions are not supported due to browser Wasm sandbox constraints.
