@@ -47,8 +47,7 @@
       "cache": false
     },
     "typecheck": {
-      "dependsOn": ["^build"],
-      "outputs": ["node_modules/.cache/tsbuildinfo.json"]
+      "dependsOn": ["^build"]
     },
     "clean": {
       "cache": false
