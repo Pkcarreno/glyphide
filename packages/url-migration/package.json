@@ -64,7 +64,7 @@
     "js-base64": "^3.9.1"
   },
   "devDependencies": {
-    "tsdown": "^0.22.9",
+    "tsdown": "^0.22.14",
     "typescript": "^6.0.2",
     "vitest": "^4.1.10"
   }

@@ -38,8 +38,8 @@
   },
   "devDependencies": {
     "@glyphide/orchestrator": "workspace:*",
-    "@types/node": "^25.9.5",
-    "tsdown": "^0.22.9",
+    "@types/node": "^26.1.1",
+    "tsdown": "^0.22.14",
     "typescript": "^6.0.2",
     "vitest": "^4.1.10"
   }
