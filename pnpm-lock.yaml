@@ -165,9 +165,6 @@ importers:
 
   packages/micropython-engine:
     dependencies:
-      '@glyphide/orchestrator':
-        specifier: workspace:*
-        version: link:../orchestrator
       '@glyphide/rpc-protocol':
         specifier: workspace:*
         version: link:../rpc-protocol
@@ -175,6 +172,9 @@ importers:
         specifier: 1.28.0-6
         version: 1.28.0-6
     devDependencies:
+      '@glyphide/orchestrator':
+        specifier: workspace:*
+        version: link:../orchestrator
       '@types/node':
         specifier: ^25.9.5
         version: 25.9.5
@@ -190,13 +190,13 @@ importers:
 
   packages/mock-engine:
     dependencies:
-      '@glyphide/orchestrator':
-        specifier: workspace:*
-        version: link:../orchestrator
       '@glyphide/rpc-protocol':
         specifier: workspace:*
         version: link:../rpc-protocol
     devDependencies:
+      '@glyphide/orchestrator':
+        specifier: workspace:*
+        version: link:../orchestrator
       tsdown:
         specifier: ^0.22.9
         version: 0.22.9(oxc-resolver@11.21.3)(typescript@6.0.3)
@@ -225,9 +225,6 @@ importers:
 
   packages/quickjs-engine:
     dependencies:
-      '@glyphide/orchestrator':
-        specifier: workspace:*
-        version: link:../orchestrator
       '@glyphide/rpc-protocol':
         specifier: workspace:*
         version: link:../rpc-protocol
@@ -235,6 +232,9 @@ importers:
         specifier: ^0.32.0
         version: 0.32.0
     devDependencies:
+      '@glyphide/orchestrator':
+        specifier: workspace:*
+        version: link:../orchestrator
       tsdown:
         specifier: ^0.22.9
         version: 0.22.9(oxc-resolver@11.21.3)(typescript@6.0.3)
