@@ -1,0 +1,46 @@
+{
+  "name": "@glyphide/micropython-engine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Micropython engine adapter for orchestrator",
+  "type": "module",
+  "exports": {
+    "./adapter": {
+      "types": "./dist/src/micropython-adapter.d.mts",
+      "default": "./dist/src/micropython-adapter.mjs"
+    },
+    "./types": {
+      "types": "./dist/src/types.d.mts",
+      "default": "./dist/src/types.mjs"
+    },
+    "./worker": {
+      "types": "./dist/worker/micropython-worker.d.mts",
+      "default": "./dist/worker/micropython-worker.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "clean": "rm -rf .turbo node_modules dist",
+    "dev": "tsdown --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@glyphide/rpc-protocol": "workspace:*",
+    "@micropython/micropython-webassembly-pyscript": "1.28.0-6"
+  },
+  "peerDependencies": {
+    "@glyphide/orchestrator": "workspace:*"
+  },
+  "devDependencies": {
+    "@glyphide/orchestrator": "workspace:*",
+    "@types/node": "^25.9.5",
+    "tsdown": "^0.22.9",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.10"
+  }
+}

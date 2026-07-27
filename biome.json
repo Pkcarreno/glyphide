@@ -1,20 +1,48 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "extends": ["ultracite/biome/core"],
+  "extends": [
+    "ultracite/biome/core",
+    "ultracite/biome/type-aware",
+    "ultracite/biome/vitest"
+  ],
   "vcs": {
-    "enabled": false,
+    "enabled": true,
     "clientKind": "git",
     "useIgnoreFile": true,
     "defaultBranch": "master"
   },
   "files": {
-    "ignoreUnknown": true,
     "includes": [
-      "!**/.vercel",
-      "!**/.turbo",
-      "!**/.astro",
-      "!**/dist",
-      "!**/dev-dist"
+      "./**",
+      "!!**/dist",
+      "!!**/build",
+      "!!**/.turbo",
+      "!!**/.vite",
+      "!!**/.astro",
+      "!!**/_astro",
+      "!!**/pnpm-lock.yaml",
+      "!!**/.atl",
+      "!!**/legacy/glyphide",
+      "!!**/legacy/quickjs"
     ]
-  }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "apps/editor/**/*.tsx",
+        "apps/editor/**/*.ts",
+        "**/apps/editor/**/*.tsx",
+        "**/apps/editor/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.ts"
+      ],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noJsxPropsBind": "off"
+          }
+        }
+      }
+    }
+  ]
 }

@@ -1,0 +1,25 @@
+{
+  "name": "@glyphide/integration-tests",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Integration tests for the Glyphide Execution System.",
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules dist",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:security": "vitest run --config vitest.security.config.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@glyphide/micropython-engine": "workspace:*",
+    "@glyphide/mock-engine": "workspace:*",
+    "@glyphide/orchestrator": "workspace:*",
+    "@glyphide/quickjs-engine": "workspace:*",
+    "@glyphide/rpc-protocol": "workspace:*",
+    "@types/node": "^25.9.5",
+    "happy-dom": "^20.11.0",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.10"
+  }
+}

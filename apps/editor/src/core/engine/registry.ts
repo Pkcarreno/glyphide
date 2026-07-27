@@ -1,0 +1,249 @@
+import type { EngineWorkerFactory } from "@glyphide/orchestrator";
+import type { ConsoleToken } from "@glyphide/quickjs-engine/types";
+import type { EngineInitParams } from "@glyphide/rpc-protocol/types";
+import { PYTHON_DEFAULT_BUFFER_CODE } from "../data/python-default-buffer-code.ts";
+import { QUICKJS_DEFAULT_BUFFER_CODE } from "../data/quickjs-default-buffer-code.ts";
+import {
+  type ConsoleVariant,
+  defaultFormat,
+  isConsoleTokenArray,
+  type OutputFormatter,
+  typeToVariant,
+} from "./output-formatter.ts";
+
+/** Engine identifiers are now strings, validated at runtime. */
+export type EngineId = string;
+
+/** Selectable combination of an engine and a specific language. */
+export interface EngineEntry {
+  engineId: EngineId;
+  /** Human-readable label shown in the selector (e.g., "QuickJS — JavaScript"). */
+  label: string;
+  language: string;
+}
+
+/**
+ * Descriptor for an engine-specific configuration parameter.
+ *
+ * @public
+ */
+export interface EngineParamDescriptor {
+  /** Props passed to the UI input component. */
+  inputProps?: Record<string, unknown>;
+  /** UI presentation type for the parameter. */
+  inputType?: "compact-number" | "text";
+  /** Indicates whether the parameter can be edited by the user in the UI. */
+  isEditable: boolean;
+  /** Unique key identifying the parameter, used in the engine's initialization payload. */
+  key: string;
+  /** Human-readable label for the parameter shown in the UI. */
+  label: string;
+  /** Transforms the value from the UI (view) back to the internal model (params). */
+  toModel?: (viewValue: unknown) => unknown;
+  /** Transforms the value from the internal model (params) to the UI (view). */
+  toView?: (modelValue: unknown) => unknown;
+}
+
+/**
+ * Static definition of a lazily-loadable execution engine.
+ *
+ * @public
+ */
+export interface EngineDefinition {
+  /**
+   * Curated default snippet for new projects using this engine.
+   * Optional: engines without it (e.g., dev-only mock) fall back to `""`.
+   * Consumed by the editor core to seed the buffer at startup, on engine
+   * switch over a pristine buffer, and on `RESET_PROJECT_STATE`.
+   */
+  defaultBufferCode?: string;
+  /** Default INIT params sent to this engine (language is overridden per entry). */
+  defaultInitParams: Omit<EngineInitParams, "language">;
+  id: EngineId;
+  /** Human-readable engine name. */
+  label: string;
+  loadFactory: () => Promise<EngineWorkerFactory>;
+  /**
+   * Optional engine-specific output formatter.
+   * When absent, the ConsolePane falls back to `defaultFormat`.
+   * Formatters receive `OutputEntry` with `data: unknown` and MUST
+   * assert the concrete payload type internally with a runtime guard.
+   */
+  outputFormatter?: OutputFormatter;
+  /** Metadata describing each configurable parameter. */
+  paramDescriptors: readonly EngineParamDescriptor[];
+  /** Languages this engine can execute. Declared statically. */
+  supportedLanguages: readonly string[];
+}
+
+/**
+ * Immutable catalog of available execution engines.
+ * Provides lookup by `EngineId` and lazy-loading of worker factories.
+ */
+export interface EngineRegistry {
+  /** All registered engine definitions. */
+  engines: readonly EngineDefinition[];
+  /** Retrieves a definition by ID. Throws if not found. */
+  getDefinition: (id: EngineId) => EngineDefinition;
+  /** Dynamically loads and returns the worker factory for an engine. */
+  loadFactory: (id: EngineId) => Promise<EngineWorkerFactory>;
+}
+
+/** Creates the default `EngineRegistry` with QuickJS, MicroPython, and Mock engines. */
+export function createEngineRegistry(): EngineRegistry {
+  const definitions: EngineDefinition[] = [
+    {
+      defaultBufferCode: PYTHON_DEFAULT_BUFFER_CODE,
+      defaultInitParams: { timeout: 30_000 },
+      id: "micropython",
+      label: "MicroPython Engine",
+      loadFactory: async () => {
+        const { createMicropythonWorker } = await import(
+          "@glyphide/micropython-engine/adapter"
+        );
+        return createMicropythonWorker;
+      },
+      outputFormatter: {
+        format(entry) {
+          const text = String(entry.data ?? "");
+          switch (entry.type as string) {
+            case "stdout":
+              return { text, variant: "log" };
+            case "stderr":
+              return { text, variant: "error" };
+            case "system":
+              return { text, variant: "system" };
+            default:
+              return defaultFormat(entry);
+          }
+        },
+      },
+      paramDescriptors: [
+        {
+          inputProps: { max: 120, min: 1, step: 1 },
+          inputType: "compact-number",
+          isEditable: true,
+          key: "timeout",
+          label: "Execution Timeout (s)",
+          toModel: (val) => Number(val) * 1000,
+          toView: (val) => Number(val) / 1000,
+        },
+      ],
+      supportedLanguages: ["python"],
+    },
+    {
+      defaultBufferCode: QUICKJS_DEFAULT_BUFFER_CODE,
+      defaultInitParams: { timeout: 30_000 },
+      id: "quickjs",
+      label: "QuickJS Engine",
+      loadFactory: async () => {
+        const { createQuickJSWorker } = await import(
+          "@glyphide/quickjs-engine/adapter"
+        );
+        return createQuickJSWorker;
+      },
+      outputFormatter: {
+        format(entry) {
+          if (entry.type === "system") {
+            return { text: String(entry.data ?? ""), variant: "system" };
+          }
+          // Guard: data must be ConsoleToken[] — falls back to string on mismatch
+          if (isConsoleTokenArray(entry.data)) {
+            const tokens = entry.data as ConsoleToken[];
+            const variant: ConsoleVariant = typeToVariant(entry.type);
+            return { tokens, variant };
+          }
+          return defaultFormat(entry);
+        },
+      },
+      paramDescriptors: [
+        {
+          inputProps: { max: 120, min: 1, step: 1 },
+          inputType: "compact-number",
+          isEditable: true,
+          key: "timeout",
+          label: "Execution Timeout (s)",
+          toModel: (val) => Number(val) * 1000,
+          toView: (val) => Number(val) / 1000,
+        },
+      ],
+      supportedLanguages: ["javascript"],
+    },
+    // Mock engine is dev/test only — Vite statically replaces
+    // `import.meta.env.DEV` to `false` in production, so Rollup tree-shakes
+    // the entire `@glyphide/mock-engine` dynamic import and chunk.
+    ...(import.meta.env.DEV
+      ? ([
+          {
+            defaultInitParams: { timeout: 30_000 },
+            id: "mock",
+            label: "Mock Test Engine",
+            loadFactory: async () => {
+              const { createMockWorker } = await import(
+                "@glyphide/mock-engine/adapter"
+              );
+              return createMockWorker;
+            },
+            outputFormatter: {
+              format(entry) {
+                const text = String(entry.data ?? "");
+                switch (entry.type as string) {
+                  case "log":
+                  case "print":
+                    return { text, variant: "log" };
+                  case "warn":
+                    return { text, variant: "warn" };
+                  case "system":
+                    return { text, variant: "system" };
+                  default:
+                    return defaultFormat(entry);
+                }
+              },
+            },
+            paramDescriptors: [
+              {
+                isEditable: true,
+                key: "timeout",
+                label: "Execution Timeout (ms)",
+              },
+            ],
+            supportedLanguages: ["plaintext"],
+          },
+        ] satisfies EngineDefinition[])
+      : []),
+  ];
+
+  const definitionMap = new Map(definitions.map((d) => [d.id, d]));
+
+  function getDefinition(id: EngineId): EngineDefinition {
+    const definition = definitionMap.get(id);
+    if (!definition) {
+      throw new Error(`Unknown engine: "${id}"`);
+    }
+    return definition;
+  }
+
+  function loadFactory(id: EngineId): Promise<EngineWorkerFactory> {
+    const definition = getDefinition(id);
+    return definition.loadFactory();
+  }
+
+  return { engines: definitions, getDefinition, loadFactory };
+}
+
+/**
+ * Expands all engine definitions into selectable entries,
+ * one per supported language.
+ */
+export function getEngineEntries(registry: EngineRegistry): EngineEntry[] {
+  return registry.engines.flatMap((def) =>
+    def.supportedLanguages.map((language) => {
+      const langLabel = language.charAt(0).toUpperCase() + language.slice(1);
+      return {
+        engineId: def.id,
+        label: `${def.label} - ${langLabel}`,
+        language,
+      };
+    })
+  );
+}

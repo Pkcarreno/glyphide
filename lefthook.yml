@@ -1,15 +1,19 @@
 pre-commit:
   jobs:
-    - run: pnpm check
-      glob: "*.{js,jsx,ts,tsx,json,jsonc,css,astro}"
     - run: pnpm lint:fix {staged_files}
       glob: "*.{js,jsx,ts,tsx,json,jsonc,css,astro}"
       stage_fixed: true
+    - run: pnpm typecheck
+      glob: "*.{js,jsx,ts,tsx,astro}"
+    - run: pnpm test
+      glob: "*.{js,jsx,ts,tsx,json,jsonc,css,astro}"
+    - run: pnpm knip
 
 pre-push:
   jobs:
     - run: pnpm lint {push_files}
       glob: "*.{js,jsx,ts,tsx,json,jsonc,css,astro}"
+    - run: pnpm test
 
 post-merge:
   jobs:

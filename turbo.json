@@ -6,27 +6,51 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
+    "preview": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "persistent": true
+    },
+    "test": {
+      "dependsOn": ["^build", "test:security"]
+    },
+    "test:security": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "vitest.security.config.ts",
+        "src/security/**",
+        "tsconfig.json",
+        "package.json"
+      ],
+      "outputs": ["../../docs/security/audit-2026-07.md"]
+    },
     "dev": {
       "cache": false,
       "persistent": true
     },
     "//#root:knip": {
-      "dependsOn": ["^root:knip"]
+      "cache": true,
+      "inputs": [
+        "knip.json",
+        "package.json",
+        "**/*.{ts,tsx,mjs,js,jsx}",
+        "!legacy/**",
+        "!node_modules/**",
+        "!**/dist/**",
+        "!**/.turbo/**"
+      ]
     },
     "format": {
-      "dependsOn": ["^format"],
       "outputs": ["node_modules/.cache/.prettiercache"]
     },
     "format:fix": {
-      "dependsOn": ["^format:fix"],
       "cache": false
     },
-    "check": {
-      "dependsOn": ["^check"]
+    "typecheck": {
+      "dependsOn": ["^build"]
     },
-    "tsc": {
-      "dependsOn": ["^tsc"],
-      "outputs": ["node_modules/.cache/tsbuildinfo.json"]
+    "clean": {
+      "cache": false
     }
   }
 }

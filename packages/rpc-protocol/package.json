@@ -1,0 +1,39 @@
+{
+  "name": "@glyphide/rpc-protocol",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Standard JSON-RPC 2.0 protocol definitions for Glyphide Execution System.",
+  "author": "Pedro Carreño (34664891+Pkcarreno@users.noreply.github.com)",
+  "license": "MIT",
+  "exports": {
+    "./constants": {
+      "types": "./dist/constants.d.mts",
+      "default": "./dist/constants.mjs"
+    },
+    "./guards": {
+      "types": "./dist/guards.d.mts",
+      "default": "./dist/guards.mjs"
+    },
+    "./types": {
+      "types": "./dist/types.d.mts",
+      "default": "./dist/types.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "clean": "rm -rf .turbo node_modules dist",
+    "dev": "tsdown --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "tsdown": "^0.22.9",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.10"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "name": "@glyphide/url-migration",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Framework-agnostic library that detects, parses, and re-encodes legacy glyphide share URLs into the current format.",
+  "author": "Pedro Carreño (34664891+Pkcarreno@users.noreply.github.com)",
+  "license": "MIT",
+  "exports": {
+    "./migrate": {
+      "types": "./dist/migrate.d.mts",
+      "default": "./dist/migrate.mjs"
+    },
+    "./build-url": {
+      "types": "./dist/build-url.d.mts",
+      "default": "./dist/build-url.mjs"
+    },
+    "./codec": {
+      "types": "./dist/codec.d.mts",
+      "default": "./dist/codec.mjs"
+    },
+    "./detect": {
+      "types": "./dist/detect.d.mts",
+      "default": "./dist/detect.mjs"
+    },
+    "./errors": {
+      "types": "./dist/errors.d.mts",
+      "default": "./dist/errors.mjs"
+    },
+    "./types": {
+      "types": "./dist/types.d.mts",
+      "default": "./dist/types.mjs"
+    },
+    "./handlers/registry": {
+      "types": "./dist/handlers/registry.d.mts",
+      "default": "./dist/handlers/registry.mjs"
+    },
+    "./handlers/v1": {
+      "types": "./dist/handlers/v1.d.mts",
+      "default": "./dist/handlers/v1.mjs"
+    },
+    "./handlers/v2": {
+      "types": "./dist/handlers/v2.d.mts",
+      "default": "./dist/handlers/v2.mjs"
+    },
+    "./handlers/v3": {
+      "types": "./dist/handlers/v3.d.mts",
+      "default": "./dist/handlers/v3.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "clean": "rm -rf .turbo node_modules dist",
+    "dev": "tsdown --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3",
+    "js-base64": "^3.9.1"
+  },
+  "devDependencies": {
+    "tsdown": "^0.22.9",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.10"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "@glyphide/orchestrator",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Main thread controller for Glyphide execution engines.",
+  "author": "Pedro Carreño (34664891+Pkcarreno@users.noreply.github.com)",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/orchestrator.d.mts",
+      "default": "./dist/orchestrator.mjs"
+    },
+    "./message-bus": {
+      "types": "./dist/message-bus.d.mts",
+      "default": "./dist/message-bus.mjs"
+    },
+    "./promise-registry": {
+      "types": "./dist/promise-registry.d.mts",
+      "default": "./dist/promise-registry.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "clean": "rm -rf .turbo node_modules dist",
+    "dev": "tsdown --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@glyphide/rpc-protocol": "workspace:*"
+  },
+  "devDependencies": {
+    "tsdown": "^0.22.9",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.10"
+  }
+}

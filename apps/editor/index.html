@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Essential -->
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title>Glyphide — Code Editor in Your Browser</title>
+
+    <!-- SEO -->
+    <meta
+      content="Browser-based code editor for JavaScript and Python with sandboxed WebAssembly execution. Share via URL. No backend, no accounts."
+      name="description"
+    >
+    <meta
+      content="javascript editor, python editor, online code editor, browser editor, quickjs, micropython, wasm, webassembly, code sharing, solidjs, no backend, client-side"
+      name="keywords"
+    >
+    <meta content="Glyphide" name="author">
+    <link href="https://glyphide.com/" rel="canonical">
+
+    <!-- Open Graph -->
+    <meta content="Glyphide — Code Editor in Your Browser" property="og:title">
+    <meta
+      content="Browser-based code editor for JavaScript and Python with sandboxed WebAssembly execution. Share via URL. No backend, no accounts."
+      property="og:description"
+    >
+    <meta content="website" property="og:type">
+    <meta content="/og.png" property="og:image">
+    <meta content="https://glyphide.com/" property="og:url">
+    <meta content="Glyphide" property="og:site_name">
+
+    <!-- Twitter -->
+    <meta content="summary_large_image" name="twitter:card">
+    <meta content="Glyphide — Code Editor in Your Browser" name="twitter:title">
+    <meta
+      content="Browser-based code editor for JavaScript and Python with sandboxed WebAssembly execution. Share via URL. No backend, no accounts."
+      name="twitter:description"
+    >
+    <meta content="/og.png" name="twitter:image">
+
+    <!-- Theme Color -->
+    <meta
+      content="#fdfefb"
+      media="(prefers-color-scheme: light)"
+      name="theme-color"
+    >
+    <meta
+      content="#0c0f07"
+      media="(prefers-color-scheme: dark)"
+      name="theme-color"
+    >
+
+    <!-- Favicons and PWA manifest link are auto-injected by vite-plugin-pwa -->
+    <!-- (Do not add a manual <link rel="icon">, <link rel="apple-touch-icon">, or -->
+    <!-- <link rel="manifest">; the plugin would inject duplicates.) -->
+
+    <!-- Anti-FOUC style block (PRESERVED — do not modify) -->
+    <style>
+    html {
+      color-scheme: light;
+      background-color: #ffffff;
+    }
+    @media (prefers-color-scheme: dark) {
+      html {
+        color-scheme: dark;
+        background-color: #0c0f07;
+      }
+    }
+    html.dark {
+      color-scheme: dark !important;
+      background-color: #0c0f07 !important;
+    }
+    </style>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <script src="/src/index.tsx" type="module"></script>
+  </body>
+</html>

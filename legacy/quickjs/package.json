@@ -1,0 +1,48 @@
+{
+  "name": "@glyphide/quickjs",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "precompile quickjs utils with polyfills for glyphide.",
+  "author": "Pedro Carreño (34664891+Pkcarreno@users.noreply.github.com)",
+  "module": "dist/index.es.js",
+  "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/src/index.d.ts",
+        "default": "./dist/index.es.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "glyphide",
+    "sebastianwessel/quickjs",
+    "polyfills",
+    "vite"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@jitl/quickjs-ng-wasmfile-release-sync": "^0.31.0",
+    "@sebastianwessel/quickjs": "^3.0.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pkcarreno/glyphide.git"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2",
+    "vite": "^8.0.3",
+    "vite-plugin-dts": "^4.5.4",
+    "vite-plugin-node-polyfills": "^0.26.0"
+  }
+}

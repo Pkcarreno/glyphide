@@ -1,39 +1,37 @@
 {
   "name": "glyphide",
   "type": "module",
-  "version": "2.3.0",
+  "version": "3.0.0",
   "description": "Write, run, and share JavaScript code instantly",
   "author": "Pedro Carreño (34664891+Pkcarreno@users.noreply.github.com)",
   "license": "MIT",
   "private": true,
   "scripts": {
+    "test": "turbo run test",
+    "test:security": "turbo run test:security",
+    "typecheck": "turbo run typecheck",
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "check": "turbo check",
-    "tsc": "turbo run tsc",
     "lint": "ultracite check",
     "lint:fix": "ultracite fix",
     "preinstall": "npx only-allow pnpm",
+    "preview": "turbo run preview",
     "commitlint": "commitlint",
     "prepare": "lefthook install",
-    "postinstall": "turbo run build --filter=@glyphide/quickjs",
     "root:knip": "knip",
-    "knip": "turbo run root:knip",
-    "clean": "node scripts/clean.js"
+    "knip": "turbo run //#root:knip --",
+    "clean": "turbo run clean",
+    "nuke": "pnpm run clean && rm -rf node_modules .turbo pnpm-lock.yaml"
   },
-  "packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184",
+  "packageManager": "pnpm@11.5.1+sha512.93f7b57422ea7068257235b4c16eb60762eb68e1dc23723199cc739043ea9be2c4143274a399d8c6defa2b1176226d9ca1c4b63482d6200c1a8fbaa78c1d1485",
   "devDependencies": {
-    "@biomejs/biome": "^2.4.10",
+    "@biomejs/biome": "^2.5.4",
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
-    "knip": "^6.1.1",
-    "lefthook": "^2.1.4",
-    "turbo": "^2.9.1",
-    "typescript": "^6.0.2",
-    "ultracite": "^7.4.2"
-  },
-  "osMetadata": {
-    "initVersion": "1.3.0"
+    "knip": "^6.27.0",
+    "lefthook": "^2.1.10",
+    "turbo": "^2.10.5",
+    "ultracite": "^7.9.4"
   },
   "workspaces": [
     "packages/*",
@@ -42,10 +40,5 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pkcarreno/glyphide.git"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "lefthook"
-    ]
   }
 }

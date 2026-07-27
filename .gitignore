@@ -24,3 +24,10 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# ai related
+.atl/
+.pi/
+sdd/
+openspec/
+.codegraph/

@@ -1,0 +1,58 @@
+import type { EngineId } from "../engine/registry.ts";
+
+/**
+ * Discriminated union of all editor actions.
+ * Each action is a typed data object following the Command pattern.
+ * UI components dispatch these; models handle them via the dispatcher.
+ */
+export type EditorAction =
+  | { type: "RUN_CODE" }
+  | { type: "INTERRUPT_EXECUTION" }
+  | { type: "CLEAR_OUTPUT" }
+  | { type: "SELECT_ENGINE_ENTRY"; engineId: EngineId; language: string }
+  | { type: "UPDATE_ENGINE_CONFIG"; patch: Record<string, unknown> }
+  | { type: "RETRY_ENGINE_INIT" }
+  | { type: "UPDATE_BUFFER"; content: string }
+  | {
+      type: "UPDATE_CURSOR_POSITION";
+      line: number;
+      column: number;
+      selectionLength: number;
+      selectionLines: number;
+    }
+  | { type: "RENAME_PROJECT"; name: string }
+  | { type: "OPEN_OVERLAY"; overlayId: OverlayId }
+  | { type: "CLOSE_OVERLAY"; overlayId: OverlayId }
+  | { type: "TOGGLE_OVERLAY"; overlayId: OverlayId }
+  | { type: "CLOSE_ALL_OVERLAYS" }
+  | {
+      type: "DISPATCH_NOTIFICATION";
+      action?: { label: string; onClick: () => void };
+      title: string;
+      description?: string;
+      notificationType?: "info" | "success" | "warning" | "error";
+    }
+  | { type: "DISMISS_TOAST"; id: string }
+  | { type: "GRANT_TRUST" }
+  | {
+      type: "LOAD_FILE_FROM_DISK";
+      name: string;
+      content: string;
+      engineId: EngineId;
+      language: string;
+    }
+  | { type: "DOWNLOAD_BUFFER_TO_FILE" }
+  | { type: "RESET_PROJECT_STATE" }
+  | { type: "PWA_UPDATE_AVAILABLE" }
+  | { type: "PWA_OFFLINE_READY" };
+
+/** Uniquely identifies an overlay (modal, menu, etc). */
+export type OverlayId =
+  | "settings"
+  | "project-rename"
+  | "engine-settings"
+  | "trust-required"
+  | string;
+
+/** Extracts the action type string literal from the union. */
+export type EditorActionType = EditorAction["type"];

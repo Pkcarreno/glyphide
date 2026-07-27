@@ -1,0 +1,221 @@
+@import "tailwindcss";
+
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/700.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/700.css";
+
+/* ---------- Dark mode by class ---------- */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------- Light theme (Industrial/Surgical) ---------- */
+
+:root {
+  --ui-background: #ffffff;
+  --ui-surface: #f8f8f8;
+  --ui-surface-variant: #e0e0e0;
+  --ui-on-surface: #000000;
+  --ui-on-surface-variant: #333333;
+  --ui-primary: #bef263; /* Acid Lime */
+  --ui-on-primary: #000000;
+  --ui-outline: #000000; /* Stark black lines */
+  --ui-outline-variant: rgba(0, 0, 0, 0.15); /* Technical grid lines */
+  --ui-error: #ba1a1a;
+  --ui-on-error: #ffffff;
+  --ui-error-container: #ffdad6;
+  --ui-editor-bg: #ffffff;
+  --ui-log-warn: #b07d00;
+  --ui-token-keyword: #d73a49;
+  --ui-token-function: #6f42c1;
+  --ui-token-string: #032f62;
+  --ui-token-comment: #6a737d;
+  --ui-border-subtle: rgba(0, 0, 0, 0.1);
+  --ui-target-size: 24px;
+
+  /* Ayu Light-Glyphide palette — inspired by ayu-light, tied to lime primary */
+  --quiet-raw: 0.55 0.02 255;
+  --subtle-raw: 0.48 0.02 255;
+  --plain-raw: 0.75 0.15 66;
+  --yell-raw: 0.78 0.17 65;
+  --speak-raw: 0.68 0.09 210;
+  --whisper-raw: 0.44 0.02 255;
+  --shy-raw: 0.6 0.16 127;
+
+  --editor-accent: oklch(0.55 0.15 47);
+  --editor-selection-bg: color-mix(
+    in oklch,
+    oklch(0.6 0.16 127) 12%,
+    transparent
+  );
+  --editor-line-bg: color-mix(in oklch, oklch(0.6 0.16 127) 5%, transparent);
+  --editor-search-match: color-mix(
+    in oklch,
+    oklch(0.78 0.17 65) 30%,
+    transparent
+  );
+  --editor-search-selected: color-mix(
+    in oklch,
+    oklch(0.78 0.17 65) 52%,
+    transparent
+  );
+
+  /* Typography Dynamic Scales */
+  --ui-scale: 1;
+  --buffer-scale: 1;
+  --buffer-line-height: 1.3;
+}
+
+/* ---------- Dark theme (Bit-Perfect Noir) ---------- */
+
+.dark {
+  --ui-background: #0c0f07; /* surface-container-lowest */
+  --ui-surface: #11140c; /* surface */
+  --ui-surface-variant: #1a1d13; /* surface-container-low */
+  --ui-on-surface: #e2e4d4;
+  --ui-on-surface-variant: #c3c9b2;
+  --ui-primary: #bef263;
+  --ui-on-primary: #000000;
+  --ui-outline: rgba(255, 255, 255, 0.2);
+  --ui-outline-variant: rgba(255, 255, 255, 0.1); /* border-low-contrast */
+  --ui-error: #ffb4ab;
+  --ui-on-error: #690005;
+  --ui-error-container: #93000a;
+  --ui-editor-bg: #0c0f07; /* pure black workspace */
+  --ui-log-warn: #e3b341;
+  --ui-token-keyword: #ff7b72;
+  --ui-token-function: #d2a8ff;
+  --ui-token-string: #a5d6ff;
+  --ui-token-comment: #8b949e;
+  --ui-border-subtle: rgba(255, 255, 255, 0.1);
+
+  /* Mayu-Glyphide dark palette — warm tones from borrowed-mayu with lime accent */
+  --quiet-raw: 0.5 0.05 286;
+  --subtle-raw: 0.63 0.05 286;
+  --plain-raw: 0.9 0.03 286;
+  --yell-raw: 0.65 0.17 353;
+  --speak-raw: 0.82 0.13 74;
+  --whisper-raw: 0.76 0.09 15;
+  --shy-raw: 0.72 0.17 127;
+
+  --editor-accent: var(--color-primary);
+  --editor-selection-bg: color-mix(
+    in oklch,
+    var(--color-primary) 22%,
+    transparent
+  );
+  --editor-line-bg: color-mix(in oklch, var(--color-primary) 7%, transparent);
+  --editor-search-match: color-mix(
+    in oklch,
+    oklch(var(--speak-raw) / 1) 30%,
+    transparent
+  );
+  --editor-search-selected: color-mix(
+    in oklch,
+    oklch(var(--speak-raw) / 1) 50%,
+    transparent
+  );
+}
+
+/* ---------- Touch targets ---------- */
+
+@media (pointer: coarse) {
+  :root {
+    --ui-target-size: 44px;
+    --spacing-header-height: 52px;
+  }
+}
+
+/* ---------- Design tokens → Tailwind utilities ---------- */
+
+@theme inline {
+  /* Colors */
+  --color-background: var(--ui-background);
+  --color-surface: var(--ui-surface);
+  --color-surface-variant: var(--ui-surface-variant);
+  --color-on-surface: var(--ui-on-surface);
+  --color-on-surface-variant: var(--ui-on-surface-variant);
+  --color-primary: var(--ui-primary);
+  --color-on-primary: var(--ui-on-primary);
+  --color-outline: var(--ui-outline);
+  --color-outline-variant: var(--ui-outline-variant);
+  --color-error: var(--ui-error);
+  --color-on-error: var(--ui-on-error);
+  --color-error-container: var(--ui-error-container);
+  --color-editor-bg: var(--ui-editor-bg);
+  --color-log-warn: var(--ui-log-warn);
+  --color-token-keyword: var(--ui-token-keyword);
+  --color-token-function: var(--ui-token-function);
+  --color-token-string: var(--ui-token-string);
+  --color-token-comment: var(--ui-token-comment);
+  --color-border-subtle: var(--ui-border-subtle);
+}
+
+@theme {
+  /* Typography */
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Font sizes */
+  --text-code: calc(15px * var(--buffer-scale));
+  --text-code--line-height: var(--buffer-line-height);
+  --text-code--font-weight: 400;
+
+  /* text-ui-label and text-section-header intentionally drop below the 12px
+     legibility floor defined in the typography rules. Readability is recovered
+     via font-weight, letter-spacing, and uppercase treatment. These tokens are
+     reserved for ambient zone labels only — never for body or interactive text. */
+  --text-ui-label: calc(11px * var(--ui-scale));
+  --text-ui-label--line-height: 1;
+  --text-ui-label--font-weight: 500;
+
+  --text-status-bar: calc(12px * var(--ui-scale));
+  --text-status-bar--line-height: 1;
+  --text-status-bar--font-weight: 500;
+  --text-status-bar--letter-spacing: 0.05em;
+
+  --text-section-header: calc(9px * var(--ui-scale));
+  --text-section-header--line-height: 1;
+  --text-section-header--font-weight: 700;
+  --text-section-header--letter-spacing: 0.15em;
+
+  --text-tooltip-shortcut: calc(10px * var(--ui-scale));
+  --text-tooltip-shortcut--line-height: 1;
+  --text-tooltip-shortcut--letter-spacing: -0.025em;
+
+  --text-tooltip-meta: calc(11px * var(--ui-scale));
+  --text-tooltip-meta--line-height: 1.25;
+
+  --text-xs: calc(0.75rem * var(--ui-scale));
+  --text-sm: calc(0.875rem * var(--ui-scale));
+  --text-base: calc(1rem * var(--ui-scale));
+
+  /* Spacing */
+  --spacing-header-height: 36px;
+  --spacing-status-bar-height: 24px;
+  --spacing-padding-x: 8px;
+  --spacing-padding-y: 4px;
+  --spacing-gap-compact: 4px;
+
+  /* Border radius - Brutalist and exact */
+  --radius-sm: 0.125rem; /* 2px */
+  --radius-DEFAULT: 0.125rem; /* Base radius changed from 4px to 2px */
+  --radius-md: 0.125rem;
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.5rem;
+}
+
+/* ---------- Dropdown animation ---------- */
+
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
