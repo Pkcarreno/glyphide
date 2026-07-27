@@ -25,12 +25,12 @@
   },
   "packageManager": "pnpm@11.5.1+sha512.93f7b57422ea7068257235b4c16eb60762eb68e1dc23723199cc739043ea9be2c4143274a399d8c6defa2b1176226d9ca1c4b63482d6200c1a8fbaa78c1d1485",
   "devDependencies": {
-    "@biomejs/biome": "^2.5.4",
-    "@commitlint/cli": "^20.5.0",
-    "@commitlint/config-conventional": "^20.5.0",
-    "knip": "^6.27.0",
+    "@biomejs/biome": "^2.5.5",
+    "@commitlint/cli": "^21.2.1",
+    "@commitlint/config-conventional": "^21.2.0",
+    "knip": "^6.29.0",
     "lefthook": "^2.1.10",
-    "turbo": "^2.10.5",
+    "turbo": "^2.10.7",
     "ultracite": "^7.9.4"
   },
   "workspaces": [

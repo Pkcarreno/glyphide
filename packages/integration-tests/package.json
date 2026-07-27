@@ -17,9 +17,9 @@
     "@glyphide/orchestrator": "workspace:*",
     "@glyphide/quickjs-engine": "workspace:*",
     "@glyphide/rpc-protocol": "workspace:*",
-    "@types/node": "^25.9.5",
-    "happy-dom": "^20.11.0",
-    "typescript": "^6.0.2",
+    "@types/node": "^26.1.1",
+    "happy-dom": "^20.11.1",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.10"
   }
 }
