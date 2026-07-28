@@ -207,6 +207,12 @@
   --radius-xl: 0.5rem;
 }
 
+/* ---------- Text selection ---------- */
+
+::selection {
+  background-color: var(--editor-selection-bg);
+}
+
 /* ---------- Dropdown animation ---------- */
 
 @keyframes dropdown-in {

@@ -41,6 +41,10 @@ const editorBaseStyles = {
   ".cm-content": {
     caretColor: themeTokens.accent,
   },
+  ".cm-content ::selection": {
+    backgroundColor: themeTokens.selectionBg,
+    color: "inherit",
+  },
   ".cm-cursor, .cm-dropcursor": { borderLeftColor: themeTokens.accent },
   ".cm-gutters": {
     background: themeTokens.background,
@@ -66,6 +70,9 @@ const editorBaseStyles = {
     backgroundColor: themeTokens.searchSelected,
     outline: `1px solid ${themeTokens.accent}`,
   },
+  ".cm-selectionBackground": {
+    backgroundColor: themeTokens.selectionBg,
+  },
   ".cm-textfield": {
     backgroundColor: themeTokens.background,
     border: `1px solid ${themeTokens.border}`,
@@ -83,10 +90,6 @@ const editorBaseStyles = {
     color: themeTokens.foreground,
     height: "100%",
   },
-  "&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection":
-    {
-      backgroundColor: themeTokens.selectionBg,
-    },
 };
 
 const syntaxColors = HighlightStyle.define([
