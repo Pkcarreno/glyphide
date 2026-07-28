@@ -50,4 +50,32 @@ describe("WorkspaceLayout", () => {
     expect(container.firstElementChild?.className).toContain("custom-theme");
     expect(container.firstElementChild?.className).toContain("flex-col");
   });
+
+  it("when rendered, uses h-dvh instead of h-screen", () => {
+    const { container } = render(() => (
+      <WorkspaceLayout
+        consolePane={<div />}
+        editorPane={<div />}
+        header={<div />}
+        statusBar={<div />}
+      />
+    ));
+
+    expect(container.firstElementChild?.className).toContain("h-dvh");
+    expect(container.firstElementChild?.className).not.toContain("h-screen");
+  });
+
+  it("when rendered, wraps children in SafeAreaContainer", () => {
+    const { container } = render(() => (
+      <WorkspaceLayout
+        consolePane={<div />}
+        editorPane={<div />}
+        header={<div />}
+        statusBar={<div />}
+      />
+    ));
+
+    const safeAreaContainer = container.querySelector("div.pt-safearea-t");
+    expect(safeAreaContainer).toBeTruthy();
+  });
 });

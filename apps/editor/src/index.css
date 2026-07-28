@@ -151,6 +151,12 @@
   --color-token-string: var(--ui-token-string);
   --color-token-comment: var(--ui-token-comment);
   --color-border-subtle: var(--ui-border-subtle);
+
+  /* Safe area spacing for mobile insets */
+  --spacing-safearea-t: env(safe-area-inset-top);
+  --spacing-safearea-r: env(safe-area-inset-right);
+  --spacing-safearea-b: env(safe-area-inset-bottom);
+  --spacing-safearea-l: env(safe-area-inset-left);
 }
 
 @theme {

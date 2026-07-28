@@ -11,6 +11,9 @@ const customTwMerge = extendTailwindMerge({
         "text-code",
       ],
     },
+    theme: {
+      spacing: ["safearea-t", "safearea-r", "safearea-b", "safearea-l"],
+    },
   },
 });
 
