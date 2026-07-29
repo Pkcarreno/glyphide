@@ -64,7 +64,7 @@ describe("SettingsModal", () => {
 
     expect(getByRole("combobox")).toBeTruthy();
 
-    // Only the Appearance panel is visible; Editor/Execution/About are hidden.
+    // Only the Appearance panel is visible; Editor/Execution are hidden.
     const panels = getAllByRole("tabpanel", { hidden: true });
     const editorPanel = panels.find((p) =>
       p.textContent?.includes("Word Wrap")
@@ -159,15 +159,15 @@ describe("SettingsModal", () => {
     const { getAllByRole, getByRole } = render(() => <SettingsModal />);
 
     expect(getByRole("tablist")).toBeTruthy();
-    expect(getAllByRole("tab")).toHaveLength(4);
+    expect(getAllByRole("tab")).toHaveLength(3);
   });
 
   it("renders one tabpanel per settings section (most hidden by default)", () => {
     setMockIsOpen(true);
     const { getAllByRole } = render(() => <SettingsModal />);
 
-    // 4 panels mounted; only the active (Appearance) is visible to the role query.
-    expect(getAllByRole("tabpanel", { hidden: true })).toHaveLength(4);
+    // 3 panels mounted; only the active (Appearance) is visible to the role query.
+    expect(getAllByRole("tabpanel", { hidden: true })).toHaveLength(3);
     expect(getAllByRole("tabpanel")).toHaveLength(1);
   });
 

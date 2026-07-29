@@ -626,6 +626,119 @@ function DropdownCheckboxItem(props: DropdownCheckboxItemProps) {
   );
 }
 
+/* ---------- Link ---------- */
+
+type DropdownLinkProps<T extends ValidComponent = "a"> = {
+  as?: T;
+  children?: JSX.Element;
+  class?: string;
+  isDisabled?: boolean;
+  inset?: boolean;
+  onSelect?: () => void;
+} & Omit<
+  ComponentProps<T>,
+  "as" | "children" | "class" | "isDisabled" | "inset" | "onSelect"
+>;
+
+/**
+ * A navigation link within a dropdown menu, rendering an `<a>` by default.
+ * Shares DropdownItem's lifecycle: context registration, keyboard nav, active state.
+ *
+ * @public
+ */
+function DropdownLink<T extends ValidComponent = "a">(
+  props: DropdownLinkProps<T>
+) {
+  const [local, rest] = splitProps(props, [
+    "as",
+    "class",
+    "children",
+    "isDisabled",
+    "inset",
+    "onSelect",
+  ]);
+  const ctx = useDropdown();
+  const itemId = `dropdown-link-${Math.random().toString(36).slice(2, 9)}`;
+
+  let itemRef: HTMLElement | undefined;
+
+  onMount(() => {
+    if (itemRef) {
+      ctx.registerItem(itemId);
+    }
+  });
+
+  onCleanup(() => {
+    ctx.unregisterItem(itemId);
+  });
+
+  const isActive = () => {
+    const items = ctx.itemIds();
+    return items.indexOf(itemId) === ctx.activeIndex();
+  };
+
+  const handleClick = () => {
+    if (local.isDisabled) {
+      return;
+    }
+    local.onSelect?.();
+    ctx.close();
+  };
+
+  return (
+    <Dynamic
+      class={cn(
+        "focus-ring relative flex min-h-7 cursor-pointer select-none items-center gap-1.5 rounded-sm px-2 py-1 text-xs outline-none transition-colors",
+        "pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:py-2.5",
+        "hover:bg-surface-variant hover:text-on-surface",
+        "data-[active=true]:bg-surface-variant data-[active=true]:text-on-surface",
+        local.inset && "pl-7",
+        local.isDisabled && "pointer-events-none cursor-default opacity-50",
+        local.class
+      )}
+      component={local.as ?? "a"}
+      data-active={isActive()}
+      data-disabled={local.isDisabled}
+      onClick={handleClick}
+      ref={(el: HTMLElement) => {
+        itemRef = el;
+      }}
+      role="menuitem"
+      tabIndex={-1}
+      {...rest}
+    >
+      {local.children}
+    </Dynamic>
+  );
+}
+
+/* ---------- Caption ---------- */
+
+interface DropdownCaptionProps extends JSX.HTMLAttributes<HTMLDivElement> {
+  children?: JSX.Element;
+  class?: string;
+}
+
+/**
+ * Non-interactive metadata text with role="presentation".
+ * Excluded from keyboard navigation — does not register with dropdown context.
+ *
+ * @public
+ */
+function DropdownCaption(props: DropdownCaptionProps) {
+  const [local, rest] = splitProps(props, ["class", "children"]);
+
+  return (
+    <div
+      class={cn("px-2 py-1 text-on-surface-variant text-xs", local.class)}
+      role="presentation"
+      {...rest}
+    >
+      {local.children}
+    </div>
+  );
+}
+
 /* ---------- Label ---------- */
 
 interface DropdownLabelProps extends JSX.HTMLAttributes<HTMLDivElement> {
@@ -709,11 +822,13 @@ function DropdownShortcut(props: DropdownShortcutProps) {
  * @public
  */
 export const Dropdown = {
+  Caption: DropdownCaption,
   CheckboxItem: DropdownCheckboxItem,
   Content: DropdownContent,
   Group: DropdownGroup,
   Item: DropdownItem,
   Label: DropdownLabel,
+  Link: DropdownLink,
   Portal: DropdownPortal,
   Root: DropdownRoot,
   Separator: DropdownSeparator,

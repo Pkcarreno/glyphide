@@ -26,6 +26,7 @@ const TEST_PROJECT_REGEX = /TEST_PROJECT/;
 const RUN_REGEX = /Run/;
 const TRUST_REGEX = /trust/i;
 const UPDATE_REGEX = /update/i;
+const VERSION_LABELS_REGEX = /Glyphide v/;
 
 describe("Header", () => {
   beforeEach(() => {
@@ -351,6 +352,47 @@ describe("Header - Mobile Dropdown Items", () => {
         g.textContent?.includes("Update App")
       );
       expect(updateGroup).toBeTruthy();
+    });
+  });
+
+  describe("About group", () => {
+    it("when dropdown is opened, GitHub link menuitem is present", () => {
+      const { getByRole } = render(() => <Header />);
+      getByRole("button", { name: "Menu" }).click();
+      const menuItems = screen.getAllByRole("menuitem");
+      const githubItem = menuItems.find((el) =>
+        el.textContent?.includes("GitHub")
+      );
+      expect(githubItem).toBeTruthy();
+    });
+
+    it("when GitHub link is clicked, navigates to repository URL", () => {
+      const { getByRole } = render(() => <Header />);
+      getByRole("button", { name: "Menu" }).click();
+      const menuItems = screen.getAllByRole("menuitem");
+      const githubItem = menuItems.find((el) =>
+        el.textContent?.includes("GitHub")
+      );
+      expect(githubItem).toBeTruthy();
+      expect(githubItem?.getAttribute("href")).toBe(
+        "https://github.com/pkcarreno/glyphide"
+      );
+      expect(githubItem?.getAttribute("target")).toBe("_blank");
+      expect(githubItem?.getAttribute("rel")).toBe("noopener noreferrer");
+    });
+
+    it("when dropdown is opened, version label is visible", () => {
+      const { getByRole } = render(() => <Header />);
+      getByRole("button", { name: "Menu" }).click();
+      const versionLabels = screen.getAllByText(VERSION_LABELS_REGEX);
+      expect(versionLabels.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("when dropdown is opened, separator precedes the About group", () => {
+      const { getByRole } = render(() => <Header />);
+      getByRole("button", { name: "Menu" }).click();
+      const separators = document.querySelectorAll("hr[aria-orientation]");
+      expect(separators.length).toBeGreaterThanOrEqual(1);
     });
   });
 

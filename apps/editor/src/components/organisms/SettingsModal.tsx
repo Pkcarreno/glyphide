@@ -133,7 +133,7 @@ interface SettingsModalProps {
   class?: string;
 }
 
-const TABS = ["Appearance", "Editor", "Execution", "About"] as const;
+const TABS = ["Appearance", "Editor", "Execution"] as const;
 
 /**
  * Settings modal organism.
@@ -383,16 +383,6 @@ function SettingsModal(props: SettingsModalProps) {
                           core.settings.resetSetting("isClearOnRunEnabled")
                         }
                       />
-                    </div>
-                  </section>
-                </div>
-              </Tabs.Content>
-
-              <Tabs.Content class="w-full" value="About">
-                <div class="fade-in flex w-full animate-in flex-col gap-8 duration-300">
-                  <section class="w-full">
-                    <div class="w-full rounded-lg border border-outline-variant bg-surface-variant/50 p-4 text-on-surface-variant text-sm">
-                      Glyphide Editor v1.0.0
                     </div>
                   </section>
                 </div>
