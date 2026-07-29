@@ -1,7 +1,6 @@
-import { type ClassValue, clsx } from "clsx";
-import { extendTailwindMerge } from "tailwind-merge";
+import { createCn } from "cnfast";
 
-const customTwMerge = extendTailwindMerge({
+const cn = createCn({
   extend: {
     classGroups: {
       "font-size": [
@@ -17,13 +16,4 @@ const customTwMerge = extendTailwindMerge({
   },
 });
 
-/**
- * Combines class names using `clsx` for conditional logic
- * and `tailwind-merge` for resolving Tailwind CSS conflicts.
- *
- * @example
- * cn("px-2 py-1", isActive && "bg-primary", className)
- */
-export function cn(...inputs: ClassValue[]): string {
-  return customTwMerge(clsx(inputs));
-}
+export { cn };
