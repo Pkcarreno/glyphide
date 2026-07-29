@@ -244,7 +244,7 @@ export function PopoverTrigger<T extends ValidComponent = "button">(
 
   return (
     <Dynamic
-      class={cn(local.class)}
+      class={cn("focus-ring", local.class)}
       component={local.as ?? "button"}
       onClick={(e: Event) => {
         ctx.toggle();

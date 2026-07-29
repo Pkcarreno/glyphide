@@ -3,7 +3,7 @@ import { createSignal, splitProps } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
 const switchVariants = cva(
-  "relative inline-flex h-4 pointer-coarse:h-7 pointer-coarse:w-11 w-7 shrink-0 cursor-pointer items-center rounded-sm border border-transparent transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+  "focus-ring relative inline-flex h-4 pointer-coarse:h-7 pointer-coarse:w-11 w-7 shrink-0 cursor-pointer items-center rounded-sm border border-transparent transition-colors disabled:cursor-not-allowed disabled:opacity-50",
   {
     defaultVariants: {
       checked: false,

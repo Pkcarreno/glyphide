@@ -10,7 +10,7 @@ describe("Button", () => {
     expect(btn.className).toContain("bg-transparent");
     expect(btn.className).toContain("text-on-surface-variant");
     expect(btn.className).toContain("h-7");
-    expect(btn.className).toContain("focus-visible:ring-2");
+    expect(btn.className).toContain("focus-ring");
   });
 
   it("when rendered with primary variant, applies primary classes", () => {
@@ -87,10 +87,13 @@ describe("Button", () => {
     expect(btn.className).toContain("min-h-[var(--ui-target-size)]");
   });
 
-  it("when rendered, applies focus-visible ring and SVG sizing in base styles", () => {
+  it("when rendered, applies focus-ring utility and SVG sizing in base styles", () => {
     const { getByRole } = render(() => <Button>Test</Button>);
     const btn = getByRole("button");
-    expect(btn.className).toContain("focus-visible:ring-primary/30");
+    expect(btn.className).toContain("focus-ring");
+    expect(btn.className).toContain(
+      "active:not-aria-[haspopup]:translate-y-px"
+    );
     expect(btn.className).toContain("[&_svg]:size-3.5");
   });
 

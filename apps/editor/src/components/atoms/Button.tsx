@@ -11,7 +11,8 @@ const buttonVariants = cva(
     "cursor-pointer select-none",
     "disabled:pointer-events-none disabled:opacity-50",
     "min-h-[var(--ui-target-size)] min-w-[var(--ui-target-size)]",
-    "focus-visible:ring-2 focus-visible:ring-primary/30",
+    "focus-ring",
+    "active:not-aria-[haspopup]:translate-y-px",
     "[&_svg]:size-3.5",
   ],
   {

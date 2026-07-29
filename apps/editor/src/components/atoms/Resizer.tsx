@@ -53,7 +53,7 @@ function Resizer(props: ResizerProps) {
       aria-orientation="vertical"
       aria-valuenow={0}
       class={cn(
-        "m-0 shrink-0 cursor-col-resize touch-none border-none",
+        "focus-ring m-0 shrink-0 cursor-col-resize touch-none border-none",
         "h-full w-1 md:hover:w-1", // Keep it 1px visual, maybe expand hit area?
         "bg-outline-variant transition-colors delay-75 hover:bg-primary active:bg-primary",
         local.class

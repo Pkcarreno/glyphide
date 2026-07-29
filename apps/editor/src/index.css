@@ -151,6 +151,8 @@
   --color-token-string: var(--ui-token-string);
   --color-token-comment: var(--ui-token-comment);
   --color-border-subtle: var(--ui-border-subtle);
+  --color-ring: var(--ui-outline);
+  --color-destructive: var(--ui-error);
 
   /* Safe area spacing for mobile insets */
   --spacing-safearea-t: env(safe-area-inset-top);
@@ -229,5 +231,13 @@
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+/* ---------- Focus ring utility ---------- */
+
+@layer utilities {
+  .focus-ring {
+    @apply bg-clip-padding outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40;
   }
 }

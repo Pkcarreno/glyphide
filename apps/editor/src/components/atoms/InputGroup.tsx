@@ -24,11 +24,11 @@ function InputGroup(props: InputGroupProps) {
         "rounded-sm border border-outline-variant bg-surface",
         "m-0 border-0 p-0",
         "outline-none transition-colors",
-        "has-[[data-slot=input-group-control]:focus-visible]:border-primary",
-        "has-[[data-slot=input-group-control]:focus-visible]:ring-2",
-        "has-[[data-slot=input-group-control]:focus-visible]:ring-primary/30",
+        "has-[[data-slot=input-group-control]:focus-visible]:border-ring",
+        "has-[[data-slot=input-group-control]:focus-visible]:ring-3",
+        "has-[[data-slot=input-group-control]:focus-visible]:ring-ring/50",
         "has-[[data-slot][aria-invalid=true]]:border-destructive",
-        "has-[[data-slot][aria-invalid=true]]:ring-2",
+        "has-[[data-slot][aria-invalid=true]]:ring-3",
         "has-[[data-slot][aria-invalid=true]]:ring-destructive/20",
         "has-[>[data-align=block-end]]:h-auto",
         "has-[>[data-align=block-end]]:flex-col",
@@ -133,7 +133,7 @@ function InputGroupButton(props: InputGroupButtonProps) {
         "bg-transparent text-on-surface-variant",
         "hover:bg-surface-variant hover:text-on-surface",
         "disabled:pointer-events-none disabled:opacity-50",
-        "cursor-pointer select-none transition-colors",
+        "focus-ring cursor-pointer select-none transition-colors",
         local.class
       )}
       data-size={local.size ?? "xs"}

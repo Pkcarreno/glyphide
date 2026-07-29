@@ -28,7 +28,7 @@ export function Select(props: SelectProps) {
           "w-full appearance-none border border-outline-variant bg-surface-variant",
           "h-7 rounded-sm px-2 py-1 pr-8 text-on-surface text-xs",
           "pointer-coarse:h-11 pointer-coarse:px-3 pointer-coarse:text-sm",
-          "focus:outline-none focus:ring-2 focus:ring-primary/30",
+          "focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/50",
           "disabled:cursor-not-allowed disabled:opacity-50",
           "cursor-pointer transition-colors hover:bg-surface-variant/80",
           local.class

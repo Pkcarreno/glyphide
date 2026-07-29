@@ -89,7 +89,7 @@ function EngineSettingsForm() {
               <Show
                 fallback={
                   <input
-                    class="h-5 w-16 rounded border border-outline-variant bg-transparent px-1 text-right text-on-surface text-xs focus:border-primary focus:outline-none disabled:opacity-50"
+                    class="focus-ring h-5 w-16 rounded border border-outline-variant bg-transparent px-1 text-right text-on-surface text-xs focus:border-primary focus:outline-none disabled:opacity-50"
                     disabled={!(desc.isEditable && isReady())}
                     id={`engine-param-${desc.key}`}
                     onInput={(e) => {

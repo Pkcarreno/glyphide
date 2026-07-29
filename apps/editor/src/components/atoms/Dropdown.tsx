@@ -246,7 +246,7 @@ function DropdownTrigger<T extends ValidComponent = "button">(
     <Dynamic
       aria-expanded={ctx.isOpen()}
       aria-haspopup="true"
-      class={cn(local.class)}
+      class={cn("focus-ring", local.class)}
       component={local.as ?? "button"}
       onClick={(e: Event) => {
         ctx.toggle();
@@ -502,7 +502,7 @@ function DropdownItem<T extends ValidComponent = "div">(
   return (
     <Dynamic
       class={cn(
-        "relative flex min-h-7 cursor-pointer select-none items-center gap-1.5 rounded-sm px-2 py-1 text-xs outline-none transition-colors",
+        "focus-ring relative flex min-h-7 cursor-pointer select-none items-center gap-1.5 rounded-sm px-2 py-1 text-xs outline-none transition-colors",
         "pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:py-2.5",
         "hover:bg-surface-variant hover:text-on-surface",
         "data-[active=true]:bg-surface-variant data-[active=true]:text-on-surface",
@@ -594,7 +594,7 @@ function DropdownCheckboxItem(props: DropdownCheckboxItemProps) {
     <div
       aria-checked={local.isChecked}
       class={cn(
-        "relative flex cursor-pointer select-none items-center gap-1.5 rounded-sm py-1 pr-8 pl-1.5 text-xs outline-none transition-colors",
+        "focus-ring relative flex cursor-pointer select-none items-center gap-1.5 rounded-sm py-1 pr-8 pl-1.5 text-xs outline-none transition-colors",
         "pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:py-2.5",
         "hover:bg-surface-variant hover:text-on-surface",
         "data-[active=true]:bg-surface-variant data-[active=true]:text-on-surface",

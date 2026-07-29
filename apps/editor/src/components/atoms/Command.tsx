@@ -301,7 +301,7 @@ export function CommandItem(props: CommandItemProps) {
       <div
         aria-selected={isSelected()}
         class={cn(
-          "relative flex min-h-7 cursor-pointer select-none items-center rounded-sm px-2.5 py-1.5 text-xs outline-none transition-colors",
+          "focus-ring relative flex min-h-7 cursor-pointer select-none items-center rounded-sm px-2.5 py-1.5 text-xs outline-none transition-colors",
           "pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:py-2.5",
           isSelected()
             ? "bg-surface-variant text-on-surface"

@@ -78,7 +78,7 @@ function StatusBarButton(props: StatusBarButtonProps) {
   ]);
 
   const buttonClass = cn(
-    "flex h-full items-center gap-1 rounded-md px-1",
+    "focus-ring flex h-full items-center gap-1 rounded-md px-1",
     "cursor-pointer transition-colors hover:bg-surface-variant hover:text-on-surface",
     local.class
   );

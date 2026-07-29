@@ -93,7 +93,12 @@ function DialogTrigger(props: DialogTriggerProps) {
   const { open } = useDialog();
 
   return (
-    <button class={cn(local.class)} onClick={open} type="button" {...rest}>
+    <button
+      class={cn("focus-ring", local.class)}
+      onClick={open}
+      type="button"
+      {...rest}
+    >
       {local.children}
     </button>
   );
@@ -261,7 +266,7 @@ function DialogClose(props: DialogCloseProps) {
       action={{ type: "CLOSE_ALL_OVERLAYS" }}
       as="button"
       class={cn(
-        "rounded-lg p-1.5 text-on-surface-variant transition-colors hover:bg-surface-variant hover:text-on-surface",
+        "focus-ring rounded-lg p-1.5 text-on-surface-variant transition-colors hover:bg-surface-variant hover:text-on-surface",
         "pointer-coarse:min-h-11 pointer-coarse:min-w-11",
         local.class
       )}
