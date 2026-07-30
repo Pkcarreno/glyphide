@@ -417,3 +417,39 @@ describe("Header - Mobile Dropdown Items", () => {
     expect(shareBtn).toBeTruthy();
   });
 });
+
+describe("Header - Menu Trigger", () => {
+  it("when menu trigger renders, ChevronDown icon is present alongside LogoSquare", () => {
+    const { getByRole } = render(() => <Header />);
+    const menuButton = getByRole("button", { name: "Menu" });
+    const icons = menuButton.querySelectorAll("svg");
+    expect(icons.length).toBe(2);
+  });
+
+  it("when menu trigger renders, Button has correct dropdown trigger attributes", () => {
+    const { getByRole } = render(() => <Header />);
+    const menuButton = getByRole("button", { name: "Menu" });
+    expect(menuButton.getAttribute("aria-haspopup")).toBe("true");
+    expect(menuButton.getAttribute("aria-label")).toBe("Menu");
+  });
+
+  it("when menu trigger is clicked, aria-expanded toggles and dropdown opens", () => {
+    const { getByRole } = render(() => <Header />);
+    const menuButton = getByRole("button", { name: "Menu" });
+    expect(menuButton.getAttribute("aria-expanded")).toBe("false");
+    menuButton.click();
+    expect(menuButton.getAttribute("aria-expanded")).toBe("true");
+    const menuItems = screen.getAllByRole("menuitem");
+    expect(menuItems.length).toBeGreaterThan(0);
+  });
+
+  it("when menu trigger is clicked twice, dropdown opens then closes", () => {
+    const { getByRole } = render(() => <Header />);
+    const menuButton = getByRole("button", { name: "Menu" });
+    expect(menuButton.getAttribute("aria-expanded")).toBe("false");
+    menuButton.click();
+    expect(menuButton.getAttribute("aria-expanded")).toBe("true");
+    menuButton.click();
+    expect(menuButton.getAttribute("aria-expanded")).toBe("false");
+  });
+});

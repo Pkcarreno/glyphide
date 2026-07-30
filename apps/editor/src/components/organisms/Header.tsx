@@ -1,3 +1,4 @@
+import ChevronDown from "lucide-solid/icons/chevron-down";
 import ExternalLink from "lucide-solid/icons/external-link";
 import Play from "lucide-solid/icons/play";
 import RefreshCw from "lucide-solid/icons/refresh-cw";
@@ -61,13 +62,19 @@ function Header(props: HeaderProps) {
         <Dropdown.Root>
           <ActionTooltip
             aria-label="Menu"
-            as={Dropdown.Trigger}
-            class="pointer-coarse:min-h-11 pointer-coarse:min-w-11"
+            as="div"
             position="bottom"
             text="Menu"
-            variant="ghost"
           >
-            <LogoSquare alt="Glyphide Logo" />
+            <Dropdown.Trigger
+              aria-label="Menu"
+              as={Button}
+              class="pointer-coarse:min-h-11 pointer-coarse:min-w-11"
+              variant="ghost"
+            >
+              <LogoSquare alt="Glyphide Logo" class="size-6!" />
+              <ChevronDown class="size-3!" />
+            </Dropdown.Trigger>
           </ActionTooltip>
           <Dropdown.Portal>
             <Dropdown.Content>
