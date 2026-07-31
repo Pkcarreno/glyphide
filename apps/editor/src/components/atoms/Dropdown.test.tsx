@@ -476,6 +476,297 @@ describe("Dropdown", () => {
     });
   });
 
+  describe("Link", () => {
+    it("renders <a> with role='menuitem' and href passthrough", async () => {
+      render(() => (
+        <Dropdown.Root>
+          <Dropdown.Trigger>Menu</Dropdown.Trigger>
+          <Dropdown.Portal>
+            <Dropdown.Content>
+              <Dropdown.Link href="/home">Home</Dropdown.Link>
+            </Dropdown.Content>
+          </Dropdown.Portal>
+        </Dropdown.Root>
+      ));
+
+      fireEvent.click(screen.getByText("Menu"));
+      await Promise.resolve();
+
+      const link = screen.getByText("Home");
+      expect(link.tagName).toBe("A");
+      expect(link.getAttribute("role")).toBe("menuitem");
+      expect(link.getAttribute("href")).toBe("/home");
+    });
+
+    it("ArrowDown focuses link and sets data-active='true'", async () => {
+      render(() => (
+        <Dropdown.Root>
+          <Dropdown.Trigger>Menu</Dropdown.Trigger>
+          <Dropdown.Portal>
+            <Dropdown.Content>
+              <Dropdown.Item>Item 1</Dropdown.Item>
+              <Dropdown.Link href="/home">Home</Dropdown.Link>
+            </Dropdown.Content>
+          </Dropdown.Portal>
+        </Dropdown.Root>
+      ));
+
+      fireEvent.click(screen.getByText("Menu"));
+      await Promise.resolve();
+
+      const content = screen.getByRole("menu");
+
+      // First ArrowDown -> Item 1
+      fireEvent.keyDown(content, { key: "ArrowDown" });
+      await Promise.resolve();
+      expect(screen.getByText("Item 1").getAttribute("data-active")).toBe(
+        "true"
+      );
+
+      // Second ArrowDown -> Link
+      fireEvent.keyDown(content, { key: "ArrowDown" });
+      await Promise.resolve();
+      expect(screen.getByText("Home").getAttribute("data-active")).toBe("true");
+    });
+
+    it("click calls onSelect and closes dropdown", async () => {
+      const handleSelect = vi.fn();
+
+      render(() => (
+        <Dropdown.Root>
+          <Dropdown.Trigger>Menu</Dropdown.Trigger>
+          <Dropdown.Portal>
+            <Dropdown.Content>
+              <Dropdown.Link href="/home" onSelect={handleSelect}>
+                Home
+              </Dropdown.Link>
+            </Dropdown.Content>
+          </Dropdown.Portal>
+        </Dropdown.Root>
+      ));
+
+      fireEvent.click(screen.getByText("Menu"));
+      await Promise.resolve();
+
+      fireEvent.click(screen.getByText("Home"));
+      await Promise.resolve();
+
+      expect(handleSelect).toHaveBeenCalledTimes(1);
+      expect(screen.queryByText("Home")).toBeNull();
+    });
+
+    it("isDisabled prevents onSelect and keyboard activation", async () => {
+      const handleSelect = vi.fn();
+
+      render(() => (
+        <Dropdown.Root>
+          <Dropdown.Trigger>Menu</Dropdown.Trigger>
+          <Dropdown.Portal>
+            <Dropdown.Content>
+              <Dropdown.Link href="/home" isDisabled onSelect={handleSelect}>
+                Home
+              </Dropdown.Link>
+            </Dropdown.Content>
+          </Dropdown.Portal>
+        </Dropdown.Root>
+      ));
+
+      fireEvent.click(screen.getByText("Menu"));
+      await Promise.resolve();
+
+      const content = screen.getByRole("menu");
+
+      // ArrowDown to focus the link
+      fireEvent.keyDown(content, { key: "ArrowDown" });
+      await Promise.resolve();
+
+      // Enter should not trigger onSelect
+      fireEvent.keyDown(content, { key: "Enter" });
+      await Promise.resolve();
+
+      expect(handleSelect).not.toHaveBeenCalled();
+      expect(screen.getByText("Home")).not.toBeNull();
+    });
+
+    it("polymorphic as prop renders custom component", async () => {
+      function CustomLink(props: { href: string; children: JSX.Element }) {
+        return <a data-testid="custom-link" {...props} />;
+      }
+
+      render(() => (
+        <Dropdown.Root>
+          <Dropdown.Trigger>Menu</Dropdown.Trigger>
+          <Dropdown.Portal>
+            <Dropdown.Content>
+              <Dropdown.Link as={CustomLink} href="/home">
+                Home
+              </Dropdown.Link>
+            </Dropdown.Content>
+          </Dropdown.Portal>
+        </Dropdown.Root>
+      ));
+
+      fireEvent.click(screen.getByText("Menu"));
+      await Promise.resolve();
+
+      const customLink = screen.getByTestId("custom-link");
+      expect(customLink).not.toBeNull();
+      expect(customLink.getAttribute("href")).toBe("/home");
+    });
+
+    it("passes target and rel props to anchor", async () => {
+      render(() => (
+        <Dropdown.Root>
+          <Dropdown.Trigger>Menu</Dropdown.Trigger>
+          <Dropdown.Portal>
+            <Dropdown.Content>
+              <Dropdown.Link
+                href="https://github.com"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                GitHub
+              </Dropdown.Link>
+            </Dropdown.Content>
+          </Dropdown.Portal>
+        </Dropdown.Root>
+      ));
+
+      fireEvent.click(screen.getByText("Menu"));
+      await Promise.resolve();
+
+      const link = screen.getByText("GitHub");
+      expect(link.getAttribute("href")).toBe("https://github.com");
+      expect(link.getAttribute("target")).toBe("_blank");
+      expect(link.getAttribute("rel")).toBe("noopener noreferrer");
+    });
+  });
+
+  describe("Caption", () => {
+    it("renders <div> with role='presentation'", async () => {
+      render(() => (
+        <Dropdown.Root>
+          <Dropdown.Trigger>Menu</Dropdown.Trigger>
+          <Dropdown.Portal>
+            <Dropdown.Content>
+              <Dropdown.Caption>Glyphide v1.0</Dropdown.Caption>
+            </Dropdown.Content>
+          </Dropdown.Portal>
+        </Dropdown.Root>
+      ));
+
+      fireEvent.click(screen.getByText("Menu"));
+      await Promise.resolve();
+
+      const caption = screen.getByText("Glyphide v1.0");
+      expect(caption.tagName).toBe("DIV");
+      expect(caption.getAttribute("role")).toBe("presentation");
+    });
+
+    it("excluded from keyboard navigation", async () => {
+      render(() => (
+        <Dropdown.Root>
+          <Dropdown.Trigger>Menu</Dropdown.Trigger>
+          <Dropdown.Portal>
+            <Dropdown.Content>
+              <Dropdown.Item>Item 1</Dropdown.Item>
+              <Dropdown.Caption>Glyphide v1.0</Dropdown.Caption>
+              <Dropdown.Item>Item 2</Dropdown.Item>
+            </Dropdown.Content>
+          </Dropdown.Portal>
+        </Dropdown.Root>
+      ));
+
+      fireEvent.click(screen.getByText("Menu"));
+      await Promise.resolve();
+
+      const content = screen.getByRole("menu");
+
+      // Navigate to Item 1
+      fireEvent.keyDown(content, { key: "ArrowDown" });
+      await Promise.resolve();
+      expect(screen.getByText("Item 1").getAttribute("data-active")).toBe(
+        "true"
+      );
+
+      // ArrowDown should skip Caption and go to Item 2
+      fireEvent.keyDown(content, { key: "ArrowDown" });
+      await Promise.resolve();
+      expect(screen.getByText("Item 2").getAttribute("data-active")).toBe(
+        "true"
+      );
+
+      // Caption should never have data-active
+      expect(
+        screen.getByText("Glyphide v1.0").getAttribute("data-active")
+      ).toBeNull();
+    });
+
+    it("does not register with dropdown context", async () => {
+      render(() => (
+        <Dropdown.Root>
+          <Dropdown.Trigger>Menu</Dropdown.Trigger>
+          <Dropdown.Portal>
+            <Dropdown.Content>
+              <Dropdown.Item>Item 1</Dropdown.Item>
+              <Dropdown.Caption>Glyphide v1.0</Dropdown.Caption>
+            </Dropdown.Content>
+          </Dropdown.Portal>
+        </Dropdown.Root>
+      ));
+
+      fireEvent.click(screen.getByText("Menu"));
+      await Promise.resolve();
+
+      const content = screen.getByRole("menu");
+      const menuitems = content.querySelectorAll('[role="menuitem"]');
+      expect(menuitems).toHaveLength(1);
+      expect(menuitems[0].textContent).toBe("Item 1");
+    });
+
+    it("does not have font-medium class", async () => {
+      render(() => (
+        <Dropdown.Root>
+          <Dropdown.Trigger>Menu</Dropdown.Trigger>
+          <Dropdown.Portal>
+            <Dropdown.Content>
+              <Dropdown.Caption>Glyphide v1.0</Dropdown.Caption>
+            </Dropdown.Content>
+          </Dropdown.Portal>
+        </Dropdown.Root>
+      ));
+
+      fireEvent.click(screen.getByText("Menu"));
+      await Promise.resolve();
+
+      const caption = screen.getByText("Glyphide v1.0");
+      expect(caption.classList.contains("font-medium")).toBe(false);
+      expect(caption.classList.contains("text-on-surface-variant")).toBe(true);
+      expect(caption.classList.contains("text-xs")).toBe(true);
+    });
+
+    it("merges custom class without overriding base classes", async () => {
+      render(() => (
+        <Dropdown.Root>
+          <Dropdown.Trigger>Menu</Dropdown.Trigger>
+          <Dropdown.Portal>
+            <Dropdown.Content>
+              <Dropdown.Caption class="mt-2">Glyphide v1.0</Dropdown.Caption>
+            </Dropdown.Content>
+          </Dropdown.Portal>
+        </Dropdown.Root>
+      ));
+
+      fireEvent.click(screen.getByText("Menu"));
+      await Promise.resolve();
+
+      const caption = screen.getByText("Glyphide v1.0");
+      expect(caption.classList.contains("mt-2")).toBe(true);
+      expect(caption.classList.contains("text-xs")).toBe(true);
+      expect(caption.classList.contains("text-on-surface-variant")).toBe(true);
+    });
+  });
+
   describe("Composition", () => {
     it("opens dropdown when trigger is composed via 'as' prop with extra event handlers", async () => {
       // Mimics the real composition chain: Tooltip → Popover.Trigger → Dynamic(as=Dropdown.Trigger)

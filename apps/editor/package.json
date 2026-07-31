@@ -28,12 +28,11 @@
     "@glyphide/url-migration": "workspace:*",
     "@lezer/highlight": "^1.2.3",
     "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
+    "cnfast": "^0.1.0",
     "codemirror": "^6.0.2",
     "fflate": "^0.8.3",
     "lucide-solid": "^1.25.0",
     "solid-js": "^1.9.14",
-    "tailwind-merge": "3.5.0",
     "workbox-window": "^7.3.0"
   },
   "devDependencies": {

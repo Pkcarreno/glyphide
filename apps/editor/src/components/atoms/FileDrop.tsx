@@ -11,7 +11,7 @@ const fileDropVariants = cva(
     "transition-colors duration-150",
     "active:scale-[0.96]",
     "cursor-pointer select-none",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30",
+    "outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
     "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
   ],
   {
@@ -267,7 +267,7 @@ export function FileDrop(props: FileDropProps) {
       <Show when={visualState() === "selected"}>
         <button
           aria-label="Remove file"
-          class="absolute top-1 right-1 z-10 inline-flex h-6 w-6 items-center justify-center rounded-sm bg-surface/80 text-on-surface-variant transition-colors hover:bg-surface hover:text-on-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+          class="absolute top-1 right-1 z-10 inline-flex h-6 w-6 items-center justify-center rounded-sm bg-surface/80 text-on-surface-variant outline-none transition-colors hover:bg-surface hover:text-on-surface focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"
           data-testid="file-drop-remove"
           onClick={handleRemove}
           type="button"

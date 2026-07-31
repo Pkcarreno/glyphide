@@ -151,6 +151,14 @@
   --color-token-string: var(--ui-token-string);
   --color-token-comment: var(--ui-token-comment);
   --color-border-subtle: var(--ui-border-subtle);
+  --color-ring: var(--ui-outline);
+  --color-destructive: var(--ui-error);
+
+  /* Safe area spacing for mobile insets */
+  --spacing-safearea-t: env(safe-area-inset-top);
+  --spacing-safearea-r: env(safe-area-inset-right);
+  --spacing-safearea-b: env(safe-area-inset-bottom);
+  --spacing-safearea-l: env(safe-area-inset-left);
 }
 
 @theme {
@@ -205,6 +213,12 @@
   --radius-md: 0.125rem;
   --radius-lg: 0.25rem;
   --radius-xl: 0.5rem;
+}
+
+/* ---------- Text selection ---------- */
+
+::selection {
+  background-color: var(--editor-selection-bg);
 }
 
 /* ---------- Dropdown animation ---------- */

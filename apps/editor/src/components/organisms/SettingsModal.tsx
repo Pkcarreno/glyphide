@@ -43,7 +43,7 @@ function SettingsItem(props: SettingsItemProps) {
           <Show when={props.isModified}>
             <button
               aria-label={`Reset ${props.label} to default`}
-              class="flex h-5 pointer-coarse:min-h-11 w-5 pointer-coarse:min-w-11 items-center justify-center rounded-md text-on-surface-variant/50 transition-colors hover:bg-surface-variant hover:text-on-surface"
+              class="flex h-5 pointer-coarse:min-h-11 w-5 pointer-coarse:min-w-11 items-center justify-center rounded-md text-on-surface-variant/50 outline-none transition-colors hover:bg-surface-variant hover:text-on-surface focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"
               onClick={props.onReset}
               title="Reset to default"
               type="button"
@@ -133,7 +133,7 @@ interface SettingsModalProps {
   class?: string;
 }
 
-const TABS = ["Appearance", "Editor", "Execution", "About"] as const;
+const TABS = ["Appearance", "Editor", "Execution"] as const;
 
 /**
  * Settings modal organism.
@@ -383,16 +383,6 @@ function SettingsModal(props: SettingsModalProps) {
                           core.settings.resetSetting("isClearOnRunEnabled")
                         }
                       />
-                    </div>
-                  </section>
-                </div>
-              </Tabs.Content>
-
-              <Tabs.Content class="w-full" value="About">
-                <div class="fade-in flex w-full animate-in flex-col gap-8 duration-300">
-                  <section class="w-full">
-                    <div class="w-full rounded-lg border border-outline-variant bg-surface-variant/50 p-4 text-on-surface-variant text-sm">
-                      Glyphide Editor v1.0.0
                     </div>
                   </section>
                 </div>

@@ -175,7 +175,7 @@ function TokenArray(props: {
       <For each={token.elements}>
         {(element, index) => (
           <span class="flex items-baseline gap-2">
-            <span class="min-w-[20px] text-right text-on-surface-variant opacity-50">
+            <span class="min-w-5 text-right text-on-surface-variant opacity-50">
               {index()}:
             </span>
             <Token token={element} />

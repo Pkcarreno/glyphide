@@ -2,6 +2,7 @@ import type { JSX } from "solid-js";
 import { createSignal } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { Resizer } from "../atoms/Resizer.tsx";
+import { SafeAreaContainer } from "../atoms/SafeAreaContainer.tsx";
 
 interface WorkspaceLayoutProps {
   class?: string;
@@ -43,45 +44,47 @@ function WorkspaceLayout(props: WorkspaceLayoutProps) {
   return (
     <div
       class={cn(
-        "flex h-screen w-screen flex-col overflow-hidden bg-background",
+        "flex h-dvh w-screen flex-col overflow-hidden bg-background",
         props.class
       )}
       style={{ "--editor-size": `${editorSize()}%` }}
     >
-      <div class="relative z-20 shrink-0">{props.header}</div>
+      <SafeAreaContainer class="flex flex-1 flex-col overflow-hidden">
+        <div class="relative z-20 shrink-0">{props.header}</div>
 
-      <main
-        class="relative z-0 flex flex-1 flex-col overflow-hidden md:flex-row"
-        ref={(el) => {
-          containerRef = el;
-        }}
-      >
-        {/* Editor Wrapper */}
-        <div
-          class={cn(
-            "flex flex-col overflow-hidden border-outline-variant border-b transition-none md:border-b-0",
-            "flex-1 md:flex-none md:basis-(--editor-size)"
-          )}
+        <main
+          class="relative z-0 flex flex-1 flex-col overflow-hidden md:flex-row"
+          ref={(el) => {
+            containerRef = el;
+          }}
         >
-          {props.editorPane}
-        </div>
+          {/* Editor Wrapper */}
+          <div
+            class={cn(
+              "flex flex-col overflow-hidden border-outline-variant border-b transition-none md:border-b-0",
+              "flex-1 md:flex-none md:basis-(--editor-size)"
+            )}
+          >
+            {props.editorPane}
+          </div>
 
-        {/* Resizer - Hidden in mobile, active in desktop */}
-        <Resizer class="hidden md:block" onResizeDelta={handleResize} />
+          {/* Resizer - Hidden in mobile, active in desktop */}
+          <Resizer class="hidden md:block" onResizeDelta={handleResize} />
 
-        {/* Console Wrapper */}
-        <div
-          class={cn(
-            "flex flex-col overflow-hidden transition-none",
-            "flex-1 md:flex-none md:basis-[calc(100%-var(--editor-size)-1px)]",
-            "h-1/3 min-h-[200px] md:h-auto"
-          )}
-        >
-          {props.consolePane}
-        </div>
-      </main>
+          {/* Console Wrapper */}
+          <div
+            class={cn(
+              "flex flex-col overflow-hidden transition-none",
+              "flex-1 md:flex-none md:basis-[calc(100%-var(--editor-size)-1px)]",
+              "h-1/3 min-h-[200px] md:h-auto"
+            )}
+          >
+            {props.consolePane}
+          </div>
+        </main>
 
-      <div class="relative z-20 shrink-0">{props.statusBar}</div>
+        <div class="relative z-20 shrink-0">{props.statusBar}</div>
+      </SafeAreaContainer>
     </div>
   );
 }

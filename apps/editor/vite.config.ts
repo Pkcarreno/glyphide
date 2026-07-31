@@ -1,12 +1,19 @@
+import { createRequire } from "node:module";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 import solidPlugin from "vite-plugin-solid";
 
+const require = createRequire(import.meta.url);
+const pkg = require("./package.json");
+
 export default defineConfig({
   base: process.env.VITE_BASE_URL ?? "/",
   build: {
     target: "esnext",
+  },
+  define: {
+    "import.meta.env.VITE_APP_VERSION": JSON.stringify(pkg.version),
   },
   plugins: [
     tailwindcss(),

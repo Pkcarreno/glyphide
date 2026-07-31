@@ -1,3 +1,5 @@
+import ChevronDown from "lucide-solid/icons/chevron-down";
+import ExternalLink from "lucide-solid/icons/external-link";
 import Play from "lucide-solid/icons/play";
 import RefreshCw from "lucide-solid/icons/refresh-cw";
 import Settings from "lucide-solid/icons/settings";
@@ -60,20 +62,26 @@ function Header(props: HeaderProps) {
         <Dropdown.Root>
           <ActionTooltip
             aria-label="Menu"
-            as={Dropdown.Trigger}
-            class="pointer-coarse:min-h-11 pointer-coarse:min-w-11"
+            as="div"
             position="bottom"
             text="Menu"
-            variant="ghost"
           >
-            <LogoSquare alt="Glyphide Logo" />
+            <Dropdown.Trigger
+              aria-label="Menu"
+              as={Button}
+              class="pointer-coarse:min-h-11 pointer-coarse:min-w-11"
+              variant="ghost"
+            >
+              <LogoSquare alt="Glyphide Logo" class="size-6!" />
+              <ChevronDown class="size-3!" />
+            </Dropdown.Trigger>
           </ActionTooltip>
           <Dropdown.Portal>
             <Dropdown.Content>
               <Dropdown.Group>
-                <Dropdown.Item as="a" href="/" target="_blank">
+                <Dropdown.Link href="/" target="_blank">
                   New Project
-                </Dropdown.Item>
+                </Dropdown.Link>
                 <Dropdown.Item
                   onSelect={() =>
                     core.dispatcher.dispatch({
@@ -123,6 +131,20 @@ function Header(props: HeaderProps) {
                   </Dropdown.Item>
                 </Dropdown.Group>
               </Show>
+              <Dropdown.Separator />
+              <Dropdown.Group>
+                <Dropdown.Link
+                  href="https://github.com/pkcarreno/glyphide"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  GitHub
+                  <ExternalLink class="ml-auto size-3 opacity-60" />
+                </Dropdown.Link>
+                <Dropdown.Caption>
+                  Glyphide v{import.meta.env.VITE_APP_VERSION}
+                </Dropdown.Caption>
+              </Dropdown.Group>
             </Dropdown.Content>
           </Dropdown.Portal>
         </Dropdown.Root>

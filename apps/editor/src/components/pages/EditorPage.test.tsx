@@ -5,6 +5,10 @@ import EditorPage from "./EditorPage.tsx";
 
 vi.spyOn(console, "info").mockImplementation(() => undefined);
 
+vi.mock("../atoms/CodeField/CodeField.tsx", () => ({
+  CodeField: () => <div data-testid="code-field-stub" />,
+}));
+
 const dispatchMock = vi.fn();
 let mockStatus = "idle";
 const [mockIsOpen, setMockIsOpen] = createSignal(false);

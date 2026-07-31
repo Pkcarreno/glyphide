@@ -54,4 +54,26 @@ describe("cn", () => {
     const result = cn({ "bg-primary": true, "bg-surface": false }, "px-2");
     expect(result).toBe("bg-primary px-2");
   });
+
+  it("when given pb-safearea-b and pb-4, pb-4 wins (last-wins in padding group)", () => {
+    const result = cn("pb-safearea-b", "pb-4");
+    expect(result).toBe("pb-4");
+  });
+
+  it("when given pt-safearea-t and pt-2, pt-2 wins (last-wins in padding group)", () => {
+    const result = cn("pt-safearea-t", "pt-2");
+    expect(result).toBe("pt-2");
+  });
+
+  it("when given all safearea padding classes, merges them together", () => {
+    const result = cn(
+      "pt-safearea-t",
+      "pr-safearea-r",
+      "pb-safearea-b",
+      "pl-safearea-l"
+    );
+    expect(result).toBe(
+      "pt-safearea-t pr-safearea-r pb-safearea-b pl-safearea-l"
+    );
+  });
 });
