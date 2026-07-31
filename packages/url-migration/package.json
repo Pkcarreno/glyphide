@@ -1,6 +1,6 @@
 {
   "name": "@glyphide/url-migration",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "description": "Framework-agnostic library that detects, parses, and re-encodes legacy glyphide share URLs into the current format.",
