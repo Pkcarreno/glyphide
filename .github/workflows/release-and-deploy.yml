@@ -20,8 +20,8 @@ jobs:
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
-      outputs:
-        apps/editor--release_created: ${{ steps.release.outputs['apps/editor--release_created'] }}
+    outputs:
+      apps/editor--release_created: ${{ steps.release.outputs['apps/editor--release_created'] }}
 
   build:
     runs-on: ubuntu-latest
