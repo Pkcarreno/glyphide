@@ -209,7 +209,7 @@ function ConsolePane(props: ConsolePaneProps) {
         </h2>
         <div class="flex items-center gap-1">
           <button
-            class="focus-ring flex pointer-coarse:min-h-11 cursor-pointer items-center gap-1 pointer-coarse:gap-1.5 rounded-sm border border-transparent pointer-coarse:px-3 px-1.5 py-0.5 font-medium text-on-surface-variant text-status-bar uppercase tracking-wider transition-colors hover:border-outline-variant hover:bg-surface-variant hover:text-on-surface"
+            class="flex pointer-coarse:min-h-11 cursor-pointer items-center gap-1 pointer-coarse:gap-1.5 rounded-sm border border-transparent pointer-coarse:px-3 px-1.5 py-0.5 font-medium text-on-surface-variant text-status-bar uppercase tracking-wider outline-none transition-colors hover:border-outline-variant hover:bg-surface-variant hover:text-on-surface focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"
             onClick={handleClear}
             type="button"
           >

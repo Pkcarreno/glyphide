@@ -246,7 +246,10 @@ function DropdownTrigger<T extends ValidComponent = "button">(
     <Dynamic
       aria-expanded={ctx.isOpen()}
       aria-haspopup="true"
-      class={cn("focus-ring", local.class)}
+      class={cn(
+        "outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        local.class
+      )}
       component={local.as ?? "button"}
       onClick={(e: Event) => {
         ctx.toggle();
@@ -502,7 +505,7 @@ function DropdownItem<T extends ValidComponent = "div">(
   return (
     <Dynamic
       class={cn(
-        "focus-ring relative flex min-h-7 cursor-pointer select-none items-center gap-1.5 rounded-sm px-2 py-1 text-xs outline-none transition-colors",
+        "relative flex min-h-7 cursor-pointer select-none items-center gap-1.5 rounded-sm px-2 py-1 text-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
         "pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:py-2.5",
         "hover:bg-surface-variant hover:text-on-surface",
         "data-[active=true]:bg-surface-variant data-[active=true]:text-on-surface",
@@ -594,7 +597,7 @@ function DropdownCheckboxItem(props: DropdownCheckboxItemProps) {
     <div
       aria-checked={local.isChecked}
       class={cn(
-        "focus-ring relative flex cursor-pointer select-none items-center gap-1.5 rounded-sm py-1 pr-8 pl-1.5 text-xs outline-none transition-colors",
+        "relative flex cursor-pointer select-none items-center gap-1.5 rounded-sm py-1 pr-8 pl-1.5 text-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
         "pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:py-2.5",
         "hover:bg-surface-variant hover:text-on-surface",
         "data-[active=true]:bg-surface-variant data-[active=true]:text-on-surface",
@@ -688,7 +691,7 @@ function DropdownLink<T extends ValidComponent = "a">(
   return (
     <Dynamic
       class={cn(
-        "focus-ring relative flex min-h-7 cursor-pointer select-none items-center gap-1.5 rounded-sm px-2 py-1 text-xs outline-none transition-colors",
+        "relative flex min-h-7 cursor-pointer select-none items-center gap-1.5 rounded-sm px-2 py-1 text-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
         "pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:py-2.5",
         "hover:bg-surface-variant hover:text-on-surface",
         "data-[active=true]:bg-surface-variant data-[active=true]:text-on-surface",

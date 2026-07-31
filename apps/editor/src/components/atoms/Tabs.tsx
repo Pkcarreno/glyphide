@@ -316,7 +316,7 @@ function TabsTrigger(props: TabsTriggerProps) {
       aria-controls={panelId()}
       aria-selected={isActive()}
       class={cn(
-        "focus-ring rounded-md px-3 py-2 text-left font-medium text-sm transition-colors",
+        "rounded-md px-3 py-2 text-left font-medium text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
         "pointer-coarse:min-h-11 flex-1 pointer-coarse:px-4 md:w-full",
         isActive()
           ? "bg-surface-variant text-on-surface"

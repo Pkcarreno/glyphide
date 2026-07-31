@@ -133,7 +133,7 @@ function InputGroupButton(props: InputGroupButtonProps) {
         "bg-transparent text-on-surface-variant",
         "hover:bg-surface-variant hover:text-on-surface",
         "disabled:pointer-events-none disabled:opacity-50",
-        "focus-ring cursor-pointer select-none transition-colors",
+        "cursor-pointer select-none outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
         local.class
       )}
       data-size={local.size ?? "xs"}

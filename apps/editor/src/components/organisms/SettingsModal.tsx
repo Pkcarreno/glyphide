@@ -43,7 +43,7 @@ function SettingsItem(props: SettingsItemProps) {
           <Show when={props.isModified}>
             <button
               aria-label={`Reset ${props.label} to default`}
-              class="focus-ring flex h-5 pointer-coarse:min-h-11 w-5 pointer-coarse:min-w-11 items-center justify-center rounded-md text-on-surface-variant/50 transition-colors hover:bg-surface-variant hover:text-on-surface"
+              class="flex h-5 pointer-coarse:min-h-11 w-5 pointer-coarse:min-w-11 items-center justify-center rounded-md text-on-surface-variant/50 outline-none transition-colors hover:bg-surface-variant hover:text-on-surface focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"
               onClick={props.onReset}
               title="Reset to default"
               type="button"
