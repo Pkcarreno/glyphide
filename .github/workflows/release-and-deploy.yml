@@ -20,15 +20,13 @@ jobs:
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
-        with:
-          release-type: node
-    outputs:
-      release-created: ${{ steps.release.outputs.release_created }}
+      outputs:
+        apps/editor--release_created: ${{ steps.release.outputs['apps/editor--release_created'] }}
 
   build:
     runs-on: ubuntu-latest
     needs: [release]
-    if: ${{ needs.release.outputs.release-created }}
+    if: ${{ needs.release.outputs['apps/editor--release_created'] }}
     env:
       VITE_BASE_URL: "/"
     steps:

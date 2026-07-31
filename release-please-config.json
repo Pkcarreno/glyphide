@@ -1,0 +1,13 @@
+{
+  "packages": {
+    "apps/editor": {},
+    "packages/rpc-protocol": {},
+    "packages/orchestrator": {},
+    "packages/url-migration": {},
+    "packages/quickjs-engine": {},
+    "packages/micropython-engine": {}
+  },
+  "plugins": ["node-workspace"],
+  "include-component-in-tag": false,
+  "include-v-in-tag": true
+}
