@@ -126,7 +126,7 @@ export class EngineOrchestrator<
     }
 
     const { result } = response;
-    this.#timeout = result.timeout ?? 30_000;
+    this.#timeout = result.timeout;
     this.#config.events.onEngineReady?.(result);
 
     return result;
@@ -263,8 +263,7 @@ export class EngineOrchestrator<
    */
   #handleEngineRequest(request: JsonRpcRequest): void {
     if (request.method === EngineMethod.InputRequest) {
-      const params = request.params as EngineInputRequestParams | undefined;
-      const prompt = params?.prompt ?? "";
+      const { prompt } = request.params as EngineInputRequestParams;
 
       const reply = (value: string): void => {
         this.#bus?.sendResponse(request.id, { value });
