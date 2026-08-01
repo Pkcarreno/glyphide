@@ -1,11 +1,13 @@
 {
   "packages": {
-    "apps/editor": {},
-    "packages/rpc-protocol": {},
-    "packages/orchestrator": {},
-    "packages/url-migration": {},
-    "packages/quickjs-engine": {},
-    "packages/micropython-engine": {}
+    "apps/editor": { "component": "@glyphide/editor" },
+    "packages/rpc-protocol": { "component": "@glyphide/rpc-protocol" },
+    "packages/orchestrator": { "component": "@glyphide/orchestrator" },
+    "packages/url-migration": { "component": "@glyphide/url-migration" },
+    "packages/quickjs-engine": { "component": "@glyphide/quickjs-engine" },
+    "packages/micropython-engine": {
+      "component": "@glyphide/micropython-engine"
+    }
   },
   "plugins": ["node-workspace"],
   "include-component-in-tag": true,
