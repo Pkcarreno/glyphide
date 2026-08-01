@@ -1,6 +1,6 @@
 {
   "name": "@glyphide/rpc-protocol",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "description": "Standard JSON-RPC 2.0 protocol definitions for Glyphide Execution System.",

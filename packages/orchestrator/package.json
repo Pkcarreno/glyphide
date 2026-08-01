@@ -1,6 +1,6 @@
 {
   "name": "@glyphide/orchestrator",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "description": "Main thread controller for Glyphide execution engines.",
