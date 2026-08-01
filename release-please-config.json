@@ -8,6 +8,6 @@
     "packages/micropython-engine": {}
   },
   "plugins": ["node-workspace"],
-  "include-component-in-tag": false,
+  "include-component-in-tag": true,
   "include-v-in-tag": true
 }
