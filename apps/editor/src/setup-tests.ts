@@ -1,3 +1,5 @@
+import { afterAll } from "vitest";
+
 if (
   typeof (globalThis as unknown as Record<string, unknown>).ResizeObserver ===
   "undefined"
@@ -21,29 +23,32 @@ if (
 // internal state, which crashes CodeMirror's EditorView during plugin
 // initialization ("Cannot read properties of undefined (reading
 // 'delayedAndroidKey')").
-if (
-  typeof (globalThis as unknown as Record<string, unknown>)
-    .requestAnimationFrame === "undefined"
-) {
-  (globalThis as unknown as Record<string, unknown>).requestAnimationFrame = (
-    callback: (time: number) => void
-  ) => setTimeout(callback, 0, Date.now()) as unknown as number;
-  (globalThis as unknown as Record<string, unknown>).cancelAnimationFrame = (
-    id: number
-  ) => {
-    clearTimeout(id);
+const pending = new Set<number>();
+
+export function installRAFMock(surface: Record<string, unknown>) {
+  surface.requestAnimationFrame = (callback: (time: number) => void) => {
+    const id = setTimeout(callback, 0, Date.now()) as unknown as number;
+    pending.add(id);
+    return id;
   };
-} else {
-  // If jsdom provides it, override it for asynchronous test execution
-  (globalThis as unknown as Record<string, unknown>).requestAnimationFrame = (
-    callback: (time: number) => void
-  ) => setTimeout(callback, 0, Date.now()) as unknown as number;
-  (globalThis as unknown as Record<string, unknown>).cancelAnimationFrame = (
-    id: number
-  ) => {
+  surface.cancelAnimationFrame = (id: number) => {
     clearTimeout(id);
+    pending.delete(id);
   };
 }
+
+for (const surface of [globalThis, window, document.defaultView]) {
+  if (surface !== null) {
+    installRAFMock(surface as unknown as Record<string, unknown>);
+  }
+}
+
+afterAll(() => {
+  for (const id of pending) {
+    clearTimeout(id);
+  }
+  pending.clear();
+});
 
 if (typeof window !== "undefined" && typeof window.matchMedia === "undefined") {
   Object.defineProperty(window, "matchMedia", {

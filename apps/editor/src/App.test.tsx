@@ -48,11 +48,20 @@ vi.mock("./core/context", () => ({
   }),
 }));
 
+vi.mock("./components/atoms/CodeField/CodeField.tsx", () => ({
+  CodeField: () => <div data-testid="code-field-stub" />,
+}));
+
 const TEST_PROJECT_REGEX = /TEST_PROJECT/;
 
 describe("App", () => {
   it("renders the EditorPage component", () => {
     const { getByText } = render(() => <App />);
     expect(getByText(TEST_PROJECT_REGEX)).toBeTruthy();
+  });
+
+  it("renders the CodeField stub instead of instantiating CodeMirror", () => {
+    const { getByTestId } = render(() => <App />);
+    expect(getByTestId("code-field-stub")).toBeTruthy();
   });
 });
