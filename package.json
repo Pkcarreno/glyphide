@@ -28,9 +28,9 @@
     "@biomejs/biome": "^2.5.6",
     "@commitlint/cli": "^21.2.1",
     "@commitlint/config-conventional": "^21.2.0",
-    "knip": "^6.29.0",
+    "knip": "^6.31.0",
     "lefthook": "^2.1.10",
-    "turbo": "^2.10.7",
+    "turbo": "^2.10.8",
     "ultracite": "^7.9.4"
   },
   "workspaces": [
