@@ -18,8 +18,8 @@
     "@glyphide/quickjs-engine": "workspace:*",
     "@glyphide/rpc-protocol": "workspace:*",
     "@types/node": "^24.13.3",
-    "happy-dom": "^20.11.2",
+    "happy-dom": "^20.11.6",
     "typescript": "^6.0.2",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   }
 }
