@@ -1,5 +1,32 @@
 # Changelog
 
+## [3.0.2](https://github.com/Pkcarreno/glyphide/compare/@glyphide/editor-v3.0.1...@glyphide/editor-v3.0.2) (2026-09-10)
+
+
+### Bug Fixes
+
+* **deps:** bump the all group with 10 updates ([37e89a0](https://github.com/Pkcarreno/glyphide/commit/37e89a033858fcffd6af1e9cd8a034dc71e1bc77))
+* **deps:** bump the all group with 10 updates ([73852f6](https://github.com/Pkcarreno/glyphide/commit/73852f607c235fff4688aef5feb78ee40ed8f909))
+* **deps:** bump the all group with 10 updates ([19af526](https://github.com/Pkcarreno/glyphide/commit/19af52656d7e53fec65f51fdef489b09084d0197))
+* **deps:** bump the all group with 10 updates ([106b85e](https://github.com/Pkcarreno/glyphide/commit/106b85ec6601923a81f18c72de9b3216d9cfcf6b))
+* **deps:** bump the all group with 7 updates ([c36f54e](https://github.com/Pkcarreno/glyphide/commit/c36f54eef3127a60ae23dc18bdbbd5a99f545e63))
+* **deps:** bump the all group with 7 updates ([89e7cbe](https://github.com/Pkcarreno/glyphide/commit/89e7cbe848d4632dda3757e61c420e38ba537371))
+* **deps:** bump the all group with 7 updates ([19885cb](https://github.com/Pkcarreno/glyphide/commit/19885cbf4612e2855692096116e29f7bc9ef7628))
+* **deps:** bump the all group with 7 updates ([51ddcbf](https://github.com/Pkcarreno/glyphide/commit/51ddcbf27165ddb426c4e6386ac6a611d54e62f6))
+* **deps:** bump the all group with 8 updates ([97a3ae1](https://github.com/Pkcarreno/glyphide/commit/97a3ae1e3766d311b14042345bedca0254cf7041))
+* **deps:** bump the all group with 8 updates ([4ff0543](https://github.com/Pkcarreno/glyphide/commit/4ff0543b290d34d4af1d7b3aaefd2053c94ef0ed))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @glyphide/micropython-engine bumped to 0.1.2
+    * @glyphide/orchestrator bumped to 1.0.2
+    * @glyphide/quickjs-engine bumped to 0.1.2
+    * @glyphide/rpc-protocol bumped to 1.0.2
+    * @glyphide/url-migration bumped to 1.0.2
+
 ## [3.0.1](https://github.com/Pkcarreno/glyphide/compare/@glyphide/editor-v3.0.0...@glyphide/editor-v3.0.1) (2026-08-01)
 
 
