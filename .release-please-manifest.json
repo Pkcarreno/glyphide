@@ -1,8 +1,8 @@
 {
-  "apps/editor": "3.0.1",
-  "packages/rpc-protocol": "1.0.1",
-  "packages/orchestrator": "1.0.1",
-  "packages/url-migration": "1.0.1",
-  "packages/quickjs-engine": "0.1.1",
-  "packages/micropython-engine": "0.1.1"
+  "apps/editor": "3.0.2",
+  "packages/rpc-protocol": "1.0.2",
+  "packages/orchestrator": "1.0.2",
+  "packages/url-migration": "1.0.2",
+  "packages/quickjs-engine": "0.1.2",
+  "packages/micropython-engine": "0.1.2"
 }
