@@ -31,7 +31,7 @@
     "cnfast": "^0.2.0",
     "codemirror": "^6.0.2",
     "fflate": "^0.8.3",
-    "lucide-solid": "^1.41.0",
+    "lucide-solid": "^1.45.0",
     "solid-js": "^1.9.15",
     "workbox-window": "^7.3.0"
   },
@@ -39,11 +39,11 @@
     "@glyphide/mock-engine": "workspace:*",
     "@solidjs/testing-library": "^0.8.10",
     "@tailwindcss/vite": "^4.3.3",
-    "@vite-pwa/assets-generator": "^1.0.2",
+    "@vite-pwa/assets-generator": "^2.0.0",
     "jsdom": "^30.0.1",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
-    "vite": "^8.2.2",
+    "vite": "^8.3.0",
     "vite-plugin-pwa": "^1.0.2",
     "vite-plugin-solid": "^2.11.14",
     "vitest": "^5.0.0"
