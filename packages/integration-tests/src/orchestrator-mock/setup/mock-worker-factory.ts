@@ -3,75 +3,20 @@ import type {
   MockEngineConfig,
   MockOutputPayload,
 } from "@glyphide/mock-engine/types";
-import type { EngineWorkerFactory } from "@glyphide/orchestrator";
-import type { JsonRpcMessage } from "@glyphide/rpc-protocol/types";
+import {
+  createDirectTransport,
+  type EngineTransportFactory,
+} from "@glyphide/orchestrator/transport";
 
 /**
- * Creates a mock engine worker instance by polyfilling the Web Worker interface.
- * This allows integration tests to run in Node.js without actual Web Workers.
+ * Creates an in-process direct transport connected to MockEngineAdapter.
+ * Eliminates DOM Worker polyfills and asynchronous setTimeout latency.
  */
-export const createMockWorker: EngineWorkerFactory<MockOutputPayload> = () => {
+export const createMockWorker: EngineTransportFactory<
+  MockOutputPayload
+> = () => {
   const adapter = new MockEngineAdapter();
-
-  const worker = {
-    addEventListener() {
-      /* noop */
-    },
-    dispatchEvent() {
-      return true;
-    },
-    onerror: null as ((ev: ErrorEvent) => void) | null,
-    onmessage: null as ((ev: MessageEvent) => void) | null,
-
-    postMessage(message: unknown) {
-      setTimeout(() => {
-        try {
-          adapter.handleMessage(message as JsonRpcMessage);
-        } catch (e) {
-          if (worker.onerror) {
-            worker.onerror({ error: e } as ErrorEvent);
-          }
-        }
-      }, 0);
-    },
-    removeEventListener() {
-      /* noop */
-    },
-
-    terminate() {
-      adapter.dispose();
-    },
-  };
-
-  adapter.setup(
-    (response) => {
-      setTimeout(() => {
-        if (worker.onmessage) {
-          worker.onmessage({ data: response } as MessageEvent);
-        }
-      }, 0);
-    },
-    (method, params) => {
-      setTimeout(() => {
-        if (worker.onmessage) {
-          worker.onmessage({
-            data: { jsonrpc: "2.0", method, params },
-          } as MessageEvent);
-        }
-      }, 0);
-    },
-    (method, id, params) => {
-      setTimeout(() => {
-        if (worker.onmessage) {
-          worker.onmessage({
-            data: { id, jsonrpc: "2.0", method, params },
-          } as MessageEvent);
-        }
-      }, 0);
-    }
-  );
-
-  return worker as unknown as Worker;
+  return createDirectTransport(adapter);
 };
 
 /**

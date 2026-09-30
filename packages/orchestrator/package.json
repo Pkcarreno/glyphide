@@ -18,6 +18,10 @@
     "./promise-registry": {
       "types": "./dist/promise-registry.d.mts",
       "default": "./dist/promise-registry.mjs"
+    },
+    "./transport": {
+      "types": "./dist/transport.d.mts",
+      "default": "./dist/transport.mjs"
     }
   },
   "files": [

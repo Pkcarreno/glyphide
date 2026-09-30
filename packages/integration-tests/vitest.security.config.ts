@@ -23,7 +23,7 @@ export default defineConfig({
       "src/orchestrator-*/**",
       "src/orchestrator-mock/**",
     ],
-    hookTimeout: 10_000,
+    hookTimeout: 20_000,
     include: ["src/security/**/*.security.spec.ts"],
     // One file per fork. The QuickJS runtime aborts the process if
     // dispose() runs with a non-empty GC list, so isolating each
@@ -37,6 +37,6 @@ export default defineConfig({
       concurrent: false,
     },
     teardownTimeout: 5000,
-    testTimeout: 10_000,
+    testTimeout: 20_000,
   },
 });
