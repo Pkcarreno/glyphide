@@ -34,7 +34,6 @@
         "knip.json",
         "package.json",
         "**/*.{ts,tsx,mjs,js,jsx}",
-        "!legacy/**",
         "!node_modules/**",
         "!**/dist/**",
         "!**/.turbo/**"
