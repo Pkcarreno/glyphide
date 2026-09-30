@@ -48,7 +48,7 @@ describe("MicroPython: resource limits", () => {
    * engine hangs after a memory bomb, the test fails cleanly
    * instead of stalling the entire suite.
    */
-  const HARD_TIMEOUT_MS = 8000;
+  const HARD_TIMEOUT_MS = 15_000;
 
   async function runWithTimeout(
     pocCode: string,

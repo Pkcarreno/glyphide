@@ -1,6 +1,6 @@
 /**
  * Main controller for engine execution.
- * Manages worker lifecycle, promise registry, and RPC messaging.
+ * Manages transport lifecycle, promise registry, and RPC messaging.
  */
 
 import { EngineMethod } from "@glyphide/rpc-protocol/constants";
@@ -20,6 +20,11 @@ import type {
 } from "@glyphide/rpc-protocol/types";
 import { MessageBus } from "./message-bus.ts";
 import { PromiseRegistry } from "./promise-registry.ts";
+import {
+  type EngineTransportFactory,
+  type RpcTransport,
+  toRpcTransport,
+} from "./transport.ts";
 
 /**
  * Extracts a human-readable message from an unknown catch value.
@@ -41,17 +46,33 @@ function extractMessage(error: unknown): string {
  * Phantom-typed worker factory.
  * The generic parameter carries the engine's output payload shape
  * through the type system without adding runtime overhead.
+ *
+ * @public
  */
 export type EngineWorkerFactory<
   TPayload extends EngineOutputPayload = EngineOutputPayload,
-> = (() => Worker) & {
+> = (() => Worker | RpcTransport) & {
   readonly _payloadType?: TPayload;
 };
 
-/** Extracts the payload type carried by an `EngineWorkerFactory`. */
-export type InferEnginePayload<TFactory> =
-  TFactory extends EngineWorkerFactory<infer P> ? P : EngineOutputPayload;
+/**
+ * Extracts the payload type carried by an `EngineWorkerFactory` or `EngineTransportFactory`.
+ *
+ * @public
+ */
+export type InferEnginePayload<TFactory> = TFactory extends {
+  readonly _payloadType?: infer P;
+}
+  ? P extends EngineOutputPayload
+    ? P
+    : EngineOutputPayload
+  : EngineOutputPayload;
 
+/**
+ * Event subscriptions for engine orchestration.
+ *
+ * @public
+ */
 export interface OrchestratorEvents<
   TPayload extends EngineOutputPayload = EngineOutputPayload,
 > {
@@ -66,10 +87,19 @@ export interface OrchestratorEvents<
   onOutput?: (payload: TPayload) => void;
 }
 
+/**
+ * Configuration options for EngineOrchestrator.
+ *
+ * @public
+ */
 export interface OrchestratorConfig<
-  TFactory extends EngineWorkerFactory = EngineWorkerFactory,
+  TFactory extends
+    | EngineWorkerFactory
+    | EngineTransportFactory = EngineWorkerFactory,
 > {
-  /** Factory function to create the engine worker instance. */
+  /** Factory function to create the engine transport instance. */
+  createTransport?: TFactory;
+  /** Factory function to create the engine worker instance. Kept for backwards compatibility. */
   createWorker?: TFactory;
   /** Event handlers. */
   events?: OrchestratorEvents<InferEnginePayload<TFactory>>;
@@ -77,12 +107,19 @@ export interface OrchestratorConfig<
   useWorker?: boolean;
 }
 
+/**
+ * Orchestrates engine execution and lifecycles via the RpcTransport seam.
+ *
+ * @public
+ */
 export class EngineOrchestrator<
-  TFactory extends EngineWorkerFactory = EngineWorkerFactory,
+  TFactory extends
+    | EngineWorkerFactory
+    | EngineTransportFactory = EngineWorkerFactory,
 > {
-  readonly #config: Required<OrchestratorConfig<TFactory>>;
+  readonly #config: OrchestratorConfig<TFactory>;
   readonly #registry: PromiseRegistry;
-  #worker: Worker | null = null;
+  #transport: RpcTransport | null = null;
   #bus: MessageBus | null = null;
   #nextId = 0;
   #timeout = 30_000;
@@ -91,26 +128,23 @@ export class EngineOrchestrator<
 
   constructor(config: OrchestratorConfig<TFactory>) {
     this.#config = {
-      createWorker:
-        config.createWorker ??
-        ((() => {
-          throw new Error("createWorker factory not provided");
-        }) as unknown as TFactory),
+      createTransport: config.createTransport,
+      createWorker: config.createWorker,
       events: config.events ?? {},
       useWorker: config.useWorker ?? true,
-    };
+    } as OrchestratorConfig<TFactory>;
     this.#registry = new PromiseRegistry();
   }
 
   /**
-   * Initializes the engine worker and performs handshake.
+   * Initializes the engine transport and performs handshake.
    * @param configParams Optional configuration to pass to the engine during initialization.
    */
   async init(configParams?: unknown): Promise<EngineInitResult> {
     this.#lastInitParams = configParams;
 
     if (this.#config.useWorker) {
-      this.#spawnWorker();
+      this.#spawnTransport();
     }
 
     let response: JsonRpcOkResponse<EngineInitResult>;
@@ -127,7 +161,7 @@ export class EngineOrchestrator<
 
     const { result } = response;
     this.#timeout = result.timeout;
-    this.#config.events.onEngineReady?.(result);
+    this.#config.events?.onEngineReady?.(result);
 
     return result;
   }
@@ -158,33 +192,33 @@ export class EngineOrchestrator<
   }
 
   /**
-   * Forcefully interrupts the running execution by terminating the worker.
+   * Forcefully interrupts the running execution by terminating the transport.
    * State is lost, but the Orchestrator is automatically restored to a usable state.
    */
   async interrupt(): Promise<void> {
-    if (!this.#worker) {
+    if (!this.#transport) {
       return;
     }
 
-    // Terminate worker to force stop synchronous WASM execution
-    this.#worker.terminate();
+    // Terminate transport to force stop synchronous WASM execution
+    this.#transport.terminate?.();
     this.#bus?.terminate();
-    this.#worker = null;
+    this.#transport = null;
     this.#bus = null;
 
     // Clear pending promises (which rejects them with "Worker terminated")
     this.#registry.clear();
 
     // Notify listeners that execution was forcefully interrupted
-    this.#config.events.onOutput?.({
+    this.#config.events?.onOutput?.({
       data: "Execution interrupted",
       type: "system",
     } as InferEnginePayload<TFactory>);
 
     this.#recoveryPromise = (async () => {
-      // Respawn worker and reinitialize
+      // Respawn transport and reinitialize
       if (this.#config.useWorker) {
-        this.#spawnWorker();
+        this.#spawnTransport();
       }
 
       try {
@@ -219,24 +253,26 @@ export class EngineOrchestrator<
   }
 
   /**
-   * Terminates the worker and cleans up promises.
+   * Terminates the transport and cleans up promises.
    */
   terminate(): void {
-    if (this.#worker) {
-      this.#worker.terminate();
+    if (this.#transport) {
+      this.#transport.terminate?.();
       this.#bus?.terminate();
       this.#registry.clear();
-      this.#worker = null;
+      this.#transport = null;
       this.#bus = null;
     }
   }
 
-  #spawnWorker(): void {
-    if (!this.#config.createWorker) {
-      throw new Error("createWorker is required when useWorker is true");
+  #spawnTransport(): void {
+    const factory = this.#config.createTransport ?? this.#config.createWorker;
+    if (!factory) {
+      throw new Error("createTransport or createWorker factory not provided");
     }
-    this.#worker = this.#config.createWorker();
-    this.#bus = new MessageBus(this.#worker, this.#handleMessage.bind(this));
+    const raw = factory();
+    this.#transport = toRpcTransport(raw);
+    this.#bus = new MessageBus(this.#transport, this.#handleMessage.bind(this));
   }
 
   #handleMessage(
@@ -269,7 +305,7 @@ export class EngineOrchestrator<
         this.#bus?.sendResponse(request.id, { value });
       };
 
-      if (this.#config.events.onInputRequest) {
+      if (this.#config.events?.onInputRequest) {
         this.#config.events.onInputRequest(prompt, reply);
       } else {
         reply("");
@@ -283,12 +319,12 @@ export class EngineOrchestrator<
         | InferEnginePayload<TFactory>
         | undefined;
       if (payload) {
-        this.#config.events.onOutput?.(payload);
+        this.#config.events?.onOutput?.(payload);
       }
     }
   }
 
-  #sendRequest<T>(message: {
+  async #sendRequest<T>(message: {
     method: string;
     params?: unknown;
   }): Promise<JsonRpcOkResponse<T>> {
@@ -303,11 +339,12 @@ export class EngineOrchestrator<
 
     const isRun = message.method === EngineMethod.Run;
     const timeoutMs = isRun ? this.#timeout + 100 : 30_000;
+    const requestStartTime = Date.now();
 
     const requestTimeoutId = setTimeout(() => {
       if (this.#registry.size > 0) {
         reject(new Error("Request timeout"));
-        // We trigger an interrupt (Worker.terminate()) slightly after the
+        // We trigger an interrupt (transport.terminate()) slightly after the
         // timeout to reclaim resources if an engine lacks graceful interruption
         // support (like Micropython) and is stuck in a synchronous infinite loop.
         this.interrupt().catch(() => {
@@ -316,19 +353,17 @@ export class EngineOrchestrator<
       }
     }, timeoutMs);
 
-    return promise
-      .finally(() => {
-        clearTimeout(requestTimeoutId);
-      })
-      .then(
-        (result) => ({ id, jsonrpc: "2.0", result }) as JsonRpcOkResponse<T>
-      ) as Promise<JsonRpcOkResponse<T>>;
-  }
-
-  #sendNotification(message: { method: string; params?: unknown }): void {
-    if (!this.#bus) {
-      throw new Error("Orchestrator not initialized");
+    try {
+      const result = await promise;
+      if (Date.now() - requestStartTime >= timeoutMs) {
+        await this.interrupt().catch(() => {
+          /* noop */
+        });
+        throw new Error("Request timeout");
+      }
+      return { id, jsonrpc: "2.0", result } as JsonRpcOkResponse<T>;
+    } finally {
+      clearTimeout(requestTimeoutId);
     }
-    this.#bus.sendNotification(message);
   }
 }

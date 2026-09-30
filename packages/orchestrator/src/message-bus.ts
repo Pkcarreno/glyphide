@@ -1,5 +1,5 @@
 /**
- * Wraps postMessage/onmessage with type-safe JSON-RPC validation.
+ * Wraps transport postMessage/onMessage with type-safe JSON-RPC validation.
  */
 
 import { isJsonRpcFail, isJsonRpcOk } from "@glyphide/rpc-protocol/guards";
@@ -10,7 +10,13 @@ import type {
   JsonRpcRequest,
   JsonRpcResponse,
 } from "@glyphide/rpc-protocol/types";
+import { type RpcTransport, toRpcTransport } from "./transport.ts";
 
+/**
+ * Handler callback for routed incoming JSON-RPC messages.
+ *
+ * @public
+ */
 export type MessageHandler = (
   message: JsonRpcResponse | JsonRpcRequest | JsonRpcNotification
 ) => void;
@@ -25,14 +31,22 @@ interface OutgoingNotification {
   params?: unknown;
 }
 
+/**
+ * Manages bidirectional JSON-RPC message flow across an RpcTransport seam.
+ *
+ * @public
+ */
 export class MessageBus {
-  readonly #worker: Worker;
+  readonly #transport: RpcTransport;
   readonly #onMessage: MessageHandler;
 
-  constructor(worker: Worker, onMessage: MessageHandler) {
-    this.#worker = worker;
+  constructor(
+    transportOrWorker: RpcTransport | Worker,
+    onMessage: MessageHandler
+  ) {
+    this.#transport = toRpcTransport(transportOrWorker);
     this.#onMessage = onMessage;
-    this.#worker.onmessage = this.#handleMessage.bind(this);
+    this.#transport.onMessage = this.#handleMessage.bind(this);
   }
 
   /**
@@ -45,7 +59,7 @@ export class MessageBus {
       method: message.method,
       params: message.params,
     };
-    this.#worker.postMessage(request);
+    this.#transport.postMessage(request);
   }
 
   /**
@@ -57,13 +71,13 @@ export class MessageBus {
       method: message.method,
       params: message.params,
     };
-    this.#worker.postMessage(notification);
+    this.#transport.postMessage(notification);
   }
 
   /**
    * Classifies and routes an incoming message.
    */
-  #handleMessage(event: MessageEvent): void {
+  #handleMessage(event: { data: unknown }): void {
     const { data } = event;
 
     // Response (success or fail)
@@ -90,7 +104,7 @@ export class MessageBus {
   }
 
   /**
-   * Sends a JSON-RPC success response back to the worker.
+   * Sends a JSON-RPC success response back to the transport peer.
    * Used by the orchestrator to reply to engine requests
    * (e.g., ENGINE.INPUT_REQUEST).
    */
@@ -100,11 +114,11 @@ export class MessageBus {
       jsonrpc: "2.0",
       result,
     };
-    this.#worker.postMessage(response);
+    this.#transport.postMessage(response);
   }
 
   /** Terminates the message bus listener. */
   terminate(): void {
-    this.#worker.onmessage = null;
+    this.#transport.onMessage = null;
   }
 }
