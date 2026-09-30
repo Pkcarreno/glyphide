@@ -1,4 +1,4 @@
-import { createCn } from "cnfast";
+import { createCn } from "cn/config";
 
 const cn = createCn({
   extend: {
