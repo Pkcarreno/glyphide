@@ -18,12 +18,8 @@
       "!!**/build",
       "!!**/.turbo",
       "!!**/.vite",
-      "!!**/.astro",
-      "!!**/_astro",
       "!!**/pnpm-lock.yaml",
-      "!!**/.atl",
-      "!!**/legacy/glyphide",
-      "!!**/legacy/quickjs"
+      "!!**/.atl"
     ]
   },
   "overrides": [

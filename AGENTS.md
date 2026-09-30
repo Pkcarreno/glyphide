@@ -10,7 +10,6 @@
 - `packages/mock-engine`: Headless in-memory test engine for protocol validation.
 - `packages/url-migration`: State serialization, compression, and URL migration utilities.
 - `packages/integration-tests`: Cross-package integration and security test suites.
-- Never modify packages under `legacy/` (`packages/quickjs`, `apps/glyphide`).
 
 ## Commands
 
