@@ -32,10 +32,10 @@
       "computedHash": "c8b15b529e088a318b2d3c17f0a97e15a7b1ce9ddab8bbdf9209e6ab7315cbde"
     },
     "semantic-code-naming": {
-      "source": "pkcarreno/skills",
+      "source": "Pkcarreno/skills",
       "sourceType": "github",
       "skillPath": "skills/semantic-code-naming/SKILL.md",
-      "computedHash": "60784376d1c7ed4b6f91484b273e2b568357b4dd5d3484278c84b98084d38444"
+      "computedHash": "49148b0046b3178ab165658a7c6211e9c97a7bfd41889f1a813add85a0f8e73c"
     },
     "seo": {
       "source": "addyosmani/web-quality-skills",
@@ -48,6 +48,12 @@
       "sourceType": "github",
       "skillPath": "skills/solid/SKILL.md",
       "computedHash": "6949aa4c74cf68a489297307515f1e769c3510b68045cbf16f6479403cf0b883"
+    },
+    "solid-composition-patterns": {
+      "source": "Pkcarreno/skills",
+      "sourceType": "github",
+      "skillPath": "skills/solid-composition-patterns/SKILL.md",
+      "computedHash": "28f91bdc6bec29a17186ba68faf34afdad50724de27ae8a38ab3c90b48f940f1"
     },
     "tailwind-css-patterns": {
       "source": "giuseppe-trisciuoglio/developer-kit",
