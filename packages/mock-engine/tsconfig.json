@@ -9,13 +9,13 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     "allowImportingTsExtensions": true,
     "emitDeclarationOnly": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "worker/**/*"],
   "exclude": ["node_modules", "dist", "**/*.spec.ts"]
 }
