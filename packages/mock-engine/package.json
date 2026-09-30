@@ -32,13 +32,13 @@
   "dependencies": {
     "@glyphide/rpc-protocol": "workspace:*"
   },
-  "peerDependencies": {
-    "@glyphide/orchestrator": "workspace:*"
-  },
   "devDependencies": {
     "@glyphide/orchestrator": "workspace:*",
     "tsdown": "^0.23.0",
     "typescript": "^6.0.2",
     "vitest": "^5.0.2"
+  },
+  "peerDependencies": {
+    "@glyphide/orchestrator": "workspace:*"
   }
 }

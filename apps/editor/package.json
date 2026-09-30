@@ -4,13 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "clean": "rm -rf .turbo node_modules dist",
     "build": "vite build",
-    "test": "vitest run",
-    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf .turbo node_modules dist",
+    "dev": "vite",
     "preview": "vite preview",
-    "pwa-assets-generate": "pwa-assets-generator --config pwa-assets.config.ts"
+    "pwa-assets-generate": "pwa-assets-generator --config pwa-assets.config.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@codemirror/lang-javascript": "^6.2.5",

@@ -866,7 +866,6 @@ describe("EditorCore", () => {
         baseUrlState,
         MAX_LENGTH,
         (isShareable) => {
-          // biome-ignore lint/suspicious/noUnnecessaryConditions: coreRef is always assigned before callback fires
           coreRef?.project.setShareableState(isShareable);
         }
       );
