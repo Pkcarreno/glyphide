@@ -5,15 +5,15 @@ description: "Ultracite is a zero-config linting and formatting preset for JavaS
 
 # Ultracite
 
-Zero-config linting and formatting for JS/TS projects. Supports three linter backends: **Biome** (recommended), **ESLint** + Prettier, and **Oxlint** + Oxfmt.
+Zero-config linting and formatting for JS/TS projects. Supports three linter backends: **Oxlint** + Oxfmt (recommended), **Biome**, and **ESLint** + Prettier + Stylelint.
 
 ## Detecting Ultracite
 
-Check if `ultracite` is in `package.json` devDependencies. Detect the active linter by looking for:
+Check if `ultracite` is in `package.json` dependencies or devDependencies. Detect the active linter by looking for (searching upward from the current directory):
 
-- `biome.jsonc` → Biome
-- `eslint.config.mjs` → ESLint
-- `oxlint.config.ts` → Oxlint
+- `biome.json` / `biome.jsonc` → Biome
+- `eslint.config.*` (`.mjs`, `.js`, `.cjs`, `.ts`, `.mts`, `.cts`) → ESLint (with Prettier for formatting)
+- `oxlint.config.ts` → Oxlint (with `oxfmt.config.ts` for formatting)
 
 ## CLI Commands
 
@@ -31,9 +31,9 @@ bunx ultracite doctor
 bunx ultracite init
 ```
 
-Replace `bunx` with `npx`, `pnpx`, or `yarn dlx` depending on the package manager.
+Replace `bunx` with `npx`, `pnpm exec`, or `yarn` depending on the package manager, so the project's installed Ultracite runs (`pnpm dlx` and `yarn dlx` download the latest release instead, and Yarn 1 has no `dlx`). Only `init` in a project without Ultracite needs a download runner such as `pnpm dlx`.
 
-`check` and `fix` accept optional file paths: `bunx ultracite check src/index.ts`.
+`check` and `fix` accept optional file paths: `bunx ultracite check src/index.ts`. Unknown options are passed through to the underlying linter (e.g. `bunx ultracite check --max-warnings 0`).
 
 ## Initialization
 
@@ -52,16 +52,18 @@ bunx ultracite init \
 
 **Flags:**
 
-- `--pm` — `npm` | `yarn` | `pnpm` | `bun`
-- `--linter` — `biome` (recommended) | `eslint` | `oxlint`
-- `--editors` — `universal` (writes `.vscode/settings.json` for every VS Code-based editor) | `vscode` | `zed` | `cursor` | `windsurf` | `antigravity` | `kiro` | `trae` | `void` | `bob` | `codebuddy`
-- `--agents` — `claude` | `codex` | `copilot` | `cline` | `amp` | `gemini` | `cursor-cli` + 19 more
-- `--frameworks` — `react` | `next` | `solid` | `vue` | `svelte` | `qwik` | `remix` | `angular` | `astro` | `nestjs`
+- `--pm` — `npm` | `yarn` | `pnpm` | `bun` | `deno` | `nub` | `aube`
+- `--linter` — `oxlint` (recommended) | `biome` | `eslint`
+- `--editors` — `universal` (writes `.vscode/settings.json` for every VS Code-based editor) | `vscode` | `cursor` | `windsurf` | `codebuddy` | `antigravity` | `bob` | `kiro` | `trae` | `void` | `zed`
+- `--agents` — `universal` (writes `AGENTS.md`) | `claude` | `codex` | `copilot` | `cline` | `amp` | `gemini` | `cursor-cli` + 34 more (41 agents supported)
+- `--frameworks` — `react` | `next` | `solid` | `vue` | `svelte` | `qwik` | `remix` | `tanstack` | `angular` | `astro` | `nestjs` | `jest` | `vitest`
 - `--integrations` — `husky` | `lefthook` | `lint-staged` | `pre-commit`
-- `--hooks` — Enable auto-fix hooks for supported agents/editors
-- `--type-aware` — Enable type-aware linting (oxlint only)
+- `--hooks` — Enable auto-fix hooks: `claude` | `copilot` | `cursor` | `windsurf` | `codebuddy`
+- `--js-plugins` — Opt-in Oxlint JS plugins: `@shadcn/lint` | `anti-slop` | `eslint-plugin-github` | `eslint-plugin-sonarjs` | `oxlint-plugin-react-doctor`
+- `--type-aware` — Enable type-aware linting (Biome: extends the `type-aware` preset; Oxlint: installs `oxlint-tsgolint`)
+- `--install-skill` — Install the reusable Ultracite skill after setup
 - `--skip-install` — Skip dependency installation
-- `--quiet` — Suppress prompts (auto-detected when `CI=true`)
+- `--quiet` — Suppress prompts (auto-detected when `CI=true`); defaults to `oxlint` when `--linter` is omitted
 
 Init creates config that extends Ultracite presets:
 
@@ -70,7 +72,24 @@ Init creates config that extends Ultracite presets:
 { "extends": ["ultracite/biome/core", "ultracite/biome/react"] }
 ```
 
-Framework presets available per linter: `core`, `react`, `next`, `solid`, `vue`, `svelte`, `qwik`, `remix`, `angular`, `astro`, `nestjs`.
+```ts
+// eslint.config.mjs — arrays of flat configs, spread together
+import core from "ultracite/eslint/core";
+import react from "ultracite/eslint/react";
+export default [...core, ...react];
+```
+
+```ts
+// oxlint.config.ts — imports passed to extends
+import { defineConfig } from "oxlint";
+import core from "ultracite/oxlint/core";
+export default defineConfig({
+  extends: [core],
+  ignorePatterns: core.ignorePatterns,
+});
+```
+
+Presets available per linter (`ultracite/<linter>/<preset>`): `core`, `react`, `next`, `solid`, `vue`, `svelte`, `qwik`, `remix`, `tanstack`, `angular`, `astro`, `nestjs`, `jest`, `vitest`. Biome also has `type-aware`. Oxlint also has `js-plugins` (`eslint-plugin-github`, `eslint-plugin-sonarjs` and `oxlint-plugin-react-doctor` run through oxlint's JS plugin support, with `next/js-plugins` and `tanstack/js-plugins` adding framework-specific React Doctor rules), `anti-slop` and `shadcn`. These are opt-in: init only adds them when picked in its prompt or passed with `--js-plugins`.
 
 ## Code Standards
 
@@ -94,10 +113,10 @@ Formatting is handled by the project's configured linter/formatter. Respect the 
 
 Run `bunx ultracite doctor` to diagnose. It checks:
 
-1. Linter installation (biome/eslint/oxlint binary available)
-2. Config validity (extends ultracite presets correctly)
+1. Linter and formatter installation (Biome; or ESLint + Prettier + Stylelint; or Oxlint + oxfmt)
+2. Config validity (extends the ultracite presets correctly)
 3. Ultracite in package.json dependencies
-4. Conflicting tools (old `.eslintrc.*`, `.prettierrc.*` files)
+4. Conflicting tools (legacy `.eslintrc.*` files; `.prettierrc.*`/`prettier.config.*` when not using the ESLint backend)
 
 Common fixes:
 

@@ -1,15 +1,13 @@
 ---
-name: naming-convention
-description: Standard rules to follow when naming variables, functions, classes, and other code elements. Use it when you are about to make any changes to the codebase or when the user asks you to check the code, use it as a validation check to make sure your codebase is consistent and readable.
-license: MIT
-metadata:
-  author: web-quality-skills
-  version: "1.0"
+name: semantic-code-naming
+description: Apply semantic grammar rules, intent-based naming, and structural patterns (such as Action, High Context, Low Context or A/HC/LC) to variables, functions, and classes. Use this skill when writing new code, refactoring identifiers, or reviewing code for readability. Do not use this skill for formatting checks, indentation, or casing linters.
 ---
 
-# Naming Convention
+Define the intent and semantics of code identifiers to make code clear and maintainable.
 
-Help to make your codebase consistent and readable.
+## Scope
+
+This skill evaluates the semantic meaning and intent of names. Linters must check typographical casing such as camelCase or snake_case.
 
 ## Philosophy
 
