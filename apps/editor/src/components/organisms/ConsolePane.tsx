@@ -1,4 +1,4 @@
-import Trash2 from "lucide-solid/icons/trash-2";
+import Trash from "lucide-solid/icons/trash";
 import type { JSX } from "solid-js";
 import { createMemo, createSignal, splitProps } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
@@ -213,7 +213,7 @@ function ConsolePane(props: ConsolePaneProps) {
             onClick={handleClear}
             type="button"
           >
-            <Icon icon={Trash2} size={10} />
+            <Icon icon={Trash} size={10} />
             Clear
           </button>
         </div>

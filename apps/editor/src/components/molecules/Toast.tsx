@@ -1,7 +1,7 @@
-import AlertTriangleIcon from "lucide-solid/icons/alert-triangle";
-import CheckCircleIcon from "lucide-solid/icons/check-circle";
+import CircleCheckIcon from "lucide-solid/icons/circle-check";
+import CircleXIcon from "lucide-solid/icons/circle-x";
+import TriangleAlertIcon from "lucide-solid/icons/triangle-alert";
 import XIcon from "lucide-solid/icons/x";
-import XCircleIcon from "lucide-solid/icons/x-circle";
 import { createSignal, Match, onMount, Show, Switch } from "solid-js";
 import type { NotificationItem } from "../../core/models/notifications.ts";
 import { cn } from "../../helpers/cn.ts";
@@ -58,19 +58,19 @@ export function Toast(props: ToastProps) {
                   <Match when={props.notification.type === "success"}>
                     <Icon
                       class="text-primary"
-                      icon={CheckCircleIcon}
+                      icon={CircleCheckIcon}
                       size={16}
                     />
                   </Match>
                   <Match when={props.notification.type === "warning"}>
                     <Icon
                       class="text-log-warn"
-                      icon={AlertTriangleIcon}
+                      icon={TriangleAlertIcon}
                       size={16}
                     />
                   </Match>
                   <Match when={props.notification.type === "error"}>
-                    <Icon class="text-error" icon={XCircleIcon} size={16} />
+                    <Icon class="text-error" icon={CircleXIcon} size={16} />
                   </Match>
                 </Switch>
               </div>

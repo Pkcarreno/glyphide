@@ -2,10 +2,10 @@
   "name": "@glyphide/orchestrator",
   "version": "1.0.1",
   "private": true,
-  "type": "module",
   "description": "Main thread controller for Glyphide execution engines.",
-  "author": "Pedro Carreño (34664891+Pkcarreno@users.noreply.github.com)",
   "license": "MIT",
+  "author": "Pedro Carreño (34664891+Pkcarreno@users.noreply.github.com)",
+  "type": "module",
   "exports": {
     ".": {
       "types": "./dist/orchestrator.d.mts",
@@ -37,6 +37,6 @@
   "devDependencies": {
     "tsdown": "^0.23.0",
     "typescript": "^6.0.2",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.2"
   }
 }
