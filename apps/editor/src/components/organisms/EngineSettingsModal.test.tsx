@@ -3,17 +3,19 @@ import { createSignal } from "solid-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EngineSettingsModal } from "./EngineSettingsModal.tsx";
 
-const dispatchMock = vi.fn();
+const updateEngineConfigMock = vi.fn();
+const openOverlayMock = vi.fn();
+const closeOverlayMock = vi.fn();
 const [mockIsOpen, setMockIsOpen] = createSignal(false);
 const [mockEngineStatus, setMockEngineStatus] = createSignal("ready");
 
 vi.mock("../../core/context.tsx", () => ({
   useEditor: (): {
-    dispatcher: { dispatch: typeof dispatchMock };
     engine: {
       activeEngineId: () => string;
       activeInitParams: () => Record<string, unknown>;
       engineStatus: () => string;
+      updateEngineConfig: typeof updateEngineConfigMock;
     };
     engineRegistry: {
       getDefinition: () => {
@@ -30,14 +32,16 @@ vi.mock("../../core/context.tsx", () => ({
       };
     };
     overlays: {
+      close: typeof closeOverlayMock;
       isOpen: (id: string) => boolean;
+      open: typeof openOverlayMock;
     };
   } => ({
-    dispatcher: { dispatch: dispatchMock },
     engine: {
       activeEngineId: () => "mock-engine",
       activeInitParams: () => ({ retries: 3, timeout: 5000 }),
       engineStatus: () => mockEngineStatus(),
+      updateEngineConfig: updateEngineConfigMock,
     },
     engineRegistry: {
       getDefinition: () => ({
@@ -62,14 +66,18 @@ vi.mock("../../core/context.tsx", () => ({
       }),
     },
     overlays: {
+      close: closeOverlayMock,
       isOpen: (id: string) => id === "engine-settings" && mockIsOpen(),
+      open: openOverlayMock,
     },
   }),
 }));
 
 afterEach(() => {
   cleanup();
-  dispatchMock.mockClear();
+  updateEngineConfigMock.mockClear();
+  openOverlayMock.mockClear();
+  closeOverlayMock.mockClear();
 });
 
 describe("EngineSettingsModal", () => {
@@ -102,14 +110,16 @@ describe("EngineSettingsModal Apply behavior", () => {
   beforeEach(() => {
     setMockIsOpen(true);
     setMockEngineStatus("ready");
-    dispatchMock.mockClear();
+    updateEngineConfigMock.mockClear();
+    openOverlayMock.mockClear();
+    closeOverlayMock.mockClear();
   });
 
   afterEach(() => {
     cleanup();
   });
 
-  it("clicking Apply dispatches UPDATE_ENGINE_CONFIG with correct patch and closes overlay", () => {
+  it("clicking Apply updates engine config with correct patch and closes overlay", () => {
     render(() => <EngineSettingsModal />);
 
     const input = screen.getByRole("spinbutton");
@@ -118,17 +128,14 @@ describe("EngineSettingsModal Apply behavior", () => {
     const applyButton = screen.getByRole("button", { name: "Apply" });
     fireEvent.click(applyButton);
 
-    expect(dispatchMock).toHaveBeenCalledWith({
-      patch: { retries: 3, timeout: 2000 },
-      type: "UPDATE_ENGINE_CONFIG",
+    expect(updateEngineConfigMock).toHaveBeenCalledWith({
+      retries: 3,
+      timeout: 2000,
     });
-    expect(dispatchMock).toHaveBeenCalledWith({
-      overlayId: "engine-settings",
-      type: "CLOSE_OVERLAY",
-    });
+    expect(closeOverlayMock).toHaveBeenCalledWith("engine-settings");
   });
 
-  it("closing dialog without clicking Apply does NOT dispatch UPDATE_ENGINE_CONFIG", () => {
+  it("closing dialog without clicking Apply does NOT update engine config", () => {
     render(() => <EngineSettingsModal />);
 
     const input = screen.getByRole("spinbutton");
@@ -140,16 +147,11 @@ describe("EngineSettingsModal Apply behavior", () => {
     });
     fireEvent.click(closeButton);
 
-    expect(dispatchMock).not.toHaveBeenCalledWith(
-      expect.objectContaining({ type: "UPDATE_ENGINE_CONFIG" })
-    );
-    expect(dispatchMock).toHaveBeenCalledWith({
-      overlayId: "engine-settings",
-      type: "CLOSE_OVERLAY",
-    });
+    expect(updateEngineConfigMock).not.toHaveBeenCalled();
+    expect(closeOverlayMock).toHaveBeenCalledWith("engine-settings");
   });
 
-  it("closing via Escape key does NOT dispatch UPDATE_ENGINE_CONFIG", () => {
+  it("closing via Escape key does NOT update engine config", () => {
     render(() => <EngineSettingsModal />);
 
     const input = screen.getByRole("spinbutton");
@@ -159,9 +161,7 @@ describe("EngineSettingsModal Apply behavior", () => {
     const dialog = screen.getByRole("dialog");
     fireEvent.keyDown(dialog, { key: "Escape" });
 
-    expect(dispatchMock).not.toHaveBeenCalledWith(
-      expect.objectContaining({ type: "UPDATE_ENGINE_CONFIG" })
-    );
+    expect(updateEngineConfigMock).not.toHaveBeenCalled();
   });
 });
 
@@ -169,7 +169,9 @@ describe("EngineSettingsModal ready-state gate", () => {
   beforeEach(() => {
     setMockIsOpen(true);
     setMockEngineStatus("ready");
-    dispatchMock.mockClear();
+    updateEngineConfigMock.mockClear();
+    openOverlayMock.mockClear();
+    closeOverlayMock.mockClear();
   });
 
   afterEach(cleanup);

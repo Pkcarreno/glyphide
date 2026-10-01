@@ -12,7 +12,7 @@ import {
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    shortcuts: { bindings: [] },
+    shortcuts: { bindings: [], getBinding: () => undefined },
   }),
 }));
 

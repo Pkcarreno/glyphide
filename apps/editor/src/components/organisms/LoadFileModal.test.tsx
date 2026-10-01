@@ -3,7 +3,10 @@ import { createSignal } from "solid-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LoadFileModal } from "./LoadFileModal.tsx";
 
-const dispatchMock = vi.fn();
+const mockLoadFile = vi.fn();
+const mockResetProjectState = vi.fn();
+const mockCloseOverlay = vi.fn();
+const mockOpenOverlay = vi.fn();
 const [mockIsOpen, setMockIsOpen] = createSignal(false);
 const mockReadFileFromFile = vi.fn();
 const mockBufferContent = vi.fn(() => "");
@@ -22,7 +25,10 @@ const UNSUPPORTED_RE = /unsupported file type/i;
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    dispatcher: { dispatch: dispatchMock },
+    commands: {
+      loadFile: mockLoadFile,
+      resetProjectState: mockResetProjectState,
+    },
     fileIo: {
       readFile: vi.fn(),
       readFileFromFile: mockReadFileFromFile,
@@ -36,7 +42,9 @@ vi.mock("../../core/context", () => ({
       setPendingFile: vi.fn(),
     },
     overlays: {
+      close: mockCloseOverlay,
       isOpen: (id: string) => id === "load-file" && mockIsOpen(),
+      open: mockOpenOverlay,
     },
     session: { code: mockBufferContent },
   }),
@@ -55,7 +63,10 @@ function dropFileOnZone(zone: HTMLElement, file: File): void {
 
 describe("LoadFileModal", () => {
   beforeEach(() => {
-    dispatchMock.mockClear();
+    mockLoadFile.mockClear();
+    mockResetProjectState.mockClear();
+    mockCloseOverlay.mockClear();
+    mockOpenOverlay.mockClear();
     setMockIsOpen(false);
     mockBufferContent.mockReturnValue("");
     mockReadFileFromFile.mockReset();
@@ -89,10 +100,7 @@ describe("LoadFileModal", () => {
     setMockIsOpen(true);
     const { getByText } = render(() => <LoadFileModal />);
     fireEvent.click(getByText("Cancel"));
-    expect(dispatchMock).toHaveBeenCalledWith({
-      overlayId: "load-file",
-      type: "CLOSE_OVERLAY",
-    });
+    expect(mockCloseOverlay).toHaveBeenCalledWith("load-file");
   });
 
   it("dropping a valid file with empty buffer loads immediately", async () => {
@@ -112,13 +120,13 @@ describe("LoadFileModal", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockReadFileFromFile).toHaveBeenCalledWith(file);
-    expect(dispatchMock).toHaveBeenCalledWith({
+    expect(mockLoadFile).toHaveBeenCalledWith({
       content: "1",
       engineId: "quickjs",
       language: "javascript",
       name: "x.js",
-      type: "LOAD_FILE_FROM_DISK",
     });
+    expect(mockCloseOverlay).toHaveBeenCalledWith("load-file");
   });
 
   it("click-to-pick with a valid file through input triggers load", async () => {
@@ -145,13 +153,13 @@ describe("LoadFileModal", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockReadFileFromFile).toHaveBeenCalledWith(file);
-    expect(dispatchMock).toHaveBeenCalledWith({
+    expect(mockLoadFile).toHaveBeenCalledWith({
       content: "2",
       engineId: "quickjs",
       language: "javascript",
       name: "picked.js",
-      type: "LOAD_FILE_FROM_DISK",
     });
+    expect(mockCloseOverlay).toHaveBeenCalledWith("load-file");
   });
 
   it("dropping a valid file with non-empty buffer shows overwrite confirmation", async () => {
@@ -170,12 +178,10 @@ describe("LoadFileModal", () => {
 
     expect(getByText(OVERWRITE_RE)).toBeTruthy();
     // No direct load before confirmation.
-    expect(dispatchMock).not.toHaveBeenCalledWith(
-      expect.objectContaining({ type: "LOAD_FILE_FROM_DISK" })
-    );
+    expect(mockLoadFile).not.toHaveBeenCalled();
   });
 
-  it("when overwrite is confirmed, dispatches RESET and LOAD_FILE_FROM_DISK", async () => {
+  it("when overwrite is confirmed, resets project and loads file", async () => {
     setMockIsOpen(true);
     mockBufferContent.mockReturnValue("existing");
     mockReadFileFromFile.mockResolvedValue({
@@ -191,18 +197,14 @@ describe("LoadFileModal", () => {
 
     fireEvent.click(getByText("Overwrite"));
 
-    expect(dispatchMock).toHaveBeenCalledWith({ type: "RESET_PROJECT_STATE" });
-    expect(dispatchMock).toHaveBeenCalledWith({
+    expect(mockResetProjectState).toHaveBeenCalled();
+    expect(mockLoadFile).toHaveBeenCalledWith({
       content: "1",
       engineId: "quickjs",
       language: "javascript",
       name: "x.js",
-      type: "LOAD_FILE_FROM_DISK",
     });
-    expect(dispatchMock).toHaveBeenCalledWith({
-      overlayId: "load-file",
-      type: "CLOSE_OVERLAY",
-    });
+    expect(mockCloseOverlay).toHaveBeenCalledWith("load-file");
   });
 
   it("dropping a file with unsupported extension surfaces inline error", async () => {
@@ -221,7 +223,7 @@ describe("LoadFileModal", () => {
     expect(getByRole("alert").textContent).toMatch(UNSUPPORTED_RE);
   });
 
-  it("does not dispatch LOAD_FILE_FROM_DISK for unsupported extension", async () => {
+  it("does not call loadFile for unsupported extension", async () => {
     setMockIsOpen(true);
     mockReadFileFromFile.mockResolvedValue({
       content: "1",
@@ -234,9 +236,7 @@ describe("LoadFileModal", () => {
 
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(dispatchMock).not.toHaveBeenCalledWith(
-      expect.objectContaining({ type: "LOAD_FILE_FROM_DISK" })
-    );
+    expect(mockLoadFile).not.toHaveBeenCalled();
   });
 
   it("removing selected file resets overwrite confirmation state", async () => {

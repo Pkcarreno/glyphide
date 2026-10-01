@@ -3,12 +3,12 @@ import { createSignal } from "solid-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ShareModal } from "./ShareModal.tsx";
 
-const dispatchMock = vi.fn();
+const mockDownloadBufferToFile = vi.fn().mockResolvedValue(undefined);
 const [mockIsOpen, setMockIsOpen] = createSignal(false);
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    dispatcher: { dispatch: dispatchMock },
+    commands: { downloadBufferToFile: mockDownloadBufferToFile },
     engine: {
       activeLanguage: () => "javascript",
     },
@@ -31,7 +31,7 @@ Object.assign(navigator, {
 
 describe("ShareModal", () => {
   beforeEach(() => {
-    dispatchMock.mockClear();
+    mockDownloadBufferToFile.mockClear();
     setMockIsOpen(false);
     vi.clearAllMocks();
   });
@@ -86,12 +86,10 @@ describe("ShareModal", () => {
     expect(getByText("Download as file")).toBeTruthy();
   });
 
-  it("when Download as file is clicked, dispatches DOWNLOAD_BUFFER_TO_FILE", () => {
+  it("when Download as file is clicked, calls commands.downloadBufferToFile", () => {
     setMockIsOpen(true);
     const { getByText } = render(() => <ShareModal />);
     fireEvent.click(getByText("Download as file"));
-    expect(dispatchMock).toHaveBeenCalledWith({
-      type: "DOWNLOAD_BUFFER_TO_FILE",
-    });
+    expect(mockDownloadBufferToFile).toHaveBeenCalled();
   });
 });

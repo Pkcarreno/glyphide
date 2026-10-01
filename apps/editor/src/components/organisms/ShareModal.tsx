@@ -52,14 +52,15 @@ export function ShareModal(props: ShareModalProps) {
   };
 
   const handleDownload = () => {
-    core.dispatcher.dispatch({ type: "DOWNLOAD_BUFFER_TO_FILE" });
+    core.commands.downloadBufferToFile();
   };
 
   const handleOpenChange = (isOpen: boolean) => {
-    core.dispatcher.dispatch({
-      overlayId: "share",
-      type: isOpen ? "OPEN_OVERLAY" : "CLOSE_OVERLAY",
-    });
+    if (isOpen) {
+      core.overlays.open("share");
+    } else {
+      core.overlays.close("share");
+    }
   };
 
   const switchId = createUniqueId();

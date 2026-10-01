@@ -11,11 +11,12 @@ const [mockIsOpenTrustRequired, setMockIsOpenTrustRequired] =
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    dispatcher: { dispatch: vi.fn() },
+    commands: { grantTrust: vi.fn() },
     engine: {
       activeEngineId: () => "mock-engine",
       activeInitParams: () => ({ timeout: 1000 }),
       engineStatus: () => "ready",
+      updateEngineConfig: vi.fn(),
     },
     engineRegistry: {
       getDefinition: () => ({
@@ -39,10 +40,12 @@ vi.mock("../../core/context", () => ({
       unreadCount: () => 0,
     },
     overlays: {
+      close: vi.fn(),
       isOpen: (id: string) =>
         (id === "settings" && mockIsOpenSettings()) ||
         (id === "engine-settings" && mockIsOpenEngineSettings()) ||
         (id === "trust-required" && mockIsOpenTrustRequired()),
+      open: vi.fn(),
     },
     session: {
       code: () => "",

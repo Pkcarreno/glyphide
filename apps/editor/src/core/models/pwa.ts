@@ -18,9 +18,9 @@ export interface PwaModel {
   applyUpdate: () => void;
   /** Whether the SW has finished precaching and the app is ready offline. */
   offlineReady: () => boolean;
-  /** @internal Called by the dispatcher handler for `PWA_OFFLINE_READY`. */
+  /** Called when the PWA is ready offline. */
   setOfflineReady: (value: boolean) => void;
-  /** @internal Called by the dispatcher handler for `PWA_UPDATE_AVAILABLE`. */
+  /** Called when a new PWA update is available. */
   setUpdateAvailable: (value: boolean) => void;
   /** Whether a new SW version is waiting to activate. */
   updateAvailable: () => boolean;

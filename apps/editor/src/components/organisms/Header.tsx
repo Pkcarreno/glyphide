@@ -35,18 +35,18 @@ function Header(props: HeaderProps) {
 
   function handleRunClick() {
     if (core.engine.engineStatus() === "running") {
-      core.dispatcher.dispatch({ type: "INTERRUPT_EXECUTION" });
+      core.commands.interruptExecution();
     } else {
-      core.dispatcher.dispatch({ type: "RUN_CODE" });
+      core.commands.runCode();
     }
   }
 
   function handleSettingsClick() {
-    core.dispatcher.dispatch({ overlayId: "settings", type: "TOGGLE_OVERLAY" });
+    core.overlays.toggle("settings");
   }
 
   function handleShareClick() {
-    core.dispatcher.dispatch({ overlayId: "share", type: "OPEN_OVERLAY" });
+    core.overlays.open("share");
   }
 
   return (
@@ -82,14 +82,7 @@ function Header(props: HeaderProps) {
                 <Dropdown.Link href="/" target="_blank">
                   New Project
                 </Dropdown.Link>
-                <Dropdown.Item
-                  onSelect={() =>
-                    core.dispatcher.dispatch({
-                      overlayId: "load-file",
-                      type: "OPEN_OVERLAY",
-                    })
-                  }
-                >
+                <Dropdown.Item onSelect={() => core.overlays.open("load-file")}>
                   Open File
                 </Dropdown.Item>
               </Dropdown.Group>
@@ -103,22 +96,12 @@ function Header(props: HeaderProps) {
               <Dropdown.Separator class="block md:hidden" />
               <Dropdown.Group class="block md:hidden">
                 <Dropdown.Item
-                  onSelect={() =>
-                    core.dispatcher.dispatch({
-                      overlayId: "engine-selector",
-                      type: "OPEN_OVERLAY",
-                    })
-                  }
+                  onSelect={() => core.overlays.open("engine-selector")}
                 >
                   Select Engine
                 </Dropdown.Item>
                 <Dropdown.Item
-                  onSelect={() =>
-                    core.dispatcher.dispatch({
-                      overlayId: "engine-settings",
-                      type: "OPEN_OVERLAY",
-                    })
-                  }
+                  onSelect={() => core.overlays.open("engine-settings")}
                 >
                   Engine Settings
                 </Dropdown.Item>
@@ -149,16 +132,10 @@ function Header(props: HeaderProps) {
           </Dropdown.Portal>
         </Dropdown.Root>
         <ActionTooltip
-          action={{ overlayId: "project-rename", type: "OPEN_OVERLAY" }}
           aria-label="Rename Project"
           as={Button}
           class="font-sans font-semibold text-on-surface tracking-wide"
-          onClick={() =>
-            core.dispatcher.dispatch({
-              overlayId: "project-rename",
-              type: "OPEN_OVERLAY",
-            })
-          }
+          onClick={() => core.overlays.open("project-rename")}
           position="bottom"
           text="Rename Project"
           variant="ghost"
@@ -168,17 +145,11 @@ function Header(props: HeaderProps) {
 
         <Show when={core.session.isTrustRequired()}>
           <ActionTooltip
-            action={{ overlayId: "trust-required", type: "OPEN_OVERLAY" }}
             aria-label="Trust Required"
             as={Button}
             class="border-log-warn bg-log-warn/10 text-log-warn hover:bg-log-warn/20"
             meta="Review before running"
-            onClick={() =>
-              core.dispatcher.dispatch({
-                overlayId: "trust-required",
-                type: "OPEN_OVERLAY",
-              })
-            }
+            onClick={() => core.overlays.open("trust-required")}
             position="bottom"
             text="Shared Code Detected"
             variant="outline"
@@ -210,9 +181,9 @@ function Header(props: HeaderProps) {
         {/* Hidden on mobile, visible md+ */}
         <span class="hidden md:block">
           <ActionTooltip
-            action={{ overlayId: "settings", type: "TOGGLE_OVERLAY" }}
             aria-label="Settings"
             as={Button}
+            commandId="toggle-settings"
             onClick={handleSettingsClick}
             position="bottom"
             size="icon"
@@ -224,7 +195,6 @@ function Header(props: HeaderProps) {
         </span>
         <span class="hidden md:block">
           <ActionTooltip
-            action={{ overlayId: "share", type: "OPEN_OVERLAY" }}
             aria-label="Share workspace"
             as={Button}
             onClick={handleShareClick}
@@ -237,12 +207,12 @@ function Header(props: HeaderProps) {
           </ActionTooltip>
         </span>
         <ActionTooltip
-          action={
-            core.engine.engineStatus() === "running"
-              ? { type: "INTERRUPT_EXECUTION" }
-              : { type: "RUN_CODE" }
-          }
           as={Button}
+          commandId={
+            core.engine.engineStatus() === "running"
+              ? "interrupt-execution"
+              : "run-code"
+          }
           onClick={handleRunClick}
           position="bottom"
           text={

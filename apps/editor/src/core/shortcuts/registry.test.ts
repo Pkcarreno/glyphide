@@ -1,22 +1,25 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import type { EditorCore } from "../editor-core.ts";
 import type { ShortcutBinding } from "./registry.ts";
 import { createShortcutRegistry, parseKeyCombo } from "./registry.ts";
 
 const mockBindings: ShortcutBinding[] = [
   {
-    action: { type: "RUN_CODE" },
     combo: { alt: false, ctrlOrMeta: true, key: "Enter", shift: false },
+    commandId: "run-code",
+    execute: vi.fn(),
     label: "Ctrl+Enter",
   },
   {
-    action: { type: "CLEAR_OUTPUT" },
-    combo: { alt: false, ctrlOrMeta: true, key: "S", shift: true },
-    label: "Ctrl+Shift+S",
+    combo: { alt: false, ctrlOrMeta: true, key: ",", shift: false },
+    commandId: "toggle-settings",
+    execute: vi.fn(),
+    label: "Ctrl+,",
   },
 ];
 
 describe("ShortcutRegistry", () => {
-  it("matches exact combos", () => {
+  it("matches exact combos and returns the matching binding", () => {
     const registry = createShortcutRegistry(mockBindings);
 
     const match1 = registry.matchShortcut({
@@ -25,15 +28,18 @@ describe("ShortcutRegistry", () => {
       key: "Enter",
       shift: false,
     });
-    expect(match1).toEqual({ type: "RUN_CODE" });
+    expect(match1).not.toBeNull();
+    expect(match1?.commandId).toBe("run-code");
+    expect(match1?.label).toBe("Ctrl+Enter");
 
     const match2 = registry.matchShortcut({
       alt: false,
       ctrlOrMeta: true,
-      key: "S",
-      shift: true,
+      key: ",",
+      shift: false,
     });
-    expect(match2).toEqual({ type: "CLEAR_OUTPUT" });
+    expect(match2).not.toBeNull();
+    expect(match2?.commandId).toBe("toggle-settings");
   });
 
   it("returns null for partial or non-matching combos", () => {
@@ -54,6 +60,41 @@ describe("ShortcutRegistry", () => {
       shift: true,
     });
     expect(match2).toBeNull();
+  });
+
+  it("retrieves binding by command ID using getBinding", () => {
+    const registry = createShortcutRegistry(mockBindings);
+
+    const binding = registry.getBinding("run-code");
+    expect(binding).toBeDefined();
+    expect(binding?.label).toBe("Ctrl+Enter");
+
+    const missing = registry.getBinding("interrupt-execution");
+    expect(missing).toBeUndefined();
+  });
+
+  it("evaluates when condition if provided", () => {
+    const conditionalBinding: ShortcutBinding = {
+      combo: { alt: false, ctrlOrMeta: false, key: "Escape", shift: false },
+      commandId: "interrupt-execution",
+      execute: vi.fn(),
+      label: "Escape",
+      when: (core) => core.overlays.hasActiveOverlays(),
+    };
+    const registry = createShortcutRegistry([conditionalBinding]);
+
+    const mockCoreWithOverlays = {
+      overlays: { hasActiveOverlays: () => true },
+    } as EditorCore;
+    const mockCoreWithoutOverlays = {
+      overlays: { hasActiveOverlays: () => false },
+    } as EditorCore;
+
+    const key = { alt: false, ctrlOrMeta: false, key: "Escape", shift: false };
+    expect(registry.matchShortcut(key, mockCoreWithOverlays)).toBe(
+      conditionalBinding
+    );
+    expect(registry.matchShortcut(key, mockCoreWithoutOverlays)).toBeNull();
   });
 
   it("parses native KeyboardEvent mock to KeyCombo correctly", () => {

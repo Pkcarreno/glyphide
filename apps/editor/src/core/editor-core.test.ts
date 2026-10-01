@@ -59,14 +59,14 @@ describe("EditorCore", () => {
     expect(core.engine).toBeDefined();
     expect(core.engineRegistry).toBeDefined();
     expect(core.notifications).toBeDefined();
-    expect(core.dispatcher).toBeDefined();
+    expect(core.commands).toBeDefined();
     expect(core.shortcuts).toBeDefined();
     expect(core.pwa).toBeDefined();
     expect(core.pwa.updateAvailable()).toBe(false);
     expect(core.pwa.offlineReady()).toBe(false);
   });
 
-  it("wires action dispatcher to models", () => {
+  it("wires commands and models", () => {
     const core = createEditorCore({
       fileIo: createMockFileIoDeps(),
       persistence: createMockPersistence(),
@@ -74,54 +74,48 @@ describe("EditorCore", () => {
     });
 
     const setCodeSpy = vi.spyOn(core.session, "setCode");
-    core.dispatcher.dispatch({ content: "hello", type: "UPDATE_BUFFER" });
+    core.commands.updateBuffer("hello");
     expect(setCodeSpy).toHaveBeenCalledWith("hello", { source: "user" });
 
     const clearEntriesSpy = vi.spyOn(core.output, "clearEntries");
-    core.dispatcher.dispatch({ type: "CLEAR_OUTPUT" });
+    core.output.clearEntries();
     expect(clearEntriesSpy).toHaveBeenCalled();
 
     const selectEngineSpy = vi.spyOn(core.session, "selectEngine");
     const initializeSelectedEngineSpy = vi
       .spyOn(core.engine, "initializeSelectedEngine")
       .mockResolvedValue(undefined);
-    core.dispatcher.dispatch({
-      engineId: "mock",
-      language: "plaintext",
-      type: "SELECT_ENGINE_ENTRY",
-    });
+    core.commands.selectEngine("mock", "plaintext");
     expect(selectEngineSpy).toHaveBeenCalledWith("mock", "plaintext");
     expect(initializeSelectedEngineSpy).toHaveBeenCalled();
 
     const openSpy = vi.spyOn(core.overlays, "open");
-    core.dispatcher.dispatch({ overlayId: "settings", type: "OPEN_OVERLAY" });
+    core.overlays.open("settings");
     expect(openSpy).toHaveBeenCalledWith("settings");
 
     const closeSpy = vi.spyOn(core.overlays, "close");
-    core.dispatcher.dispatch({ overlayId: "settings", type: "CLOSE_OVERLAY" });
+    core.overlays.close("settings");
     expect(closeSpy).toHaveBeenCalledWith("settings");
 
     const toggleSpy = vi.spyOn(core.overlays, "toggle");
-    core.dispatcher.dispatch({ overlayId: "settings", type: "TOGGLE_OVERLAY" });
+    core.overlays.toggle("settings");
     expect(toggleSpy).toHaveBeenCalledWith("settings");
 
     const dispatchNotificationSpy = vi.spyOn(
       core.notifications,
       "dispatchNotification"
     );
-    core.dispatcher.dispatch({
-      notificationType: "success",
+    core.notifications.dispatchNotification({
       title: "Test",
-      type: "DISPATCH_NOTIFICATION",
+      type: "success",
     });
     expect(dispatchNotificationSpy).toHaveBeenCalledWith({
-      description: undefined,
       title: "Test",
       type: "success",
     });
   });
 
-  it("dispatching PWA_UPDATE_AVAILABLE sets core.pwa.updateAvailable() to true", () => {
+  it("setting PWA update available sets core.pwa.updateAvailable() to true", () => {
     const core = createEditorCore({
       fileIo: createMockFileIoDeps(),
       persistence: createMockPersistence(),
@@ -130,12 +124,12 @@ describe("EditorCore", () => {
 
     expect(core.pwa.updateAvailable()).toBe(false);
 
-    core.dispatcher.dispatch({ type: "PWA_UPDATE_AVAILABLE" });
+    core.pwa.setUpdateAvailable(true);
 
     expect(core.pwa.updateAvailable()).toBe(true);
   });
 
-  it("dispatching PWA_OFFLINE_READY sets core.pwa.offlineReady() to true", () => {
+  it("setting PWA offline ready sets core.pwa.offlineReady() to true", () => {
     const core = createEditorCore({
       fileIo: createMockFileIoDeps(),
       persistence: createMockPersistence(),
@@ -144,7 +138,7 @@ describe("EditorCore", () => {
 
     expect(core.pwa.offlineReady()).toBe(false);
 
-    core.dispatcher.dispatch({ type: "PWA_OFFLINE_READY" });
+    core.pwa.setOfflineReady(true);
 
     expect(core.pwa.offlineReady()).toBe(true);
   });
@@ -188,7 +182,7 @@ describe("EditorCore", () => {
         .spyOn(core.engine, "executeCode")
         .mockResolvedValue(undefined);
 
-      core.dispatcher.dispatch({ content: "code", type: "UPDATE_BUFFER" });
+      core.commands.updateBuffer("code");
 
       expect(executeCodeSpy).not.toHaveBeenCalled();
       vi.advanceTimersByTime(500);
@@ -210,7 +204,7 @@ describe("EditorCore", () => {
         .spyOn(core.engine, "executeCode")
         .mockResolvedValue(undefined);
 
-      core.dispatcher.dispatch({ content: "code", type: "UPDATE_BUFFER" });
+      core.commands.updateBuffer("code");
 
       vi.advanceTimersByTime(500);
       expect(executeCodeSpy).not.toHaveBeenCalled();
@@ -231,13 +225,13 @@ describe("EditorCore", () => {
         .spyOn(core.engine, "executeCode")
         .mockResolvedValue(undefined);
 
-      core.dispatcher.dispatch({ content: "code", type: "UPDATE_BUFFER" });
+      core.commands.updateBuffer("code");
 
       vi.advanceTimersByTime(500);
       expect(executeCodeSpy).not.toHaveBeenCalled();
     });
 
-    it("does not call executeCode when SELECT_ENGINE_ENTRY is dispatched even if isAutoRunEnabled is true", () => {
+    it("does not call executeCode when selectEngine is called even if isAutoRunEnabled is true", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
@@ -252,17 +246,13 @@ describe("EditorCore", () => {
         .spyOn(core.engine, "executeCode")
         .mockResolvedValue(undefined);
 
-      core.dispatcher.dispatch({
-        engineId: "micropython",
-        language: "python",
-        type: "SELECT_ENGINE_ENTRY",
-      });
+      core.commands.selectEngine("micropython", "python");
 
       vi.advanceTimersByTime(1000);
       expect(executeCodeSpy).not.toHaveBeenCalled();
     });
 
-    it("schedules auto-run when user edits buffer (UPDATE_BUFFER) after engine switch", () => {
+    it("schedules auto-run when user edits buffer (updateBuffer) after engine switch", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
@@ -277,19 +267,12 @@ describe("EditorCore", () => {
         .spyOn(core.engine, "executeCode")
         .mockResolvedValue(undefined);
 
-      core.dispatcher.dispatch({
-        engineId: "micropython",
-        language: "python",
-        type: "SELECT_ENGINE_ENTRY",
-      });
+      core.commands.selectEngine("micropython", "python");
 
       vi.advanceTimersByTime(1000);
       expect(executeCodeSpy).not.toHaveBeenCalled();
 
-      core.dispatcher.dispatch({
-        content: "print('hello')",
-        type: "UPDATE_BUFFER",
-      });
+      core.commands.updateBuffer("print('hello')");
 
       expect(executeCodeSpy).not.toHaveBeenCalled();
       vi.advanceTimersByTime(500);
@@ -346,7 +329,7 @@ describe("EditorCore", () => {
       expect(core.overlays.isOpen("trust-required")).toBe(false);
     });
 
-    it("when trust required, RUN_CODE opens dialog and does NOT execute", () => {
+    it("when trust required, RUN_CODE opens dialog and does NOT execute", async () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
@@ -356,13 +339,13 @@ describe("EditorCore", () => {
       const executeSpy = vi.spyOn(core.engine, "executeCode");
       const openSpy = vi.spyOn(core.overlays, "open");
 
-      core.dispatcher.dispatch({ type: "RUN_CODE" });
+      await core.commands.runCode();
 
       expect(openSpy).toHaveBeenCalledWith("trust-required");
       expect(executeSpy).not.toHaveBeenCalled();
     });
 
-    it("when trust granted, RUN_CODE executes normally", () => {
+    it("when trust granted, RUN_CODE executes normally", async () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
@@ -372,12 +355,12 @@ describe("EditorCore", () => {
       expect(core.session.isTrustRequired()).toBe(false);
       const executeSpy = vi.spyOn(core.engine, "executeCode");
 
-      core.dispatcher.dispatch({ type: "RUN_CODE" });
+      await core.commands.runCode();
 
       expect(executeSpy).toHaveBeenCalled();
     });
 
-    it("when trust required, SELECT_ENGINE_ENTRY opens dialog and blocks init", () => {
+    it("when trust required, selectEngine opens dialog and blocks init", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
@@ -387,17 +370,13 @@ describe("EditorCore", () => {
       const selectSpy = vi.spyOn(core.engine, "selectEngineEntry");
       const openSpy = vi.spyOn(core.overlays, "open");
 
-      core.dispatcher.dispatch({
-        engineId: "mock",
-        language: "plaintext",
-        type: "SELECT_ENGINE_ENTRY",
-      });
+      core.commands.selectEngine("mock", "plaintext");
 
       expect(openSpy).toHaveBeenCalledWith("trust-required");
       expect(selectSpy).not.toHaveBeenCalled();
     });
 
-    it("when trust required, RETRY_ENGINE_INIT opens dialog and blocks init", () => {
+    it("when trust required, retryEngineInit opens dialog and blocks init", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
@@ -407,13 +386,13 @@ describe("EditorCore", () => {
       const retrySpy = vi.spyOn(core.engine, "retryInit");
       const openSpy = vi.spyOn(core.overlays, "open");
 
-      core.dispatcher.dispatch({ type: "RETRY_ENGINE_INIT" });
+      core.commands.retryEngineInit();
 
       expect(openSpy).toHaveBeenCalledWith("trust-required");
       expect(retrySpy).not.toHaveBeenCalled();
     });
 
-    it("when GRANT_TRUST dispatched, grants trust and closes dialog (init deferred to RUN_CODE)", async () => {
+    it("when grantTrust called, grants trust and closes dialog (init deferred to RUN_CODE)", async () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
@@ -428,7 +407,7 @@ describe("EditorCore", () => {
         .mockResolvedValue(undefined);
       const closeSpy = vi.spyOn(core.overlays, "close");
 
-      core.dispatcher.dispatch({ type: "GRANT_TRUST" });
+      core.commands.grantTrust();
 
       // Drain microtasks so async handler bodies settle.
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -465,7 +444,7 @@ describe("EditorCore", () => {
           .spyOn(core.engine, "executeCode")
           .mockResolvedValue(undefined);
 
-        core.dispatcher.dispatch({ content: "code", type: "UPDATE_BUFFER" });
+        core.commands.updateBuffer("code");
 
         vi.advanceTimersByTime(500);
         expect(executeCodeSpy).not.toHaveBeenCalled();
@@ -486,7 +465,7 @@ describe("EditorCore", () => {
           .spyOn(core.engine, "executeCode")
           .mockResolvedValue(undefined);
 
-        core.dispatcher.dispatch({ content: "code", type: "UPDATE_BUFFER" });
+        core.commands.updateBuffer("code");
 
         vi.advanceTimersByTime(500);
         expect(executeCodeSpy).toHaveBeenCalled();
@@ -526,7 +505,7 @@ describe("EditorCore", () => {
           urlState,
         });
         removeSpy.mockClear();
-        freshCore.dispatcher.dispatch({ type: "RESET_PROJECT_STATE" });
+        freshCore.commands.resetProjectState();
         expect(removeSpy).toHaveBeenCalledWith("code");
         expect(removeSpy).toHaveBeenCalledWith("name");
         expect(removeSpy).toHaveBeenCalledWith("engine");
@@ -537,7 +516,7 @@ describe("EditorCore", () => {
         core.session.setCode("existing content");
         core.session.setCursorPosition(5, 10, 0, 0);
 
-        core.dispatcher.dispatch({ type: "RESET_PROJECT_STATE" });
+        core.commands.resetProjectState();
 
         // Default settings (isDefaultCodeEnabled: true) re-insert the
         // curated starter snippet. Cursor and output are still reset.
@@ -554,7 +533,7 @@ describe("EditorCore", () => {
         const { core } = createCoreWithFileIo();
         const terminateSpy = vi.spyOn(core.engine, "terminate");
 
-        core.dispatcher.dispatch({ type: "RESET_PROJECT_STATE" });
+        core.commands.resetProjectState();
 
         expect(terminateSpy).toHaveBeenCalled();
       });
@@ -572,7 +551,7 @@ describe("EditorCore", () => {
         freshCore.session.markTrustRequired();
         expect(freshCore.session.isTrustRequired()).toBe(true);
 
-        freshCore.dispatcher.dispatch({ type: "RESET_PROJECT_STATE" });
+        freshCore.commands.resetProjectState();
 
         expect(freshCore.session.isTrustRequired()).toBe(false);
       });
@@ -582,12 +561,11 @@ describe("EditorCore", () => {
       it("populates buffer, project name (without extension), and engine entry", () => {
         const { core } = createCoreWithFileIo();
 
-        core.dispatcher.dispatch({
+        core.commands.loadFile({
           content: "console.log(1)",
           engineId: "quickjs",
           language: "javascript",
           name: "script.js",
-          type: "LOAD_FILE_FROM_DISK",
         });
 
         expect(core.session.code()).toBe("console.log(1)");
@@ -600,12 +578,11 @@ describe("EditorCore", () => {
         const { core } = createCoreWithFileIo();
         const initializeSpy = vi.spyOn(core.engine, "initializeSelectedEngine");
 
-        core.dispatcher.dispatch({
+        core.commands.loadFile({
           content: "console.log(1)",
           engineId: "quickjs",
           language: "javascript",
           name: "script.js",
-          type: "LOAD_FILE_FROM_DISK",
         });
 
         // THE FIX: file-loaded code is untrusted — engine must NOT be
@@ -618,12 +595,11 @@ describe("EditorCore", () => {
         // Start with trust granted (no URL code)
         expect(core.session.isTrustRequired()).toBe(false);
 
-        core.dispatcher.dispatch({
+        core.commands.loadFile({
           content: "console.log(1)",
           engineId: "quickjs",
           language: "javascript",
           name: "script.js",
-          type: "LOAD_FILE_FROM_DISK",
         });
 
         expect(core.session.isTrustRequired()).toBe(true);
@@ -635,12 +611,11 @@ describe("EditorCore", () => {
         const { core } = createCoreWithFileIo();
         const setBlockedSpy = vi.spyOn(core.engine, "setBlocked");
 
-        core.dispatcher.dispatch({
+        core.commands.loadFile({
           content: "console.log(1)",
           engineId: "quickjs",
           language: "javascript",
           name: "script.js",
-          type: "LOAD_FILE_FROM_DISK",
         });
 
         expect(setBlockedSpy).toHaveBeenCalledWith(true);
@@ -650,21 +625,18 @@ describe("EditorCore", () => {
         const { core, writeFile } = createCoreWithFileIo();
 
         // Load file with extension
-        core.dispatcher.dispatch({
+        core.commands.loadFile({
           content: "console.log('test')",
           engineId: "quickjs",
           language: "javascript",
           name: "myscript.js",
-          type: "LOAD_FILE_FROM_DISK",
         });
 
         // Verify project name is stripped
         expect(core.session.projectName()).toBe("myscript");
 
         // Download should produce correct filename (not myscript.js.js)
-        await core.dispatcher.dispatch({
-          type: "DOWNLOAD_BUFFER_TO_FILE",
-        });
+        await core.commands.downloadBufferToFile();
 
         expect(writeFile).toHaveBeenCalledWith(
           "myscript.js",
@@ -680,9 +652,7 @@ describe("EditorCore", () => {
         core.session.setProjectName("myapp");
         vi.spyOn(core.engine, "activeLanguage").mockReturnValue("javascript");
 
-        await core.dispatcher.dispatch({
-          type: "DOWNLOAD_BUFFER_TO_FILE",
-        });
+        await core.commands.downloadBufferToFile();
 
         expect(writeFile).toHaveBeenCalledWith("myapp.js", "console.log('hi')");
       });
@@ -693,9 +663,7 @@ describe("EditorCore", () => {
         core.session.setProjectName("script");
         core.session.selectEngine("micropython", "python");
 
-        await core.dispatcher.dispatch({
-          type: "DOWNLOAD_BUFFER_TO_FILE",
-        });
+        await core.commands.downloadBufferToFile();
 
         expect(writeFile).toHaveBeenCalledWith("script.py", "print('hi')");
       });
@@ -703,17 +671,17 @@ describe("EditorCore", () => {
       it("propagates adapter errors as a notification and does not crash", async () => {
         const { core, writeFile } = createCoreWithFileIo();
         writeFile.mockRejectedValue(new Error("blocked"));
-        const dispatchSpy = vi.spyOn(core.dispatcher, "dispatch");
+        const dispatchSpy = vi.spyOn(
+          core.notifications,
+          "dispatchNotification"
+        );
 
-        core.dispatcher.dispatch({ type: "DOWNLOAD_BUFFER_TO_FILE" });
-
-        // Wait for the rejected promise to settle
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await core.commands.downloadBufferToFile();
 
         expect(dispatchSpy).toHaveBeenCalledWith(
           expect.objectContaining({
-            notificationType: "error",
-            type: "DISPATCH_NOTIFICATION",
+            title: "Download failed",
+            type: "error",
           })
         );
       });
@@ -724,9 +692,7 @@ describe("EditorCore", () => {
         core.session.setProjectName("empty-project");
         vi.spyOn(core.engine, "activeLanguage").mockReturnValue("javascript");
 
-        await core.dispatcher.dispatch({
-          type: "DOWNLOAD_BUFFER_TO_FILE",
-        });
+        await core.commands.downloadBufferToFile();
 
         expect(writeFile).toHaveBeenCalledWith("empty-project.js", "");
       });
@@ -737,9 +703,7 @@ describe("EditorCore", () => {
         core.session.setProjectName("");
         vi.spyOn(core.engine, "activeLanguage").mockReturnValue("javascript");
 
-        await core.dispatcher.dispatch({
-          type: "DOWNLOAD_BUFFER_TO_FILE",
-        });
+        await core.commands.downloadBufferToFile();
 
         expect(writeFile).toHaveBeenCalledWith("untitled_project.js", "");
       });
@@ -782,12 +746,11 @@ describe("EditorCore", () => {
 
       expect(urlState.get("engine")).toBeNull();
 
-      core.dispatcher.dispatch({
+      core.commands.loadFile({
         content: "print('hi')",
         engineId: "quickjs",
         language: "javascript",
         name: "hello.js",
-        type: "LOAD_FILE_FROM_DISK",
       });
 
       // selectEngineEntry is synchronous. Real registry: quickjs is
@@ -810,16 +773,16 @@ describe("EditorCore", () => {
       });
 
       // Prime the model with some code so the tracker is consistent
-      core.dispatcher.dispatch({ content: "hi", type: "UPDATE_BUFFER" });
+      core.commands.updateBuffer("hi");
       expect(urlState.get("engine")).toBe("mock");
 
       // Reset the project
-      core.dispatcher.dispatch({ type: "RESET_PROJECT_STATE" });
+      core.commands.resetProjectState();
       expect(urlState.get("engine")).toBeNull();
 
       // Type code again. The tracker MUST have been reset by the reset flow,
       // so this must write the engine to URL.
-      core.dispatcher.dispatch({ content: "world", type: "UPDATE_BUFFER" });
+      core.commands.updateBuffer("world");
       expect(urlState.get("engine")).toBe("mock");
     });
   });
@@ -861,10 +824,7 @@ describe("EditorCore", () => {
 
       // Step 1: Load editor with initial code. Default engine is "quickjs";
       // the first non-empty buffer update seeds it to the URL.
-      core.dispatcher.dispatch({
-        content: "initial code",
-        type: "UPDATE_BUFFER",
-      });
+      core.commands.updateBuffer("initial code");
 
       expect(baseUrlState.get("engine")).toBe("quickjs");
       expect(core.session.isUrlShareable()).toBe(true);
@@ -873,20 +833,14 @@ describe("EditorCore", () => {
       // strips window.location via replaceState and notifies the
       // project model that the URL is no longer shareable.
       const longCode = "a".repeat(200);
-      core.dispatcher.dispatch({
-        content: longCode,
-        type: "UPDATE_BUFFER",
-      });
+      core.commands.updateBuffer(longCode);
 
       expect(baseUrlState.get("engine")).toBeNull();
       expect(core.session.isUrlShareable()).toBe(false);
 
       // Step 3: Clear the buffer. onBufferUpdated("") removes the
       // engine from the URL and resets lastWrittenEngineId to null.
-      core.dispatcher.dispatch({
-        content: "",
-        type: "UPDATE_BUFFER",
-      });
+      core.commands.updateBuffer("");
 
       // Engine is NOT re-written (buffer is empty).
       expect(baseUrlState.get("engine")).toBeNull();
@@ -894,10 +848,7 @@ describe("EditorCore", () => {
       // Step 4: Type new code that fits within the limit. The tracker
       // was reset, so this non-empty buffer update re-seeds the
       // active engine to the URL.
-      core.dispatcher.dispatch({
-        content: "short code",
-        type: "UPDATE_BUFFER",
-      });
+      core.commands.updateBuffer("short code");
 
       expect(baseUrlState.get("engine")).toBe("quickjs");
       expect(core.session.isUrlShareable()).toBe(true);
@@ -959,11 +910,7 @@ describe("EditorCore", () => {
         .spyOn(core.engine, "initializeSelectedEngine")
         .mockResolvedValue(undefined);
 
-      core.dispatcher.dispatch({
-        engineId: "mock",
-        language: "plaintext",
-        type: "SELECT_ENGINE_ENTRY",
-      });
+      core.commands.selectEngine("mock", "plaintext");
 
       expect(selectSpy).toHaveBeenCalledWith("mock", "plaintext");
       expect(initSpy).toHaveBeenCalled();
@@ -981,7 +928,7 @@ describe("EditorCore", () => {
         .spyOn(core.engine, "initializeSelectedEngine")
         .mockResolvedValue(undefined);
 
-      core.dispatcher.dispatch({ type: "GRANT_TRUST" });
+      core.commands.grantTrust();
 
       // Drain microtasks
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -992,7 +939,7 @@ describe("EditorCore", () => {
       expect(selectSpy).not.toHaveBeenCalled();
     });
 
-    it("after GRANT_TRUST, RUN_CODE executes code (lazy init happens inside executeCode)", () => {
+    it("after GRANT_TRUST, RUN_CODE executes code (lazy init happens inside executeCode)", async () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
@@ -1003,13 +950,13 @@ describe("EditorCore", () => {
       expect(core.session.isTrustRequired()).toBe(true);
 
       // Grant trust — should NOT initialize
-      core.dispatcher.dispatch({ type: "GRANT_TRUST" });
+      core.commands.grantTrust();
       expect(core.session.isTrustRequired()).toBe(false);
       expect(core.engine.engineStatus()).toBe("idle");
 
       // Now run code — executeCode is called (lazy init is internal to executeCode)
       const executeSpy = vi.spyOn(core.engine, "executeCode");
-      core.dispatcher.dispatch({ type: "RUN_CODE" });
+      await core.commands.runCode();
       expect(executeSpy).toHaveBeenCalled();
     });
 
@@ -1022,12 +969,11 @@ describe("EditorCore", () => {
       const loadFileSpy = vi.spyOn(core.session, "loadFile");
       const initSpy = vi.spyOn(core.engine, "initializeSelectedEngine");
 
-      core.dispatcher.dispatch({
+      core.commands.loadFile({
         content: "evil()",
         engineId: "mock",
         language: "plaintext",
         name: "evil.js",
-        type: "LOAD_FILE_FROM_DISK",
       });
 
       expect(loadFileSpy).toHaveBeenCalledWith({
@@ -1051,7 +997,7 @@ describe("EditorCore", () => {
         .spyOn(core.engine, "initializeSelectedEngine")
         .mockResolvedValue(undefined);
 
-      core.dispatcher.dispatch({ type: "RESET_PROJECT_STATE" });
+      core.commands.resetProjectState();
 
       expect(resetSpy).toHaveBeenCalled();
       expect(initSpy).toHaveBeenCalled();
@@ -1161,7 +1107,7 @@ describe("EditorCore", () => {
       core.session.setCode("// user code");
       expect(core.session.code()).toBe("// user code");
 
-      core.dispatcher.dispatch({ type: "RESET_PROJECT_STATE" });
+      core.commands.resetProjectState();
 
       expect(core.session.code()).toBe(QUICKJS_DEFAULT_BUFFER_CODE);
     });
@@ -1178,7 +1124,7 @@ describe("EditorCore", () => {
       core.session.setCode("// user code");
       expect(core.session.code()).toBe("// user code");
 
-      core.dispatcher.dispatch({ type: "RESET_PROJECT_STATE" });
+      core.commands.resetProjectState();
 
       expect(core.session.code()).toBe("");
     });
@@ -1285,11 +1231,7 @@ describe("EditorCore", () => {
         undefined
       );
 
-      core.dispatcher.dispatch({
-        engineId: "micropython",
-        language: "python",
-        type: "SELECT_ENGINE_ENTRY",
-      });
+      core.commands.selectEngine("micropython", "python");
 
       expect(core.session.code()).toBe(PYTHON_DEFAULT_BUFFER_CODE);
       expect(core.session.isShowingDefaultCode()).toBe(true);
@@ -1305,21 +1247,14 @@ describe("EditorCore", () => {
       });
 
       // User edits the buffer (pristine flag disarmed).
-      core.dispatcher.dispatch({
-        content: "user-typed-something",
-        type: "UPDATE_BUFFER",
-      });
+      core.commands.updateBuffer("user-typed-something");
       expect(core.session.isShowingDefaultCode()).toBe(false);
 
       vi.spyOn(core.engine, "initializeSelectedEngine").mockResolvedValue(
         undefined
       );
 
-      core.dispatcher.dispatch({
-        engineId: "micropython",
-        language: "python",
-        type: "SELECT_ENGINE_ENTRY",
-      });
+      core.commands.selectEngine("micropython", "python");
 
       // User's content is preserved — engine switch does NOT touch the buffer.
       expect(core.session.code()).toBe("user-typed-something");
@@ -1343,11 +1278,7 @@ describe("EditorCore", () => {
         undefined
       );
 
-      core.dispatcher.dispatch({
-        engineId: "micropython",
-        language: "python",
-        type: "SELECT_ENGINE_ENTRY",
-      });
+      core.commands.selectEngine("micropython", "python");
 
       // URL-shared code survives the engine switch.
       expect(core.session.code()).toBe(sharedCode);
@@ -1370,7 +1301,7 @@ describe("EditorCore", () => {
         undefined
       );
 
-      core.dispatcher.dispatch({ type: "RESET_PROJECT_STATE" });
+      core.commands.resetProjectState();
 
       // Active engine is still MicroPython — default must be the Python snippet.
       expect(core.session.code()).toBe(PYTHON_DEFAULT_BUFFER_CODE);
@@ -1392,10 +1323,7 @@ describe("EditorCore", () => {
       // Spy on setCode to assert the second argument.
       const setCodeSpy = vi.spyOn(core.session, "setCode");
 
-      core.dispatcher.dispatch({
-        content: "user-edit",
-        type: "UPDATE_BUFFER",
-      });
+      core.commands.updateBuffer("user-edit");
 
       expect(setCodeSpy).toHaveBeenCalledWith("user-edit", {
         source: "user",
@@ -1422,11 +1350,7 @@ describe("EditorCore", () => {
         undefined
       );
 
-      core.dispatcher.dispatch({
-        engineId: "mock",
-        language: "plaintext",
-        type: "SELECT_ENGINE_ENTRY",
-      });
+      core.commands.selectEngine("mock", "plaintext");
 
       // Mock has no defaultBufferCode → empty fallback, flag still armed
       // (because the empty fallback was set with source: "default", but our

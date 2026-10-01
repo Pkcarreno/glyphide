@@ -3,7 +3,9 @@ import { createSignal } from "solid-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TrustRequiredModal } from "./TrustRequiredModal.tsx";
 
-const dispatchMock = vi.fn();
+const mockGrantTrust = vi.fn();
+const mockClose = vi.fn();
+const mockOpen = vi.fn();
 const [mockIsOpen, setMockIsOpen] = createSignal(false);
 
 const SHARED_CODE_REGEX = /shared code/i;
@@ -12,16 +14,22 @@ const DENY_REGEX = /deny/i;
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    dispatcher: { dispatch: dispatchMock },
+    commands: {
+      grantTrust: mockGrantTrust,
+    },
     overlays: {
+      close: mockClose,
       isOpen: (id: string) => id === "trust-required" && mockIsOpen(),
+      open: mockOpen,
     },
   }),
 }));
 
 describe("TrustRequiredModal", () => {
   beforeEach(() => {
-    dispatchMock.mockClear();
+    mockGrantTrust.mockClear();
+    mockClose.mockClear();
+    mockOpen.mockClear();
     setMockIsOpen(false);
     vi.clearAllMocks();
   });
@@ -49,23 +57,20 @@ describe("TrustRequiredModal", () => {
     expect(getByText(UNKNOWN_SOURCE_REGEX)).toBeTruthy();
   });
 
-  it("has a Trust button that dispatches GRANT_TRUST", () => {
+  it("has a Trust button that calls commands.grantTrust", () => {
     setMockIsOpen(true);
     const { getByText } = render(() => <TrustRequiredModal />);
     const button = getByText("Trust");
     fireEvent.click(button);
-    expect(dispatchMock).toHaveBeenCalledWith({ type: "GRANT_TRUST" });
+    expect(mockGrantTrust).toHaveBeenCalled();
   });
 
-  it("has a Deny button that dispatches CLOSE_OVERLAY", () => {
+  it("has a Deny button that closes overlay", () => {
     setMockIsOpen(true);
     const { getByRole } = render(() => <TrustRequiredModal />);
     const denyBtn = getByRole("button", { name: DENY_REGEX });
     fireEvent.click(denyBtn);
-    expect(dispatchMock).toHaveBeenCalledWith({
-      overlayId: "trust-required",
-      type: "CLOSE_OVERLAY",
-    });
+    expect(mockClose).toHaveBeenCalledWith("trust-required");
   });
 
   it("when preventBackdropClose is set, clicking backdrop does not close dialog", () => {
@@ -82,10 +87,6 @@ describe("TrustRequiredModal", () => {
 
     // Dialog should still be in the DOM — preventBackdropClose blocked dismissal
     expect(getByRole("dialog")).toBeTruthy();
-    // CLOSE_OVERLAY should NOT have been dispatched
-    expect(dispatchMock).not.toHaveBeenCalledWith({
-      overlayId: "trust-required",
-      type: "CLOSE_OVERLAY",
-    });
+    expect(mockClose).not.toHaveBeenCalledWith("trust-required");
   });
 });

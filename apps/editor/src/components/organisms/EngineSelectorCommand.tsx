@@ -18,10 +18,11 @@ export function EngineSelectorCommand() {
   const core = useEditor();
 
   const handleOpenChange = (isOpen: boolean) => {
-    core.dispatcher.dispatch({
-      overlayId: "engine-selector",
-      type: isOpen ? "OPEN_OVERLAY" : "CLOSE_OVERLAY",
-    });
+    if (isOpen) {
+      core.overlays.open("engine-selector");
+    } else {
+      core.overlays.close("engine-selector");
+    }
   };
 
   return (
@@ -38,15 +39,8 @@ export function EngineSelectorCommand() {
               {(entry) => (
                 <CommandItem
                   onSelect={() => {
-                    core.dispatcher.dispatch({
-                      engineId: entry.engineId,
-                      language: entry.language,
-                      type: "SELECT_ENGINE_ENTRY",
-                    });
-                    core.dispatcher.dispatch({
-                      overlayId: "engine-selector",
-                      type: "CLOSE_OVERLAY",
-                    });
+                    core.commands.selectEngine(entry.engineId, entry.language);
+                    core.overlays.close("engine-selector");
                   }}
                   value={entry.label}
                 >

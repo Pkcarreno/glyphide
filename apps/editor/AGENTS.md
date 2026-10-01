@@ -4,8 +4,10 @@ SolidJS Single Page Application (SPA) providing the user interface for the Glyph
 
 ## Architecture: EditorCore
 
-- **Horizontal Decoupling**: `EditorCore` is the central aggregate for all business logic, containing reactive domain models (`BufferModel`, `EngineModel`, `SettingsModel`) and storage adapters. UI components must not maintain global state independently.
-- **Unidirectional Data Flow**: The UI communicates with the core exclusively via the `ActionDispatcher`. UI components capture user intents and dispatch strongly-typed `EditorAction` objects (e.g. `core.dispatcher.dispatch({ type: 'RUN_CODE' })`).
+- **Horizontal Decoupling**: `EditorCore` is the central aggregate for all business logic, containing reactive domain models (`EngineModel`, `SessionModel`, `SettingsModel`, `OverlayModel`, etc.) and storage adapters. UI components must not maintain global state independently.
+- **Commands & Model Access**: The UI communicates with the core via direct domain calls:
+  - **Commands (`core.commands.*`)**: Use for cross-model orchestration and multi-step workflows (e.g. `runCode`, `interruptExecution`, `loadFile`, `resetProjectState`, `retryEngineInit`, `selectEngine`, `updateBuffer`, `downloadBufferToFile`, `grantTrust`).
+  - **Domain Models**: Use direct methods on models for atomic 1:1 operations and state queries (e.g. `core.overlays.open`, `core.output.clearEntries`, `core.notifications.dismissToast`, `core.session.setProjectName`).
 - **Dependency Inversion**: UI components access the core via dependency injection (`useEditor` context hook).
 
 ## Component Architecture & Reactivity

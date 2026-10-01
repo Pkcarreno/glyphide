@@ -9,30 +9,53 @@ vi.mock("../atoms/CodeField/CodeField.tsx", () => ({
   CodeField: () => <div data-testid="code-field-stub" />,
 }));
 
-const dispatchMock = vi.fn();
+const toggleOverlayMock = vi.fn((id: string) => {
+  if (id === "settings") {
+    setMockIsOpen(!mockIsOpen());
+  }
+});
+const openOverlayMock = vi.fn();
+const closeOverlayMock = vi.fn();
 let mockStatus = "idle";
 const [mockIsOpen, setMockIsOpen] = createSignal(false);
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    dispatcher: { dispatch: dispatchMock },
+    commands: {
+      downloadBufferToFile: vi.fn(),
+      grantTrust: vi.fn(),
+      interruptExecution: vi.fn(),
+      loadFile: vi.fn(),
+      resetProjectState: vi.fn(),
+      retryEngineInit: vi.fn(),
+      runCode: vi.fn(),
+      selectEngine: vi.fn(),
+      updateBuffer: vi.fn(),
+    },
     engine: {
       activeEngineId: () => "quickjs",
       activeInitParams: () => ({}),
       activeLanguage: () => "javascript",
       engineStatus: () => mockStatus,
       isDirty: () => false,
+      updateEngineConfig: vi.fn(),
     },
     engineRegistry: {
       getDefinition: () => ({ paramDescriptors: [] }),
     },
     notifications: {
       activeToasts: () => [],
+      dismissToast: vi.fn(),
       items: () => [],
       unreadCount: () => 0,
     },
-    output: { entries: () => [] },
-    overlays: { isOpen: (id: string) => id === "settings" && mockIsOpen() },
+    output: { clearEntries: vi.fn(), entries: () => [] },
+    overlays: {
+      close: closeOverlayMock,
+      isOpen: (id: string) => id === "settings" && mockIsOpen(),
+      open: openOverlayMock,
+      toggle: toggleOverlayMock,
+    },
     pwa: { applyUpdate: vi.fn(), updateAvailable: () => false },
     session: {
       code: () => "",
@@ -46,6 +69,8 @@ vi.mock("../../core/context", () => ({
       isTrustRequired: () => false,
       isUrlShareable: () => true,
       projectName: () => "TEST_PROJECT",
+      setCursorPosition: vi.fn(),
+      setProjectName: vi.fn(),
     },
     settings: {
       settings: {
@@ -58,6 +83,9 @@ vi.mock("../../core/context", () => ({
         uiFontSize: 14,
       },
     },
+    shortcuts: {
+      getBinding: () => undefined,
+    },
   }),
 }));
 
@@ -65,14 +93,11 @@ const TEST_PROJECT_REGEX = /TEST_PROJECT/;
 
 describe("EditorPage", () => {
   beforeEach(() => {
-    dispatchMock.mockClear();
+    toggleOverlayMock.mockClear();
+    openOverlayMock.mockClear();
+    closeOverlayMock.mockClear();
     mockStatus = "idle";
     setMockIsOpen(false);
-    dispatchMock.mockImplementation((action) => {
-      if (action.type === "TOGGLE_OVERLAY" && action.overlayId === "settings") {
-        setMockIsOpen(!mockIsOpen());
-      }
-    });
   });
 
   it("when rendered, displays the full application layout", () => {

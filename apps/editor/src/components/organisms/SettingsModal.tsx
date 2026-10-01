@@ -145,10 +145,11 @@ function SettingsModal(props: SettingsModalProps) {
   const core = useEditor();
 
   const handleOpenChange = (isOpen: boolean) => {
-    core.dispatcher.dispatch({
-      overlayId: "settings",
-      type: isOpen ? "OPEN_OVERLAY" : "CLOSE_OVERLAY",
-    });
+    if (isOpen) {
+      core.overlays.open("settings");
+    } else {
+      core.overlays.close("settings");
+    }
   };
 
   return (

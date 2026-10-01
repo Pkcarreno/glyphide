@@ -10,7 +10,7 @@ export function Toaster() {
   const core = useEditor();
 
   function handleClose(id: string) {
-    core.dispatcher.dispatch({ id, type: "DISMISS_TOAST" });
+    core.notifications.dismissToast(id);
   }
 
   const activeNotifications = () => core.notifications.activeToasts();
