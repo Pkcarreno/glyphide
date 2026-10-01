@@ -61,9 +61,6 @@ describe("EditorCore", () => {
     expect(core.notifications).toBeDefined();
     expect(core.commands).toBeDefined();
     expect(core.shortcuts).toBeDefined();
-    expect(core.pwa).toBeDefined();
-    expect(core.pwa.updateAvailable()).toBe(false);
-    expect(core.pwa.offlineReady()).toBe(false);
   });
 
   it("wires commands and models", () => {
@@ -113,34 +110,6 @@ describe("EditorCore", () => {
       title: "Test",
       type: "success",
     });
-  });
-
-  it("setting PWA update available sets core.pwa.updateAvailable() to true", () => {
-    const core = createEditorCore({
-      fileIo: createMockFileIoDeps(),
-      persistence: createMockPersistence(),
-      urlState: createMockUrlState(),
-    });
-
-    expect(core.pwa.updateAvailable()).toBe(false);
-
-    core.pwa.setUpdateAvailable(true);
-
-    expect(core.pwa.updateAvailable()).toBe(true);
-  });
-
-  it("setting PWA offline ready sets core.pwa.offlineReady() to true", () => {
-    const core = createEditorCore({
-      fileIo: createMockFileIoDeps(),
-      persistence: createMockPersistence(),
-      urlState: createMockUrlState(),
-    });
-
-    expect(core.pwa.offlineReady()).toBe(false);
-
-    core.pwa.setOfflineReady(true);
-
-    expect(core.pwa.offlineReady()).toBe(true);
   });
 
   it("cleans up resources on dispose", () => {
@@ -484,10 +453,10 @@ describe("EditorCore", () => {
       return { core, readFile, writeFile };
     }
 
-    it("exposes fileLoad model on EditorCore", () => {
+    it("exposes engineRegistry with resolveByExtension on EditorCore", () => {
       const { core } = createCoreWithFileIo();
-      expect(core.fileLoad).toBeDefined();
-      expect(core.fileLoad.resolveEngine(".js")).toEqual({
+      expect(core.engineRegistry).toBeDefined();
+      expect(core.engineRegistry.resolveByExtension(".js")).toEqual({
         engineId: "quickjs",
         language: "javascript",
       });

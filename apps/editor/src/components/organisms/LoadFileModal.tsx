@@ -13,10 +13,22 @@ import {
   DialogTitle,
 } from "../molecules/Dialog.tsx";
 
+function formatAllowedExtensions(extensions: readonly string[]): string {
+  if (extensions.length === 0) {
+    return "supported";
+  }
+  if (extensions.length === 1) {
+    return extensions[0] ?? "";
+  }
+  const head = extensions.slice(0, -1).join(", ");
+  const tail = extensions.at(-1) ?? "";
+  return `${head} or ${tail}`;
+}
+
 /**
- * Organism that lets the user load a `.js` or `.py` file from disk.
+ * Organism that lets the user load a file from disk.
  * Shows the buffer-overwrite confirmation when needed, and surfaces
- * unsupported extensions as an inline error.
+ * unsupported extensions as an inline error dynamically based on registered engines.
  * @public
  */
 export function LoadFileModal() {
@@ -26,6 +38,11 @@ export function LoadFileModal() {
     null
   );
   const [needsConfirm, setNeedsConfirm] = createSignal(false);
+
+  const supportedExtensions = () => core.engineRegistry.supportedExtensions;
+  const acceptPattern = () => supportedExtensions().join(",");
+  const unsupportedErrorMessage = () =>
+    `Unsupported file type. Please choose a ${formatAllowedExtensions(supportedExtensions())} file.`;
 
   function resetState(): void {
     setError(null);
@@ -54,7 +71,7 @@ export function LoadFileModal() {
     if (!file) {
       return;
     }
-    const engine = core.fileLoad.resolveEngine(file.extension);
+    const engine = core.engineRegistry.resolveByExtension(file.extension);
     if (!engine) {
       return;
     }
@@ -79,9 +96,9 @@ export function LoadFileModal() {
     setError(null);
     try {
       const result = await core.fileIo.readFileFromFile(file);
-      const engine = core.fileLoad.resolveEngine(result.extension);
+      const engine = core.engineRegistry.resolveByExtension(result.extension);
       if (!engine) {
-        setError("Unsupported file type. Please choose a .js or .py file.");
+        setError(unsupportedErrorMessage());
         return;
       }
       setPendingFile(result);
@@ -96,7 +113,7 @@ export function LoadFileModal() {
   }
 
   function handleFileError(): void {
-    setError("Unsupported file type. Please choose a .js or .py file.");
+    setError(unsupportedErrorMessage());
   }
 
   function handleFileRemoved(): void {
@@ -119,7 +136,7 @@ export function LoadFileModal() {
 
         <div class="flex flex-col gap-5 bg-surface px-5 py-6">
           <FileDrop
-            accept=".js,.py"
+            accept={acceptPattern()}
             onError={handleFileError}
             onFileRemoved={handleFileRemoved}
             onFileSelected={handleFileSelected}

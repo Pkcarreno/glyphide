@@ -1,44 +1,39 @@
 import { cleanup, render, waitFor } from "@solidjs/testing-library";
 import { createSignal } from "solid-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { EditorProvider, useEditor } from "../core/context.tsx";
-import { PwaRegistration } from "./pwa-registration.tsx";
+import { PwaProvider, usePwaUpdate } from "./pwa-registration.tsx";
 
 const updateServiceWorkerMock = vi.fn();
 const [mockNeedRefresh, setMockNeedRefresh] = createSignal(false);
-const [mockOfflineReady, setMockOfflineReady] = createSignal(false);
 
 vi.mock("virtual:pwa-register/solid", () => ({
   useRegisterSW: () => ({
     needRefresh: [mockNeedRefresh, setMockNeedRefresh],
-    offlineReady: [mockOfflineReady, setMockOfflineReady],
     updateServiceWorker: updateServiceWorkerMock,
   }),
 }));
 
 interface SpyHost {
   applyUpdate: () => void;
-  isOfflineReady: () => boolean;
   isUpdateAvailable: () => boolean;
 }
 
-function SpyHost(props: { setHost: (host: SpyHost) => void }) {
-  const core = useEditor();
+function SpyConsumer(props: { setHost: (host: SpyHost) => void }) {
+  const pwa = usePwaUpdate();
   props.setHost({
-    applyUpdate: () => core.pwa.applyUpdate(),
-    isOfflineReady: () => core.pwa.offlineReady(),
-    isUpdateAvailable: () => core.pwa.updateAvailable(),
+    applyUpdate: () => pwa.applyUpdate(),
+    isUpdateAvailable: () => pwa.updateAvailable(),
   });
-  return null;
+  return <div data-testid="consumer">Consumer Active</div>;
 }
 
-describe("PwaRegistration", () => {
+describe("PwaProvider & usePwaUpdate", () => {
   let host: SpyHost | undefined;
 
   beforeEach(() => {
     host = undefined;
     setMockNeedRefresh(false);
-    setMockOfflineReady(false);
+    updateServiceWorkerMock.mockClear();
   });
 
   afterEach(() => {
@@ -46,31 +41,42 @@ describe("PwaRegistration", () => {
     vi.restoreAllMocks();
   });
 
-  it("mounts inside EditorProvider and renders nothing", () => {
-    const { container } = render(() => (
-      <EditorProvider>
-        <SpyHost
+  it("usePwaUpdate provides safe fallback when called outside PwaProvider", () => {
+    render(() => (
+      <SpyConsumer
+        setHost={(h) => {
+          host = h;
+        }}
+      />
+    ));
+
+    expect(host?.isUpdateAvailable()).toBe(false);
+    expect(() => host?.applyUpdate()).not.toThrow();
+  });
+
+  it("mounts PwaProvider and renders children", () => {
+    const { getByTestId } = render(() => (
+      <PwaProvider>
+        <SpyConsumer
           setHost={(h) => {
             host = h;
           }}
         />
-        <PwaRegistration />
-      </EditorProvider>
+      </PwaProvider>
     ));
 
-    expect(container.innerHTML).toBe("");
+    expect(getByTestId("consumer")).toBeTruthy();
   });
 
   it("does not set updateAvailable when needRefresh is initially false", () => {
     render(() => (
-      <EditorProvider>
-        <SpyHost
+      <PwaProvider>
+        <SpyConsumer
           setHost={(h) => {
             host = h;
           }}
         />
-        <PwaRegistration />
-      </EditorProvider>
+      </PwaProvider>
     ));
 
     expect(host?.isUpdateAvailable()).toBe(false);
@@ -78,14 +84,13 @@ describe("PwaRegistration", () => {
 
   it("sets updateAvailable to true when needRefresh becomes true", async () => {
     render(() => (
-      <EditorProvider>
-        <SpyHost
+      <PwaProvider>
+        <SpyConsumer
           setHost={(h) => {
             host = h;
           }}
         />
-        <PwaRegistration />
-      </EditorProvider>
+      </PwaProvider>
     ));
 
     setMockNeedRefresh(true);
@@ -95,35 +100,15 @@ describe("PwaRegistration", () => {
     });
   });
 
-  it("sets offlineReady to true when offlineReady becomes true", async () => {
+  it("does not re-trigger when needRefresh toggles", async () => {
     render(() => (
-      <EditorProvider>
-        <SpyHost
+      <PwaProvider>
+        <SpyConsumer
           setHost={(h) => {
             host = h;
           }}
         />
-        <PwaRegistration />
-      </EditorProvider>
-    ));
-
-    setMockOfflineReady(true);
-
-    await waitFor(() => {
-      expect(host?.isOfflineReady()).toBe(true);
-    });
-  });
-
-  it("does not re-trigger when needRefresh toggles (effect re-runs but flag is set)", async () => {
-    render(() => (
-      <EditorProvider>
-        <SpyHost
-          setHost={(h) => {
-            host = h;
-          }}
-        />
-        <PwaRegistration />
-      </EditorProvider>
+      </PwaProvider>
     ));
 
     setMockNeedRefresh(true);
@@ -140,20 +125,19 @@ describe("PwaRegistration", () => {
     expect(host?.isUpdateAvailable()).toBe(true);
   });
 
-  it("wires applyUpdate to updateServiceWorker from the virtual module", () => {
+  it("wires applyUpdate to updateServiceWorker from virtual module", () => {
     render(() => (
-      <EditorProvider>
-        <SpyHost
+      <PwaProvider>
+        <SpyConsumer
           setHost={(h) => {
             host = h;
           }}
         />
-        <PwaRegistration />
-      </EditorProvider>
+      </PwaProvider>
     ));
 
     expect(host).toBeDefined();
     host?.applyUpdate();
-    expect(updateServiceWorkerMock).toHaveBeenCalled();
+    expect(updateServiceWorkerMock).toHaveBeenCalledWith(true);
   });
 });

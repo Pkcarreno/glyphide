@@ -59,6 +59,8 @@ export interface EngineDefinition {
   defaultBufferCode?: string;
   /** Default INIT params sent to this engine (language is overridden per entry). */
   defaultInitParams: Omit<EngineInitParams, "language">;
+  /** File extensions associated with this engine (e.g. `[".js"]`, `[".py"]`). */
+  fileExtensions: readonly string[];
   id: EngineId;
   /** Human-readable engine name. */
   label: string;
@@ -77,6 +79,15 @@ export interface EngineDefinition {
 }
 
 /**
+ * Resolved engine entry for a file extension.
+ * @public
+ */
+export interface ResolvedEngine {
+  engineId: EngineId;
+  language: string;
+}
+
+/**
  * Immutable catalog of available execution engines.
  * Provides lookup by `EngineId` and lazy-loading of worker factories.
  */
@@ -87,6 +98,10 @@ export interface EngineRegistry {
   getDefinition: (id: EngineId) => EngineDefinition;
   /** Dynamically loads and returns the worker factory for an engine. */
   loadFactory: (id: EngineId) => Promise<EngineWorkerFactory>;
+  /** Resolves a file extension to its matching engine and primary language. */
+  resolveByExtension: (extension: string) => ResolvedEngine | null;
+  /** All unique file extensions supported across registered engines. */
+  supportedExtensions: readonly string[];
 }
 
 /** Creates the default `EngineRegistry` with QuickJS, MicroPython, and Mock engines. */
@@ -95,6 +110,7 @@ export function createEngineRegistry(): EngineRegistry {
     {
       defaultBufferCode: PYTHON_DEFAULT_BUFFER_CODE,
       defaultInitParams: { timeout: 30_000 },
+      fileExtensions: [".py"],
       id: "micropython",
       label: "MicroPython Engine",
       loadFactory: async () => {
@@ -134,6 +150,7 @@ export function createEngineRegistry(): EngineRegistry {
     {
       defaultBufferCode: QUICKJS_DEFAULT_BUFFER_CODE,
       defaultInitParams: { timeout: 30_000 },
+      fileExtensions: [".js"],
       id: "quickjs",
       label: "QuickJS Engine",
       loadFactory: async () => {
@@ -176,6 +193,7 @@ export function createEngineRegistry(): EngineRegistry {
       ? ([
           {
             defaultInitParams: { timeout: 30_000 },
+            fileExtensions: [],
             id: "mock",
             label: "Mock Test Engine",
             loadFactory: async () => {
@@ -228,7 +246,36 @@ export function createEngineRegistry(): EngineRegistry {
     return definition.loadFactory();
   }
 
-  return { engines: definitions, getDefinition, loadFactory };
+  function resolveByExtension(extension: string): ResolvedEngine | null {
+    if (!extension) {
+      return null;
+    }
+    const normalized = extension.startsWith(".")
+      ? extension.toLowerCase()
+      : `.${extension.toLowerCase()}`;
+
+    for (const def of definitions) {
+      if (def.fileExtensions.some((ext) => ext.toLowerCase() === normalized)) {
+        return {
+          engineId: def.id,
+          language: def.supportedLanguages[0] ?? "",
+        };
+      }
+    }
+    return null;
+  }
+
+  const supportedExtensions: readonly string[] = Array.from(
+    new Set(definitions.flatMap((d) => d.fileExtensions))
+  );
+
+  return {
+    engines: definitions,
+    getDefinition,
+    loadFactory,
+    resolveByExtension,
+    supportedExtensions,
+  };
 }
 
 /**
