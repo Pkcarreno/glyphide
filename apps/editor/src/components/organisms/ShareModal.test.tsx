@@ -8,9 +8,6 @@ const [mockIsOpen, setMockIsOpen] = createSignal(false);
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    buffer: {
-      content: () => "console.log('hi')",
-    },
     dispatcher: { dispatch: dispatchMock },
     engine: {
       activeLanguage: () => "javascript",
@@ -18,9 +15,10 @@ vi.mock("../../core/context", () => ({
     overlays: {
       isOpen: (id: string) => id === "share" && mockIsOpen(),
     },
-    project: {
+    session: {
+      code: () => "console.log('hi')",
       isUrlShareable: () => true,
-      name: () => "TestProject",
+      projectName: () => "TestProject",
     },
   }),
 }));

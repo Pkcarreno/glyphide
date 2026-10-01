@@ -18,10 +18,6 @@ let mockIsDirty = false;
 
 vi.mock("../../core/context.tsx", () => ({
   useEditor: () => ({
-    buffer: {
-      content: () => "line1\nline2",
-      cursorPosition: mockCursorPositionFn,
-    },
     dispatcher: { dispatch: dispatchMock },
     engine: {
       activeEngineId: () => mockEngineId,
@@ -39,6 +35,10 @@ vi.mock("../../core/context.tsx", () => ({
     },
     overlays: {
       isOpen: () => false,
+    },
+    session: {
+      code: () => "line1\nline2",
+      cursorPosition: mockCursorPositionFn,
     },
   }),
 }));

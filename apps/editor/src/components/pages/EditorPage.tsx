@@ -53,7 +53,7 @@ function EditorPage() {
   });
 
   createEffect(() => {
-    document.title = `${core.project.displayName()} - Glyphide`;
+    document.title = `${core.session.displayName()} - Glyphide`;
   });
 
   return (

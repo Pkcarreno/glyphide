@@ -183,12 +183,12 @@ function StatusBar(props: StatusBarProps) {
       <div class="flex h-full items-center gap-1">
         <StatusBarItem>
           <span>
-            {core.buffer.cursorPosition().line}:
-            {core.buffer.cursorPosition().column}
-            <Show when={core.buffer.cursorPosition().selectionLength > 0}>
+            {core.session.cursorPosition().line}:
+            {core.session.cursorPosition().column}
+            <Show when={core.session.cursorPosition().selectionLength > 0}>
               {" "}
-              ({core.buffer.cursorPosition().selectionLines}l,{" "}
-              {core.buffer.cursorPosition().selectionLength}c)
+              ({core.session.cursorPosition().selectionLines}l,{" "}
+              {core.session.cursorPosition().selectionLength}c)
             </Show>
           </span>
         </StatusBarItem>

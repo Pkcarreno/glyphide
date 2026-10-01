@@ -24,7 +24,7 @@ function ProjectRenameContent() {
 
   createEffect(() => {
     if (isOpen()) {
-      const currentName = core.project.name();
+      const currentName = core.session.projectName();
       setName(currentName === "untitled_project" ? "" : currentName);
       setTimeout(() => {
         inputRef?.focus();

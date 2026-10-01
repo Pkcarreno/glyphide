@@ -53,12 +53,12 @@ function EditorPane(props: EditorPaneProps) {
     >
       <CodeField
         isDark={isDark()}
-        isReadOnly={core.trust.isTrustRequired()}
+        isReadOnly={core.session.isTrustRequired()}
         isWordWrapEnabled={core.settings.settings.isWordWrapEnabled}
         language={core.engine.activeLanguage()}
         onCursorChange={handleCursorChange}
         onValueChange={handleValueChange}
-        value={core.buffer.content()}
+        value={core.session.code()}
       />
     </section>
   );

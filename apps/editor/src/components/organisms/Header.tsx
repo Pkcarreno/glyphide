@@ -163,10 +163,10 @@ function Header(props: HeaderProps) {
           text="Rename Project"
           variant="ghost"
         >
-          {core.project.displayName()}
+          {core.session.displayName()}
         </ActionTooltip>
 
-        <Show when={core.trust.isTrustRequired()}>
+        <Show when={core.session.isTrustRequired()}>
           <ActionTooltip
             action={{ overlayId: "trust-required", type: "OPEN_OVERLAY" }}
             aria-label="Trust Required"

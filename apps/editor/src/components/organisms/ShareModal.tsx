@@ -26,7 +26,7 @@ export function ShareModal(props: ShareModalProps) {
   const [hasCopiedLink, setHasCopiedLink] = createSignal(false);
   const [hasCopiedIframe, setHasCopiedIframe] = createSignal(false);
 
-  const isUrlShareable = () => core.project.isUrlShareable();
+  const isUrlShareable = () => core.session.isUrlShareable();
 
   const buildShareUrl = () => {
     const url = new URL(window.location.href);

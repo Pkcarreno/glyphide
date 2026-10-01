@@ -44,8 +44,11 @@ vi.mock("../../core/context", () => ({
         (id === "engine-settings" && mockIsOpenEngineSettings()) ||
         (id === "trust-required" && mockIsOpenTrustRequired()),
     },
-    project: {
-      name: () => "TestProject",
+    session: {
+      code: () => "",
+      isTrustRequired: () => false,
+      isUrlShareable: () => true,
+      projectName: () => "TestProject",
     },
     settings: {
       settings: {
