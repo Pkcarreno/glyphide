@@ -1,19 +1,31 @@
+import type { CanonicalState } from "@glyphide/url-migration/types";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createBrowserUrlStateAdapter } from "./adapters/url-state.ts";
+import { createBrowserUrlPersistenceAdapter } from "./adapters/url-persistence.ts";
 import { PYTHON_DEFAULT_BUFFER_CODE } from "./data/python-default-buffer-code.ts";
 import { QUICKJS_DEFAULT_BUFFER_CODE } from "./data/quickjs-default-buffer-code.ts";
-import { composeSizeLimitedUrlState } from "./decorators/url-state-limit.ts";
-import { createEditorCore, type EditorCore } from "./editor-core.ts";
+import { createEditorCore } from "./editor-core.ts";
 import type { FileIoPort } from "./ports/file-io.ts";
 import type { PersistencePort } from "./ports/persistence.ts";
-import type { UrlStatePort } from "./ports/url-state.ts";
+import type { UrlPersistencePort } from "./ports/url-persistence.ts";
 
 function createMockPersistence(): PersistencePort {
   return { get: vi.fn(), remove: vi.fn(), set: vi.fn() };
 }
 
-function createMockUrlState(): UrlStatePort {
-  return { get: vi.fn(), remove: vi.fn(), set: vi.fn() };
+function createMockUrlPersistence(
+  state: CanonicalState | null = null
+): UrlPersistencePort {
+  let current: CanonicalState | null = state;
+  return {
+    clear: vi.fn(() => {
+      current = null;
+    }),
+    load: vi.fn(() => current),
+    save: vi.fn((next: CanonicalState) => {
+      current = next;
+      return { isShareable: true };
+    }),
+  };
 }
 
 function createMockFileIoDeps() {
@@ -50,7 +62,7 @@ describe("EditorCore", () => {
     const core = createEditorCore({
       fileIo: createMockFileIoDeps(),
       persistence: createMockPersistence(),
-      urlState: createMockUrlState(),
+      urlPersistence: createMockUrlPersistence(),
     });
 
     expect(core.session).toBeDefined();
@@ -67,7 +79,7 @@ describe("EditorCore", () => {
     const core = createEditorCore({
       fileIo: createMockFileIoDeps(),
       persistence: createMockPersistence(),
-      urlState: createMockUrlState(),
+      urlPersistence: createMockUrlPersistence(),
     });
 
     const setCodeSpy = vi.spyOn(core.session, "setCode");
@@ -116,7 +128,7 @@ describe("EditorCore", () => {
     const core = createEditorCore({
       fileIo: createMockFileIoDeps(),
       persistence: createMockPersistence(),
-      urlState: createMockUrlState(),
+      urlPersistence: createMockUrlPersistence(),
     });
 
     const terminateSpy = vi.spyOn(core.engine, "terminate");
@@ -140,7 +152,7 @@ describe("EditorCore", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState: createMockUrlState(),
+        urlPersistence: createMockUrlPersistence(),
       });
       core.settings.updateSettings({
         autoRunDelay: 500,
@@ -162,7 +174,7 @@ describe("EditorCore", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState: createMockUrlState(),
+        urlPersistence: createMockUrlPersistence(),
       });
       core.settings.updateSettings({
         autoRunDelay: 500,
@@ -183,7 +195,7 @@ describe("EditorCore", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState: createMockUrlState(),
+        urlPersistence: createMockUrlPersistence(),
       });
       core.settings.updateSettings({
         autoRunDelay: 500,
@@ -204,7 +216,7 @@ describe("EditorCore", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState: createMockUrlState(),
+        urlPersistence: createMockUrlPersistence(),
       });
       core.settings.updateSettings({
         autoRunDelay: 500,
@@ -225,7 +237,7 @@ describe("EditorCore", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState: createMockUrlState(),
+        urlPersistence: createMockUrlPersistence(),
       });
       core.settings.updateSettings({
         autoRunDelay: 500,
@@ -250,23 +262,21 @@ describe("EditorCore", () => {
   });
 
   describe("Trust gating", () => {
-    function createMockUrlStateWithCode(code: string | null): UrlStatePort {
-      const store = new Map<string, string | null>();
-      if (code !== null) {
-        store.set("code", code);
-      }
-      return {
-        get: vi.fn((key: string) => store.get(key) ?? null),
-        remove: vi.fn(),
-        set: vi.fn(),
-      };
+    function createMockUrlStateWithCode(
+      code: string | null
+    ): UrlPersistencePort {
+      return createMockUrlPersistence(
+        code === null
+          ? null
+          : { code, engine: "quickjs", language: "javascript", name: "" }
+      );
     }
 
     it("exposes trust model on EditorCore", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState: createMockUrlStateWithCode("console.log(1)"),
+        urlPersistence: createMockUrlStateWithCode("console.log(1)"),
       });
 
       expect(core.session).toBeDefined();
@@ -277,7 +287,7 @@ describe("EditorCore", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState: createMockUrlStateWithCode("console.log('shared')"),
+        urlPersistence: createMockUrlStateWithCode("console.log('shared')"),
       });
 
       // Trust model should detect shared code
@@ -290,7 +300,7 @@ describe("EditorCore", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState: createMockUrlStateWithCode(null),
+        urlPersistence: createMockUrlStateWithCode(null),
       });
 
       expect(core.session.isTrustRequired()).toBe(false);
@@ -302,7 +312,7 @@ describe("EditorCore", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState: createMockUrlStateWithCode("console.log(1)"),
+        urlPersistence: createMockUrlStateWithCode("console.log(1)"),
       });
 
       const executeSpy = vi.spyOn(core.engine, "executeCode");
@@ -318,7 +328,7 @@ describe("EditorCore", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState: createMockUrlStateWithCode(null),
+        urlPersistence: createMockUrlStateWithCode(null),
       });
 
       expect(core.session.isTrustRequired()).toBe(false);
@@ -333,7 +343,7 @@ describe("EditorCore", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState: createMockUrlStateWithCode("console.log(1)"),
+        urlPersistence: createMockUrlStateWithCode("console.log(1)"),
       });
 
       const selectSpy = vi.spyOn(core.engine, "selectEngineEntry");
@@ -349,7 +359,7 @@ describe("EditorCore", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState: createMockUrlStateWithCode("console.log(1)"),
+        urlPersistence: createMockUrlStateWithCode("console.log(1)"),
       });
 
       const retrySpy = vi.spyOn(core.engine, "retryInit");
@@ -365,7 +375,7 @@ describe("EditorCore", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState: createMockUrlStateWithCode("console.log(1)"),
+        urlPersistence: createMockUrlStateWithCode("console.log(1)"),
       });
 
       expect(core.session.isTrustRequired()).toBe(true);
@@ -402,7 +412,7 @@ describe("EditorCore", () => {
         const core = createEditorCore({
           fileIo: createMockFileIoDeps(),
           persistence: createMockPersistence(),
-          urlState: createMockUrlStateWithCode("console.log(1)"),
+          urlPersistence: createMockUrlStateWithCode("console.log(1)"),
         });
         core.settings.updateSettings({
           autoRunDelay: 500,
@@ -423,7 +433,7 @@ describe("EditorCore", () => {
         const core = createEditorCore({
           fileIo: createMockFileIoDeps(),
           persistence: createMockPersistence(),
-          urlState: createMockUrlStateWithCode(null),
+          urlPersistence: createMockUrlStateWithCode(null),
         });
         core.settings.updateSettings({
           autoRunDelay: 500,
@@ -448,7 +458,7 @@ describe("EditorCore", () => {
       const core = createEditorCore({
         fileIo,
         persistence: createMockPersistence(),
-        urlState: createMockUrlState(),
+        urlPersistence: createMockUrlPersistence(),
       });
       return { core, readFile, writeFile };
     }
@@ -463,21 +473,17 @@ describe("EditorCore", () => {
     });
 
     describe("RESET_PROJECT_STATE", () => {
-      it("removes code, name, and engine URL params", () => {
-        const urlState = createMockUrlState();
-        const removeSpy = vi.spyOn(urlState, "remove");
-        createCoreWithFileIo();
-        // Recreate with the spied urlState
+      it("clears URL params via clear()", () => {
+        const urlPersistence = createMockUrlPersistence();
+        const clearSpy = vi.spyOn(urlPersistence, "clear");
         const freshCore = createEditorCore({
           fileIo: createMockFileIo().fileIo,
           persistence: createMockPersistence(),
-          urlState,
+          urlPersistence,
         });
-        removeSpy.mockClear();
+        clearSpy.mockClear();
         freshCore.commands.resetProjectState();
-        expect(removeSpy).toHaveBeenCalledWith("code");
-        expect(removeSpy).toHaveBeenCalledWith("name");
-        expect(removeSpy).toHaveBeenCalledWith("engine");
+        expect(clearSpy).toHaveBeenCalled();
       });
 
       it("clears the buffer, output, and cursor position", () => {
@@ -508,13 +514,11 @@ describe("EditorCore", () => {
       });
 
       it("grants trust after reset so the editor is unblocked", () => {
-        const urlState = createMockUrlState();
-        createCoreWithFileIo();
-        // Recreate with spied urlState
+        const urlPersistence = createMockUrlPersistence();
         const freshCore = createEditorCore({
           fileIo: createMockFileIo().fileIo,
           persistence: createMockPersistence(),
-          urlState,
+          urlPersistence,
         });
         // Force trust required to simulate a previous session
         freshCore.session.markTrustRequired();
@@ -680,40 +684,33 @@ describe("EditorCore", () => {
   });
 
   describe("Engine URL conditional persistence (engine-state-url-sync)", () => {
-    function createSpyUrlState(): UrlStatePort & {
-      setCalls: Array<{ key: string; value: string }>;
-      removeCalls: string[];
-    } {
-      const data = new Map<string, string>();
-      const setCalls: Array<{ key: string; value: string }> = [];
-      const removeCalls: string[] = [];
+    function createSpyUrlPersistence(
+      initial: CanonicalState | null = null
+    ): UrlPersistencePort {
+      let current: CanonicalState | null = initial;
       return {
-        get: (key) => data.get(key) ?? null,
-        remove: (key) => {
-          data.delete(key);
-          removeCalls.push(key);
-        },
-        removeCalls,
-        set: (key, val) => {
-          data.set(key, val);
-          setCalls.push({ key, value: val });
-        },
-        setCalls,
+        clear: vi.fn(() => {
+          current = null;
+        }),
+        load: vi.fn(() => current),
+        save: vi.fn((state: CanonicalState) => {
+          current = state;
+          return { isShareable: true };
+        }),
       };
     }
 
     // REQ-ENG-007: LOAD_FILE_FROM_DISK with same engine as active → engine
-    // must be seeded in URL. selectEngineEntry is a same-engine early-return,
-    // so the onBufferUpdated wiring in editor-core is what seeds the URL.
+    // must be seeded in URL.
     it("LOAD_FILE_FROM_DISK with same engine seeds engine in URL", () => {
-      const urlState = createSpyUrlState();
+      const urlPersistence = createSpyUrlPersistence();
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState,
+        urlPersistence,
       });
 
-      expect(urlState.get("engine")).toBeNull();
+      expect(urlPersistence.load()).toBeNull();
 
       core.commands.loadFile({
         content: "print('hi')",
@@ -722,37 +719,35 @@ describe("EditorCore", () => {
         name: "hello.js",
       });
 
-      // selectEngineEntry is synchronous. Real registry: quickjs is
-      // single-language, so URL stores "quickjs"
-      expect(urlState.get("engine")).toBe("quickjs");
+      expect(urlPersistence.load()?.engine).toBe("quickjs");
     });
 
     // REQ-ENG-002 + tracker reset: after RESET_PROJECT_STATE, typing code
-    // must re-seed the URL with the active engine. The onBufferUpdated("")
-    // wiring in editor-core is what resets the tracker so the next buffer
-    // update is not a false no-op.
+    // must re-seed the URL with the active engine.
     it("after RESET_PROJECT_STATE, typing code writes engine to URL", () => {
-      const urlState = createSpyUrlState();
-      // Real registry: mock engine is single-language ("plaintext")
-      urlState.set("engine", "mock");
+      const urlPersistence = createSpyUrlPersistence({
+        code: "hi",
+        engine: "mock",
+        language: "plaintext",
+        name: "",
+      });
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState,
+        urlPersistence,
       });
 
-      // Prime the model with some code so the tracker is consistent
+      // Prime the model with some code so the state is consistent
       core.commands.updateBuffer("hi");
-      expect(urlState.get("engine")).toBe("mock");
+      expect(urlPersistence.load()?.engine).toBe("mock");
 
       // Reset the project
       core.commands.resetProjectState();
-      expect(urlState.get("engine")).toBeNull();
+      expect(urlPersistence.load()).toBeNull();
 
-      // Type code again. The tracker MUST have been reset by the reset flow,
-      // so this must write the engine to URL.
+      // Type code again. This must write the engine to URL.
       core.commands.updateBuffer("world");
-      expect(urlState.get("engine")).toBe("mock");
+      expect(urlPersistence.load()?.engine).toBe("mock");
     });
   });
 
@@ -760,7 +755,7 @@ describe("EditorCore", () => {
     beforeEach(() => {
       // Reset URL to a clean state before each test
       window.history.replaceState(null, "", "/");
-      // Suppress the expected warning from the size-limit decorator
+      // Suppress the expected warning from the size limit check
       vi.spyOn(console, "warn").mockImplementation(() => undefined);
     });
 
@@ -769,79 +764,60 @@ describe("EditorCore", () => {
     });
 
     it("strips URL when limit exceeded, resets tracker on empty buffer, re-seeds on next valid write", () => {
-      // Use the real browser URL adapter so the decorator's
-      // replaceState-based strip actually clears window.location.
-      // When the limit is exceeded, base.set is never called and
-      // the URL is reset to the pathname — subsequent get() returns null.
-      const baseUrlState = createBrowserUrlStateAdapter();
-      const MAX_LENGTH = 100;
-      let coreRef: EditorCore | undefined;
-      const limitedUrlState = composeSizeLimitedUrlState(
-        baseUrlState,
-        MAX_LENGTH,
-        (isShareable) => {
-          coreRef?.session.setShareableState(isShareable);
-        }
-      );
+      const urlPersistence = createBrowserUrlPersistenceAdapter();
 
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState: limitedUrlState,
+        urlPersistence,
       });
-      coreRef = core;
 
       // Step 1: Load editor with initial code. Default engine is "quickjs";
       // the first non-empty buffer update seeds it to the URL.
       core.commands.updateBuffer("initial code");
 
-      expect(baseUrlState.get("engine")).toBe("quickjs");
+      expect(urlPersistence.load()?.engine).toBe("quickjs");
       expect(core.session.isUrlShareable()).toBe(true);
 
-      // Step 2: Type code that exceeds the URL limit. The decorator
-      // strips window.location via replaceState and notifies the
-      // project model that the URL is no longer shareable.
-      const longCode = "a".repeat(200);
-      core.commands.updateBuffer(longCode);
+      // Step 2: Type code that exceeds the URL limit (>8000 chars when compressed).
+      let massiveCode = "";
+      for (let i = 0; i < 2000; i += 1) {
+        massiveCode += `${Math.random().toString(36)}-`;
+      }
+      core.commands.updateBuffer(massiveCode);
 
-      expect(baseUrlState.get("engine")).toBeNull();
+      expect(urlPersistence.load()).toBeNull();
       expect(core.session.isUrlShareable()).toBe(false);
 
-      // Step 3: Clear the buffer. onBufferUpdated("") removes the
-      // engine from the URL and resets lastWrittenEngineId to null.
+      // Step 3: Clear the buffer.
       core.commands.updateBuffer("");
 
-      // Engine is NOT re-written (buffer is empty).
-      expect(baseUrlState.get("engine")).toBeNull();
+      expect(urlPersistence.load()).toBeNull();
 
-      // Step 4: Type new code that fits within the limit. The tracker
-      // was reset, so this non-empty buffer update re-seeds the
-      // active engine to the URL.
+      // Step 4: Type new code that fits within the limit.
       core.commands.updateBuffer("short code");
 
-      expect(baseUrlState.get("engine")).toBe("quickjs");
+      expect(urlPersistence.load()?.engine).toBe("quickjs");
       expect(core.session.isUrlShareable()).toBe(true);
     });
   });
 
   describe("select/init split contract (fix-file-load-trust-bypass)", () => {
-    function createMockUrlStateWithCode(code: string | null): UrlStatePort {
-      const store = new Map<string, string | null>();
-      if (code !== null) {
-        store.set("code", code);
-      }
-      return {
-        get: vi.fn((key: string) => store.get(key) ?? null),
-        remove: vi.fn(),
-        set: vi.fn(),
-      };
+    function createMockUrlStateWithCode(
+      code: string | null
+    ): UrlPersistencePort {
+      return createMockUrlPersistence(
+        code === null
+          ? null
+          : { code, engine: "quickjs", language: "javascript", name: "" }
+      );
     }
 
     it("on startup without trust: selectEngineEntry + initializeSelectedEngine are called", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState: createMockUrlStateWithCode(null),
+        urlPersistence: createMockUrlStateWithCode(null),
       });
       const selectSpy = vi.spyOn(core.engine, "selectEngineEntry");
       const initSpy = vi
@@ -860,7 +836,7 @@ describe("EditorCore", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState: createMockUrlStateWithCode("console.log(1)"),
+        urlPersistence: createMockUrlStateWithCode("console.log(1)"),
       });
       // Trust-required startup path: signals seeded from URL, no init.
       // Init is deferred to GRANT_TRUST.
@@ -872,7 +848,7 @@ describe("EditorCore", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState: createMockUrlStateWithCode(null),
+        urlPersistence: createMockUrlStateWithCode(null),
       });
       const selectSpy = vi.spyOn(core.session, "selectEngine");
       const initSpy = vi
@@ -889,7 +865,7 @@ describe("EditorCore", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState: createMockUrlStateWithCode("console.log(1)"),
+        urlPersistence: createMockUrlStateWithCode("console.log(1)"),
       });
 
       const selectSpy = vi.spyOn(core.session, "selectEngine");
@@ -912,7 +888,7 @@ describe("EditorCore", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState: createMockUrlStateWithCode("console.log(1)"),
+        urlPersistence: createMockUrlStateWithCode("console.log(1)"),
       });
 
       // Trust is required initially
@@ -933,7 +909,7 @@ describe("EditorCore", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState: createMockUrlStateWithCode(null),
+        urlPersistence: createMockUrlStateWithCode(null),
       });
       const loadFileSpy = vi.spyOn(core.session, "loadFile");
       const initSpy = vi.spyOn(core.engine, "initializeSelectedEngine");
@@ -959,7 +935,7 @@ describe("EditorCore", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
-        urlState: createMockUrlStateWithCode(null),
+        urlPersistence: createMockUrlStateWithCode(null),
       });
       const resetSpy = vi.spyOn(core.session, "reset");
       const initSpy = vi
@@ -974,27 +950,16 @@ describe("EditorCore", () => {
   });
 
   describe("Default buffer content (default-code)", () => {
-    /**
-     * Returns a URL state with an explicit `code` value (or none), to drive
-     * the three init branches documented in the design.
-     */
-    function createUrlStateWithCode(code: string | null): UrlStatePort {
-      const store = new Map<string, string | null>();
-      if (code !== null) {
-        store.set("code", code);
-      }
-      return {
-        get: vi.fn((key: string) => store.get(key) ?? null),
-        remove: vi.fn(),
-        set: vi.fn(),
-      };
+    function createUrlPersistenceWithCode(
+      code: string | null
+    ): UrlPersistencePort {
+      return createMockUrlPersistence(
+        code === null
+          ? null
+          : { code, engine: "quickjs", language: "javascript", name: "" }
+      );
     }
 
-    /**
-     * Returns a persistence port whose `settings` entry reflects the caller's
-     * intent. Used to flip `isDefaultCodeEnabled` without going through
-     * the UI.
-     */
     function createPersistenceWithSettings(
       settings: Record<string, unknown>
     ): PersistencePort {
@@ -1013,7 +978,7 @@ describe("EditorCore", () => {
         persistence: createPersistenceWithSettings({
           isDefaultCodeEnabled: true,
         }),
-        urlState: createUrlStateWithCode(null),
+        urlPersistence: createUrlPersistenceWithCode(null),
       });
 
       expect(core.session.code()).toBe(QUICKJS_DEFAULT_BUFFER_CODE);
@@ -1025,7 +990,7 @@ describe("EditorCore", () => {
         persistence: createPersistenceWithSettings({
           isDefaultCodeEnabled: false,
         }),
-        urlState: createUrlStateWithCode(null),
+        urlPersistence: createUrlPersistenceWithCode(null),
       });
 
       expect(core.session.code()).toBe("");
@@ -1039,7 +1004,7 @@ describe("EditorCore", () => {
         persistence: createPersistenceWithSettings({
           isDefaultCodeEnabled: true,
         }),
-        urlState: createUrlStateWithCode(sharedCode),
+        urlPersistence: createUrlPersistenceWithCode(sharedCode),
       });
 
       expect(core.session.code()).toBe(sharedCode);
@@ -1047,20 +1012,18 @@ describe("EditorCore", () => {
     });
 
     it("URL stays clean on first paint — `code` is NOT written when default snippet is shown", () => {
-      const urlState = createUrlStateWithCode(null);
-      const setSpy = vi.spyOn(urlState, "set");
+      const urlPersistence = createUrlPersistenceWithCode(null);
+      const saveSpy = vi.spyOn(urlPersistence, "save");
 
       createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createPersistenceWithSettings({
           isDefaultCodeEnabled: true,
         }),
-        urlState,
+        urlPersistence,
       });
 
-      // initialContent path uses createSignal directly, never urlState.set("code", ...)
-      const codeWrites = setSpy.mock.calls.filter(([key]) => key === "code");
-      expect(codeWrites).toHaveLength(0);
+      expect(saveSpy).not.toHaveBeenCalled();
     });
 
     it("RESET_PROJECT_STATE with setting enabled → buffer = QUICKJS_DEFAULT_BUFFER_CODE", () => {
@@ -1069,7 +1032,7 @@ describe("EditorCore", () => {
         persistence: createPersistenceWithSettings({
           isDefaultCodeEnabled: true,
         }),
-        urlState: createUrlStateWithCode(null),
+        urlPersistence: createUrlPersistenceWithCode(null),
       });
 
       // User edits the buffer
@@ -1087,7 +1050,7 @@ describe("EditorCore", () => {
         persistence: createPersistenceWithSettings({
           isDefaultCodeEnabled: false,
         }),
-        urlState: createUrlStateWithCode(null),
+        urlPersistence: createUrlPersistenceWithCode(null),
       });
 
       core.session.setCode("// user code");
@@ -1100,22 +1063,19 @@ describe("EditorCore", () => {
   });
 
   describe("Per-engine default code (per-engine-default-code)", () => {
-    function createUrlStateWithCodeAndEngine(
+    function createUrlPersistenceWithCodeAndEngine(
       code: string | null,
       engine: string | null
-    ): UrlStatePort {
-      const store = new Map<string, string | null>();
-      if (code !== null) {
-        store.set("code", code);
+    ): UrlPersistencePort {
+      if (code === null && engine === null) {
+        return createMockUrlPersistence(null);
       }
-      if (engine !== null) {
-        store.set("engine", engine);
-      }
-      return {
-        get: vi.fn((key: string) => store.get(key) ?? null),
-        remove: vi.fn(),
-        set: vi.fn(),
-      };
+      return createMockUrlPersistence({
+        code: code ?? "",
+        engine: engine ?? "quickjs",
+        language: engine === "micropython" ? "python" : "javascript",
+        name: "",
+      });
     }
 
     function createPersistenceWithSettings(
@@ -1136,7 +1096,7 @@ describe("EditorCore", () => {
         persistence: createPersistenceWithSettings({
           isDefaultCodeEnabled: true,
         }),
-        urlState: createUrlStateWithCodeAndEngine(null, "quickjs"),
+        urlPersistence: createUrlPersistenceWithCodeAndEngine(null, "quickjs"),
       });
 
       expect(core.session.code()).toBe(QUICKJS_DEFAULT_BUFFER_CODE);
@@ -1149,7 +1109,10 @@ describe("EditorCore", () => {
         persistence: createPersistenceWithSettings({
           isDefaultCodeEnabled: true,
         }),
-        urlState: createUrlStateWithCodeAndEngine(null, "micropython"),
+        urlPersistence: createUrlPersistenceWithCodeAndEngine(
+          null,
+          "micropython"
+        ),
       });
 
       expect(core.session.code()).toBe(PYTHON_DEFAULT_BUFFER_CODE);
@@ -1162,7 +1125,10 @@ describe("EditorCore", () => {
         persistence: createPersistenceWithSettings({
           isDefaultCodeEnabled: false,
         }),
-        urlState: createUrlStateWithCodeAndEngine(null, "micropython"),
+        urlPersistence: createUrlPersistenceWithCodeAndEngine(
+          null,
+          "micropython"
+        ),
       });
 
       expect(core.session.code()).toBe("");
@@ -1176,7 +1142,10 @@ describe("EditorCore", () => {
         persistence: createPersistenceWithSettings({
           isDefaultCodeEnabled: true,
         }),
-        urlState: createUrlStateWithCodeAndEngine(sharedCode, "quickjs"),
+        urlPersistence: createUrlPersistenceWithCodeAndEngine(
+          sharedCode,
+          "quickjs"
+        ),
       });
 
       expect(core.session.code()).toBe(sharedCode);
@@ -1189,7 +1158,7 @@ describe("EditorCore", () => {
         persistence: createPersistenceWithSettings({
           isDefaultCodeEnabled: true,
         }),
-        urlState: createUrlStateWithCodeAndEngine(null, "quickjs"),
+        urlPersistence: createUrlPersistenceWithCodeAndEngine(null, "quickjs"),
       });
 
       expect(core.session.code()).toBe(QUICKJS_DEFAULT_BUFFER_CODE);
@@ -1212,7 +1181,7 @@ describe("EditorCore", () => {
         persistence: createPersistenceWithSettings({
           isDefaultCodeEnabled: true,
         }),
-        urlState: createUrlStateWithCodeAndEngine(null, "quickjs"),
+        urlPersistence: createUrlPersistenceWithCodeAndEngine(null, "quickjs"),
       });
 
       // User edits the buffer (pristine flag disarmed).
@@ -1237,7 +1206,10 @@ describe("EditorCore", () => {
         persistence: createPersistenceWithSettings({
           isDefaultCodeEnabled: true,
         }),
-        urlState: createUrlStateWithCodeAndEngine(sharedCode, "quickjs"),
+        urlPersistence: createUrlPersistenceWithCodeAndEngine(
+          sharedCode,
+          "quickjs"
+        ),
       });
 
       expect(core.session.code()).toBe(sharedCode);
@@ -1260,7 +1232,10 @@ describe("EditorCore", () => {
         persistence: createPersistenceWithSettings({
           isDefaultCodeEnabled: true,
         }),
-        urlState: createUrlStateWithCodeAndEngine(null, "micropython"),
+        urlPersistence: createUrlPersistenceWithCodeAndEngine(
+          null,
+          "micropython"
+        ),
       });
 
       // Sanity: editor started on MicroPython with its default.
@@ -1283,7 +1258,7 @@ describe("EditorCore", () => {
         persistence: createPersistenceWithSettings({
           isDefaultCodeEnabled: true,
         }),
-        urlState: createUrlStateWithCodeAndEngine(null, "quickjs"),
+        urlPersistence: createUrlPersistenceWithCodeAndEngine(null, "quickjs"),
       });
 
       // Buffer was pristine.
@@ -1309,7 +1284,7 @@ describe("EditorCore", () => {
         persistence: createPersistenceWithSettings({
           isDefaultCodeEnabled: true,
         }),
-        urlState: createUrlStateWithCodeAndEngine(null, "quickjs"),
+        urlPersistence: createUrlPersistenceWithCodeAndEngine(null, "quickjs"),
       });
 
       expect(core.session.code()).toBe(QUICKJS_DEFAULT_BUFFER_CODE);

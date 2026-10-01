@@ -1,11 +1,8 @@
 import type { Accessor } from "solid-js";
 import { batch, createSignal } from "solid-js";
 import type { EngineId, EngineRegistry } from "../engine/registry.ts";
-import type { UrlStatePort } from "../ports/url-state.ts";
+import type { UrlPersistencePort } from "../ports/url-persistence.ts";
 
-const PROJECT_NAME_PARAM = "name";
-const CODE_PARAM = "code";
-const ENGINE_PARAM = "engine";
 const DEFAULT_PROJECT_NAME = "untitled_project";
 const DEFAULT_ENGINE_ID: EngineId = "quickjs";
 
@@ -23,20 +20,19 @@ function stripExtension(filename: string): string {
 }
 
 /**
- * Resolves the engine ID from URL state and registry.
+ * Resolves the engine ID from an engine string and registry.
  * Falls back to default 'quickjs' if unknown or absent.
  */
 function resolveInitialEngine(
-  urlState: UrlStatePort,
+  engineString: string | undefined,
   registry: EngineRegistry
 ): { engineId: EngineId; language: string } {
-  const raw = urlState.get(ENGINE_PARAM);
-  if (!raw) {
+  if (!engineString) {
     const def = registry.getDefinition(DEFAULT_ENGINE_ID);
     return { engineId: DEFAULT_ENGINE_ID, language: def.supportedLanguages[0] };
   }
 
-  const [rawId, rawLang] = raw.split(":");
+  const [rawId, rawLang] = engineString.split(":");
   const candidateId = rawId as EngineId;
 
   try {
@@ -154,7 +150,7 @@ export interface WorkspaceSession {
 export interface WorkspaceSessionDeps {
   engineRegistry: EngineRegistry;
   isDefaultCodeEnabled: () => boolean;
-  urlState: UrlStatePort;
+  urlPersistence: UrlPersistencePort;
 }
 
 /**
@@ -163,22 +159,28 @@ export interface WorkspaceSessionDeps {
 export function createWorkspaceSession(
   deps: WorkspaceSessionDeps
 ): WorkspaceSession {
-  const initialUrlCode = deps.urlState.get(CODE_PARAM);
-  const initialUrlName = deps.urlState.get(PROJECT_NAME_PARAM);
+  const initialCanonical = deps.urlPersistence.load();
+  const hasSharedUrlCode =
+    typeof initialCanonical?.code === "string" &&
+    initialCanonical.code.length > 0;
+
+  let initialEngineString: string | undefined;
+  if (initialCanonical?.engine) {
+    initialEngineString = initialCanonical.language
+      ? `${initialCanonical.engine}:${initialCanonical.language}`
+      : initialCanonical.engine;
+  }
+
   const initialEngine = resolveInitialEngine(
-    deps.urlState,
+    initialEngineString,
     deps.engineRegistry
   );
 
-  const hasSharedUrlCode =
-    typeof initialUrlCode === "string" && initialUrlCode.length > 0;
-
-  // Resolve initial code
   let startCode = "";
   let startIsPristine = false;
 
   if (hasSharedUrlCode) {
-    startCode = initialUrlCode;
+    startCode = initialCanonical?.code ?? "";
     startIsPristine = false;
   } else if (deps.isDefaultCodeEnabled()) {
     startCode = resolveDefaultCode(initialEngine.engineId, deps.engineRegistry);
@@ -193,7 +195,7 @@ export function createWorkspaceSession(
     selectionLines: 0,
   });
   const [projectName, setProjectNameSignal] = createSignal<string>(
-    initialUrlName ?? DEFAULT_PROJECT_NAME
+    initialCanonical?.name?.trim() || DEFAULT_PROJECT_NAME
   );
   const [isUrlShareable, setIsUrlShareable] = createSignal<boolean>(true);
   const [activeEngineId, setActiveEngineId] = createSignal<EngineId>(
@@ -205,7 +207,7 @@ export function createWorkspaceSession(
   const [isTrustRequired, setIsTrustRequired] =
     createSignal<boolean>(hasSharedUrlCode);
   const [sharedCode] = createSignal<string | null>(
-    hasSharedUrlCode ? initialUrlCode : null
+    hasSharedUrlCode ? (initialCanonical?.code ?? null) : null
   );
   const [isShowingDefaultCode, setIsShowingDefaultCode] =
     createSignal<boolean>(startIsPristine);
@@ -213,38 +215,42 @@ export function createWorkspaceSession(
   const displayName = () =>
     projectName() === DEFAULT_PROJECT_NAME ? "Untitled" : projectName();
 
-  function serializeEngine(engineId: EngineId, language: string): string {
-    const engineDef = deps.engineRegistry.getDefinition(engineId);
-    return engineDef.supportedLanguages.length > 1
-      ? `${engineId}:${language}`
-      : engineId;
-  }
-
-  // Tracks the engine parameter serialized and written to URL
-  let lastWrittenEngineKey: string | null = deps.urlState.get(ENGINE_PARAM);
-
-  function syncEngineToUrl(
+  function persistToUrl(
     currentCode: string,
-    engineId: EngineId,
-    lang: string
+    currentEngineId: EngineId,
+    currentLang: string,
+    currentProjectName: string,
+    isPristine: boolean
   ): void {
-    const serialized = serializeEngine(engineId, lang);
-    if (currentCode.trim() === "") {
-      deps.urlState.remove(ENGINE_PARAM);
-      lastWrittenEngineKey = null;
-    } else if (lastWrittenEngineKey !== serialized) {
-      deps.urlState.set(ENGINE_PARAM, serialized);
-      lastWrittenEngineKey = serialized;
+    if (isPristine || currentCode.trim() === "") {
+      deps.urlPersistence.clear();
+      setIsUrlShareable(true);
+      return;
     }
+
+    const { isShareable } = deps.urlPersistence.save({
+      code: currentCode,
+      engine: currentEngineId,
+      language: currentLang,
+      name:
+        currentProjectName === DEFAULT_PROJECT_NAME ? "" : currentProjectName,
+    });
+    setIsUrlShareable(isShareable);
   }
 
   function setCode(newCode: string, options: SetCodeOptions = {}): void {
     const source = options.source ?? "user";
+    const isDefaultSource = source === "default" && newCode.length > 0;
     batch(() => {
       setCodeSignal(newCode);
-      setIsShowingDefaultCode(source === "default" && newCode.length > 0);
-      deps.urlState.set(CODE_PARAM, newCode);
-      syncEngineToUrl(newCode, activeEngineId(), activeLanguage());
+      setIsShowingDefaultCode(isDefaultSource);
+      persistToUrl(
+        newCode,
+        activeEngineId(),
+        activeLanguage(),
+        projectName(),
+        isDefaultSource
+      );
     });
   }
 
@@ -259,8 +265,16 @@ export function createWorkspaceSession(
 
   function setProjectName(newName: string): void {
     const sanitized = newName.trim() || DEFAULT_PROJECT_NAME;
-    setProjectNameSignal(sanitized);
-    deps.urlState.set(PROJECT_NAME_PARAM, sanitized);
+    batch(() => {
+      setProjectNameSignal(sanitized);
+      persistToUrl(
+        code(),
+        activeEngineId(),
+        activeLanguage(),
+        sanitized,
+        isShowingDefaultCode()
+      );
+    });
   }
 
   function setShareableState(isShareable: boolean): void {
@@ -278,30 +292,31 @@ export function createWorkspaceSession(
       setActiveEngineId(newEngineId);
       setActiveLanguage(resolvedLang);
 
+      let currentCode = code();
+      let pristine = isShowingDefaultCode();
+
       // Pristine buffer rule: replace code with the new engine default if untouched
-      if (isShowingDefaultCode()) {
-        const newDefault = resolveDefaultCode(newEngineId, deps.engineRegistry);
-        setCodeSignal(newDefault);
-        setIsShowingDefaultCode(newDefault.length > 0);
-        deps.urlState.set(CODE_PARAM, newDefault);
+      if (pristine) {
+        currentCode = resolveDefaultCode(newEngineId, deps.engineRegistry);
+        setCodeSignal(currentCode);
+        pristine = currentCode.length > 0;
+        setIsShowingDefaultCode(pristine);
       }
 
-      if (code().trim() === "") {
-        lastWrittenEngineKey = null;
-      } else {
-        const serialized = serializeEngine(newEngineId, resolvedLang);
-        deps.urlState.set(ENGINE_PARAM, serialized);
-        lastWrittenEngineKey = serialized;
-      }
+      persistToUrl(
+        currentCode,
+        newEngineId,
+        resolvedLang,
+        projectName(),
+        pristine
+      );
     });
   }
 
   function reset(): void {
     batch(() => {
-      deps.urlState.remove(CODE_PARAM);
-      deps.urlState.remove(PROJECT_NAME_PARAM);
-      deps.urlState.remove(ENGINE_PARAM);
-      lastWrittenEngineKey = null;
+      deps.urlPersistence.clear();
+      setIsUrlShareable(true);
 
       const resetContent = deps.isDefaultCodeEnabled()
         ? resolveDefaultCode(activeEngineId(), deps.engineRegistry)
@@ -327,18 +342,17 @@ export function createWorkspaceSession(
       payload.language && def.supportedLanguages.includes(payload.language)
         ? payload.language
         : def.supportedLanguages[0];
+    const newName = baseName || DEFAULT_PROJECT_NAME;
 
     batch(() => {
       setCodeSignal(payload.content);
       setIsShowingDefaultCode(false);
-      setProjectNameSignal(baseName || DEFAULT_PROJECT_NAME);
+      setProjectNameSignal(newName);
       setActiveEngineId(payload.engineId);
       setActiveLanguage(lang);
       setIsTrustRequired(true);
 
-      deps.urlState.set(CODE_PARAM, payload.content);
-      deps.urlState.set(PROJECT_NAME_PARAM, baseName || DEFAULT_PROJECT_NAME);
-      syncEngineToUrl(payload.content, payload.engineId, lang);
+      persistToUrl(payload.content, payload.engineId, lang, newName, false);
     });
   }
 

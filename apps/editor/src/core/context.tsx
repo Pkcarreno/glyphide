@@ -1,13 +1,8 @@
-import { buildCurrentUrl } from "@glyphide/url-migration/build-url";
-import { migrateUrl } from "@glyphide/url-migration/migrate";
 import type { JSX } from "solid-js";
 import { createContext, onCleanup, onMount, useContext } from "solid-js";
-import { createFflateCodecAdapter } from "./adapters/fflate-codec.ts";
 import { createBrowserFileIoAdapter } from "./adapters/file-io.ts";
 import { createLocalStorageAdapter } from "./adapters/local-storage.ts";
-import { createBrowserUrlStateAdapter } from "./adapters/url-state.ts";
-import { composeCompressedUrlState } from "./decorators/url-state-compression.ts";
-import { composeSizeLimitedUrlState } from "./decorators/url-state-limit.ts";
+import { createBrowserUrlPersistenceAdapter } from "./adapters/url-persistence.ts";
 import type { EditorCore } from "./editor-core.ts";
 import { createEditorCore } from "./editor-core.ts";
 import { parseKeyCombo } from "./shortcuts/registry.ts";
@@ -21,46 +16,10 @@ const EditorContext = createContext<EditorCore>();
  * logic and the browser environment.
  */
 export function EditorProvider(props: { children: JSX.Element }) {
-  let core: EditorCore;
-
-  // Transparent URL migration: rewrite legacy v1/v2 share URLs into the
-  // current v3 format before the URL state adapter reads from the address
-  // bar. Failures degrade silently — the editor still loads with defaults.
-  try {
-    const migration = migrateUrl(window.location.href);
-    if (migration.ok && migration.version !== "v3") {
-      // Preserve the current origin (important for development environments)
-      const baseUrl = `${window.location.origin}/`;
-      const built = buildCurrentUrl(migration.state, baseUrl);
-      window.history.replaceState(null, "", built.url);
-    }
-  } catch {
-    // Migration failure is non-fatal; editor loads with default state.
-  }
-
-  const browserUrlAdapter = createBrowserUrlStateAdapter();
-  const codecAdapter = createFflateCodecAdapter();
-
-  const safeUrlState = composeSizeLimitedUrlState(
-    browserUrlAdapter,
-    8000,
-    (isShareable) => {
-      if (core) {
-        core.session.setShareableState(isShareable);
-      }
-    }
-  );
-
-  const finalUrlState = composeCompressedUrlState(safeUrlState, codecAdapter, [
-    "code",
-    "name",
-    "engine",
-  ]);
-
-  core = createEditorCore({
+  const core = createEditorCore({
     fileIo: createBrowserFileIoAdapter(),
     persistence: createLocalStorageAdapter(),
-    urlState: finalUrlState,
+    urlPersistence: createBrowserUrlPersistenceAdapter(),
   });
 
   onMount(() => {

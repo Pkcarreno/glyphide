@@ -1,26 +1,30 @@
+import type { CanonicalState } from "@glyphide/url-migration/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createEngineRegistry,
   type EngineRegistry,
 } from "../engine/registry.ts";
-import type { UrlStatePort } from "../ports/url-state.ts";
+import type { UrlPersistencePort } from "../ports/url-persistence.ts";
 import { createWorkspaceSession } from "./session.ts";
 
-function createMockUrlState(
-  initialState: Record<string, string> = {}
-): UrlStatePort & {
-  store: Map<string, string>;
+function createMockUrlPersistence(
+  initialState: CanonicalState | null = null
+): UrlPersistencePort & {
+  savedHistory: CanonicalState[];
 } {
-  const store = new Map<string, string>(Object.entries(initialState));
+  let current: CanonicalState | null = initialState;
+  const savedHistory: CanonicalState[] = [];
   return {
-    get: vi.fn((key: string) => store.get(key) ?? null),
-    remove: vi.fn((key: string) => {
-      store.delete(key);
+    clear: vi.fn(() => {
+      current = null;
     }),
-    set: vi.fn((key: string, value: string) => {
-      store.set(key, value);
+    load: vi.fn(() => current),
+    save: vi.fn((state: CanonicalState) => {
+      current = state;
+      savedHistory.push(state);
+      return { isShareable: true };
     }),
-    store,
+    savedHistory,
   };
 }
 
@@ -35,11 +39,11 @@ describe("WorkspaceSession", () => {
 
   describe("initialization", () => {
     it("initializes with default values when URL state is empty and default code is enabled", () => {
-      const urlState = createMockUrlState();
+      const urlPersistence = createMockUrlPersistence(null);
       const session = createWorkspaceSession({
         engineRegistry,
         isDefaultCodeEnabled,
-        urlState,
+        urlPersistence,
       });
 
       expect(session.projectName()).toBe("untitled_project");
@@ -58,32 +62,34 @@ describe("WorkspaceSession", () => {
         selectionLines: 0,
       });
       // URL must not be touched on initial paint
-      expect(urlState.set).not.toHaveBeenCalled();
+      expect(urlPersistence.save).not.toHaveBeenCalled();
+      expect(urlPersistence.clear).not.toHaveBeenCalled();
     });
 
     it("initializes with empty code when isDefaultCodeEnabled is false", () => {
-      const urlState = createMockUrlState();
+      const urlPersistence = createMockUrlPersistence(null);
       const session = createWorkspaceSession({
         engineRegistry,
         isDefaultCodeEnabled: () => false,
-        urlState,
+        urlPersistence,
       });
 
       expect(session.code()).toBe("");
       expect(session.isShowingDefaultCode()).toBe(false);
-      expect(urlState.set).not.toHaveBeenCalled();
+      expect(urlPersistence.save).not.toHaveBeenCalled();
     });
 
     it("initializes from URL parameters when present", () => {
-      const urlState = createMockUrlState({
+      const urlPersistence = createMockUrlPersistence({
         code: "console.log('from url');",
-        engine: "quickjs:javascript",
+        engine: "quickjs",
+        language: "javascript",
         name: "my_script",
       });
       const session = createWorkspaceSession({
         engineRegistry,
         isDefaultCodeEnabled,
-        urlState,
+        urlPersistence,
       });
 
       expect(session.projectName()).toBe("my_script");
@@ -98,11 +104,16 @@ describe("WorkspaceSession", () => {
     });
 
     it("falls back to default engine when URL contains unknown engine", () => {
-      const urlState = createMockUrlState({ engine: "unknown_engine" });
+      const urlPersistence = createMockUrlPersistence({
+        code: "",
+        engine: "unknown_engine",
+        language: "",
+        name: "",
+      });
       const session = createWorkspaceSession({
         engineRegistry,
         isDefaultCodeEnabled,
-        urlState,
+        urlPersistence,
       });
 
       expect(session.activeEngineId()).toBe("quickjs");
@@ -111,57 +122,62 @@ describe("WorkspaceSession", () => {
 
   describe("code updates", () => {
     it("updates code, clears pristine flag, and persists code and engine to URL", () => {
-      const urlState = createMockUrlState();
+      const urlPersistence = createMockUrlPersistence(null);
       const session = createWorkspaceSession({
         engineRegistry,
         isDefaultCodeEnabled,
-        urlState,
+        urlPersistence,
       });
 
       session.setCode("const x = 42;");
 
       expect(session.code()).toBe("const x = 42;");
       expect(session.isShowingDefaultCode()).toBe(false);
-      expect(urlState.set).toHaveBeenCalledWith("code", "const x = 42;");
-      expect(urlState.set).toHaveBeenCalledWith("engine", "quickjs");
+      expect(urlPersistence.save).toHaveBeenCalledWith({
+        code: "const x = 42;",
+        engine: "quickjs",
+        language: "javascript",
+        name: "",
+      });
     });
 
-    it("removes engine from URL when code is cleared to empty", () => {
-      const urlState = createMockUrlState();
+    it("clears URL when code is cleared to empty", () => {
+      const urlPersistence = createMockUrlPersistence(null);
       const session = createWorkspaceSession({
         engineRegistry,
         isDefaultCodeEnabled,
-        urlState,
+        urlPersistence,
       });
 
       session.setCode("");
 
       expect(session.code()).toBe("");
       expect(session.isShowingDefaultCode()).toBe(false);
-      expect(urlState.remove).toHaveBeenCalledWith("engine");
+      expect(urlPersistence.clear).toHaveBeenCalled();
     });
 
-    it("arms pristine flag when setCode is called with source default and non-empty content", () => {
-      const urlState = createMockUrlState();
+    it("arms pristine flag and clears URL when setCode is called with source default", () => {
+      const urlPersistence = createMockUrlPersistence(null);
       const session = createWorkspaceSession({
         engineRegistry,
         isDefaultCodeEnabled,
-        urlState,
+        urlPersistence,
       });
 
       session.setCode("print('hello')", { source: "default" });
 
       expect(session.isShowingDefaultCode()).toBe(true);
+      expect(urlPersistence.clear).toHaveBeenCalled();
     });
   });
 
   describe("cursor position", () => {
     it("updates cursor coordinates and selection metrics", () => {
-      const urlState = createMockUrlState();
+      const urlPersistence = createMockUrlPersistence(null);
       const session = createWorkspaceSession({
         engineRegistry,
         isDefaultCodeEnabled,
-        urlState,
+        urlPersistence,
       });
 
       session.setCursorPosition(10, 5, 12, 2);
@@ -177,30 +193,37 @@ describe("WorkspaceSession", () => {
 
   describe("project name and shareability", () => {
     it("updates and sanitizes project name and updates displayName", () => {
-      const urlState = createMockUrlState();
+      const urlPersistence = createMockUrlPersistence(null);
       const session = createWorkspaceSession({
         engineRegistry,
         isDefaultCodeEnabled,
-        urlState,
+        urlPersistence,
       });
 
+      // User adds code first
+      session.setCode("console.log(1);");
       session.setProjectName("  awesome_demo  ");
 
       expect(session.projectName()).toBe("awesome_demo");
       expect(session.displayName()).toBe("awesome_demo");
-      expect(urlState.set).toHaveBeenCalledWith("name", "awesome_demo");
+      expect(urlPersistence.save).toHaveBeenCalledWith(
+        expect.objectContaining({ name: "awesome_demo" })
+      );
 
       session.setProjectName("   ");
       expect(session.projectName()).toBe("untitled_project");
       expect(session.displayName()).toBe("Untitled");
+      expect(urlPersistence.save).toHaveBeenCalledWith(
+        expect.objectContaining({ name: "" })
+      );
     });
 
     it("updates shareable state", () => {
-      const urlState = createMockUrlState();
+      const urlPersistence = createMockUrlPersistence(null);
       const session = createWorkspaceSession({
         engineRegistry,
         isDefaultCodeEnabled,
-        urlState,
+        urlPersistence,
       });
 
       session.setShareableState(false);
@@ -213,11 +236,11 @@ describe("WorkspaceSession", () => {
 
   describe("engine selection and pristine buffer rule", () => {
     it("swaps code with new engine default snippet when buffer is pristine", () => {
-      const urlState = createMockUrlState();
+      const urlPersistence = createMockUrlPersistence(null);
       const session = createWorkspaceSession({
         engineRegistry,
         isDefaultCodeEnabled,
-        urlState,
+        urlPersistence,
       });
 
       expect(session.isShowingDefaultCode()).toBe(true);
@@ -228,14 +251,15 @@ describe("WorkspaceSession", () => {
       expect(session.activeLanguage()).toBe("python");
       expect(session.code()).toContain("MicroPython");
       expect(session.isShowingDefaultCode()).toBe(true);
+      expect(urlPersistence.clear).toHaveBeenCalled();
     });
 
     it("preserves user-edited code when engine is swapped", () => {
-      const urlState = createMockUrlState();
+      const urlPersistence = createMockUrlPersistence(null);
       const session = createWorkspaceSession({
         engineRegistry,
         isDefaultCodeEnabled,
-        urlState,
+        urlPersistence,
       });
 
       session.setCode("const custom = true;");
@@ -247,9 +271,15 @@ describe("WorkspaceSession", () => {
       expect(session.activeLanguage()).toBe("python");
       expect(session.code()).toBe("const custom = true;");
       expect(session.isShowingDefaultCode()).toBe(false);
+      expect(urlPersistence.save).toHaveBeenCalledWith({
+        code: "const custom = true;",
+        engine: "micropython",
+        language: "python",
+        name: "",
+      });
     });
 
-    it("serializes multi-language engines with language suffix", () => {
+    it("serializes multi-language engines with correct engine and language", () => {
       const mockRegistry: EngineRegistry = {
         ...engineRegistry,
         getDefinition: (id: string) => {
@@ -268,34 +298,37 @@ describe("WorkspaceSession", () => {
         },
       };
 
-      const urlState = createMockUrlState();
+      const urlPersistence = createMockUrlPersistence(null);
       const session = createWorkspaceSession({
         engineRegistry: mockRegistry,
         isDefaultCodeEnabled,
-        urlState,
+        urlPersistence,
       });
 
       session.setCode("let x = 1;");
       session.selectEngine("polyglot", "typescript");
 
-      expect(urlState.set).toHaveBeenCalledWith(
-        "engine",
-        "polyglot:typescript"
-      );
+      expect(urlPersistence.save).toHaveBeenCalledWith({
+        code: "let x = 1;",
+        engine: "polyglot",
+        language: "typescript",
+        name: "",
+      });
     });
   });
 
   describe("reset", () => {
-    it("clears URL params, restores default code, resets cursor, name, and trust", () => {
-      const urlState = createMockUrlState({
+    it("clears URL, restores default code, resets cursor, name, and trust", () => {
+      const urlPersistence = createMockUrlPersistence({
         code: "custom code",
-        engine: "quickjs:javascript",
+        engine: "quickjs",
+        language: "javascript",
         name: "my_project",
       });
       const session = createWorkspaceSession({
         engineRegistry,
         isDefaultCodeEnabled,
-        urlState,
+        urlPersistence,
       });
 
       session.setCursorPosition(5, 10, 4, 1);
@@ -303,10 +336,7 @@ describe("WorkspaceSession", () => {
 
       session.reset();
 
-      expect(urlState.remove).toHaveBeenCalledWith("code");
-      expect(urlState.remove).toHaveBeenCalledWith("name");
-      expect(urlState.remove).toHaveBeenCalledWith("engine");
-
+      expect(urlPersistence.clear).toHaveBeenCalled();
       expect(session.projectName()).toBe("untitled_project");
       expect(session.displayName()).toBe("Untitled");
       expect(session.cursorPosition()).toEqual({
@@ -323,11 +353,11 @@ describe("WorkspaceSession", () => {
 
   describe("loadFile", () => {
     it("loads file content, strips extension for project name, switches engine, and arms trust gate", () => {
-      const urlState = createMockUrlState();
+      const urlPersistence = createMockUrlPersistence(null);
       const session = createWorkspaceSession({
         engineRegistry,
         isDefaultCodeEnabled,
-        urlState,
+        urlPersistence,
       });
 
       session.loadFile({
@@ -345,22 +375,27 @@ describe("WorkspaceSession", () => {
       expect(session.isShowingDefaultCode()).toBe(false);
       expect(session.isTrustRequired()).toBe(true);
 
-      expect(urlState.set).toHaveBeenCalledWith(
-        "code",
-        "print('imported from file')"
-      );
-      expect(urlState.set).toHaveBeenCalledWith("name", "algorithm");
-      expect(urlState.set).toHaveBeenCalledWith("engine", "micropython");
+      expect(urlPersistence.save).toHaveBeenCalledWith({
+        code: "print('imported from file')",
+        engine: "micropython",
+        language: "python",
+        name: "algorithm",
+      });
     });
   });
 
   describe("trust management", () => {
     it("grants trust and re-arms trust gate when requested", () => {
-      const urlState = createMockUrlState({ code: "alert('hi')" });
+      const urlPersistence = createMockUrlPersistence({
+        code: "alert('hi')",
+        engine: "quickjs",
+        language: "javascript",
+        name: "",
+      });
       const session = createWorkspaceSession({
         engineRegistry,
         isDefaultCodeEnabled,
-        urlState,
+        urlPersistence,
       });
 
       expect(session.isTrustRequired()).toBe(true);
