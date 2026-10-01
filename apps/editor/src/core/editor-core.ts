@@ -16,7 +16,7 @@ import type { SettingsModel } from "./models/settings.ts";
 import { createSettingsModel } from "./models/settings.ts";
 import type { FileIoPort } from "./ports/file-io.ts";
 import type { PersistencePort } from "./ports/persistence.ts";
-import type { UrlStatePort } from "./ports/url-state.ts";
+import type { UrlPersistencePort } from "./ports/url-persistence.ts";
 import type { ShortcutRegistry } from "./shortcuts/registry.ts";
 import {
   createShortcutRegistry,
@@ -27,7 +27,7 @@ import {
 export interface EditorCoreDeps {
   fileIo: FileIoPort;
   persistence: PersistencePort;
-  urlState: UrlStatePort;
+  urlPersistence: UrlPersistencePort;
 }
 
 /**
@@ -63,7 +63,7 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
   const session = createWorkspaceSession({
     engineRegistry,
     isDefaultCodeEnabled: () => settings.settings.isDefaultCodeEnabled,
-    urlState: deps.urlState,
+    urlPersistence: deps.urlPersistence,
   });
   const output = createOutputModel();
   const overlays = createOverlayModel();

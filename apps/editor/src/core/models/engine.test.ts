@@ -1,9 +1,10 @@
 import { EngineMethod } from "@glyphide/rpc-protocol/constants";
+import type { CanonicalState } from "@glyphide/url-migration/types";
 import { waitFor } from "@solidjs/testing-library";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { createEngineRegistry } from "../engine/registry.ts";
 import type { PersistencePort } from "../ports/persistence.ts";
-import type { UrlStatePort } from "../ports/url-state.ts";
+import type { UrlPersistencePort } from "../ports/url-persistence.ts";
 import { createEngineModel } from "./engine.ts";
 import { createOutputModel } from "./output.ts";
 import { createWorkspaceSession, type WorkspaceSession } from "./session.ts";
@@ -18,25 +19,28 @@ function createMockPersistence(): PersistencePort {
   };
 }
 
-function createMockUrlState(): UrlStatePort & {
-  removeCalls: string[];
-  setCalls: Array<{ key: string; value: string }>;
+function createMockUrlPersistence(
+  state: CanonicalState | null = null
+): UrlPersistencePort & {
+  clearCalls: number;
+  saveCalls: CanonicalState[];
 } {
-  const data = new Map();
-  const setCalls: Array<{ key: string; value: string }> = [];
-  const removeCalls: string[] = [];
+  let current: CanonicalState | null = state;
+  const saveCalls: CanonicalState[] = [];
+  let clearCalls = 0;
   return {
-    get: (key) => data.get(key) ?? null,
-    remove: (key) => {
-      data.delete(key);
-      removeCalls.push(key);
-    },
-    removeCalls,
-    set: (key, val) => {
-      data.set(key, val);
-      setCalls.push({ key, value: val });
-    },
-    setCalls,
+    clear: vi.fn(() => {
+      clearCalls += 1;
+      current = null;
+    }),
+    clearCalls,
+    load: vi.fn(() => current),
+    save: vi.fn((next: CanonicalState) => {
+      current = next;
+      saveCalls.push(next);
+      return { isShareable: true };
+    }),
+    saveCalls,
   };
 }
 
@@ -130,15 +134,15 @@ describe("EngineModel (Integration)", () => {
   let output: ReturnType<typeof createOutputModel>;
   let settings: ReturnType<typeof createSettingsModel>;
   let registry: ReturnType<typeof createEngineRegistry>;
-  let urlState: ReturnType<typeof createMockUrlState>;
+  let urlPersistence: ReturnType<typeof createMockUrlPersistence>;
 
   beforeEach(() => {
-    urlState = createMockUrlState();
+    urlPersistence = createMockUrlPersistence();
     registry = createTestRegistry();
     session = createWorkspaceSession({
       engineRegistry: registry,
       isDefaultCodeEnabled: () => false,
-      urlState,
+      urlPersistence,
     });
     output = createOutputModel();
     settings = createSettingsModel(createMockPersistence());
@@ -227,11 +231,16 @@ describe("EngineModel (Integration)", () => {
   });
 
   it("reads engine and language from session initialized from urlState", () => {
-    urlState.set("engine", "mock:typescript");
+    urlPersistence.save({
+      code: "",
+      engine: "mock",
+      language: "typescript",
+      name: "",
+    });
     const urlSession = createWorkspaceSession({
       engineRegistry: registry,
       isDefaultCodeEnabled: () => false,
-      urlState,
+      urlPersistence,
     });
     const model = createEngineModel({
       output,
@@ -244,11 +253,16 @@ describe("EngineModel (Integration)", () => {
   });
 
   it("falls back to quickjs if urlState contains an unknown engine", () => {
-    urlState.set("engine", "unknown-engine:python");
+    urlPersistence.save({
+      code: "",
+      engine: "unknown-engine",
+      language: "python",
+      name: "",
+    });
     const fallbackSession = createWorkspaceSession({
       engineRegistry: registry,
       isDefaultCodeEnabled: () => false,
-      urlState,
+      urlPersistence,
     });
     const model = createEngineModel({
       output,
@@ -442,15 +456,15 @@ describe("EngineModel URL conditional persistence (delegated to WorkspaceSession
   let output: ReturnType<typeof createOutputModel>;
   let settings: ReturnType<typeof createSettingsModel>;
   let registry: ReturnType<typeof createEngineRegistry>;
-  let urlState: ReturnType<typeof createMockUrlState>;
+  let urlPersistence: ReturnType<typeof createMockUrlPersistence>;
 
   beforeEach(() => {
-    urlState = createMockUrlState();
+    urlPersistence = createMockUrlPersistence();
     registry = createTestRegistry();
     session = createWorkspaceSession({
       engineRegistry: registry,
       isDefaultCodeEnabled: () => false,
-      urlState,
+      urlPersistence,
     });
     output = createOutputModel();
     settings = createSettingsModel(createMockPersistence());
@@ -459,23 +473,23 @@ describe("EngineModel URL conditional persistence (delegated to WorkspaceSession
 
   it("clearing code removes engine from URL", () => {
     session.setCode("hello");
-    expect(urlState.get("engine")).toBe("quickjs:javascript");
+    expect(urlPersistence.load()?.engine).toBe("quickjs");
 
     session.setCode("");
-    expect(urlState.get("engine")).toBeNull();
-    expect(urlState.removeCalls).toContain("engine");
+    expect(urlPersistence.load()).toBeNull();
+    expect(urlPersistence.clear).toHaveBeenCalled();
   });
 
   it("clearing code with no engine in URL leaves URL without engine", () => {
-    expect(urlState.get("engine")).toBeNull();
+    expect(urlPersistence.load()).toBeNull();
     session.setCode("");
-    expect(urlState.get("engine")).toBeNull();
+    expect(urlPersistence.load()).toBeNull();
   });
 
   it("typing code with no engine in URL writes the active engine", () => {
-    expect(urlState.get("engine")).toBeNull();
+    expect(urlPersistence.load()).toBeNull();
     session.setCode("code");
-    expect(urlState.get("engine")).toBe("quickjs:javascript");
+    expect(urlPersistence.load()?.engine).toBe("quickjs");
   });
 
   it("selectEngineEntry with non-empty code writes engine to URL", () => {
@@ -493,7 +507,7 @@ describe("EngineModel URL conditional persistence (delegated to WorkspaceSession
       language: "javascript",
     });
 
-    expect(urlState.get("engine")).toBe("mock:javascript");
+    expect(urlPersistence.load()?.engine).toBe("mock");
   });
 
   it("selectEngineEntry with empty code skips URL write", () => {
@@ -503,7 +517,7 @@ describe("EngineModel URL conditional persistence (delegated to WorkspaceSession
       session,
       settings,
     });
-    const setCallsBefore = urlState.setCalls.length;
+    const saveCallsBefore = urlPersistence.saveCalls.length;
 
     model.selectEngineEntry({
       engineId: "mock",
@@ -512,10 +526,7 @@ describe("EngineModel URL conditional persistence (delegated to WorkspaceSession
     });
 
     expect(model.activeEngineId()).toBe("mock");
-    const newEngineSet = urlState.setCalls
-      .slice(setCallsBefore)
-      .find((c) => c.key === "engine");
-    expect(newEngineSet).toBeUndefined();
+    expect(urlPersistence.saveCalls.length).toBe(saveCallsBefore);
   });
 });
 
@@ -524,15 +535,15 @@ describe("EngineModel select/init split contract", () => {
   let output: ReturnType<typeof createOutputModel>;
   let settings: ReturnType<typeof createSettingsModel>;
   let registry: ReturnType<typeof createEngineRegistry>;
-  let urlState: ReturnType<typeof createMockUrlState>;
+  let urlPersistence: ReturnType<typeof createMockUrlPersistence>;
 
   beforeEach(() => {
-    urlState = createMockUrlState();
+    urlPersistence = createMockUrlPersistence();
     registry = createTestRegistry();
     session = createWorkspaceSession({
       engineRegistry: registry,
       isDefaultCodeEnabled: () => false,
-      urlState,
+      urlPersistence,
     });
     output = createOutputModel();
     settings = createSettingsModel(createMockPersistence());
