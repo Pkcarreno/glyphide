@@ -4,16 +4,12 @@ import type { EngineRegistry } from "./engine/registry.ts";
 import { createEngineRegistry } from "./engine/registry.ts";
 import type { EngineModel } from "./models/engine.ts";
 import { createEngineModel } from "./models/engine.ts";
-import type { FileLoadModel } from "./models/file-load.ts";
-import { createFileLoadModel } from "./models/file-load.ts";
 import type { NotificationModel } from "./models/notifications.ts";
 import { createNotificationModel } from "./models/notifications.ts";
 import type { OutputModel } from "./models/output.ts";
 import { createOutputModel } from "./models/output.ts";
 import type { OverlayModel } from "./models/overlay.ts";
 import { createOverlayModel } from "./models/overlay.ts";
-import type { PwaModel } from "./models/pwa.ts";
-import { createPwaModel } from "./models/pwa.ts";
 import type { WorkspaceSession } from "./models/session.ts";
 import { createWorkspaceSession } from "./models/session.ts";
 import type { SettingsModel } from "./models/settings.ts";
@@ -48,11 +44,9 @@ export interface EditorCore {
   engineRegistry: EngineRegistry;
   /** Local file IO port (read/write). */
   fileIo: FileIoPort;
-  fileLoad: FileLoadModel;
   notifications: NotificationModel;
   output: OutputModel;
   overlays: OverlayModel;
-  pwa: PwaModel;
   session: WorkspaceSession;
   settings: SettingsModel;
   shortcuts: ShortcutRegistry;
@@ -74,8 +68,6 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
   const output = createOutputModel();
   const overlays = createOverlayModel();
   const notifications = createNotificationModel();
-  const pwa = createPwaModel();
-  const fileLoad = createFileLoadModel();
   const engine = createEngineModel({
     output,
     registry: engineRegistry,
@@ -112,11 +104,9 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
     engine,
     engineRegistry,
     fileIo: deps.fileIo,
-    fileLoad,
     notifications,
     output,
     overlays,
-    pwa,
     session,
     settings,
     shortcuts,

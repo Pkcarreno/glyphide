@@ -9,6 +9,7 @@ import Square from "lucide-solid/icons/square";
 import type { JSX } from "solid-js";
 import { Show, splitProps } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
+import { usePwaUpdate } from "../../core/pwa-registration.tsx";
 import { cn } from "../../helpers/cn.ts";
 import { Button } from "../atoms/Button.tsx";
 import { Dropdown } from "../atoms/Dropdown.tsx";
@@ -32,6 +33,7 @@ function Header(props: HeaderProps) {
   const [local, rest] = splitProps(props, ["class"]);
 
   const core = useEditor();
+  const pwa = usePwaUpdate();
 
   function handleRunClick() {
     if (core.engine.engineStatus() === "running") {
@@ -106,10 +108,10 @@ function Header(props: HeaderProps) {
                   Engine Settings
                 </Dropdown.Item>
               </Dropdown.Group>
-              <Show when={core.pwa.updateAvailable()}>
+              <Show when={pwa.updateAvailable()}>
                 <Dropdown.Separator class="block md:hidden" />
                 <Dropdown.Group class="block md:hidden">
-                  <Dropdown.Item onSelect={() => core.pwa.applyUpdate()}>
+                  <Dropdown.Item onSelect={() => pwa.applyUpdate()}>
                     Update App
                   </Dropdown.Item>
                 </Dropdown.Group>
@@ -159,13 +161,13 @@ function Header(props: HeaderProps) {
           </ActionTooltip>
         </Show>
 
-        <Show when={core.pwa.updateAvailable()}>
+        <Show when={pwa.updateAvailable()}>
           <span class="hidden md:flex">
             <ActionTooltip
               aria-label="Update Available"
               as={Button}
               class="border-outline bg-primary text-on-primary hover:bg-primary/90"
-              onClick={() => core.pwa.applyUpdate()}
+              onClick={() => pwa.applyUpdate()}
               position="bottom"
               text="New version available"
               variant="primary"

@@ -3,7 +3,7 @@ import "./index.css";
 
 import App from "./App.tsx";
 import { EditorProvider } from "./core/context.tsx";
-import { PwaRegistration } from "./core/pwa-registration.tsx";
+import { PwaProvider } from "./core/pwa-registration.tsx";
 
 const root = document.getElementById("root");
 
@@ -17,8 +17,9 @@ if (root) {
   render(
     () => (
       <EditorProvider>
-        <PwaRegistration />
-        <App />
+        <PwaProvider>
+          <App />
+        </PwaProvider>
       </EditorProvider>
     ),
     root

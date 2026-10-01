@@ -49,6 +49,7 @@ function createTestRegistry(): ReturnType<typeof createEngineRegistry> {
       }
       return {
         defaultInitParams: { timeout: 30_000 },
+        fileExtensions: [".js"],
         id,
         label: "Test Engine",
         paramDescriptors: [],
@@ -117,6 +118,8 @@ function createTestRegistry(): ReturnType<typeof createEngineRegistry> {
       };
       return worker as unknown as Worker;
     },
+    resolveByExtension: () => null,
+    supportedExtensions: [".js"],
   };
 }
 

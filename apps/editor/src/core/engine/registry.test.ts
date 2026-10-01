@@ -67,6 +67,70 @@ describe("EngineRegistry", () => {
       expect(def.defaultBufferCode).toBeUndefined();
     });
   });
+
+  describe("File extension resolution (resolveByExtension)", () => {
+    it("quickjs definition defines ['.js'] file extension", () => {
+      const def = createEngineRegistry().getDefinition("quickjs");
+      expect(def.fileExtensions).toEqual([".js"]);
+    });
+
+    it("micropython definition defines ['.py'] file extension", () => {
+      const def = createEngineRegistry().getDefinition("micropython");
+      expect(def.fileExtensions).toEqual([".py"]);
+    });
+
+    it("resolves '.js' to quickjs engine with javascript language", () => {
+      const registry = createEngineRegistry();
+      expect(registry.resolveByExtension(".js")).toEqual({
+        engineId: "quickjs",
+        language: "javascript",
+      });
+    });
+
+    it("resolves '.py' to micropython engine with python language", () => {
+      const registry = createEngineRegistry();
+      expect(registry.resolveByExtension(".py")).toEqual({
+        engineId: "micropython",
+        language: "python",
+      });
+    });
+
+    it("is case-insensitive when resolving extensions (e.g. .JS or .PY)", () => {
+      const registry = createEngineRegistry();
+      expect(registry.resolveByExtension(".JS")).toEqual({
+        engineId: "quickjs",
+        language: "javascript",
+      });
+      expect(registry.resolveByExtension(".Py")).toEqual({
+        engineId: "micropython",
+        language: "python",
+      });
+    });
+
+    it("resolves extensions without leading dot (e.g. 'js' or 'py')", () => {
+      const registry = createEngineRegistry();
+      expect(registry.resolveByExtension("js")).toEqual({
+        engineId: "quickjs",
+        language: "javascript",
+      });
+      expect(registry.resolveByExtension("py")).toEqual({
+        engineId: "micropython",
+        language: "python",
+      });
+    });
+
+    it("returns null for unsupported extensions or empty input", () => {
+      const registry = createEngineRegistry();
+      expect(registry.resolveByExtension(".txt")).toBeNull();
+      expect(registry.resolveByExtension(".json")).toBeNull();
+      expect(registry.resolveByExtension("")).toBeNull();
+    });
+
+    it("exposes all supported extensions across engines without duplicates", () => {
+      const registry = createEngineRegistry();
+      expect(registry.supportedExtensions).toEqual([".py", ".js"]);
+    });
+  });
 });
 
 function makeEntry(type: string, data: unknown) {

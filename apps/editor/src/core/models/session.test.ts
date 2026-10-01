@@ -256,6 +256,7 @@ describe("WorkspaceSession", () => {
           if (id === "polyglot") {
             return {
               defaultInitParams: { timeout: 30_000 },
+              fileExtensions: [".js", ".ts"],
               id: "polyglot",
               label: "Polyglot Engine",
               loadFactory: vi.fn(),

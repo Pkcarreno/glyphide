@@ -13,6 +13,14 @@ const applyUpdateMock = vi.fn();
 const [mockEngineStatus, setMockEngineStatus] = createSignal("idle");
 const [mockIsTrustRequired, setMockIsTrustRequired] = createSignal(false);
 const [mockUpdateAvailable, setMockUpdateAvailable] = createSignal(false);
+
+vi.mock("../../core/pwa-registration", () => ({
+  usePwaUpdate: () => ({
+    applyUpdate: applyUpdateMock,
+    updateAvailable: () => mockUpdateAvailable(),
+  }),
+}));
+
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
     commands: {
@@ -23,10 +31,6 @@ vi.mock("../../core/context", () => ({
     overlays: {
       open: openOverlayMock,
       toggle: toggleOverlayMock,
-    },
-    pwa: {
-      applyUpdate: applyUpdateMock,
-      updateAvailable: () => mockUpdateAvailable(),
     },
     session: {
       displayName: () => "TEST_PROJECT",

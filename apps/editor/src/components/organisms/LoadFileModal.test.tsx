@@ -23,23 +23,24 @@ const EXTENSION_MAP: Record<
 const OVERWRITE_RE = /overwrite/i;
 const UNSUPPORTED_RE = /unsupported file type/i;
 
+let mockSupportedExtensions: readonly string[] = [".js", ".py"];
+
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
     commands: {
       loadFile: mockLoadFile,
       resetProjectState: mockResetProjectState,
     },
+    engineRegistry: {
+      resolveByExtension: (ext: string) => EXTENSION_MAP[ext] ?? null,
+      get supportedExtensions() {
+        return mockSupportedExtensions;
+      },
+    },
     fileIo: {
       readFile: vi.fn(),
       readFileFromFile: mockReadFileFromFile,
       writeFile: vi.fn(),
-    },
-    fileLoad: {
-      error: () => null,
-      pendingFile: () => null,
-      resolveEngine: (ext: string) => EXTENSION_MAP[ext] ?? null,
-      setError: vi.fn(),
-      setPendingFile: vi.fn(),
     },
     overlays: {
       close: mockCloseOverlay,
@@ -70,6 +71,7 @@ describe("LoadFileModal", () => {
     setMockIsOpen(false);
     mockBufferContent.mockReturnValue("");
     mockReadFileFromFile.mockReset();
+    mockSupportedExtensions = [".js", ".py"];
     vi.clearAllMocks();
   });
 
@@ -261,5 +263,28 @@ describe("LoadFileModal", () => {
 
     // Overwrite confirmation should be gone
     expect(queryByText(OVERWRITE_RE)).toBeNull();
+  });
+
+  it("dynamically derives FileDrop accept and error message from engineRegistry.supportedExtensions", async () => {
+    mockSupportedExtensions = [".lua", ".rb"];
+    setMockIsOpen(true);
+    mockReadFileFromFile.mockResolvedValue({
+      content: "1",
+      extension: ".txt",
+      name: "x.txt",
+    });
+
+    const { container, getByRole, getByTestId } = render(() => (
+      <LoadFileModal />
+    ));
+    const input = container.querySelector("input[type='file']");
+    expect(input?.getAttribute("accept")).toBe(".lua,.rb");
+
+    dropFileOnZone(getByTestId("file-drop"), new File(["1"], "x.txt"));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(getByRole("alert").textContent).toBe(
+      "Unsupported file type. Please choose a .lua or .rb file."
+    );
   });
 });
