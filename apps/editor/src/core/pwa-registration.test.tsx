@@ -16,23 +16,24 @@ vi.mock("virtual:pwa-register/solid", () => ({
   }),
 }));
 
-interface DispatchSpyHost {
+interface SpyHost {
   applyUpdate: () => void;
-  dispatch: ReturnType<typeof vi.fn>;
+  isOfflineReady: () => boolean;
+  isUpdateAvailable: () => boolean;
 }
 
-function DispatchSpyHost(props: { setHost: (host: DispatchSpyHost) => void }) {
+function SpyHost(props: { setHost: (host: SpyHost) => void }) {
   const core = useEditor();
-  const dispatchSpy = vi.spyOn(core.dispatcher, "dispatch");
   props.setHost({
     applyUpdate: () => core.pwa.applyUpdate(),
-    dispatch: dispatchSpy,
+    isOfflineReady: () => core.pwa.offlineReady(),
+    isUpdateAvailable: () => core.pwa.updateAvailable(),
   });
   return null;
 }
 
 describe("PwaRegistration", () => {
-  let host: DispatchSpyHost | undefined;
+  let host: SpyHost | undefined;
 
   beforeEach(() => {
     host = undefined;
@@ -48,7 +49,7 @@ describe("PwaRegistration", () => {
   it("mounts inside EditorProvider and renders nothing", () => {
     const { container } = render(() => (
       <EditorProvider>
-        <DispatchSpyHost
+        <SpyHost
           setHost={(h) => {
             host = h;
           }}
@@ -57,15 +58,13 @@ describe("PwaRegistration", () => {
       </EditorProvider>
     ));
 
-    // PwaRegistration returns null; nothing should be added to the container
-    // beyond what EditorProvider itself does (which is also nothing in this subtree).
     expect(container.innerHTML).toBe("");
   });
 
-  it("does not dispatch PWA_UPDATE_AVAILABLE when needRefresh is initially false", () => {
+  it("does not set updateAvailable when needRefresh is initially false", () => {
     render(() => (
       <EditorProvider>
-        <DispatchSpyHost
+        <SpyHost
           setHost={(h) => {
             host = h;
           }}
@@ -74,16 +73,13 @@ describe("PwaRegistration", () => {
       </EditorProvider>
     ));
 
-    const updateCalls = (host?.dispatch.mock.calls ?? []).filter(
-      ([arg]) => (arg as { type: string }).type === "PWA_UPDATE_AVAILABLE"
-    );
-    expect(updateCalls).toHaveLength(0);
+    expect(host?.isUpdateAvailable()).toBe(false);
   });
 
-  it("dispatches PWA_UPDATE_AVAILABLE exactly once when needRefresh becomes true", async () => {
+  it("sets updateAvailable to true when needRefresh becomes true", async () => {
     render(() => (
       <EditorProvider>
-        <DispatchSpyHost
+        <SpyHost
           setHost={(h) => {
             host = h;
           }}
@@ -95,23 +91,14 @@ describe("PwaRegistration", () => {
     setMockNeedRefresh(true);
 
     await waitFor(() => {
-      const updateCalls = (host?.dispatch.mock.calls ?? []).filter(
-        ([arg]) => (arg as { type: string }).type === "PWA_UPDATE_AVAILABLE"
-      );
-      expect(updateCalls.length).toBeGreaterThan(0);
+      expect(host?.isUpdateAvailable()).toBe(true);
     });
-
-    const updateCalls = (host?.dispatch.mock.calls ?? []).filter(
-      ([arg]) => (arg as { type: string }).type === "PWA_UPDATE_AVAILABLE"
-    );
-    expect(updateCalls).toHaveLength(1);
-    expect(updateCalls[0]?.[0]).toEqual({ type: "PWA_UPDATE_AVAILABLE" });
   });
 
-  it("dispatches PWA_OFFLINE_READY exactly once when offlineReady becomes true", async () => {
+  it("sets offlineReady to true when offlineReady becomes true", async () => {
     render(() => (
       <EditorProvider>
-        <DispatchSpyHost
+        <SpyHost
           setHost={(h) => {
             host = h;
           }}
@@ -123,23 +110,14 @@ describe("PwaRegistration", () => {
     setMockOfflineReady(true);
 
     await waitFor(() => {
-      const offlineCalls = (host?.dispatch.mock.calls ?? []).filter(
-        ([arg]) => (arg as { type: string }).type === "PWA_OFFLINE_READY"
-      );
-      expect(offlineCalls.length).toBeGreaterThan(0);
+      expect(host?.isOfflineReady()).toBe(true);
     });
-
-    const offlineCalls = (host?.dispatch.mock.calls ?? []).filter(
-      ([arg]) => (arg as { type: string }).type === "PWA_OFFLINE_READY"
-    );
-    expect(offlineCalls).toHaveLength(1);
-    expect(offlineCalls[0]?.[0]).toEqual({ type: "PWA_OFFLINE_READY" });
   });
 
-  it("does not re-dispatch when needRefresh toggles (effect re-runs but flag is set)", async () => {
+  it("does not re-trigger when needRefresh toggles (effect re-runs but flag is set)", async () => {
     render(() => (
       <EditorProvider>
-        <DispatchSpyHost
+        <SpyHost
           setHost={(h) => {
             host = h;
           }}
@@ -151,30 +129,21 @@ describe("PwaRegistration", () => {
     setMockNeedRefresh(true);
 
     await waitFor(() => {
-      const updateCalls = (host?.dispatch.mock.calls ?? []).filter(
-        ([arg]) => (arg as { type: string }).type === "PWA_UPDATE_AVAILABLE"
-      );
-      expect(updateCalls.length).toBeGreaterThan(0);
+      expect(host?.isUpdateAvailable()).toBe(true);
     });
 
-    // Toggle needRefresh off and back on — effect re-runs, but the
-    // dispatched flag is already set, so no new dispatch.
     setMockNeedRefresh(false);
     setMockNeedRefresh(true);
 
-    // Give the effect a microtask to settle
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    const updateCalls = (host?.dispatch.mock.calls ?? []).filter(
-      ([arg]) => (arg as { type: string }).type === "PWA_UPDATE_AVAILABLE"
-    );
-    expect(updateCalls).toHaveLength(1);
+    expect(host?.isUpdateAvailable()).toBe(true);
   });
 
   it("wires applyUpdate to updateServiceWorker from the virtual module", () => {
     render(() => (
       <EditorProvider>
-        <DispatchSpyHost
+        <SpyHost
           setHost={(h) => {
             host = h;
           }}
@@ -183,9 +152,6 @@ describe("PwaRegistration", () => {
       </EditorProvider>
     ));
 
-    // PwaRegistration has rebound core.pwa.applyUpdate to call
-    // updateServiceWorker. The host reads it AFTER mount, so the
-    // rebound function is the one captured.
     expect(host).toBeDefined();
     host?.applyUpdate();
     expect(updateServiceWorkerMock).toHaveBeenCalled();

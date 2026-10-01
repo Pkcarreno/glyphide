@@ -1,3 +1,4 @@
+import type { JSX } from "solid-js";
 import { splitProps } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { cn } from "../../helpers/cn.ts";
@@ -9,24 +10,24 @@ import {
   DialogTitle,
 } from "../molecules/Dialog.tsx";
 
-interface TrustRequiredModalProps {
+interface TrustRequiredModalProps extends JSX.HTMLAttributes<HTMLDivElement> {
   class?: string;
 }
 
 /**
- * Trust consent dialog that blocks engine execution until the user
- * explicitly grants trust. Uses the Dialog compound with
- * preventBackdropClose to prevent accidental dismissal.
+ * Modal shown when code requires user trust before execution.
+ * Appears when the workspace contains untrusted shared code.
  */
 export function TrustRequiredModal(props: TrustRequiredModalProps) {
   const [local, rest] = splitProps(props, ["class"]);
   const core = useEditor();
 
   const handleOpenChange = (isOpen: boolean) => {
-    core.dispatcher.dispatch({
-      overlayId: "trust-required",
-      type: isOpen ? "OPEN_OVERLAY" : "CLOSE_OVERLAY",
-    });
+    if (isOpen) {
+      core.overlays.open("trust-required");
+    } else {
+      core.overlays.close("trust-required");
+    }
   };
 
   return (
@@ -59,7 +60,7 @@ export function TrustRequiredModal(props: TrustRequiredModalProps) {
           <div class="flex gap-3">
             <Button
               class="flex-1"
-              onClick={() => core.dispatcher.dispatch({ type: "GRANT_TRUST" })}
+              onClick={() => core.commands.grantTrust()}
               variant="outline"
             >
               Trust
@@ -67,12 +68,7 @@ export function TrustRequiredModal(props: TrustRequiredModalProps) {
             <Button
               autofocus={true}
               class="flex-1"
-              onClick={() =>
-                core.dispatcher.dispatch({
-                  overlayId: "trust-required",
-                  type: "CLOSE_OVERLAY",
-                })
-              }
+              onClick={() => core.overlays.close("trust-required")}
               variant="primary"
             >
               Deny

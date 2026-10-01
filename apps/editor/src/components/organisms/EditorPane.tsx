@@ -17,7 +17,7 @@ function EditorPane(props: EditorPaneProps) {
   const core = useEditor();
 
   function handleValueChange(value: string) {
-    core.dispatcher.dispatch({ content: value, type: "UPDATE_BUFFER" });
+    core.commands.updateBuffer(value);
   }
 
   function handleCursorChange(
@@ -26,13 +26,12 @@ function EditorPane(props: EditorPaneProps) {
     selectionLength: number,
     selectionLines: number
   ) {
-    core.dispatcher.dispatch({
-      column,
+    core.session.setCursorPosition(
       line,
+      column,
       selectionLength,
-      selectionLines,
-      type: "UPDATE_CURSOR_POSITION",
-    });
+      selectionLines
+    );
   }
 
   const isDark = () => {

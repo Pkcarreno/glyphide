@@ -1,5 +1,18 @@
 import { createSignal } from "solid-js";
-import type { OverlayId } from "../actions/types.ts";
+
+/**
+ * Uniquely identifies an overlay (modal, menu, etc).
+ * @public
+ */
+export type OverlayId =
+  | "settings"
+  | "project-rename"
+  | "engine-settings"
+  | "engine-selector"
+  | "trust-required"
+  | "share"
+  | "load-file"
+  | string;
 
 /**
  * Pure model for global overlays (modals, command menus).

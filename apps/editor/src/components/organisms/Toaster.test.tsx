@@ -7,13 +7,13 @@ import { Toaster } from "./Toaster.tsx";
 const [mockActiveToasts, setMockActiveToasts] = createSignal<
   NotificationItem[]
 >([]);
-const mockDispatch = vi.fn();
+const mockDismissToast = vi.fn();
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    dispatcher: { dispatch: mockDispatch },
     notifications: {
       activeToasts: mockActiveToasts,
+      dismissToast: mockDismissToast,
     },
   }),
 }));
@@ -21,7 +21,7 @@ vi.mock("../../core/context", () => ({
 describe("Toaster", () => {
   beforeEach(() => {
     setMockActiveToasts([]);
-    mockDispatch.mockClear();
+    mockDismissToast.mockClear();
     vi.useFakeTimers();
   });
 
@@ -57,7 +57,7 @@ describe("Toaster", () => {
     expect(getByText("Toast 2")).toBeTruthy();
   });
 
-  it("dispatches DISMISS_TOAST when a toast is closed", () => {
+  it("calls notifications.dismissToast when a toast is closed", () => {
     setMockActiveToasts([
       {
         id: "toast-to-dismiss",
@@ -72,12 +72,9 @@ describe("Toaster", () => {
     const closeButton = getByRole("button", { name: "Close" });
     fireEvent.click(closeButton);
 
-    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockDismissToast).not.toHaveBeenCalled();
     vi.advanceTimersByTime(300);
 
-    expect(mockDispatch).toHaveBeenCalledWith({
-      id: "toast-to-dismiss",
-      type: "DISMISS_TOAST",
-    });
+    expect(mockDismissToast).toHaveBeenCalledWith("toast-to-dismiss");
   });
 });

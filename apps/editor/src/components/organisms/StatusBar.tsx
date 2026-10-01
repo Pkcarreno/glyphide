@@ -8,8 +8,8 @@ import {
   Show,
   splitProps,
 } from "solid-js";
-import type { EditorAction } from "../../core/actions/types.ts";
 import { useEditor } from "../../core/context.tsx";
+import type { CommandId } from "../../core/shortcuts/registry.ts";
 import { cn } from "../../helpers/cn.ts";
 import { Icon } from "../atoms/Icon.tsx";
 import { ActionTooltip } from "../molecules/ActionTooltip.tsx";
@@ -45,23 +45,20 @@ function StatusBarItem(props: StatusBarItemProps) {
   );
 }
 
-type TooltipConfig =
-  | { tooltipAction: EditorAction; tooltipShortcut?: never }
-  | { tooltipAction?: never; tooltipShortcut?: string }
-  | { tooltipAction?: never; tooltipShortcut?: never };
-
 interface StatusBarButtonBaseProps
   extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
   children: JSX.Element;
   class?: string;
+  commandId?: CommandId;
   tooltip?: string;
   tooltipDescription?: string;
+  tooltipShortcut?: string;
 }
 
 /**
  * Props for the StatusBarButton component.
  */
-type StatusBarButtonProps = StatusBarButtonBaseProps & TooltipConfig;
+type StatusBarButtonProps = StatusBarButtonBaseProps;
 
 /**
  * Interactive button for the StatusBar.
@@ -70,10 +67,10 @@ type StatusBarButtonProps = StatusBarButtonBaseProps & TooltipConfig;
 function StatusBarButton(props: StatusBarButtonProps) {
   const [local, rest] = splitProps(props, [
     "class",
+    "commandId",
     "tooltip",
     "tooltipShortcut",
     "tooltipDescription",
-    "tooltipAction",
     "children",
   ]);
 
@@ -95,12 +92,11 @@ function StatusBarButton(props: StatusBarButtonProps) {
       <ActionTooltip
         as="button"
         class={buttonClass}
+        commandId={local.commandId}
         meta={local.tooltipDescription}
         position="top"
+        shortcut={local.tooltipShortcut}
         text={local.tooltip ?? ""}
-        {...(local.tooltipAction
-          ? { action: local.tooltipAction }
-          : { shortcut: local.tooltipShortcut })}
         {...rest}
       >
         {local.children}
@@ -151,10 +147,7 @@ function StatusBar(props: StatusBarProps) {
   const core = useEditor();
 
   function openEngineSelector() {
-    core.dispatcher.dispatch({
-      overlayId: "engine-selector",
-      type: "OPEN_OVERLAY",
-    });
+    core.overlays.open("engine-selector");
   }
 
   return (
@@ -198,10 +191,6 @@ function StatusBar(props: StatusBarProps) {
           <StatusBarButton
             onClick={openEngineSelector}
             tooltip="Select Engine"
-            tooltipAction={{
-              overlayId: "engine-selector",
-              type: "OPEN_OVERLAY",
-            }}
             tooltipDescription="Switch the active execution engine."
           >
             <span>{core.engine.activeEngineId()}</span>
@@ -211,9 +200,7 @@ function StatusBar(props: StatusBarProps) {
         {core.engine.engineStatus() === "error" ? (
           <StatusBarButton
             aria-label="Retry engine initialization"
-            onClick={() =>
-              core.dispatcher.dispatch({ type: "RETRY_ENGINE_INIT" })
-            }
+            onClick={() => core.commands.retryEngineInit()}
             tooltip="Retry Initialization"
           >
             <Icon class="text-red-500" icon={RefreshCcw} size={12} />
@@ -223,12 +210,7 @@ function StatusBar(props: StatusBarProps) {
           <span class="hidden md:block">
             <StatusBarButton
               id="engine-settings-trigger"
-              onClick={() =>
-                core.dispatcher.dispatch({
-                  overlayId: "engine-settings",
-                  type: "OPEN_OVERLAY",
-                })
-              }
+              onClick={() => core.overlays.open("engine-settings")}
               tooltip="Engine Settings"
             >
               <Icon icon={Settings2} size={14} />

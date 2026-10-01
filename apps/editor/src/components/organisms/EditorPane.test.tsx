@@ -3,16 +3,18 @@ import { createSignal } from "solid-js";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { EditorPane } from "./EditorPane.tsx";
 
-const dispatchMock = vi.fn();
+const updateBufferMock = vi.fn();
+const setCursorPositionMock = vi.fn();
 const [mockIsTrustRequired, setMockIsTrustRequired] = createSignal(false);
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    dispatcher: { dispatch: dispatchMock },
+    commands: { updateBuffer: updateBufferMock },
     engine: { activeLanguage: () => "javascript" },
     session: {
       code: () => "",
       isTrustRequired: () => mockIsTrustRequired(),
+      setCursorPosition: setCursorPositionMock,
     },
     settings: { settings: { isWordWrapEnabled: false, theme: "system" } },
   }),

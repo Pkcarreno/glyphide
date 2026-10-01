@@ -5,14 +5,25 @@ import { Header } from "./Header.tsx";
 
 vi.stubGlobal("console", { info: vi.fn() });
 
-const dispatchMock = vi.fn();
+const runCodeMock = vi.fn();
+const interruptExecutionMock = vi.fn();
+const openOverlayMock = vi.fn();
+const toggleOverlayMock = vi.fn();
 const applyUpdateMock = vi.fn();
+const [mockEngineStatus, setMockEngineStatus] = createSignal("idle");
 const [mockIsTrustRequired, setMockIsTrustRequired] = createSignal(false);
 const [mockUpdateAvailable, setMockUpdateAvailable] = createSignal(false);
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    dispatcher: { dispatch: dispatchMock },
-    engine: { engineStatus: () => "idle" },
+    commands: {
+      interruptExecution: interruptExecutionMock,
+      runCode: runCodeMock,
+    },
+    engine: { engineStatus: () => mockEngineStatus() },
+    overlays: {
+      open: openOverlayMock,
+      toggle: toggleOverlayMock,
+    },
     pwa: {
       applyUpdate: applyUpdateMock,
       updateAvailable: () => mockUpdateAvailable(),
@@ -22,18 +33,27 @@ vi.mock("../../core/context", () => ({
       isTrustRequired: () => mockIsTrustRequired(),
       projectName: () => "TEST_PROJECT",
     },
+    shortcuts: {
+      getBinding: () => undefined,
+    },
   }),
 }));
 
 const TEST_PROJECT_REGEX = /TEST_PROJECT/;
 const RUN_REGEX = /Run/;
+const STOP_REGEX = /stop/i;
 const TRUST_REGEX = /trust/i;
 const UPDATE_REGEX = /update/i;
 const VERSION_LABELS_REGEX = /Glyphide v/;
 
 describe("Header", () => {
   beforeEach(() => {
-    dispatchMock.mockClear();
+    runCodeMock.mockClear();
+    interruptExecutionMock.mockClear();
+    openOverlayMock.mockClear();
+    toggleOverlayMock.mockClear();
+    applyUpdateMock.mockClear();
+    setMockEngineStatus("idle");
     setMockIsTrustRequired(false);
   });
 
@@ -42,29 +62,37 @@ describe("Header", () => {
     expect(getByText(TEST_PROJECT_REGEX)).toBeTruthy();
   });
 
-  it("when settings button clicked, dispatches TOGGLE_OVERLAY action", () => {
+  it("when settings button clicked, toggles settings overlay", () => {
     const { getByRole } = render(() => <Header />);
     getByRole("button", { name: "Settings" }).click();
-    expect(dispatchMock).toHaveBeenCalledWith({
-      overlayId: "settings",
-      type: "TOGGLE_OVERLAY",
-    });
+    expect(toggleOverlayMock).toHaveBeenCalledWith("settings");
   });
 
-  it("when share button clicked, dispatches OPEN_OVERLAY action for share", () => {
+  it("when share button clicked, opens share overlay", () => {
     const { getByRole } = render(() => <Header />);
     getByRole("button", { name: "Share workspace" }).click();
-    expect(dispatchMock).toHaveBeenCalledWith({
-      overlayId: "share",
-      type: "OPEN_OVERLAY",
-    });
+    expect(openOverlayMock).toHaveBeenCalledWith("share");
   });
 
-  it("when run button clicked, dispatches RUN_CODE action", () => {
+  it("when run button clicked, calls core.commands.runCode()", () => {
     const { getAllByRole } = render(() => <Header />);
     const buttons = getAllByRole("button", { name: RUN_REGEX });
     buttons[0].click();
-    expect(dispatchMock).toHaveBeenCalledWith({ type: "RUN_CODE" });
+    expect(runCodeMock).toHaveBeenCalledOnce();
+  });
+
+  it("when stop button clicked while running, calls core.commands.interruptExecution()", () => {
+    setMockEngineStatus("running");
+    const { getByRole } = render(() => <Header />);
+    const stopButton = getByRole("button", { name: STOP_REGEX });
+    stopButton.click();
+    expect(interruptExecutionMock).toHaveBeenCalledOnce();
+  });
+
+  it("when rename project button clicked, opens project-rename overlay", () => {
+    const { getByRole } = render(() => <Header />);
+    getByRole("button", { name: "Rename Project" }).click();
+    expect(openOverlayMock).toHaveBeenCalledWith("project-rename");
   });
 
   it("when custom class is provided, merges it", () => {
@@ -84,31 +112,28 @@ describe("Header", () => {
       expect(getByRole("button", { name: TRUST_REGEX })).toBeTruthy();
     });
 
-    it("when trust indicator clicked, dispatches OPEN_OVERLAY for trust-required", () => {
+    it("when trust indicator clicked, opens trust-required overlay", () => {
       setMockIsTrustRequired(true);
       const { getByRole } = render(() => <Header />);
       const indicator = getByRole("button", { name: TRUST_REGEX });
       indicator.click();
-      expect(dispatchMock).toHaveBeenCalledWith({
-        overlayId: "trust-required",
-        type: "OPEN_OVERLAY",
-      });
+      expect(openOverlayMock).toHaveBeenCalledWith("trust-required");
     });
 
-    it("when trust required, run button still dispatches RUN_CODE (gate is in core)", () => {
+    it("when trust required, run button still calls runCode (gate is in core)", () => {
       setMockIsTrustRequired(true);
       const { getAllByRole } = render(() => <Header />);
       const buttons = getAllByRole("button", { name: RUN_REGEX });
       buttons[0].click();
-      // The Header still dispatches RUN_CODE — the core guard blocks it
-      expect(dispatchMock).toHaveBeenCalledWith({ type: "RUN_CODE" });
+      expect(runCodeMock).toHaveBeenCalledOnce();
     });
   });
 });
 
 describe("Header - Mobile Dropdown Items", () => {
   beforeEach(() => {
-    dispatchMock.mockClear();
+    openOverlayMock.mockClear();
+    toggleOverlayMock.mockClear();
     setMockIsTrustRequired(false);
   });
 
@@ -155,7 +180,7 @@ describe("Header - Mobile Dropdown Items", () => {
     expect(openFileItem?.textContent).toContain("Open File");
   });
 
-  it("when dropdown Open File item is clicked, dispatches OPEN_OVERLAY for load-file", () => {
+  it("when dropdown Open File item is clicked, opens load-file overlay", () => {
     const { getByRole } = render(() => <Header />);
 
     const triggerButton = getByRole("button", { name: "Menu" });
@@ -169,13 +194,10 @@ describe("Header - Mobile Dropdown Items", () => {
     expect(openFileItem).toBeTruthy();
     openFileItem?.click();
 
-    expect(dispatchMock).toHaveBeenCalledWith({
-      overlayId: "load-file",
-      type: "OPEN_OVERLAY",
-    });
+    expect(openOverlayMock).toHaveBeenCalledWith("load-file");
   });
 
-  it("when dropdown Settings item is clicked, dispatches TOGGLE_OVERLAY for settings", () => {
+  it("when dropdown Settings item is clicked, toggles settings overlay", () => {
     const { getByRole } = render(() => <Header />);
 
     // Open the dropdown
@@ -191,13 +213,10 @@ describe("Header - Mobile Dropdown Items", () => {
     expect(settingsItem).toBeTruthy();
     settingsItem?.click();
 
-    expect(dispatchMock).toHaveBeenCalledWith({
-      overlayId: "settings",
-      type: "TOGGLE_OVERLAY",
-    });
+    expect(toggleOverlayMock).toHaveBeenCalledWith("settings");
   });
 
-  it("when dropdown Share item is clicked, dispatches OPEN_OVERLAY for share", () => {
+  it("when dropdown Share item is clicked, opens share overlay", () => {
     const { getByRole } = render(() => <Header />);
 
     // Open the dropdown
@@ -211,13 +230,10 @@ describe("Header - Mobile Dropdown Items", () => {
     expect(shareItem).toBeTruthy();
     shareItem?.click();
 
-    expect(dispatchMock).toHaveBeenCalledWith({
-      overlayId: "share",
-      type: "OPEN_OVERLAY",
-    });
+    expect(openOverlayMock).toHaveBeenCalledWith("share");
   });
 
-  it("when dropdown Select Engine item is clicked, dispatches OPEN_OVERLAY for engine-selector", () => {
+  it("when dropdown Select Engine item is clicked, opens engine-selector overlay", () => {
     const { getByRole } = render(() => <Header />);
 
     // Open the dropdown
@@ -233,13 +249,10 @@ describe("Header - Mobile Dropdown Items", () => {
     expect(selectEngineItem).toBeTruthy();
     selectEngineItem?.click();
 
-    expect(dispatchMock).toHaveBeenCalledWith({
-      overlayId: "engine-selector",
-      type: "OPEN_OVERLAY",
-    });
+    expect(openOverlayMock).toHaveBeenCalledWith("engine-selector");
   });
 
-  it("when dropdown Engine Settings item is clicked, dispatches OPEN_OVERLAY for engine-settings", () => {
+  it("when dropdown Engine Settings item is clicked, opens engine-settings overlay", () => {
     const { getByRole } = render(() => <Header />);
 
     // Open the dropdown
@@ -255,10 +268,7 @@ describe("Header - Mobile Dropdown Items", () => {
     expect(engineSettingsItem).toBeTruthy();
     engineSettingsItem?.click();
 
-    expect(dispatchMock).toHaveBeenCalledWith({
-      overlayId: "engine-settings",
-      type: "OPEN_OVERLAY",
-    });
+    expect(openOverlayMock).toHaveBeenCalledWith("engine-settings");
   });
 
   describe("PWA update button", () => {

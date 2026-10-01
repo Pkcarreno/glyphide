@@ -5,7 +5,8 @@ import { SettingsModal } from "./SettingsModal.tsx";
 
 const updateSettingsMock = vi.fn();
 const resetSettingMock = vi.fn();
-const dispatchMock = vi.fn();
+const mockCloseOverlay = vi.fn();
+const mockOpenOverlay = vi.fn();
 
 const [mockIsOpen, setMockIsOpen] = createSignal(false);
 const [mockSettings, setMockSettings] = createSignal({
@@ -22,9 +23,10 @@ const [mockSettings, setMockSettings] = createSignal({
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    dispatcher: { dispatch: dispatchMock },
     overlays: {
+      close: mockCloseOverlay,
       isOpen: (id: string) => id === "settings" && mockIsOpen(),
+      open: mockOpenOverlay,
     },
     settings: {
       resetSetting: resetSettingMock,
@@ -118,15 +120,12 @@ describe("SettingsModal", () => {
     expect(appearancePanel?.hasAttribute("hidden")).toBe(true);
   });
 
-  it("when close button clicked, fires dispatcher CLOSE_OVERLAY", () => {
+  it("when close button clicked, closes settings overlay", () => {
     setMockIsOpen(true);
-    dispatchMock.mockClear();
+    mockCloseOverlay.mockClear();
     const { getByRole } = render(() => <SettingsModal />);
     getByRole("button", { name: "Close settings" }).click();
-    expect(dispatchMock).toHaveBeenCalledWith({
-      overlayId: "settings",
-      type: "CLOSE_OVERLAY",
-    });
+    expect(mockCloseOverlay).toHaveBeenCalledWith("settings");
   });
 
   it("when controlled via core state, opens and closes", () => {

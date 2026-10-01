@@ -3,7 +3,9 @@ import { createSignal } from "solid-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EngineSelectorCommand } from "./EngineSelectorCommand.tsx";
 
-const dispatchMock = vi.fn();
+const mockSelectEngine = vi.fn();
+const mockCloseOverlay = vi.fn();
+const mockOpenOverlay = vi.fn();
 const [mockIsOpen, setMockIsOpen] = createSignal(false);
 
 vi.mock("../../core/engine/registry", async (importOriginal) => {
@@ -27,17 +29,21 @@ vi.mock("../../core/engine/registry", async (importOriginal) => {
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    dispatcher: { dispatch: dispatchMock },
+    commands: { selectEngine: mockSelectEngine },
     engineRegistry: {},
     overlays: {
+      close: mockCloseOverlay,
       isOpen: (id: string) => id === "engine-selector" && mockIsOpen(),
+      open: mockOpenOverlay,
     },
   }),
 }));
 
 describe("EngineSelectorCommand", () => {
   beforeEach(() => {
-    dispatchMock.mockClear();
+    mockSelectEngine.mockClear();
+    mockCloseOverlay.mockClear();
+    mockOpenOverlay.mockClear();
     setMockIsOpen(false);
   });
 
@@ -58,20 +64,13 @@ describe("EngineSelectorCommand", () => {
     expect(getByText("Mock Engine — Plaintext")).toBeTruthy();
   });
 
-  it("dispatches SELECT_ENGINE_ENTRY with correct language", () => {
+  it("calls commands.selectEngine with correct language and closes overlay", () => {
     setMockIsOpen(true);
     const { getByText } = render(() => <EngineSelectorCommand />);
 
     fireEvent.click(getByText("Mock Engine — Plaintext"));
 
-    expect(dispatchMock).toHaveBeenCalledWith({
-      engineId: "mock",
-      language: "plaintext",
-      type: "SELECT_ENGINE_ENTRY",
-    });
-    expect(dispatchMock).toHaveBeenCalledWith({
-      overlayId: "engine-selector",
-      type: "CLOSE_OVERLAY",
-    });
+    expect(mockSelectEngine).toHaveBeenCalledWith("mock", "plaintext");
+    expect(mockCloseOverlay).toHaveBeenCalledWith("engine-selector");
   });
 });

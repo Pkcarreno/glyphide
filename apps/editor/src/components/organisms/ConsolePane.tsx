@@ -43,7 +43,7 @@ function ConsolePane(props: ConsolePaneProps) {
   );
 
   function handleClear() {
-    core.dispatcher.dispatch({ type: "CLEAR_OUTPUT" });
+    core.output.clearEntries();
     setToggledGroups(new Set<number>());
   }
 

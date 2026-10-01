@@ -5,8 +5,8 @@ import { useEditor } from "./context.tsx";
 
 /**
  * Controller component that bridges the PWA service worker lifecycle
- * (provided by `virtual:pwa-register/solid`) into the EditorCore action
- * dispatcher. Renders nothing.
+ * (provided by `virtual:pwa-register/solid`) into the EditorCore PWA model.
+ * Renders nothing.
  *
  * Mount inside `<EditorProvider>` so the controller has access to the
  * EditorCore via `useEditor()`.
@@ -28,25 +28,25 @@ export function PwaRegistration() {
     updateServiceWorker(true);
   };
 
-  // Each action is dispatched at most once per registration lifetime.
+  // Each notification is triggered at most once per registration lifetime.
   // Re-renders or repeated signal reads must not produce duplicates.
-  let dispatchedUpdate = false;
-  let dispatchedOffline = false;
+  let notifiedUpdate = false;
+  let notifiedOffline = false;
 
   createEffect(
     on(needRefresh, (isReady) => {
-      if (isReady && !dispatchedUpdate) {
-        dispatchedUpdate = true;
-        core.dispatcher.dispatch({ type: "PWA_UPDATE_AVAILABLE" });
+      if (isReady && !notifiedUpdate) {
+        notifiedUpdate = true;
+        core.pwa.setUpdateAvailable(true);
       }
     })
   );
 
   createEffect(
     on(offlineReady, (isReady) => {
-      if (isReady && !dispatchedOffline) {
-        dispatchedOffline = true;
-        core.dispatcher.dispatch({ type: "PWA_OFFLINE_READY" });
+      if (isReady && !notifiedOffline) {
+        notifiedOffline = true;
+        core.pwa.setOfflineReady(true);
       }
     })
   );

@@ -1,11 +1,11 @@
 import type { ConsoleToken } from "@glyphide/quickjs-engine/types";
-import { render } from "@solidjs/testing-library";
+import { fireEvent, render } from "@solidjs/testing-library";
 import { createSignal } from "solid-js";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ConsoleVariant } from "../../core/engine/output-formatter.ts";
 import { ConsolePane } from "./ConsolePane.tsx";
 
-const dispatchMock = vi.fn();
+const clearEntriesMock = vi.fn();
 const [entries, setEntries] = createSignal<
   { id: string; type: string; data: unknown }[]
 >([]);
@@ -33,7 +33,6 @@ const quickjsFormatter = {
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    dispatcher: { dispatch: dispatchMock },
     engine: { activeEngineId: () => "quickjs" },
     engineRegistry: {
       getDefinition: (id: string) => ({
@@ -41,21 +40,28 @@ vi.mock("../../core/context", () => ({
         outputFormatter: id === "quickjs" ? quickjsFormatter : undefined,
       }),
     },
-    output: { entries },
+    output: { clearEntries: clearEntriesMock, entries },
   }),
 }));
 
 describe("ConsolePane", () => {
+  beforeEach(() => {
+    clearEntriesMock.mockClear();
+  });
+
   it("when rendered, displays the Output header", () => {
     setEntries([]);
     const { getByText } = render(() => <ConsolePane />);
     expect(getByText("Output")).toBeTruthy();
   });
 
-  it("renders a Clear button", () => {
+  it("renders a Clear button and calls clearEntries on click", () => {
     setEntries([]);
     const { getByText } = render(() => <ConsolePane />);
-    expect(getByText("Clear")).toBeTruthy();
+    const clearButton = getByText("Clear");
+    expect(clearButton).toBeTruthy();
+    fireEvent.click(clearButton);
+    expect(clearEntriesMock).toHaveBeenCalledTimes(1);
   });
 
   it("when custom class is provided, merges it", () => {

@@ -56,14 +56,8 @@ function EngineSettingsForm() {
     createStore<Record<string, unknown>>(initialPatch);
 
   const handleApply = () => {
-    core.dispatcher.dispatch({
-      patch: { ...localPatch },
-      type: "UPDATE_ENGINE_CONFIG",
-    });
-    core.dispatcher.dispatch({
-      overlayId: "engine-settings",
-      type: "CLOSE_OVERLAY",
-    });
+    core.engine.updateEngineConfig({ ...localPatch });
+    core.overlays.close("engine-settings");
   };
 
   return (
@@ -160,10 +154,11 @@ function EngineSettingsModal() {
   const core = useEditor();
 
   const handleOpenChange = (isOpen: boolean) => {
-    core.dispatcher.dispatch({
-      overlayId: "engine-settings",
-      type: isOpen ? "OPEN_OVERLAY" : "CLOSE_OVERLAY",
-    });
+    if (isOpen) {
+      core.overlays.open("engine-settings");
+    } else {
+      core.overlays.close("engine-settings");
+    }
   };
 
   return (

@@ -4,24 +4,41 @@ import App from "./App.tsx";
 
 vi.mock("./core/context", () => ({
   useEditor: () => ({
-    dispatcher: { dispatch: vi.fn() },
+    commands: {
+      downloadBufferToFile: vi.fn(),
+      grantTrust: vi.fn(),
+      interruptExecution: vi.fn(),
+      loadFile: vi.fn(),
+      resetProjectState: vi.fn(),
+      retryEngineInit: vi.fn(),
+      runCode: vi.fn(),
+      selectEngine: vi.fn(),
+      updateBuffer: vi.fn(),
+    },
     engine: {
       activeEngineId: () => "quickjs",
       activeInitParams: () => ({}),
       activeLanguage: () => "javascript",
       engineStatus: () => "idle",
       isDirty: () => false,
+      updateEngineConfig: vi.fn(),
     },
     engineRegistry: {
       getDefinition: () => ({ paramDescriptors: [] }),
     },
     notifications: {
       activeToasts: () => [],
+      dismissToast: vi.fn(),
       items: () => [],
       unreadCount: () => 0,
     },
-    output: { entries: () => [] },
-    overlays: { isOpen: () => false },
+    output: { clearEntries: vi.fn(), entries: () => [] },
+    overlays: {
+      close: vi.fn(),
+      isOpen: () => false,
+      open: vi.fn(),
+      toggle: vi.fn(),
+    },
     pwa: { applyUpdate: vi.fn(), updateAvailable: () => false },
     session: {
       code: () => "",
@@ -35,6 +52,8 @@ vi.mock("./core/context", () => ({
       isTrustRequired: () => false,
       isUrlShareable: () => true,
       projectName: () => "TEST_PROJECT",
+      setCursorPosition: vi.fn(),
+      setProjectName: vi.fn(),
     },
     settings: {
       settings: {
@@ -46,6 +65,9 @@ vi.mock("./core/context", () => ({
         theme: "system",
         uiFontSize: 14,
       },
+    },
+    shortcuts: {
+      getBinding: () => undefined,
     },
   }),
 }));

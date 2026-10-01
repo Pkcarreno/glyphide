@@ -1,16 +1,18 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { StatusBar } from "./StatusBar.tsx";
 
-const { mockCursorPositionFn, dispatchMock } = vi.hoisted(() => ({
-  dispatchMock: vi.fn(),
-  mockCursorPositionFn: vi.fn(() => ({
-    column: 5,
-    line: 1,
-    selectionLength: 0,
-    selectionLines: 0,
-  })),
-}));
+const { mockCursorPositionFn, retryEngineInitMock, openOverlayMock } =
+  vi.hoisted(() => ({
+    mockCursorPositionFn: vi.fn(() => ({
+      column: 5,
+      line: 1,
+      selectionLength: 0,
+      selectionLines: 0,
+    })),
+    openOverlayMock: vi.fn(),
+    retryEngineInitMock: vi.fn(),
+  }));
 
 let mockStatus = "idle";
 let mockEngineId = "quickjs";
@@ -18,7 +20,7 @@ let mockIsDirty = false;
 
 vi.mock("../../core/context.tsx", () => ({
   useEditor: () => ({
-    dispatcher: { dispatch: dispatchMock },
+    commands: { retryEngineInit: retryEngineInitMock },
     engine: {
       activeEngineId: () => mockEngineId,
       activeLanguage: () => "javascript",
@@ -35,10 +37,14 @@ vi.mock("../../core/context.tsx", () => ({
     },
     overlays: {
       isOpen: () => false,
+      open: openOverlayMock,
     },
     session: {
       code: () => "line1\nline2",
       cursorPosition: mockCursorPositionFn,
+    },
+    shortcuts: {
+      getBinding: () => undefined,
     },
   }),
 }));
@@ -54,7 +60,8 @@ afterEach(() => {
     selectionLength: 0,
     selectionLines: 0,
   });
-  dispatchMock.mockClear();
+  retryEngineInitMock.mockClear();
+  openOverlayMock.mockClear();
 });
 
 const JS_REGEX = /javascript/i;
@@ -213,10 +220,6 @@ describe("StatusBar.Button", () => {
 });
 
 describe("StatusBar - Mobile Visibility", () => {
-  beforeEach(() => {
-    dispatchMock.mockClear();
-  });
-
   it("when idle status, engine selector has hidden md:block class for mobile visibility toggle", () => {
     mockStatus = "idle";
     const { container } = render(() => <StatusBar />);
@@ -264,5 +267,45 @@ describe("StatusBar - Mobile Visibility", () => {
       "#engine-settings-trigger"
     );
     expect(engineSettingsBtn).toBeFalsy();
+  });
+
+  it("clicking retry button calls core.commands.retryEngineInit()", () => {
+    mockStatus = "error";
+    const { container } = render(() => <StatusBar />);
+    const buttons = container.querySelectorAll("button");
+    const retryBtn = Array.from(buttons).find((btn) =>
+      btn.querySelector("svg")?.classList.contains("text-red-500")
+    );
+    expect(retryBtn).toBeDefined();
+    if (retryBtn) {
+      fireEvent.click(retryBtn);
+    }
+    expect(retryEngineInitMock).toHaveBeenCalledOnce();
+  });
+
+  it("clicking engine selector button opens engine-selector overlay", () => {
+    mockStatus = "idle";
+    const { container } = render(() => <StatusBar />);
+    const engineSelectorBtn = Array.from(
+      container.querySelectorAll("button")
+    ).find((btn) => btn.textContent?.includes(mockEngineId));
+    expect(engineSelectorBtn).toBeDefined();
+    if (engineSelectorBtn) {
+      fireEvent.click(engineSelectorBtn);
+    }
+    expect(openOverlayMock).toHaveBeenCalledWith("engine-selector");
+  });
+
+  it("clicking engine settings button opens engine-settings overlay", () => {
+    mockStatus = "idle";
+    const { container } = render(() => <StatusBar />);
+    const engineSettingsBtn = container.querySelector(
+      "#engine-settings-trigger"
+    );
+    expect(engineSettingsBtn).toBeDefined();
+    if (engineSettingsBtn) {
+      fireEvent.click(engineSettingsBtn);
+    }
+    expect(openOverlayMock).toHaveBeenCalledWith("engine-settings");
   });
 });
