@@ -12,8 +12,8 @@ vi.mock("../../core/context", () => ({
     overlays: {
       isOpen: (id: string) => id === "project-rename" && mockIsOpen(),
     },
-    project: {
-      name: () => "TestProject",
+    session: {
+      projectName: () => "TestProject",
     },
   }),
 }));

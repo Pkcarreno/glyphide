@@ -46,7 +46,7 @@ export function EditorProvider(props: { children: JSX.Element }) {
     8000,
     (isShareable) => {
       if (core) {
-        core.project.setShareableState(isShareable);
+        core.session.setShareableState(isShareable);
       }
     }
   );

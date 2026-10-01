@@ -57,7 +57,7 @@ export function LoadFileModal() {
     if (!engine) {
       return;
     }
-    if (core.buffer.content() !== "") {
+    if (core.session.code() !== "") {
       core.dispatcher.dispatch({ type: "RESET_PROJECT_STATE" });
     }
     core.dispatcher.dispatch({
@@ -85,7 +85,7 @@ export function LoadFileModal() {
         return;
       }
       setPendingFile(result);
-      if (core.buffer.content() === "") {
+      if (core.session.code() === "") {
         commitLoad();
       } else {
         setNeedsConfirm(true);

@@ -15,15 +15,6 @@ const [mockIsOpen, setMockIsOpen] = createSignal(false);
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    buffer: {
-      content: () => "",
-      cursorPosition: () => ({
-        column: 1,
-        line: 1,
-        selectionLength: 0,
-        selectionLines: 0,
-      }),
-    },
     dispatcher: { dispatch: dispatchMock },
     engine: {
       activeEngineId: () => "quickjs",
@@ -42,8 +33,20 @@ vi.mock("../../core/context", () => ({
     },
     output: { entries: () => [] },
     overlays: { isOpen: (id: string) => id === "settings" && mockIsOpen() },
-    project: { displayName: () => "TEST_PROJECT", name: () => "TEST_PROJECT" },
     pwa: { applyUpdate: vi.fn(), updateAvailable: () => false },
+    session: {
+      code: () => "",
+      cursorPosition: () => ({
+        column: 1,
+        line: 1,
+        selectionLength: 0,
+        selectionLines: 0,
+      }),
+      displayName: () => "TEST_PROJECT",
+      isTrustRequired: () => false,
+      isUrlShareable: () => true,
+      projectName: () => "TEST_PROJECT",
+    },
     settings: {
       settings: {
         bufferFontSize: 15,
@@ -55,7 +58,6 @@ vi.mock("../../core/context", () => ({
         uiFontSize: 14,
       },
     },
-    trust: { isTrustRequired: () => false },
   }),
 }));
 

@@ -5,15 +5,14 @@ import type {
   EngineOutputPayload,
 } from "@glyphide/rpc-protocol/types";
 import type { Accessor } from "solid-js";
-import { createSignal } from "solid-js";
+import { createEffect, createSignal, on } from "solid-js";
 import type {
   EngineEntry,
   EngineId,
   EngineRegistry,
 } from "../engine/registry.ts";
-import type { UrlStatePort } from "../ports/url-state.ts";
-import type { BufferModel } from "./buffer.ts";
 import type { OutputModel } from "./output.ts";
+import type { WorkspaceSession } from "./session.ts";
 import type { SettingsModel } from "./settings.ts";
 
 /**
@@ -31,15 +30,16 @@ export type EngineStatus =
 
 /** Dependencies injected into the engine model. */
 export interface EngineModelDeps {
-  buffer: BufferModel;
   output: OutputModel;
   registry: EngineRegistry;
+  session: WorkspaceSession;
   settings: SettingsModel;
-  urlState: UrlStatePort;
 }
 
 /**
  * Central engine orchestration model.
+ * Focuses exclusively on worker lifecycle, execution execution,
+ * cancellation, and stdout/stderr reporting.
  */
 export interface EngineModel {
   /** Reactive accessor for the engine capabilities. */
@@ -66,14 +66,10 @@ export interface EngineModel {
   interruptExecution: () => Promise<void>;
   /** Indicates if the buffer was modified while an execution is in progress. */
   isDirty: Accessor<boolean>;
-  /** Syncs engine state based on buffer updates. */
-  onBufferUpdated: (newCode: string) => void;
   /** Retries initialization for the current entry. */
   retryInit: () => Promise<void>;
   /**
-   * Selects an engine entry — updates `activeEngineId` and `activeLanguage`
-   * signals and persists the engine to the URL — but does NOT spawn or
-   * initialize any engine worker. Use `initializeSelectedEngine` to spawn.
+   * Selects an engine entry in the workspace session and resets engine execution.
    */
   selectEngineEntry: (entry: EngineEntry) => void;
   /** Sets the engine status to blocked (used when trust is required). */
@@ -90,50 +86,6 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
   const [isDirty, setIsDirty] = createSignal<boolean>(false);
   const [isBlocked, setIsBlocked] = createSignal<boolean>(false);
 
-  const initialEngineState = deps.urlState.get("engine") as string | null;
-
-  let resolvedEngineId: EngineId = "quickjs";
-  let resolvedLanguage: string | undefined;
-
-  if (initialEngineState) {
-    const [engineId, language] = initialEngineState.split(":");
-    resolvedEngineId = engineId;
-    resolvedLanguage = language;
-  }
-
-  let def: ReturnType<EngineRegistry["getDefinition"]>;
-  try {
-    def = deps.registry.getDefinition(resolvedEngineId);
-    if (
-      resolvedLanguage &&
-      !def.supportedLanguages.includes(resolvedLanguage)
-    ) {
-      resolvedLanguage = undefined;
-    }
-  } catch {
-    resolvedEngineId = "quickjs";
-    def = deps.registry.getDefinition(resolvedEngineId);
-    resolvedLanguage = undefined;
-  }
-
-  const [activeEngineId, setActiveEngineId] =
-    createSignal<EngineId>(resolvedEngineId);
-  const [activeLanguage, setActiveLanguage] = createSignal<string>(
-    resolvedLanguage ?? def.supportedLanguages[0]
-  );
-
-  // Tracks the engine ID we have most recently written to the URL.
-  // - Initialized from URL when URL had an engine (no redundant write on first
-  //   buffer update per REQ-ENG-005).
-  // - Initialized to null when URL had no engine, so the first buffer update
-  //   with code writes the active engine (REQ-ENG-001 scenario 1).
-  // - Reset to null whenever the URL's engine is removed (empty buffer) or
-  //   when selectEngineEntry runs against an empty buffer (URL stays stale
-  //   until the next buffer update re-seeds it).
-  let lastWrittenEngineId: EngineId | null = initialEngineState
-    ? resolvedEngineId
-    : null;
-
   const [activeInitParams, setActiveInitParams] =
     createSignal<EngineInitParams | null>(null);
   const [activeCapabilities, setActiveCapabilities] =
@@ -143,25 +95,21 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
   let isInitialized = false;
   let currentInitParams: EngineInitParams | null = null;
 
+  // Track code edits while execution is running to set isDirty automatically
+  createEffect(
+    on(
+      deps.session.code,
+      () => {
+        if (engineStatus() === "running") {
+          setIsDirty(true);
+        }
+      },
+      { defer: true }
+    )
+  );
+
   function handleOutput(payload: EngineOutputPayload): void {
     deps.output.appendEntry(payload.type, payload.data);
-  }
-
-  /** Returns true when the buffer has non-whitespace content. */
-  function shouldPersistEngine(): boolean {
-    return deps.buffer.content().trim() !== "";
-  }
-
-  /**
-   * Serializes the active engine ID for URL storage.
-   * Multi-language engines include the language suffix; single-language
-   * engines store only the ID.
-   */
-  function serializeEngineId(): string {
-    const engineDef = deps.registry.getDefinition(activeEngineId());
-    return engineDef.supportedLanguages.length > 1
-      ? `${activeEngineId()}:${activeLanguage()}`
-      : activeEngineId();
   }
 
   async function initializeEngine(
@@ -174,7 +122,9 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     currentInitParams = params;
 
     try {
-      const factory = await deps.registry.loadFactory(activeEngineId());
+      const factory = await deps.registry.loadFactory(
+        deps.session.activeEngineId()
+      );
       orchestrator = new EngineOrchestrator({
         createWorker: factory,
         events: { onOutput: handleOutput },
@@ -207,32 +157,15 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
 
   function selectEngineEntry(entry: EngineEntry): void {
     if (
-      entry.engineId === activeEngineId() &&
-      entry.language === activeLanguage()
+      entry.engineId === deps.session.activeEngineId() &&
+      entry.language === deps.session.activeLanguage()
     ) {
-      // Same entry: pure no-op. The caller is responsible for calling
-      // `initializeSelectedEngine()` if a retry is needed (e.g., recovery
-      // from an error state). Internal retry here would bypass the trust
-      // gate on the `LOAD_FILE_FROM_DISK` same-engine edge case.
       return;
     }
 
     deps.output.clearEntries();
     terminate();
-    setActiveEngineId(entry.engineId);
-    setActiveLanguage(entry.language);
-
-    // Only persist engine to URL if the buffer has code. The URL is a
-    // reflection of state — `engine` is only meaningful when there is code
-    // to execute. With an empty buffer, internal state is updated but the
-    // URL is left untouched; the tracker is reset to null so the next
-    // buffer update with code re-seeds the URL with the new engine.
-    if (shouldPersistEngine()) {
-      deps.urlState.set("engine", serializeEngineId());
-      lastWrittenEngineId = entry.engineId;
-    } else {
-      lastWrittenEngineId = null;
-    }
+    deps.session.selectEngine(entry.engineId, entry.language);
   }
 
   /**
@@ -256,9 +189,11 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
       terminate();
     }
 
-    const engineDef = deps.registry.getDefinition(activeEngineId());
+    const engineDef = deps.registry.getDefinition(
+      deps.session.activeEngineId()
+    );
     const params: EngineInitParams = {
-      language: activeLanguage(),
+      language: deps.session.activeLanguage(),
       ...engineDef.defaultInitParams,
     };
     await initializeEngine(params);
@@ -270,7 +205,7 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     if (!currentInitParams) {
       return;
     }
-    terminate(); // Tear down to apply new config
+    terminate();
     const newParams = { ...currentInitParams, ...patch };
     await initializeEngine(newParams, "Applying new configuration…");
   }
@@ -283,7 +218,7 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
   }
 
   async function executeCode(): Promise<void> {
-    const code = deps.buffer.content();
+    const code = deps.session.code();
     if (!code.trim()) {
       return;
     }
@@ -308,7 +243,6 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
       if (isInitialized && orchestrator) {
         await orchestrator.reset();
       } else {
-        // Fallback: ensure the engine is initialized before running.
         await initializeSelectedEngine();
       }
 
@@ -319,7 +253,7 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       deps.output.appendEntry("error", message);
-      setEngineStatus("ready"); // Ready to try again
+      setEngineStatus("ready");
       setIsDirty(false);
     }
   }
@@ -349,19 +283,6 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     setActiveCapabilities(null);
   }
 
-  function onBufferUpdated(newCode: string): void {
-    if (newCode.trim() === "") {
-      deps.urlState.remove("engine");
-      lastWrittenEngineId = null;
-    } else if (activeEngineId() !== lastWrittenEngineId) {
-      deps.urlState.set("engine", serializeEngineId());
-      lastWrittenEngineId = activeEngineId();
-    }
-    if (engineStatus() === "running") {
-      setIsDirty(true);
-    }
-  }
-
   function setBlocked(blocked: boolean): void {
     setIsBlocked(blocked);
     if (blocked) {
@@ -380,15 +301,14 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
 
   return {
     activeCapabilities,
-    activeEngineId,
+    activeEngineId: deps.session.activeEngineId,
     activeInitParams,
-    activeLanguage,
+    activeLanguage: deps.session.activeLanguage,
     engineStatus: engineStatusAccessor,
     executeCode,
     initializeSelectedEngine,
     interruptExecution,
     isDirty,
-    onBufferUpdated,
     retryInit,
     selectEngineEntry,
     setBlocked,

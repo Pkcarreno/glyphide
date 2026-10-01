@@ -13,12 +13,15 @@ vi.mock("../../core/context", () => ({
   useEditor: () => ({
     dispatcher: { dispatch: dispatchMock },
     engine: { engineStatus: () => "idle" },
-    project: { displayName: () => "TEST_PROJECT", name: () => "TEST_PROJECT" },
     pwa: {
       applyUpdate: applyUpdateMock,
       updateAvailable: () => mockUpdateAvailable(),
     },
-    trust: { isTrustRequired: () => mockIsTrustRequired() },
+    session: {
+      displayName: () => "TEST_PROJECT",
+      isTrustRequired: () => mockIsTrustRequired(),
+      projectName: () => "TEST_PROJECT",
+    },
   }),
 }));
 

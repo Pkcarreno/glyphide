@@ -8,11 +8,13 @@ const [mockIsTrustRequired, setMockIsTrustRequired] = createSignal(false);
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    buffer: { content: () => "" },
     dispatcher: { dispatch: dispatchMock },
     engine: { activeLanguage: () => "javascript" },
+    session: {
+      code: () => "",
+      isTrustRequired: () => mockIsTrustRequired(),
+    },
     settings: { settings: { isWordWrapEnabled: false, theme: "system" } },
-    trust: { isTrustRequired: () => mockIsTrustRequired() },
   }),
 }));
 

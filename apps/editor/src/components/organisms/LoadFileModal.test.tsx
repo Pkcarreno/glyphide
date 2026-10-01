@@ -22,7 +22,6 @@ const UNSUPPORTED_RE = /unsupported file type/i;
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
-    buffer: { content: mockBufferContent },
     dispatcher: { dispatch: dispatchMock },
     fileIo: {
       readFile: vi.fn(),
@@ -39,6 +38,7 @@ vi.mock("../../core/context", () => ({
     overlays: {
       isOpen: (id: string) => id === "load-file" && mockIsOpen(),
     },
+    session: { code: mockBufferContent },
   }),
 }));
 
