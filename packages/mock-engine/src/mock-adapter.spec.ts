@@ -492,6 +492,108 @@ describe("MockEngineAdapter", () => {
 
       adapter.dispose();
     });
+
+    it("suppresses response when INIT is received as a notification", async () => {
+      const adapter = new MockEngineAdapter();
+      const responses: CapturedResponse[] = [];
+
+      adapter.setup(
+        (r) => responses.push({ id: r.id, result: r.result as object }),
+        () => {
+          /* noop */
+        }
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Init,
+      } as never);
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      expect(responses).toHaveLength(0);
+      adapter.dispose();
+    });
+
+    it("suppresses response and execution when RUN is received as a notification", async () => {
+      const adapter = new MockEngineAdapter();
+      const responses: CapturedResponse[] = [];
+      const notifications: CapturedNotification[] = [];
+
+      adapter.setup(
+        (r) => responses.push({ id: r.id, result: r.result as object }),
+        (m, p) =>
+          notifications.push({
+            method: m,
+            params: p as { data?: unknown },
+          })
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: "test" },
+      } as never);
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      expect(responses).toHaveLength(0);
+      expect(notifications).toHaveLength(0);
+      adapter.dispose();
+    });
+
+    it("suppresses response when RESET is received as a notification", async () => {
+      const adapter = new MockEngineAdapter();
+      const responses: CapturedResponse[] = [];
+
+      adapter.setup(
+        (r) => responses.push({ id: r.id, result: r.result as object }),
+        () => {
+          /* noop */
+        }
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Reset,
+      } as never);
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      expect(responses).toHaveLength(0);
+      adapter.dispose();
+    });
+
+    it("never emits a response envelope with an undefined identifier on valid request", async () => {
+      const adapter = new MockEngineAdapter();
+      const responses: CapturedResponse[] = [];
+
+      adapter.setup(
+        (r) =>
+          responses.push({
+            error: r.error,
+            id: r.id,
+            result: r.result as object,
+          }),
+        () => {
+          /* noop */
+        }
+      );
+
+      adapter.handleMessage({
+        id: 100,
+        jsonrpc: "2.0",
+        method: EngineMethod.Init,
+      });
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      expect(responses).toHaveLength(1);
+      expect(responses[0].id).toBe(100);
+      expect(responses[0].id).not.toBeUndefined();
+
+      adapter.dispose();
+    });
   });
 
   describe("input request", () => {
@@ -625,6 +727,61 @@ describe("MockEngineAdapter", () => {
       expect(requests).toHaveLength(0);
       expect(responses).toHaveLength(1);
       expect(responses[0].result).toEqual({ executed: true });
+
+      adapter.dispose();
+    });
+
+    it("rejects pending input resolver and returns error response when input reply is a JSON-RPC error response", async () => {
+      const adapter = new MockEngineAdapter({
+        inputPrompts: ["Name: "],
+      });
+      const requests: Array<{ method: string; id: unknown; params?: object }> =
+        [];
+      const responses: CapturedResponse[] = [];
+
+      adapter.setup(
+        (r) =>
+          responses.push({
+            error: r.error,
+            id: r.id,
+            result: r.result as object,
+          }),
+        () => {
+          /* noop */
+        },
+        (method, id, params) => requests.push({ id, method, params })
+      );
+
+      adapter.handleMessage({
+        id: 42,
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: "input_test" },
+      });
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      expect(requests).toHaveLength(1);
+      expect(requests[0].method).toBe(EngineMethod.InputRequest);
+
+      // Reply with an error response (e.g. user cancelled prompt)
+      adapter.handleMessage({
+        error: {
+          code: RpcErrorCode.InternalError,
+          message: "User cancelled prompt",
+        },
+        id: requests[0].id,
+        jsonrpc: "2.0",
+      } as never);
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      expect(responses).toHaveLength(1);
+      expect(responses[0].id).toBe(42);
+      expect(responses[0].error).toEqual({
+        code: RpcErrorCode.InternalError,
+        message: "User cancelled prompt",
+      });
 
       adapter.dispose();
     });

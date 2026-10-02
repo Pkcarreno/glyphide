@@ -68,4 +68,59 @@ describe("MicropythonEngineAdapter", () => {
       })
     );
   });
+
+  it("should suppress responses when INIT is received as a notification", async () => {
+    adapter.handleMessage({
+      jsonrpc: "2.0",
+      method: EngineMethod.Init,
+    } as never);
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(sendResponse).not.toHaveBeenCalled();
+  });
+
+  it("should suppress responses when RUN is received as a notification", async () => {
+    adapter.handleMessage({
+      jsonrpc: "2.0",
+      method: EngineMethod.Run,
+      params: { code: "print('hello')" },
+    } as never);
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(sendResponse).not.toHaveBeenCalled();
+  });
+
+  it("should suppress responses when RESET is received as a notification", async () => {
+    adapter.handleMessage({
+      jsonrpc: "2.0",
+      method: EngineMethod.Reset,
+    } as never);
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(sendResponse).not.toHaveBeenCalled();
+  });
+
+  it("never emits a response envelope with an undefined identifier on valid request", async () => {
+    adapter.handleMessage({
+      id: 999,
+      jsonrpc: "2.0",
+      method: EngineMethod.Init,
+      params: {},
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    expect(sendResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 999,
+        jsonrpc: "2.0",
+      })
+    );
+    const [[lastCall]] = sendResponse.mock.calls;
+    expect(lastCall.id).toBe(999);
+    expect(lastCall.id).not.toBeUndefined();
+  });
 });
