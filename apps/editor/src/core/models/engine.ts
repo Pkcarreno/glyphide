@@ -5,7 +5,7 @@ import type {
   EngineOutputPayload,
 } from "@glyphide/rpc-protocol/types";
 import type { Accessor } from "solid-js";
-import { createEffect, createSignal, on } from "solid-js";
+import { createEffect, createRoot, createSignal, on } from "solid-js";
 import type {
   EngineEntry,
   EngineId,
@@ -50,6 +50,8 @@ export interface EngineModel {
   activeInitParams: Accessor<EngineInitParams | null>;
   /** Reactive accessor for the active language. */
   activeLanguage: Accessor<string>;
+  /** Disposes the engine reactive root and terminates running execution. */
+  dispose: () => void;
   /** Reactive accessor for the current execution status. */
   engineStatus: Accessor<EngineStatus>;
 
@@ -94,19 +96,23 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
   let orchestrator: EngineOrchestrator | null = null;
   let isInitialized = false;
   let currentInitParams: EngineInitParams | null = null;
+  let disposeEffect: (() => void) | null = null;
 
   // Track code edits while execution is running to set isDirty automatically
-  createEffect(
-    on(
-      deps.session.code,
-      () => {
-        if (engineStatus() === "running") {
-          setIsDirty(true);
-        }
-      },
-      { defer: true }
-    )
-  );
+  createRoot((disposeRoot) => {
+    disposeEffect = disposeRoot;
+    createEffect(
+      on(
+        deps.session.code,
+        () => {
+          if (engineStatus() === "running") {
+            setIsDirty(true);
+          }
+        },
+        { defer: true }
+      )
+    );
+  });
 
   function handleOutput(payload: EngineOutputPayload): void {
     deps.output.appendEntry(payload.type, payload.data);
@@ -283,6 +289,12 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     setActiveCapabilities(null);
   }
 
+  function dispose(): void {
+    terminate();
+    disposeEffect?.();
+    disposeEffect = null;
+  }
+
   function setBlocked(blocked: boolean): void {
     setIsBlocked(blocked);
     if (blocked) {
@@ -304,6 +316,7 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     activeEngineId: deps.session.activeEngineId,
     activeInitParams,
     activeLanguage: deps.session.activeLanguage,
+    dispose,
     engineStatus: engineStatusAccessor,
     executeCode,
     initializeSelectedEngine,

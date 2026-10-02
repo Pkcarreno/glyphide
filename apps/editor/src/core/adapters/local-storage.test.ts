@@ -30,18 +30,14 @@ describe("LocalStorageAdapter", () => {
   });
 
   it("fails silently if localStorage throws", () => {
-    const setSpy = vi
-      .spyOn(Storage.prototype, "setItem")
-      .mockImplementation(() => {
-        throw new Error("Quota exceeded");
-      });
-    const getSpy = vi
-      .spyOn(Storage.prototype, "getItem")
-      .mockImplementation(() => {
-        throw new Error("Access denied");
-      });
+    const setSpy = vi.spyOn(localStorage, "setItem").mockImplementation(() => {
+      throw new Error("Quota exceeded");
+    });
+    const getSpy = vi.spyOn(localStorage, "getItem").mockImplementation(() => {
+      throw new Error("Access denied");
+    });
     const removeSpy = vi
-      .spyOn(Storage.prototype, "removeItem")
+      .spyOn(localStorage, "removeItem")
       .mockImplementation(() => {
         throw new Error("Access denied");
       });

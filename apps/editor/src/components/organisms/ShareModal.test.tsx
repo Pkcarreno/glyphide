@@ -23,8 +23,9 @@ vi.mock("../../core/context", () => ({
   }),
 }));
 
-Object.assign(navigator, {
-  clipboard: {
+Object.defineProperty(navigator, "clipboard", {
+  configurable: true,
+  value: {
     writeText: vi.fn().mockResolvedValue(undefined),
   },
 });

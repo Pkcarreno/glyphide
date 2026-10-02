@@ -1,3 +1,4 @@
+import { createRoot } from "solid-js";
 import type { EditorCommands } from "./commands.ts";
 import { createEditorCommands } from "./commands.ts";
 import type { EngineRegistry } from "./engine/registry.ts";
@@ -57,58 +58,62 @@ export interface EditorCore {
  * This is the single composition root for the entire editor.
  */
 export function createEditorCore(deps: EditorCoreDeps): EditorCore {
-  const shortcuts = createShortcutRegistry(defaultShortcutBindings);
-  const engineRegistry = createEngineRegistry();
-  const settings = createSettingsModel(deps.persistence);
-  const session = createWorkspaceSession({
-    engineRegistry,
-    isDefaultCodeEnabled: () => settings.settings.isDefaultCodeEnabled,
-    urlPersistence: deps.urlPersistence,
+  return createRoot((disposeRoot) => {
+    const shortcuts = createShortcutRegistry(defaultShortcutBindings);
+    const engineRegistry = createEngineRegistry();
+    const settings = createSettingsModel(deps.persistence);
+    const session = createWorkspaceSession({
+      engineRegistry,
+      isDefaultCodeEnabled: () => settings.settings.isDefaultCodeEnabled,
+      urlPersistence: deps.urlPersistence,
+    });
+    const output = createOutputModel();
+    const overlays = createOverlayModel();
+    const notifications = createNotificationModel();
+    const engine = createEngineModel({
+      output,
+      registry: engineRegistry,
+      session,
+      settings,
+    });
+
+    const commands = createEditorCommands({
+      engine,
+      fileIo: deps.fileIo,
+      notifications,
+      output,
+      overlays,
+      session,
+      settings,
+    });
+
+    function dispose(): void {
+      commands.dispose();
+      engine.terminate();
+      engine.dispose();
+      notifications.dispose();
+      disposeRoot();
+    }
+
+    if (session.isTrustRequired()) {
+      engine.setBlocked(true);
+      overlays.open("trust-required");
+    } else {
+      engine.initializeSelectedEngine();
+    }
+
+    return {
+      commands,
+      dispose,
+      engine,
+      engineRegistry,
+      fileIo: deps.fileIo,
+      notifications,
+      output,
+      overlays,
+      session,
+      settings,
+      shortcuts,
+    };
   });
-  const output = createOutputModel();
-  const overlays = createOverlayModel();
-  const notifications = createNotificationModel();
-  const engine = createEngineModel({
-    output,
-    registry: engineRegistry,
-    session,
-    settings,
-  });
-
-  const commands = createEditorCommands({
-    engine,
-    fileIo: deps.fileIo,
-    notifications,
-    output,
-    overlays,
-    session,
-    settings,
-  });
-
-  function dispose(): void {
-    commands.dispose();
-    engine.terminate();
-    notifications.dispose();
-  }
-
-  if (session.isTrustRequired()) {
-    engine.setBlocked(true);
-    overlays.open("trust-required");
-  } else {
-    engine.initializeSelectedEngine();
-  }
-
-  return {
-    commands,
-    dispose,
-    engine,
-    engineRegistry,
-    fileIo: deps.fileIo,
-    notifications,
-    output,
-    overlays,
-    session,
-    settings,
-    shortcuts,
-  };
 }
