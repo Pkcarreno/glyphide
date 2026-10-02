@@ -7,39 +7,62 @@
       content="width=device-width, initial-scale=1, viewport-fit=cover"
       name="viewport"
     >
-    <title>Glyphide — Code Editor in Your Browser</title>
+    <title>Glyphide: WebAssembly Code Editor for Python &amp; JavaScript</title>
 
     <!-- SEO -->
     <meta
-      content="Browser-based code editor for JavaScript and Python with sandboxed WebAssembly execution. Share via URL. No backend, no accounts."
+      content="Lightweight in-browser code editor for JavaScript and Python powered by WebAssembly (QuickJS &amp; MicroPython). Works offline as a PWA, no backend required."
       name="description"
     >
     <meta
-      content="javascript editor, python editor, online code editor, browser editor, quickjs, micropython, wasm, webassembly, code sharing, solidjs, no backend, client-side"
+      content="wasm code editor, webassembly ide, python wasm, micropython web, quickjs browser, offline code editor, pwa ide, client-side javascript runner, run python in browser, private code runner"
       name="keywords"
     >
-    <meta content="Glyphide" name="author">
+    <meta content="Pedro Carreño" name="author">
+    <meta
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      name="robots"
+    >
     <link href="https://glyphide.com/" rel="canonical">
 
     <!-- Open Graph -->
-    <meta content="Glyphide — Code Editor in Your Browser" property="og:title">
     <meta
-      content="Browser-based code editor for JavaScript and Python with sandboxed WebAssembly execution. Share via URL. No backend, no accounts."
+      content="Glyphide: WebAssembly Code Editor for Python &amp; JavaScript"
+      property="og:title"
+    >
+    <meta
+      content="Lightweight in-browser code editor for JavaScript and Python powered by WebAssembly (QuickJS &amp; MicroPython). Works offline as a PWA, no backend required."
       property="og:description"
     >
     <meta content="website" property="og:type">
-    <meta content="/og.png" property="og:image">
+    <meta content="https://glyphide.com/og.png" property="og:image">
+    <meta content="https://glyphide.com/og.png" property="og:image:secure_url">
+    <meta content="image/png" property="og:image:type">
+    <meta content="1200" property="og:image:width">
+    <meta content="630" property="og:image:height">
+    <meta
+      content="Glyphide: WebAssembly Code Editor for Python and JavaScript"
+      property="og:image:alt"
+    >
     <meta content="https://glyphide.com/" property="og:url">
     <meta content="Glyphide" property="og:site_name">
+    <meta content="en_US" property="og:locale">
 
     <!-- Twitter -->
     <meta content="summary_large_image" name="twitter:card">
-    <meta content="Glyphide — Code Editor in Your Browser" name="twitter:title">
     <meta
-      content="Browser-based code editor for JavaScript and Python with sandboxed WebAssembly execution. Share via URL. No backend, no accounts."
+      content="Glyphide: WebAssembly Code Editor for Python &amp; JavaScript"
+      name="twitter:title"
+    >
+    <meta
+      content="Lightweight in-browser code editor for JavaScript and Python powered by WebAssembly (QuickJS &amp; MicroPython). Works offline as a PWA, no backend required."
       name="twitter:description"
     >
-    <meta content="/og.png" name="twitter:image">
+    <meta content="https://glyphide.com/og.png" name="twitter:image">
+    <meta
+      content="Glyphide: WebAssembly Code Editor for Python and JavaScript"
+      name="twitter:image:alt"
+    >
 
     <!-- Theme Color -->
     <meta
@@ -57,7 +80,61 @@
     <!-- (Do not add a manual <link rel="icon">, <link rel="apple-touch-icon">, or -->
     <!-- <link rel="manifest">; the plugin would inject duplicates.) -->
 
-    <!-- Anti-FOUC style block (PRESERVED — do not modify) -->
+    <!-- Structured Data (Schema.org JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://glyphide.com/#website",
+          "url": "https://glyphide.com/",
+          "name": "Glyphide",
+          "description": "In-browser WebAssembly code editor and execution sandbox for JavaScript and Python.",
+          "publisher": {
+            "@type": "Person",
+            "name": "Pedro Carreño",
+            "url": "https://github.com/pkcarreno"
+          }
+        },
+        {
+          "@type": ["WebApplication", "SoftwareApplication"],
+          "@id": "https://glyphide.com/#app",
+          "name": "Glyphide",
+          "url": "https://glyphide.com/",
+          "description": "Lightweight in-browser code editor for JavaScript and Python powered by WebAssembly (QuickJS & MicroPython). Works offline as a PWA, no backend required.",
+          "applicationCategory": "DeveloperApplication",
+          "operatingSystem": "Any",
+          "browserRequirements": "Requires WebAssembly and ECMAScript 2020+ support",
+          "softwareRequirements": "Modern web browser with WebAssembly support",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+          },
+          "license": "https://opensource.org/licenses/MIT",
+          "codeRepository": "https://github.com/pkcarreno/glyphide",
+          "creator": {
+            "@type": "Person",
+            "name": "Pedro Carreño",
+            "url": "https://github.com/pkcarreno"
+          },
+          "featureList": [
+            "100% Client-side WebAssembly execution",
+            "JavaScript execution via QuickJS WASM engine",
+            "Python execution via MicroPython WASM engine",
+            "Progressive Web App (PWA) with full offline execution",
+            "Zero backend and zero tracking with client-side privacy",
+            "Stateless URL-based snippet sharing with compression"
+          ]
+        }
+      ]
+    }
+    </script>
+
+    <!-- Anti-FOUC style block (PRESERVED - do not modify) -->
     <style>
     html {
       color-scheme: light;
@@ -76,7 +153,13 @@
     </style>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript>
+      <p>
+        <strong>JavaScript is required:</strong>
+        Glyphide requires JavaScript and WebAssembly enabled in your browser to
+        run the code editor and execution environments.
+      </p>
+    </noscript>
     <div id="root"></div>
     <script src="/src/index.tsx" type="module"></script>
   </body>
