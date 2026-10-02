@@ -6,12 +6,12 @@
 import { EngineMethod } from "@glyphide/rpc-protocol/constants";
 import {
   isJsonRpcFail,
+  isJsonRpcNotification,
   isJsonRpcOk,
   isJsonRpcRequest,
 } from "@glyphide/rpc-protocol/guards";
 import type {
   EngineInitResult,
-  EngineInputRequestParams,
   EngineOutputPayload,
   JsonRpcFailResponse,
   JsonRpcNotification,
@@ -25,6 +25,8 @@ import {
   type RpcTransport,
   toRpcTransport,
 } from "./transport.ts";
+
+const DEFAULT_TIMEOUT_MS = 30_000;
 
 /**
  * Extracts a human-readable message from an unknown catch value.
@@ -122,7 +124,7 @@ export class EngineOrchestrator<
   #transport: RpcTransport | null = null;
   #bus: MessageBus | null = null;
   #nextId = 0;
-  #timeout = 30_000;
+  #timeout = DEFAULT_TIMEOUT_MS;
   #lastInitParams?: unknown;
   #recoveryPromise: Promise<void> | null = null;
 
@@ -160,7 +162,12 @@ export class EngineOrchestrator<
     }
 
     const { result } = response;
-    this.#timeout = result.timeout;
+    this.#timeout =
+      typeof result.timeout === "number" &&
+      Number.isFinite(result.timeout) &&
+      result.timeout > 0
+        ? result.timeout
+        : DEFAULT_TIMEOUT_MS;
     this.#config.events?.onEngineReady?.(result);
 
     return result;
@@ -243,12 +250,14 @@ export class EngineOrchestrator<
    * @throws If the orchestrator is not initialized or the reset fails.
    */
   async reset(): Promise<void> {
-    const response = await this.#sendRequest({
-      method: EngineMethod.Reset,
-    });
-
-    if (isJsonRpcFail(response)) {
-      throw new Error(`Reset failed: ${response.error.message}`);
+    try {
+      await this.#sendRequest({
+        method: EngineMethod.Reset,
+      });
+    } catch (error) {
+      throw new Error(`Reset failed: ${extractMessage(error)}`, {
+        cause: error,
+      });
     }
   }
 
@@ -288,8 +297,8 @@ export class EngineOrchestrator<
       this.#registry.reject(message.id, message.error);
     } else if (isJsonRpcRequest(message)) {
       this.#handleEngineRequest(message);
-    } else if ("method" in message) {
-      this.#handleNotification(message as JsonRpcNotification);
+    } else if (isJsonRpcNotification(message)) {
+      this.#handleNotification(message);
     }
   }
 
@@ -299,7 +308,11 @@ export class EngineOrchestrator<
    */
   #handleEngineRequest(request: JsonRpcRequest): void {
     if (request.method === EngineMethod.InputRequest) {
-      const { prompt } = request.params as EngineInputRequestParams;
+      const params =
+        typeof request.params === "object" && request.params !== null
+          ? (request.params as Record<string, unknown>)
+          : undefined;
+      const prompt = typeof params?.prompt === "string" ? params.prompt : "";
 
       const reply = (value: string): void => {
         this.#bus?.sendResponse(request.id, { value });
@@ -338,7 +351,7 @@ export class EngineOrchestrator<
     this.#bus?.sendRequest(message, id);
 
     const isRun = message.method === EngineMethod.Run;
-    const timeoutMs = isRun ? this.#timeout + 100 : 30_000;
+    const timeoutMs = isRun ? this.#timeout + 100 : DEFAULT_TIMEOUT_MS;
     const requestStartTime = Date.now();
 
     const requestTimeoutId = setTimeout(() => {
