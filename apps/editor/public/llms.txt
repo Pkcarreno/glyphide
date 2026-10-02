@@ -1,0 +1,24 @@
+# Glyphide
+
+> Glyphide is a lightweight, 100% client-side web code editor and sandboxed WebAssembly execution environment for JavaScript and Python.
+
+## Core Characteristics
+
+- **Client-Side WebAssembly Execution**: Runs code locally using MicroPython (~436 KB) for Python and QuickJS (~492 KB) for JavaScript. Zero server interaction or cloud compilation queues.
+- **Zero Telemetry & Absolute Privacy**: Code never leaves the device. No tracking, no user accounts, and no central database.
+- **Sub-100ms Cold Start**: Instant engine instantiation compared to 3-10s heavy runtimes (Pyodide/JupyterLite).
+- **Offline Progressive Web App (PWA)**: Works 100% offline via Service Worker caching WASM engines, fonts, and editor bundles.
+- **Stateless URL Sharing**: Code state is compressed into URL parameters or hashes, enabling instant sharing without cloud storage.
+
+## Target Use Cases
+
+- Private code testing and algorithm execution without data leakage.
+- Classroom and school environments on Chromebooks without local toolchains.
+- Travel or low-connectivity programming (in-flight, transit).
+- Instant, friction-free runnable code snippet sharing in developer forums.
+
+## Technical Documentation & Links
+
+- **Official Website**: https://glyphide.com/
+- **GitHub Repository**: https://github.com/pkcarreno/glyphide
+- **Documentation**: https://github.com/pkcarreno/glyphide#readme

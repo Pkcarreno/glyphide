@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+Disallow: /*?code=*
+Disallow: /*?c=*
+Disallow: /*?name=*
+Disallow: /*?t=*
+
+# AI Search & Retrieval Crawlers (Search Discovery)
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+Sitemap: https://glyphide.com/sitemap.xml
