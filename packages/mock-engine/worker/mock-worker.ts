@@ -35,6 +35,3 @@ adapter.setup(
 self.onmessage = (event: MessageEvent) => {
   adapter.handleMessage(event.data);
 };
-
-// Signal worker is ready
-self.postMessage({ type: "worker-ready" });

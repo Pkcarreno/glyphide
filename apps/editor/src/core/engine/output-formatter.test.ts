@@ -94,4 +94,32 @@ describe("isConsoleTokenArray", () => {
   it("returns false for an array of non-token objects (missing type)", () => {
     expect(isConsoleTokenArray([{ value: "hello" }])).toBe(false);
   });
+
+  it("returns false when first element is null or undefined", () => {
+    expect(isConsoleTokenArray([null])).toBe(false);
+    expect(isConsoleTokenArray([undefined])).toBe(false);
+  });
+
+  it("returns true in constant-time O(1) without iterating across full array even if subsequent elements are malformed", () => {
+    const mixedArray = [
+      { type: "string", value: "valid-first-token" },
+      null,
+      undefined,
+      42,
+      { corrupted: true },
+    ];
+    expect(isConsoleTokenArray(mixedArray)).toBe(true);
+  });
+
+  it("executes in O(1) on very large arrays without iterating", () => {
+    const largeArray = new Array(100_000);
+    largeArray[0] = { type: "string", value: "head" };
+    // Remaining elements are empty slots / undefined
+    const startTime = performance.now();
+    const result = isConsoleTokenArray(largeArray);
+    const duration = performance.now() - startTime;
+
+    expect(result).toBe(true);
+    expect(duration).toBeLessThan(50);
+  });
 });

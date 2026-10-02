@@ -6,6 +6,7 @@
 import type { EngineWorkerFactory } from "@glyphide/orchestrator";
 import { EngineMethod, RpcErrorCode } from "@glyphide/rpc-protocol/constants";
 import {
+  isJsonRpcFail,
   isJsonRpcNotification,
   isJsonRpcOk,
   isJsonRpcRequest,
@@ -15,7 +16,6 @@ import type {
   JsonRpcId,
   JsonRpcMessage,
   JsonRpcOkResponse,
-  JsonRpcRequest,
 } from "@glyphide/rpc-protocol/types";
 
 import type { MockEngineConfig, MockOutputPayload } from "./types.ts";
@@ -28,6 +28,11 @@ type ResponseSender = (
 ) => void;
 
 type RequestSender = (method: string, id: JsonRpcId, params?: object) => void;
+
+interface PendingInputResolver {
+  readonly reject: (reason: Error) => void;
+  readonly resolve: (value: string) => void;
+}
 
 /**
  * Mock engine that responds to RPC protocol messages.
@@ -44,7 +49,7 @@ export class MockEngineAdapter {
   #onNotification: NotificationHandler;
   #sendRequest: RequestSender;
   #nextInputId = 0;
-  readonly #pendingInputs = new Map<JsonRpcId, (value: string) => void>();
+  readonly #pendingInputs = new Map<JsonRpcId, PendingInputResolver>();
 
   constructor(config: MockEngineConfig = {}) {
     this.#interrupted = false;
@@ -95,8 +100,8 @@ export class MockEngineAdapter {
     }
     this.#timers = [];
     // Reject all pending input requests
-    for (const resolver of this.#pendingInputs.values()) {
-      resolver("");
+    for (const pending of this.#pendingInputs.values()) {
+      pending.reject(new Error("Engine disposed"));
     }
     this.#pendingInputs.clear();
   }
@@ -113,33 +118,41 @@ export class MockEngineAdapter {
       return;
     }
 
-    if (!(isJsonRpcRequest(message) || isJsonRpcNotification(message))) {
+    if (isJsonRpcFail(message)) {
+      this.#handleInputFailure(message);
       return;
     }
 
-    switch (message.method) {
-      case EngineMethod.Init:
-        this.#handleInit(
-          (message as JsonRpcRequest).id,
-          (message as JsonRpcRequest).params
-        );
-        break;
-      case EngineMethod.Run:
-        this.#handleRun((message as JsonRpcRequest).id, message.params);
-        break;
-      case EngineMethod.Interrupt:
-        this.#handleInterrupt();
-        break;
-      case EngineMethod.Reset:
-        this.#handleReset((message as JsonRpcRequest).id);
-        break;
-      default:
-        // Ignore unhandled methods
-        break;
+    if (isJsonRpcRequest(message)) {
+      switch (message.method) {
+        case EngineMethod.Init:
+          this.#handleInit(message.id, message.params);
+          break;
+        case EngineMethod.Run:
+          this.#handleRun(message.id, message.params);
+          break;
+        case EngineMethod.Interrupt:
+          this.#handleInterrupt();
+          break;
+        case EngineMethod.Reset:
+          this.#handleReset(message.id);
+          break;
+        default:
+          // Ignore unhandled methods
+          break;
+      }
+      return;
+    }
+
+    if (
+      isJsonRpcNotification(message) &&
+      message.method === EngineMethod.Interrupt
+    ) {
+      this.#handleInterrupt();
     }
   }
 
-  #handleInit(id: string | number | null, params?: unknown): void {
+  #handleInit(id: JsonRpcId, params?: unknown): void {
     if (params && typeof params === "object") {
       this.#config = {
         ...this.#config,
@@ -165,7 +178,7 @@ export class MockEngineAdapter {
     this.#timers.push(timer);
   }
 
-  #handleRun(id: string | number | null, params?: unknown): void {
+  #handleRun(id: JsonRpcId, params?: unknown): void {
     this.#running = true;
     this.#interrupted = false;
 
@@ -241,29 +254,43 @@ export class MockEngineAdapter {
       return collectInputs(rest, [...accumulated, value]);
     };
 
-    const values = await collectInputs(this.#config.inputPrompts, []);
+    try {
+      const values = await collectInputs(this.#config.inputPrompts, []);
 
-    if (this.#disposed) {
-      return;
-    }
+      if (this.#disposed) {
+        return;
+      }
 
-    this.#onNotification(EngineMethod.Output, {
-      data: code,
-      type: "print",
-    } satisfies MockOutputPayload);
-
-    if (values.length > 0) {
       this.#onNotification(EngineMethod.Output, {
-        data: values.join(", "),
+        data: code,
         type: "print",
       } satisfies MockOutputPayload);
-    }
 
-    this.#sendResponse({
-      id: runId,
-      jsonrpc: "2.0",
-      result: { executed: true },
-    });
+      if (values.length > 0) {
+        this.#onNotification(EngineMethod.Output, {
+          data: values.join(", "),
+          type: "print",
+        } satisfies MockOutputPayload);
+      }
+
+      this.#sendResponse({
+        id: runId,
+        jsonrpc: "2.0",
+        result: { executed: true },
+      });
+    } catch (error) {
+      if (this.#disposed) {
+        return;
+      }
+      this.#sendResponse({
+        error: {
+          code: RpcErrorCode.InternalError,
+          message: error instanceof Error ? error.message : String(error),
+        },
+        id: runId,
+        jsonrpc: "2.0",
+      });
+    }
   }
 
   /**
@@ -271,11 +298,11 @@ export class MockEngineAdapter {
    * that resolves with the user's reply value.
    */
   #requestInput(prompt: string): Promise<string> {
-    return new Promise<string>((resolve) => {
+    return new Promise<string>((resolve, reject) => {
       const currentInputId = this.#nextInputId;
       this.#nextInputId += 1;
       const id = `input-${currentInputId}`;
-      this.#pendingInputs.set(id, resolve);
+      this.#pendingInputs.set(id, { reject, resolve });
       this.#sendRequest(EngineMethod.InputRequest, id, { prompt });
     });
   }
@@ -284,11 +311,22 @@ export class MockEngineAdapter {
    * Handles an incoming response that resolves a pending input request.
    */
   #handleInputReply(response: JsonRpcOkResponse): void {
-    const resolver = this.#pendingInputs.get(response.id);
-    if (resolver) {
+    const pending = this.#pendingInputs.get(response.id);
+    if (pending) {
       this.#pendingInputs.delete(response.id);
       const result = response.result as { value?: string } | undefined;
-      resolver(result?.value ?? "");
+      pending.resolve(result?.value ?? "");
+    }
+  }
+
+  /**
+   * Handles an incoming error response that rejects a pending input request.
+   */
+  #handleInputFailure(response: JsonRpcFailResponse): void {
+    const pending = this.#pendingInputs.get(response.id);
+    if (pending) {
+      this.#pendingInputs.delete(response.id);
+      pending.reject(new Error(response.error.message));
     }
   }
 
@@ -302,7 +340,7 @@ export class MockEngineAdapter {
     }
   }
 
-  #handleReset(id: string | number | null): void {
+  #handleReset(id: JsonRpcId): void {
     this.#interrupted = false;
     this.#running = false;
     this.#sendResponse({

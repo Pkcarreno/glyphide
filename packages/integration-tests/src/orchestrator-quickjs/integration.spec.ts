@@ -39,6 +39,27 @@ describe("Orchestrator + QuickJS Engine Integration", () => {
       );
     });
 
+    it("delivers runtime errors thrown during execution", async () => {
+      await orchestrator.init();
+      await expect(
+        orchestrator.run("throw new Error('Explosion in user script')")
+      ).rejects.toThrow("Error: Explosion in user script");
+    });
+
+    it("delivers reference errors for undefined identifiers", async () => {
+      await orchestrator.init();
+      await expect(orchestrator.run("undefinedVariableRef()")).rejects.toThrow(
+        "ReferenceError"
+      );
+    });
+
+    it("delivers type errors for invalid operations", async () => {
+      await orchestrator.init();
+      await expect(
+        orchestrator.run("const obj = null; obj.doAction();")
+      ).rejects.toThrow("TypeError");
+    });
+
     it("terminates execution if it times out (infinite loop)", async () => {
       // QuickJS uses an internal interrupt handler, so it doesn't block the main thread
       // like Micropython does. It will gracefully throw an 'interrupted' error from within WASM.
@@ -74,6 +95,79 @@ describe("Orchestrator + QuickJS Engine Integration", () => {
       expect(outputs[0].type).toBe("log");
       expect(outputs[0].data).toEqual([
         { type: "string", value: "hello from quickjs" },
+      ]);
+    });
+
+    it("captures structured tokens across multiple console channels", async () => {
+      const outputs: Array<{ data: unknown; type: string }> = [];
+
+      orchestrator = new EngineOrchestrator({
+        createWorker: createQuickJSWorker,
+        events: {
+          onOutput: (payload) =>
+            outputs.push({
+              data: payload.data,
+              type: payload.type,
+            }),
+        },
+      });
+
+      await orchestrator.init();
+      await orchestrator.run(`
+        console.warn("warning message");
+        console.error("error message");
+        console.info("info message");
+      `);
+
+      expect(outputs).toHaveLength(3);
+      expect(outputs[0]).toEqual({
+        data: [{ type: "string", value: "warning message" }],
+        type: "warn",
+      });
+      expect(outputs[1]).toEqual({
+        data: [{ type: "string", value: "error message" }],
+        type: "error",
+      });
+      expect(outputs[2]).toEqual({
+        data: [{ type: "string", value: "info message" }],
+        type: "info",
+      });
+    });
+
+    it("captures structured tokens for complex data structures", async () => {
+      const outputs: Array<{ data: unknown; type: string }> = [];
+
+      orchestrator = new EngineOrchestrator({
+        createWorker: createQuickJSWorker,
+        events: {
+          onOutput: (payload) =>
+            outputs.push({
+              data: payload.data,
+              type: payload.type,
+            }),
+        },
+      });
+
+      await orchestrator.init();
+      await orchestrator.run("console.log([1, 2], { active: true });");
+
+      expect(outputs).toHaveLength(1);
+      expect(outputs[0].type).toBe("log");
+      expect(outputs[0].data).toEqual([
+        {
+          elements: [
+            { type: "number", value: 1 },
+            { type: "number", value: 2 },
+          ],
+          length: 2,
+          type: "array",
+        },
+        {
+          properties: {
+            active: { type: "boolean", value: true },
+          },
+          type: "object",
+        },
       ]);
     });
   });

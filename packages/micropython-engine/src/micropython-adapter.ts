@@ -1,14 +1,11 @@
 import type { EngineWorkerFactory } from "@glyphide/orchestrator";
 import { EngineMethod, RpcErrorCode } from "@glyphide/rpc-protocol/constants";
-import {
-  isJsonRpcNotification,
-  isJsonRpcRequest,
-} from "@glyphide/rpc-protocol/guards";
+import { isJsonRpcRequest } from "@glyphide/rpc-protocol/guards";
 import type {
   JsonRpcFailResponse,
+  JsonRpcId,
   JsonRpcMessage,
   JsonRpcOkResponse,
-  JsonRpcRequest,
 } from "@glyphide/rpc-protocol/types";
 import {
   loadMicroPython,
@@ -75,32 +72,26 @@ export class MicropythonEngineAdapter {
   }
 
   handleMessage(message: JsonRpcMessage): void {
-    if (!(isJsonRpcRequest(message) || isJsonRpcNotification(message))) {
+    if (!isJsonRpcRequest(message)) {
       return;
     }
 
     switch (message.method) {
       case EngineMethod.Init:
-        this.#handleInit(
-          (message as JsonRpcRequest).id,
-          (message as JsonRpcRequest).params
-        );
+        this.#handleInit(message.id, message.params);
         break;
       case EngineMethod.Run:
-        this.#handleRun((message as JsonRpcRequest).id, message.params);
+        this.#handleRun(message.id, message.params);
         break;
       case EngineMethod.Reset:
-        this.#handleReset((message as JsonRpcRequest).id);
+        this.#handleReset(message.id);
         break;
       default:
         break;
     }
   }
 
-  async #handleInit(
-    id: string | number | null,
-    params?: unknown
-  ): Promise<void> {
+  async #handleInit(id: JsonRpcId, params?: unknown): Promise<void> {
     try {
       if (params && typeof params === "object") {
         this.#config = {
@@ -189,7 +180,7 @@ export class MicropythonEngineAdapter {
     installHttpClient(this.#mp);
   }
 
-  #handleRun(id: string | number | null, params?: unknown): void {
+  #handleRun(id: JsonRpcId, params?: unknown): void {
     if (!this.#mp) {
       this.#sendResponse({
         error: {
@@ -225,7 +216,7 @@ export class MicropythonEngineAdapter {
     }
   }
 
-  async #handleReset(id: string | number | null): Promise<void> {
+  async #handleReset(id: JsonRpcId): Promise<void> {
     if (!this.#mp) {
       this.#sendResponse({
         error: {

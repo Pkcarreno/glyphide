@@ -1393,4 +1393,75 @@ describe("QuickJSEngineAdapter", () => {
       expect(notifications[2].params?.type).toBe("groupEnd");
     });
   });
+
+  describe("notification suppression", () => {
+    it("does not emit response when INIT is received as a notification", async () => {
+      const responses: CapturedResponse[] = [];
+      adapter.setup(
+        (r) => responses.push(r),
+        () => undefined
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Init,
+      } as never);
+
+      await new Promise((r) => setTimeout(r, 50));
+      expect(responses).toHaveLength(0);
+    });
+
+    it("does not emit response when RUN is received as a notification", async () => {
+      const responses: CapturedResponse[] = [];
+      adapter.setup(
+        (r) => responses.push(r),
+        () => undefined
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: { code: "1 + 1" },
+      } as never);
+
+      await new Promise((r) => setTimeout(r, 50));
+      expect(responses).toHaveLength(0);
+    });
+
+    it("does not emit response when RESET is received as a notification", async () => {
+      const responses: CapturedResponse[] = [];
+      adapter.setup(
+        (r) => responses.push(r),
+        () => undefined
+      );
+
+      adapter.handleMessage({
+        jsonrpc: "2.0",
+        method: EngineMethod.Reset,
+      } as never);
+
+      await new Promise((r) => setTimeout(r, 50));
+      expect(responses).toHaveLength(0);
+    });
+
+    it("never emits a response envelope with an undefined identifier on valid request", async () => {
+      const responses: CapturedResponse[] = [];
+      adapter.setup(
+        (r) => responses.push(r),
+        () => undefined
+      );
+
+      adapter.handleMessage({
+        id: "req-qjs-1",
+        jsonrpc: "2.0",
+        method: EngineMethod.Init,
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(responses).toHaveLength(1);
+      expect(responses[0].id).toBe("req-qjs-1");
+      expect(responses[0].id).not.toBeUndefined();
+    });
+  });
 });

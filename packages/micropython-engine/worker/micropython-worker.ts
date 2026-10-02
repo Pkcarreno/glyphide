@@ -18,5 +18,3 @@ adapter.setup(
 self.onmessage = (event: MessageEvent) => {
   adapter.handleMessage(event.data);
 };
-
-self.postMessage({ type: "worker-ready" });

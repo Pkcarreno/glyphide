@@ -469,4 +469,140 @@ describe("ConsoleTokenView", () => {
       expect(container.textContent).toContain("invalid operation");
     });
   });
+
+  describe("malformed or fallback tokens", () => {
+    it("renders null token as plain text without throwing", () => {
+      expect(() => {
+        const { container } = render(() => (
+          <ConsoleTokenView
+            tokens={[
+              null as unknown as import("@glyphide/quickjs-engine/types").ConsoleToken,
+            ]}
+          />
+        ));
+        expect(container.textContent).toContain("null");
+      }).not.toThrow();
+    });
+
+    it("renders undefined or non-object primitive token as plain text without throwing", () => {
+      expect(() => {
+        const { container } = render(() => (
+          <ConsoleTokenView
+            tokens={[
+              undefined as unknown as import("@glyphide/quickjs-engine/types").ConsoleToken,
+              "raw-primitive" as unknown as import("@glyphide/quickjs-engine/types").ConsoleToken,
+              42 as unknown as import("@glyphide/quickjs-engine/types").ConsoleToken,
+            ]}
+          />
+        ));
+        expect(container.textContent).toContain("undefined");
+        expect(container.textContent).toContain("raw-primitive");
+        expect(container.textContent).toContain("42");
+      }).not.toThrow();
+    });
+
+    it("renders unrecognized token type with fallback plain text without throwing", () => {
+      expect(() => {
+        const { container } = render(() => (
+          <ConsoleTokenView
+            tokens={[
+              {
+                type: "custom-unrecognized-ast",
+                value: "fallback-value",
+              } as unknown as import("@glyphide/quickjs-engine/types").ConsoleToken,
+            ]}
+          />
+        ));
+        expect(container.textContent).toContain("fallback-value");
+      }).not.toThrow();
+    });
+
+    it("renders object token with null or missing properties without throwing", () => {
+      expect(() => {
+        const { container } = render(() => (
+          <ConsoleTokenView
+            tokens={[
+              {
+                properties: null as unknown as Record<
+                  string,
+                  import("@glyphide/quickjs-engine/types").ConsoleToken
+                >,
+                type: "object",
+              } as unknown as import("@glyphide/quickjs-engine/types").ConsoleToken,
+            ]}
+          />
+        ));
+        expect(container.textContent).toContain("{}");
+      }).not.toThrow();
+    });
+
+    it("renders array token with null or missing elements without throwing", () => {
+      expect(() => {
+        const { container } = render(() => (
+          <ConsoleTokenView
+            tokens={[
+              {
+                elements:
+                  null as unknown as import("@glyphide/quickjs-engine/types").ConsoleToken[],
+                length: 0,
+                type: "array",
+              } as unknown as import("@glyphide/quickjs-engine/types").ConsoleToken,
+            ]}
+          />
+        ));
+        expect(container.textContent).toContain("Array(0) []");
+      }).not.toThrow();
+    });
+
+    it("renders map token with null or missing entries without throwing", () => {
+      expect(() => {
+        const { container } = render(() => (
+          <ConsoleTokenView
+            tokens={[
+              {
+                entries: null as unknown as [
+                  import("@glyphide/quickjs-engine/types").ConsoleToken,
+                  import("@glyphide/quickjs-engine/types").ConsoleToken,
+                ][],
+                size: 0,
+                type: "map",
+              } as unknown as import("@glyphide/quickjs-engine/types").ConsoleToken,
+            ]}
+          />
+        ));
+        expect(container.textContent).toContain("Map(0) {}");
+      }).not.toThrow();
+    });
+
+    it("renders set token with null or missing elements without throwing", () => {
+      expect(() => {
+        const { container } = render(() => (
+          <ConsoleTokenView
+            tokens={[
+              {
+                elements:
+                  null as unknown as import("@glyphide/quickjs-engine/types").ConsoleToken[],
+                size: 0,
+                type: "set",
+              } as unknown as import("@glyphide/quickjs-engine/types").ConsoleToken,
+            ]}
+          />
+        ));
+        expect(container.textContent).toContain("Set(0) {}");
+      }).not.toThrow();
+    });
+
+    it("renders gracefully when tokens prop is not an array without throwing", () => {
+      expect(() => {
+        const { container } = render(() => (
+          <ConsoleTokenView
+            tokens={
+              null as unknown as import("@glyphide/quickjs-engine/types").ConsoleToken[]
+            }
+          />
+        ));
+        expect(container.textContent).toBe("");
+      }).not.toThrow();
+    });
+  });
 });

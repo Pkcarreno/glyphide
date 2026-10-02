@@ -7,7 +7,7 @@ import type {
   EngineOutputPayload,
   JsonRpcRequest,
 } from "@glyphide/rpc-protocol/types";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { EngineOrchestrator } from "./orchestrator.ts";
 import { PromiseRegistry } from "./promise-registry.ts";
 
@@ -42,6 +42,199 @@ describe("EngineOrchestrator", () => {
 
       await expect(orchestrator.init()).rejects.toThrow(
         "createWorker factory not provided"
+      );
+    });
+
+    it("falls back to default timeout when engine init result omits timeout property", async () => {
+      let capturedOnMessage: ((ev: MessageEvent) => void) | null = null;
+      const mockWorker = {
+        set onmessage(handler: ((ev: MessageEvent) => void) | null) {
+          capturedOnMessage = handler;
+        },
+        postMessage: (data: unknown) => {
+          const msg = data as JsonRpcRequest;
+          if (msg.method === EngineMethod.Init) {
+            capturedOnMessage?.({
+              data: {
+                id: msg.id,
+                jsonrpc: "2.0",
+                result: {
+                  id: "test",
+                  isInterruptible: true,
+                  isStateful: true,
+                  supportedLanguages: ["javascript"],
+                  // timeout intentionally omitted
+                },
+              },
+            } as MessageEvent);
+          } else if (msg.method === EngineMethod.Run) {
+            capturedOnMessage?.({
+              data: {
+                id: msg.id,
+                jsonrpc: "2.0",
+                result: null,
+              },
+            } as MessageEvent);
+          }
+        },
+        terminate: vi.fn(),
+      } as unknown as Worker;
+
+      const orchestrator = new EngineOrchestrator({
+        createWorker: () => mockWorker,
+        useWorker: true,
+      });
+
+      const initResult = await orchestrator.init();
+      expect(initResult.id).toBe("test");
+
+      // Verify run executes without throwing instant timeout
+      await expect(
+        orchestrator.run("console.log('hi');")
+      ).resolves.toBeUndefined();
+    });
+  });
+
+  describe("input requests", () => {
+    it("safely handles input requests with missing or non-object params without throwing", async () => {
+      let capturedOnMessage: ((ev: MessageEvent) => void) | null = null;
+      const emitMessage = (data: unknown) => {
+        (capturedOnMessage as ((ev: MessageEvent) => void) | null)?.({
+          data,
+        } as MessageEvent);
+      };
+      let lastPostedMessage: unknown = null;
+      const mockWorker = {
+        set onmessage(handler: ((ev: MessageEvent) => void) | null) {
+          capturedOnMessage = handler;
+        },
+        postMessage: (data: unknown) => {
+          lastPostedMessage = data;
+          const msg = data as JsonRpcRequest;
+          if (msg.method === EngineMethod.Init) {
+            emitMessage({
+              id: msg.id,
+              jsonrpc: "2.0",
+              result: {
+                id: "test",
+                isInterruptible: true,
+                isStateful: true,
+                supportedLanguages: ["javascript"],
+                timeout: 30_000,
+              },
+            });
+          }
+        },
+        terminate: vi.fn(),
+      } as unknown as Worker;
+
+      const receivedPrompts: string[] = [];
+      const orchestrator = new EngineOrchestrator({
+        createWorker: () => mockWorker,
+        events: {
+          onInputRequest: (prompt, reply) => {
+            receivedPrompts.push(prompt);
+            reply("user-response");
+          },
+        },
+        useWorker: true,
+      });
+
+      await orchestrator.init();
+
+      // Emit input request with undefined params
+      emitMessage({
+        id: "req-1",
+        jsonrpc: "2.0",
+        method: EngineMethod.InputRequest,
+      });
+
+      expect(receivedPrompts).toEqual([""]);
+      expect(lastPostedMessage).toEqual({
+        id: "req-1",
+        jsonrpc: "2.0",
+        result: { value: "user-response" },
+      });
+
+      // Emit input request with null params
+      emitMessage({
+        id: "req-2",
+        jsonrpc: "2.0",
+        method: EngineMethod.InputRequest,
+        params: null,
+      });
+
+      expect(receivedPrompts).toEqual(["", ""]);
+      expect(lastPostedMessage).toEqual({
+        id: "req-2",
+        jsonrpc: "2.0",
+        result: { value: "user-response" },
+      });
+
+      // Emit input request with invalid prompt type
+      emitMessage({
+        id: "req-3",
+        jsonrpc: "2.0",
+        method: EngineMethod.InputRequest,
+        params: { prompt: 123 },
+      });
+
+      expect(receivedPrompts).toEqual(["", "", ""]);
+      expect(lastPostedMessage).toEqual({
+        id: "req-3",
+        jsonrpc: "2.0",
+        result: { value: "user-response" },
+      });
+    });
+  });
+
+  describe("malformed response envelopes", () => {
+    it("rejects pending promises cleanly with a protocol error rather than hanging", async () => {
+      let capturedOnMessage: ((ev: MessageEvent) => void) | null = null;
+      const mockWorker = {
+        set onmessage(handler: ((ev: MessageEvent) => void) | null) {
+          capturedOnMessage = handler;
+        },
+        postMessage: (data: unknown) => {
+          const msg = data as JsonRpcRequest;
+          if (msg.method === EngineMethod.Init) {
+            capturedOnMessage?.({
+              data: {
+                id: msg.id,
+                jsonrpc: "2.0",
+                result: {
+                  id: "test",
+                  isInterruptible: true,
+                  isStateful: true,
+                  supportedLanguages: ["javascript"],
+                  timeout: 30_000,
+                },
+              },
+            } as MessageEvent);
+          } else if (msg.method === EngineMethod.Run) {
+            // Emit malformed response envelope (dual result and error)
+            capturedOnMessage?.({
+              data: {
+                error: { code: -32_600, message: "Execution error" },
+                id: msg.id,
+                jsonrpc: "2.0",
+                result: { ok: true },
+              },
+            } as MessageEvent);
+          }
+        },
+        terminate: vi.fn(),
+      } as unknown as Worker;
+
+      const orchestrator = new EngineOrchestrator({
+        createWorker: () => mockWorker,
+        useWorker: true,
+      });
+
+      await orchestrator.init();
+
+      await expect(orchestrator.run("test();")).rejects.toThrow(
+        "Protocol error: malformed response envelope"
       );
     });
   });

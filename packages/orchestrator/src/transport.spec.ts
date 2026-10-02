@@ -1,5 +1,10 @@
-import type { JsonRpcOkResponse } from "@glyphide/rpc-protocol/types";
+import type {
+  JsonRpcFailResponse,
+  JsonRpcOkResponse,
+} from "@glyphide/rpc-protocol/types";
 import { describe, expect, it, vi } from "vitest";
+import { MessageBus } from "./message-bus.ts";
+import { PromiseRegistry } from "./promise-registry.ts";
 import {
   createDirectTransport,
   createWorkerTransport,
@@ -192,5 +197,45 @@ describe("toRpcTransport", () => {
     expect(transport).toBeDefined();
     expect(typeof transport.postMessage).toBe("function");
     expect(transport.onMessage).toBeNull();
+  });
+});
+
+describe("transport seam promise resolution", () => {
+  it("rejects pending promises cleanly with a protocol error when malformed response envelope is received", async () => {
+    let capturedSendResponse!: (
+      response: JsonRpcOkResponse | JsonRpcFailResponse
+    ) => void;
+    const adapter: DirectTransportAdapter = {
+      handleMessage: vi.fn(),
+      setup(sendResponse) {
+        capturedSendResponse = sendResponse;
+      },
+    };
+
+    const registry = new PromiseRegistry();
+    const transport = createDirectTransport(adapter);
+    const bus = new MessageBus(transport, (message) => {
+      if ("error" in message && message.error) {
+        registry.reject(message.id, message.error);
+      }
+    });
+
+    const [promise] = registry.register(1);
+
+    // Send malformed response envelope through transport seam
+    capturedSendResponse({
+      error: { code: -32_600, message: "fail" },
+      id: 1,
+      jsonrpc: "2.0",
+      result: { invalid: "dual payload" },
+    } as unknown as JsonRpcOkResponse);
+
+    await expect(promise).rejects.toEqual({
+      code: -32_600,
+      message: "Protocol error: malformed response envelope",
+    });
+
+    bus.terminate();
+    transport.terminate();
   });
 });

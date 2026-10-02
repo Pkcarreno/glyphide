@@ -2,7 +2,13 @@
  * Wraps transport postMessage/onMessage with type-safe JSON-RPC validation.
  */
 
-import { isJsonRpcFail, isJsonRpcOk } from "@glyphide/rpc-protocol/guards";
+import { RpcErrorCode } from "@glyphide/rpc-protocol/constants";
+import {
+  isJsonRpcFail,
+  isJsonRpcNotification,
+  isJsonRpcOk,
+  isJsonRpcRequest,
+} from "@glyphide/rpc-protocol/guards";
 import type {
   JsonRpcId,
   JsonRpcNotification,
@@ -82,24 +88,41 @@ export class MessageBus {
 
     // Response (success or fail)
     if (isJsonRpcOk(data) || isJsonRpcFail(data)) {
-      this.#onMessage(data as JsonRpcResponse);
+      this.#onMessage(data);
       return;
     }
 
-    // Request (has method AND id)
+    // Request
+    if (isJsonRpcRequest(data)) {
+      this.#onMessage(data);
+      return;
+    }
+
+    // Notification
+    if (isJsonRpcNotification(data)) {
+      this.#onMessage(data);
+      return;
+    }
+
+    // Malformed response envelope targeting a pending request:
+    // contains an identifier and no method, but failed response validation.
     if (
       typeof data === "object" &&
       data !== null &&
-      "method" in data &&
-      "id" in data
+      !("method" in data) &&
+      "id" in data &&
+      (typeof (data as { id: unknown }).id === "string" ||
+        typeof (data as { id: unknown }).id === "number" ||
+        (data as { id: unknown }).id === null)
     ) {
-      this.#onMessage(data as JsonRpcRequest);
-      return;
-    }
-
-    // Notification (has method, no id)
-    if (typeof data === "object" && data !== null && "method" in data) {
-      this.#onMessage(data as JsonRpcNotification);
+      this.#onMessage({
+        error: {
+          code: RpcErrorCode.InvalidRequest,
+          message: "Protocol error: malformed response envelope",
+        },
+        id: (data as { id: JsonRpcId }).id,
+        jsonrpc: "2.0",
+      });
     }
   }
 

@@ -1,14 +1,11 @@
 import type { EngineWorkerFactory } from "@glyphide/orchestrator";
 import { EngineMethod, RpcErrorCode } from "@glyphide/rpc-protocol/constants";
-import {
-  isJsonRpcNotification,
-  isJsonRpcRequest,
-} from "@glyphide/rpc-protocol/guards";
+import { isJsonRpcRequest } from "@glyphide/rpc-protocol/guards";
 import type {
   JsonRpcFailResponse,
+  JsonRpcId,
   JsonRpcMessage,
   JsonRpcOkResponse,
-  JsonRpcRequest,
 } from "@glyphide/rpc-protocol/types";
 import {
   getQuickJS,
@@ -79,23 +76,19 @@ export class QuickJSEngineAdapter {
    * Handles incoming JSON-RPC messages from the orchestrator.
    */
   handleMessage(message: JsonRpcMessage): void {
-    if (!(isJsonRpcRequest(message) || isJsonRpcNotification(message))) {
+    if (!isJsonRpcRequest(message)) {
       return;
     }
 
     switch (message.method) {
       case EngineMethod.Init:
-        this.#handleInit(
-          (message as JsonRpcRequest).id,
-          (message as JsonRpcRequest).params
-        );
+        this.#handleInit(message.id, message.params);
         break;
       case EngineMethod.Run:
-        this.#handleRun((message as JsonRpcRequest).id, message.params);
+        this.#handleRun(message.id, message.params);
         break;
-
       case EngineMethod.Reset:
-        this.#handleReset((message as JsonRpcRequest).id);
+        this.#handleReset(message.id);
         break;
       default:
         // Ignore unknown methods
@@ -103,10 +96,7 @@ export class QuickJSEngineAdapter {
     }
   }
 
-  async #handleInit(
-    id: string | number | null,
-    params?: unknown
-  ): Promise<void> {
+  async #handleInit(id: JsonRpcId, params?: unknown): Promise<void> {
     try {
       if (params && typeof params === "object") {
         this.#config = {
@@ -157,7 +147,7 @@ export class QuickJSEngineAdapter {
     }
   }
 
-  #handleRun(id: string | number | null, params?: unknown): void {
+  #handleRun(id: JsonRpcId, params?: unknown): void {
     if (!(this.#context && this.#runtime)) {
       this.#sendResponse({
         error: {
@@ -183,7 +173,7 @@ export class QuickJSEngineAdapter {
       const result = this.#context.evalCode(code);
 
       if (result.error) {
-        const errorVal = this.#context.dump(result.error);
+        const errorVal: unknown = this.#context.dump(result.error);
         result.error.dispose();
 
         const errorMsg =
@@ -232,7 +222,7 @@ export class QuickJSEngineAdapter {
    *
    * @param id - JSON-RPC request ID for the response.
    */
-  #handleReset(id: string | number | null): void {
+  #handleReset(id: JsonRpcId): void {
     if (!this.#runtime) {
       this.#sendResponse({
         error: {

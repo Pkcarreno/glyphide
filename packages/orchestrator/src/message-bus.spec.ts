@@ -137,6 +137,80 @@ describe("MessageBus", () => {
     expect(onMessage).toHaveBeenCalledWith(notification);
   });
 
+  it("filters out non-RPC messages at the transport seam", () => {
+    const { emit, transport } = createFakeTransport();
+    const onMessage = vi.fn();
+    const _bus = new MessageBus(transport, onMessage);
+
+    emit({ type: "worker-ready" });
+    emit("plain-text-message");
+    emit(12_345);
+    emit(null);
+    emit(undefined);
+    emit({ foo: "bar" });
+    emit([]);
+
+    expect(onMessage).not.toHaveBeenCalled();
+  });
+
+  it("filters out notifications and requests failing JSON-RPC 2.0 validation", () => {
+    const { emit, transport } = createFakeTransport();
+    const onMessage = vi.fn();
+    const _bus = new MessageBus(transport, onMessage);
+
+    // Missing jsonrpc member
+    emit({ method: "engine.output", params: { data: "test" } });
+    emit({ id: 1, method: "engine.init" });
+
+    // Invalid jsonrpc version
+    emit({ jsonrpc: "1.0", method: "engine.output" });
+    emit({ id: 1, jsonrpc: "1.0", method: "engine.init" });
+
+    // Non-string method
+    emit({ jsonrpc: "2.0", method: 123 });
+
+    expect(onMessage).not.toHaveBeenCalled();
+  });
+
+  it("routes malformed response envelopes as protocol errors", () => {
+    const { emit, transport } = createFakeTransport();
+    const onMessage = vi.fn();
+    const _bus = new MessageBus(transport, onMessage);
+
+    // Dual result and error
+    emit({
+      error: { code: -32_600, message: "failed" },
+      id: 1,
+      jsonrpc: "2.0",
+      result: { ready: true },
+    });
+
+    expect(onMessage).toHaveBeenCalledWith({
+      error: {
+        code: -32_600,
+        message: "Protocol error: malformed response envelope",
+      },
+      id: 1,
+      jsonrpc: "2.0",
+    });
+
+    // Malformed error member (string instead of object)
+    emit({
+      error: "raw error string",
+      id: 2,
+      jsonrpc: "2.0",
+    });
+
+    expect(onMessage).toHaveBeenCalledWith({
+      error: {
+        code: -32_600,
+        message: "Protocol error: malformed response envelope",
+      },
+      id: 2,
+      jsonrpc: "2.0",
+    });
+  });
+
   it("clears onMessage when terminated", () => {
     const { transport } = createFakeTransport();
     const bus = new MessageBus(transport, vi.fn());
