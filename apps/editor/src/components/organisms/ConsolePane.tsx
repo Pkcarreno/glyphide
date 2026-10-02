@@ -1,6 +1,6 @@
 import Trash from "lucide-solid/icons/trash";
 import type { JSX } from "solid-js";
-import { createMemo, createSignal, splitProps } from "solid-js";
+import { createMemo, createSignal, ErrorBoundary, splitProps } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type {
   ConsoleVariant,
@@ -8,9 +8,9 @@ import type {
 } from "../../core/engine/output-formatter.ts";
 import {
   defaultFormat,
-  isConsoleTokenArray,
   type OutputFormatter,
 } from "../../core/engine/output-formatter.ts";
+
 import type { OutputEntry } from "../../core/models/output.ts";
 import { cn } from "../../helpers/cn.ts";
 import {
@@ -31,6 +31,57 @@ type MessageVariant = Exclude<
 
 interface ConsolePaneProps extends JSX.HTMLAttributes<HTMLElement> {
   class?: string;
+}
+
+/** Safely resolves a raw string representation for fallback message rendering. */
+function getRawFallback(rendered: RenderedOutput, err: unknown): string {
+  if (rendered.text !== undefined) {
+    return rendered.text;
+  }
+  if (rendered.tokens !== undefined) {
+    try {
+      return JSON.stringify(rendered.tokens);
+    } catch {
+      // Tokens could not be serialized
+    }
+  }
+  if (err instanceof Error) {
+    return err.message;
+  }
+  return String(err);
+}
+
+/** Renders the inner content of a console message entry. */
+function renderMessageContent(
+  rendered: RenderedOutput,
+  variant: MessageVariant
+): JSX.Element {
+  if (!rendered.tokens) {
+    return (
+      <ConsoleMessage
+        class="whitespace-pre-wrap"
+        message={rendered.text ?? ""}
+        type={variant}
+      />
+    );
+  }
+
+  if (variant === "table" && rendered.tokens.length > 0) {
+    return (
+      <ConsoleMessage type={variant}>
+        <ConsoleTableView token={rendered.tokens[0]} />
+        {rendered.tokens.length > 1 && (
+          <ConsoleTokenView tokens={rendered.tokens.slice(1)} />
+        )}
+      </ConsoleMessage>
+    );
+  }
+
+  return (
+    <ConsoleMessage class="whitespace-pre-wrap" type={variant}>
+      <ConsoleTokenView tokens={rendered.tokens} />
+    </ConsoleMessage>
+  );
 }
 
 function ConsolePane(props: ConsolePaneProps) {
@@ -161,36 +212,19 @@ function ConsolePane(props: ConsolePaneProps) {
     const { rendered } = item;
     const variant = rendered.variant as MessageVariant;
 
-    if (rendered.tokens && isConsoleTokenArray(rendered.tokens)) {
-      if (variant === "table" && rendered.tokens.length > 0) {
-        return (
-          <div class="w-full" style={depthStyle}>
-            <ConsoleMessage type={variant}>
-              <ConsoleTableView token={rendered.tokens[0]} />
-              {rendered.tokens.length > 1 && (
-                <ConsoleTokenView tokens={rendered.tokens.slice(1)} />
-              )}
-            </ConsoleMessage>
-          </div>
-        );
-      }
-
-      return (
-        <div class="w-full" style={depthStyle}>
-          <ConsoleMessage class="whitespace-pre-wrap" type={variant}>
-            <ConsoleTokenView tokens={rendered.tokens} />
-          </ConsoleMessage>
-        </div>
-      );
-    }
-
     return (
       <div class="w-full" style={depthStyle}>
-        <ConsoleMessage
-          class="whitespace-pre-wrap"
-          message={rendered.text ?? ""}
-          type={variant}
-        />
+        <ErrorBoundary
+          fallback={(err) => (
+            <ConsoleMessage
+              class="whitespace-pre-wrap"
+              message={getRawFallback(rendered, err)}
+              type={variant}
+            />
+          )}
+        >
+          {renderMessageContent(rendered, variant)}
+        </ErrorBoundary>
       </div>
     );
   }

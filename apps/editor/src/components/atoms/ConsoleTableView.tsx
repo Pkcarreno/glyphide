@@ -16,25 +16,86 @@ interface RowData {
  * Returns null if the token is not tabular data.
  */
 function getRows(token: ConsoleToken): RowData[] | null {
-  if (token.type === "array") {
-    return token.elements.map((el, i) => ({ key: String(i), value: el }));
+  const rawToken = token as unknown as {
+    elements?: unknown;
+    entries?: unknown;
+    properties?: unknown;
+    type?: unknown;
+  } | null;
+
+  if (!rawToken || typeof rawToken !== "object") {
+    return null;
   }
-  if (token.type === "object") {
-    return Object.entries(token.properties).map(([k, v]) => ({
+  if (rawToken.type === "array") {
+    const elements = Array.isArray(rawToken.elements) ? rawToken.elements : [];
+    return elements.map((el, i) => ({
+      key: String(i),
+      value: el as ConsoleToken,
+    }));
+  }
+  if (rawToken.type === "object") {
+    const properties =
+      rawToken.properties && typeof rawToken.properties === "object"
+        ? (rawToken.properties as Record<string, ConsoleToken>)
+        : {};
+    return Object.entries(properties).map(([k, v]) => ({
       key: k,
       value: v,
     }));
   }
-  if (token.type === "map") {
-    return token.entries.map((_, i) => ({
+  if (rawToken.type === "map") {
+    const entries = Array.isArray(rawToken.entries) ? rawToken.entries : [];
+    return entries.map((entry, i) => ({
       key: String(i),
-      value: token.entries[i][1], // We use the value for tabular expansion
+      value: Array.isArray(entry)
+        ? (entry[1] as ConsoleToken)
+        : (entry as ConsoleToken),
     }));
   }
-  if (token.type === "set") {
-    return token.elements.map((el, i) => ({ key: String(i), value: el }));
+  if (rawToken.type === "set") {
+    const elements = Array.isArray(rawToken.elements) ? rawToken.elements : [];
+    return elements.map((el, i) => ({
+      key: String(i),
+      value: el as ConsoleToken,
+    }));
   }
   return null;
+}
+
+/**
+ * Collects column names from a row value.
+ * Returns true if the value is a primitive.
+ */
+function collectRowColumns(val: unknown, colSet: Set<string>): boolean {
+  if (!val || typeof val !== "object" || !("type" in val)) {
+    return true;
+  }
+
+  const rawVal = val as {
+    elements?: unknown;
+    properties?: unknown;
+    type?: unknown;
+  };
+  if (rawVal.type === "object") {
+    const properties =
+      rawVal.properties && typeof rawVal.properties === "object"
+        ? (rawVal.properties as Record<string, unknown>)
+        : {};
+    for (const k of Object.keys(properties)) {
+      colSet.add(k);
+    }
+    return false;
+  }
+
+  if (rawVal.type === "array") {
+    const elements = Array.isArray(rawVal.elements) ? rawVal.elements : [];
+    for (let i = 0; i < elements.length; i += 1) {
+      colSet.add(String(i));
+    }
+    return false;
+  }
+
+  return true;
 }
 
 /**
@@ -45,16 +106,7 @@ function getColumns(rows: RowData[]): string[] {
   let hasPrimitives = false;
 
   for (const row of rows) {
-    const val = row.value;
-    if (val.type === "object") {
-      for (const k of Object.keys(val.properties)) {
-        colSet.add(k);
-      }
-    } else if (val.type === "array") {
-      for (let i = 0; i < val.elements.length; i += 1) {
-        colSet.add(String(i));
-      }
-    } else {
+    if (collectRowColumns(row.value, colSet)) {
       hasPrimitives = true;
     }
   }
@@ -74,20 +126,38 @@ function getCellToken(
   rowValue: ConsoleToken,
   col: string
 ): ConsoleToken | undefined {
-  if (rowValue.type === "object" && rowValue.properties[col] !== undefined) {
-    return rowValue.properties[col];
-  }
-  if (rowValue.type === "array" && col !== "Value") {
-    const idx = Number.parseInt(col, 10);
-    if (!Number.isNaN(idx) && idx >= 0 && idx < rowValue.elements.length) {
-      return rowValue.elements[idx];
+  const rawValue = rowValue as unknown as {
+    elements?: unknown;
+    properties?: unknown;
+    type?: unknown;
+  } | null;
+
+  if (!rawValue || typeof rawValue !== "object") {
+    if (col === "Value") {
+      return rowValue;
     }
+    return undefined;
   }
-  if (
-    col === "Value" &&
-    rowValue.type !== "object" &&
-    rowValue.type !== "array"
-  ) {
+  if (rawValue.type === "object") {
+    const properties =
+      rawValue.properties && typeof rawValue.properties === "object"
+        ? (rawValue.properties as Record<string, ConsoleToken>)
+        : {};
+    return properties[col];
+  }
+  if (rawValue.type === "array") {
+    if (col !== "Value") {
+      const elements = Array.isArray(rawValue.elements)
+        ? rawValue.elements
+        : [];
+      const idx = Number.parseInt(col, 10);
+      if (!Number.isNaN(idx) && idx >= 0 && idx < elements.length) {
+        return elements[idx] as ConsoleToken;
+      }
+    }
+    return undefined;
+  }
+  if (col === "Value") {
     return rowValue;
   }
 }

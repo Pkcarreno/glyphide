@@ -134,5 +134,51 @@ describe("ConsoleTableView", () => {
       expect(container.textContent).toContain("not-tabular");
       expect(container.textContent).toContain('"');
     });
+
+    it("defaults missing or non-object token properties to an empty dictionary for object token", () => {
+      expect(() => {
+        const { container } = render(() => (
+          <ConsoleTableView
+            token={
+              {
+                properties: null as unknown as Record<
+                  string,
+                  import("@glyphide/quickjs-engine/types").ConsoleToken
+                >,
+                type: "object",
+              } as unknown as import("@glyphide/quickjs-engine/types").ConsoleToken
+            }
+          />
+        ));
+        expect(container.querySelector("table")).toBeDefined();
+      }).not.toThrow();
+    });
+
+    it("defaults missing or non-object token properties to an empty dictionary in array of objects", () => {
+      expect(() => {
+        const { container } = render(() => (
+          <ConsoleTableView
+            token={{
+              elements: [
+                {
+                  properties: null as unknown as Record<
+                    string,
+                    import("@glyphide/quickjs-engine/types").ConsoleToken
+                  >,
+                  type: "object",
+                } as unknown as import("@glyphide/quickjs-engine/types").ConsoleToken,
+                {
+                  properties: { a: { type: "number", value: 1 } },
+                  type: "object",
+                },
+              ],
+              length: 2,
+              type: "array",
+            }}
+          />
+        ));
+        expect(container.querySelector("table")).toBeDefined();
+      }).not.toThrow();
+    });
   });
 });

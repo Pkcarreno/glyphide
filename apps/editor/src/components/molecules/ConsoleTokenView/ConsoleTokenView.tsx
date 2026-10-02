@@ -23,25 +23,61 @@ function Ellipsis() {
   return <span class="text-on-surface-variant opacity-50">…</span>;
 }
 
+/** Safely formats a fallback token or non-standard value as a string. */
+function formatFallbackToken(token: unknown): string {
+  if (token === null) {
+    return "null";
+  }
+  if (token === undefined) {
+    return "undefined";
+  }
+  if (typeof token !== "object") {
+    return String(token);
+  }
+
+  const tokenRecord = token as Record<string, unknown>;
+  if ("value" in tokenRecord && tokenRecord.value !== undefined) {
+    return String(tokenRecord.value);
+  }
+  try {
+    return JSON.stringify(token);
+  } catch {
+    return String(token);
+  }
+}
+
 /** Renders a single ConsoleToken with type-appropriate styling. */
-function Token(props: { token: ConsoleToken; isPreview?: boolean }) {
+function Token(props: { token: unknown; isPreview?: boolean }) {
   const { token, isPreview } = props;
 
-  switch (token.type) {
+  if (
+    !token ||
+    typeof token !== "object" ||
+    !("type" in token) ||
+    typeof (token as { type: unknown }).type !== "string"
+  ) {
+    return <span class="text-on-surface">{formatFallbackToken(token)}</span>;
+  }
+
+  const typedToken = token as ConsoleToken;
+
+  switch (typedToken.type) {
     case "string":
       return (
         <span class="text-on-surface">
           <span class="opacity-50">&quot;</span>
-          {token.value}
+          {typedToken.value}
           <span class="opacity-50">&quot;</span>
         </span>
       );
 
     case "number":
-      return <span class="text-log-warn">{String(token.value)}</span>;
+      return <span class="text-log-warn">{String(typedToken.value)}</span>;
 
     case "boolean":
-      return <span class="text-primary">{token.value ? "true" : "false"}</span>;
+      return (
+        <span class="text-primary">{typedToken.value ? "true" : "false"}</span>
+      );
 
     case "null":
       return (
@@ -55,9 +91,15 @@ function Token(props: { token: ConsoleToken; isPreview?: boolean }) {
 
     case "function": {
       const isArrow =
-        token.source?.includes("=>") && !token.source?.startsWith("function");
-      const isAsync = token.source?.startsWith("async ");
-      const isGenerator = token.source?.includes("function*");
+        typeof typedToken.source === "string" &&
+        typedToken.source.includes("=>") &&
+        !typedToken.source.startsWith("function");
+      const isAsync =
+        typeof typedToken.source === "string" &&
+        typedToken.source.startsWith("async ");
+      const isGenerator =
+        typeof typedToken.source === "string" &&
+        typedToken.source.includes("function*");
 
       let prefix = "ƒ";
       if (isAsync) {
@@ -66,7 +108,7 @@ function Token(props: { token: ConsoleToken; isPreview?: boolean }) {
         prefix = "ƒ*";
       }
 
-      const name = token.name || (isArrow ? "" : "(anonymous)");
+      const name = typedToken.name || (isArrow ? "" : "(anonymous)");
 
       return (
         <span class="text-on-surface-variant">
@@ -79,7 +121,7 @@ function Token(props: { token: ConsoleToken; isPreview?: boolean }) {
     case "symbol":
       return (
         <span class="text-on-surface-variant opacity-80">
-          Symbol({token.description})
+          Symbol({typedToken.description})
         </span>
       );
 
@@ -91,28 +133,28 @@ function Token(props: { token: ConsoleToken; isPreview?: boolean }) {
       );
 
     case "array":
-      return <TokenArray isPreview={isPreview} token={token} />;
+      return <TokenArray isPreview={isPreview} token={typedToken} />;
 
     case "object":
-      return <TokenObject isPreview={isPreview} token={token} />;
+      return <TokenObject isPreview={isPreview} token={typedToken} />;
 
     case "bigint":
-      return <span class="text-log-warn">{String(token.value)}n</span>;
+      return <span class="text-log-warn">{String(typedToken.value)}n</span>;
 
     case "date":
-      return <span class="text-on-surface">{token.value}</span>;
+      return <span class="text-on-surface">{typedToken.value}</span>;
 
     case "regexp":
       return (
         <span class="text-log-error">
-          /{token.source}/{token.flags}
+          /{typedToken.source}/{typedToken.flags}
         </span>
       );
 
     case "error":
       return (
         <span class="font-semibold text-log-error">
-          {token.name}: {token.message}
+          {typedToken.name}: {typedToken.message}
         </span>
       );
 
@@ -124,13 +166,15 @@ function Token(props: { token: ConsoleToken; isPreview?: boolean }) {
       );
 
     case "map":
-      return <TokenMap isPreview={isPreview} token={token} />;
+      return <TokenMap isPreview={isPreview} token={typedToken} />;
 
     case "set":
-      return <TokenSet isPreview={isPreview} token={token} />;
+      return <TokenSet isPreview={isPreview} token={typedToken} />;
 
     default:
-      return null;
+      return (
+        <span class="text-on-surface">{formatFallbackToken(typedToken)}</span>
+      );
   }
 }
 
@@ -139,12 +183,15 @@ function TokenArray(props: {
   isPreview?: boolean;
 }) {
   const { token, isPreview } = props;
-  const preview = token.elements.slice(0, 5);
-  const hasMore = token.elements.length > 5;
+  const elements = Array.isArray(token.elements) ? token.elements : [];
+  const length =
+    typeof token.length === "number" ? token.length : elements.length;
+  const preview = elements.slice(0, 5);
+  const hasMore = length > 5;
 
   const inlinePreview = (
     <span class="text-on-surface">
-      <span class="opacity-50">Array({token.length}) [</span>
+      <span class="opacity-50">Array({length}) [</span>
       <For each={preview}>
         {(element, index) => (
           <>
@@ -166,13 +213,13 @@ function TokenArray(props: {
     return inlinePreview;
   }
 
-  if (token.length === 0) {
+  if (length === 0) {
     return <span class="text-on-surface opacity-50">Array(0) []</span>;
   }
 
   return (
     <ExpandableNode preview={inlinePreview} stateKey={token}>
-      <For each={token.elements}>
+      <For each={elements}>
         {(element, index) => (
           <span class="flex items-baseline gap-2">
             <span class="min-w-5 text-right text-on-surface-variant opacity-50">
@@ -191,8 +238,12 @@ function TokenObject(props: {
   isPreview?: boolean;
 }) {
   const { token, isPreview } = props;
-  const entries = Object.entries(token.properties).slice(0, 5);
-  const hasMore = Object.keys(token.properties).length > 5;
+  const properties =
+    token.properties && typeof token.properties === "object"
+      ? token.properties
+      : {};
+  const entries = Object.entries(properties).slice(0, 5);
+  const hasMore = Object.keys(properties).length > 5;
 
   const inlinePreview = (
     <span class="text-on-surface">
@@ -220,13 +271,13 @@ function TokenObject(props: {
     return inlinePreview;
   }
 
-  if (Object.keys(token.properties).length === 0) {
+  if (Object.keys(properties).length === 0) {
     return <span class="text-on-surface opacity-50">{"{}"}</span>;
   }
 
   return (
     <ExpandableNode preview={inlinePreview} stateKey={token}>
-      <For each={Object.entries(token.properties)}>
+      <For each={Object.entries(properties)}>
         {([key, value]) => (
           <span class="flex items-baseline gap-2">
             <span class="text-on-surface-variant opacity-80">{key}:</span>
@@ -243,25 +294,32 @@ function TokenMap(props: {
   isPreview?: boolean;
 }) {
   const { token, isPreview } = props;
-  const preview = token.entries.slice(0, 5);
-  const hasMore = token.entries.length > 5;
+  const entries = Array.isArray(token.entries) ? token.entries : [];
+  const size = typeof token.size === "number" ? token.size : entries.length;
+  const preview = entries.slice(0, 5);
+  const hasMore = size > 5;
 
   const inlinePreview = (
     <span class="text-on-surface">
       <span class="opacity-50">
-        Map({token.size}) {"{"}
+        Map({size}) {"{"}
       </span>
       <For each={preview}>
-        {([key, value], index) => (
-          <>
-            <Token isPreview token={key} />
-            <span class="opacity-50"> =&gt; </span>
-            <Token isPreview token={value} />
-            <Show when={index() < preview.length - 1 || hasMore}>
-              <span class="opacity-50">, </span>
-            </Show>
-          </>
-        )}
+        {(entry, index) => {
+          const [key, value] = Array.isArray(entry)
+            ? entry
+            : [entry, undefined];
+          return (
+            <>
+              <Token isPreview token={key} />
+              <span class="opacity-50"> =&gt; </span>
+              <Token isPreview token={value} />
+              <Show when={index() < preview.length - 1 || hasMore}>
+                <span class="opacity-50">, </span>
+              </Show>
+            </>
+          );
+        }}
       </For>
       <Show when={hasMore}>
         <Ellipsis />
@@ -274,20 +332,25 @@ function TokenMap(props: {
     return inlinePreview;
   }
 
-  if (token.size === 0) {
+  if (size === 0) {
     return <span class="text-on-surface opacity-50">Map(0) {"{}"}</span>;
   }
 
   return (
     <ExpandableNode preview={inlinePreview} stateKey={token}>
-      <For each={token.entries}>
-        {([key, value]) => (
-          <span class="flex items-baseline gap-2">
-            <Token token={key} />
-            <span class="text-on-surface-variant opacity-50">=&gt;</span>
-            <Token token={value} />
-          </span>
-        )}
+      <For each={entries}>
+        {(entry) => {
+          const [key, value] = Array.isArray(entry)
+            ? entry
+            : [entry, undefined];
+          return (
+            <span class="flex items-baseline gap-2">
+              <Token token={key} />
+              <span class="text-on-surface-variant opacity-50">=&gt;</span>
+              <Token token={value} />
+            </span>
+          );
+        }}
       </For>
     </ExpandableNode>
   );
@@ -298,13 +361,15 @@ function TokenSet(props: {
   isPreview?: boolean;
 }) {
   const { token, isPreview } = props;
-  const preview = token.elements.slice(0, 5);
-  const hasMore = token.elements.length > 5;
+  const elements = Array.isArray(token.elements) ? token.elements : [];
+  const size = typeof token.size === "number" ? token.size : elements.length;
+  const preview = elements.slice(0, 5);
+  const hasMore = size > 5;
 
   const inlinePreview = (
     <span class="text-on-surface">
       <span class="opacity-50">
-        Set({token.size}) {"{"}
+        Set({size}) {"{"}
       </span>
       <For each={preview}>
         {(element, index) => (
@@ -327,13 +392,13 @@ function TokenSet(props: {
     return inlinePreview;
   }
 
-  if (token.size === 0) {
+  if (size === 0) {
     return <span class="text-on-surface opacity-50">Set(0) {"{}"}</span>;
   }
 
   return (
     <ExpandableNode preview={inlinePreview} stateKey={token}>
-      <For each={token.elements}>
+      <For each={elements}>
         {(element) => (
           <span class="flex items-baseline gap-2">
             <Token token={element} />
@@ -349,9 +414,10 @@ function TokenSet(props: {
  * Provides interactive expansion for structured collections (objects, arrays, maps, sets).
  */
 function ConsoleTokenView(props: ConsoleTokenViewProps) {
+  const tokens = () => (Array.isArray(props.tokens) ? props.tokens : []);
   return (
     <span class="inline-flex flex-wrap items-baseline gap-x-1.5">
-      <For each={props.tokens}>{(token) => <Token token={token} />}</For>
+      <For each={tokens()}>{(token) => <Token token={token} />}</For>
     </span>
   );
 }

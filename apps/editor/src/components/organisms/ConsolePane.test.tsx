@@ -179,4 +179,46 @@ describe("ConsolePane", () => {
     // Inside collapsed log NOT visible because defaultExpanded is false for "groupCollapsed"
     expect(container.textContent).not.toContain("Inside collapsed");
   });
+
+  it("protects message render items with an error boundary falling back to raw string rendering", () => {
+    // Suppress console.error in test runner for expected error boundary test
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {
+        // Intentionally empty: suppress expected error boundary log
+      });
+
+    const corruptToken = {
+      get type(): string {
+        throw new Error("Simulated AST render explosion");
+      },
+    };
+
+    setEntries([
+      {
+        data: "Normal previous message",
+        id: "13",
+        type: "log",
+      },
+      {
+        data: [corruptToken],
+        id: "14",
+        type: "log",
+      },
+      {
+        data: "Normal next message",
+        id: "15",
+        type: "log",
+      },
+    ]);
+
+    expect(() => {
+      const { container, getByText } = render(() => <ConsolePane />);
+      expect(getByText("Normal previous message")).toBeTruthy();
+      expect(getByText("Normal next message")).toBeTruthy();
+      expect(container.textContent).toContain("Simulated AST render explosion");
+    }).not.toThrow();
+
+    consoleErrorSpy.mockRestore();
+  });
 });
