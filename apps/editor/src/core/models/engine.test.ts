@@ -740,4 +740,44 @@ describe("EngineModel select/init split contract", () => {
     expect(factorySpy).not.toHaveBeenCalled();
     expect(model.engineStatus()).toBe("error");
   });
+
+  it("reinitializes when initializeSelectedEngine is called after session engine changes", async () => {
+    const model = createEngineModel({
+      output,
+      registry,
+      session,
+      settings,
+    });
+    const factorySpy = vi.spyOn(registry, "loadFactory");
+
+    await model.initializeSelectedEngine();
+    expect(model.engineStatus()).toBe("ready");
+    expect(factorySpy).toHaveBeenCalledWith("quickjs");
+
+    session.selectEngine("mock", "typescript");
+    await model.initializeSelectedEngine();
+    expect(model.engineStatus()).toBe("ready");
+    expect(factorySpy).toHaveBeenCalledWith("mock");
+  });
+
+  it("executeCode terminates mismatched worker and initializes selected engine before running", async () => {
+    const model = createEngineModel({
+      output,
+      registry,
+      session,
+      settings,
+    });
+    const factorySpy = vi.spyOn(registry, "loadFactory");
+
+    await model.initializeSelectedEngine();
+    expect(model.engineStatus()).toBe("ready");
+    expect(factorySpy).toHaveBeenCalledWith("quickjs");
+
+    session.selectEngine("mock", "javascript");
+    session.setCode("print('switched')");
+    await model.executeCode();
+
+    expect(factorySpy).toHaveBeenCalledWith("mock");
+    expect(model.engineStatus()).toBe("ready");
+  });
 });

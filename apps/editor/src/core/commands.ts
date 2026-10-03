@@ -98,6 +98,16 @@ export function createEditorCommands(deps: EditorCommandsDeps): EditorCommands {
       return;
     }
     clearAutoRunTimer();
+
+    const isDifferent =
+      engineId !== deps.session.activeEngineId() ||
+      language !== deps.session.activeLanguage();
+
+    if (isDifferent) {
+      deps.output.clearEntries();
+      deps.engine.terminate();
+    }
+
     deps.session.selectEngine(engineId, language);
     deps.engine.initializeSelectedEngine();
   }
