@@ -1,6 +1,8 @@
 import type { EngineCapabilities } from "@glyphide/rpc-protocol/types";
 
 export interface MicropythonEngineConfig {
+  /** Maximum number of log messages allowed per second. Defaults to 5000. */
+  maxOutputRate?: number;
   /**
    * The maximum amount of memory the engine can use.
    */

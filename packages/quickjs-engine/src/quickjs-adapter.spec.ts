@@ -1463,5 +1463,59 @@ describe("QuickJSEngineAdapter", () => {
       expect(responses[0].id).toBe("req-qjs-1");
       expect(responses[0].id).not.toBeUndefined();
     });
+
+    it("suppresses console.log flood exceeding rate limit and flushes system warning", async () => {
+      const notifications: CapturedNotification[] = [];
+      adapter.setup(
+        () => undefined,
+        (method, params) =>
+          notifications.push({
+            method,
+            params: params as CapturedNotification["params"],
+          })
+      );
+
+      adapter.handleMessage({
+        id: 1,
+        jsonrpc: "2.0",
+        method: EngineMethod.Init,
+        params: { maxOutputRate: 500 },
+      });
+
+      await new Promise((r) => setTimeout(r, 50));
+
+      // Emit 800 logs rapidly
+      adapter.handleMessage({
+        id: 2,
+        jsonrpc: "2.0",
+        method: EngineMethod.Run,
+        params: {
+          code: `
+            for (let i = 0; i < 800; i++) {
+              console.log("flood-" + i);
+            }
+          `,
+        },
+      });
+
+      await new Promise((r) => setTimeout(r, 100));
+
+      const logNotifications = notifications.filter(
+        (n) => n.method === EngineMethod.Output && n.params?.type === "log"
+      );
+      const systemNotifications = notifications.filter(
+        (n) => n.method === EngineMethod.Output && n.params?.type === "system"
+      );
+
+      // Max 500 logs allowed in window as configured
+      expect(logNotifications.length).toBe(500);
+      // Suppressed notice emitted on execution completion
+      expect(systemNotifications.length).toBeGreaterThanOrEqual(1);
+      expect(
+        systemNotifications.some((n) =>
+          String(n.params?.data).includes("messages omitted")
+        )
+      ).toBe(true);
+    });
   });
 });

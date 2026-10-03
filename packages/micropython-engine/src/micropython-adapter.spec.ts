@@ -123,4 +123,81 @@ describe("MicropythonEngineAdapter", () => {
     expect(lastCall.id).toBe(999);
     expect(lastCall.id).not.toBeUndefined();
   });
+
+  it("suppresses rapid stdout flood exceeding rate limit and flushes system warning", async () => {
+    adapter.handleMessage({
+      id: 1,
+      jsonrpc: "2.0",
+      method: EngineMethod.Init,
+      params: { maxOutputRate: 1000 },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    adapter.handleMessage({
+      id: 2,
+      jsonrpc: "2.0",
+      method: EngineMethod.Run,
+      params: {
+        code: `
+for i in range(1500):
+    print("flood", i)
+`,
+      },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    const { calls } = onNotification.mock;
+    const stdoutCalls = calls.filter(
+      ([method, params]) =>
+        method === EngineMethod.Output &&
+        (params as { type: string }).type === "stdout"
+    );
+    const systemCalls = calls.filter(
+      ([method, params]) =>
+        method === EngineMethod.Output &&
+        (params as { type: string }).type === "system"
+    );
+
+    expect(stdoutCalls.length).toBe(1000);
+    expect(systemCalls.length).toBeGreaterThanOrEqual(1);
+    expect((systemCalls[0][1] as { data: string }).data).toContain(
+      "messages omitted"
+    );
+  });
+
+  it("executes python code containing comments and functions cleanly", async () => {
+    adapter.handleMessage({
+      id: 10,
+      jsonrpc: "2.0",
+      method: EngineMethod.Init,
+      params: {},
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    adapter.handleMessage({
+      id: 11,
+      jsonrpc: "2.0",
+      method: EngineMethod.Run,
+      params: {
+        code: `# Comment here
+print("Hello", "MicroPython", 42)
+def greet(name="world"):
+    return "Hello, " + name
+print(greet())
+`,
+      },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    expect(sendResponse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 11,
+        result: { executed: true, value: "undefined" },
+      })
+    );
+  });
 });

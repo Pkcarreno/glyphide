@@ -14,6 +14,7 @@ import {
   type QuickJSRuntime,
 } from "quickjs-emscripten";
 import { consoleAstSource } from "./console-ast-builder.ts";
+import { OutputRateLimiter } from "./output-rate-limiter.ts";
 import {
   type ConsoleToken,
   defaultCapabilities,
@@ -37,9 +38,11 @@ export class QuickJSEngineAdapter {
   #context: QuickJSContext | null = null;
   #sendResponse: ResponseSender;
   #onNotification: NotificationHandler;
+  readonly #rateLimiter: OutputRateLimiter;
 
   constructor(config: QuickJSEngineConfig = {}) {
     this.#config = {
+      maxOutputRate: config.maxOutputRate ?? 5000,
       memoryLimit: config.memoryLimit ?? 1024 * 1024 * 100, // 100MB default
       timeout: config.timeout ?? 30_000,
     };
@@ -49,6 +52,15 @@ export class QuickJSEngineAdapter {
     this.#onNotification = () => {
       /* noop */
     };
+    this.#rateLimiter = new OutputRateLimiter({
+      maxMessagesPerWindow: this.#config.maxOutputRate,
+      onSuppressedFlush: (suppressedCount) => {
+        this.#onNotification(EngineMethod.Output, {
+          data: `${suppressedCount} messages omitted due to high frequency.`,
+          type: "system",
+        } satisfies QuickJSOutputPayload);
+      },
+    });
   }
 
   /**
@@ -66,6 +78,7 @@ export class QuickJSEngineAdapter {
    * Disposes the engine and frees WebAssembly memory.
    */
   dispose(): void {
+    this.#rateLimiter.resetLimits();
     this.#context?.dispose();
     this.#context = null;
     this.#runtime?.dispose();
@@ -110,6 +123,13 @@ export class QuickJSEngineAdapter {
       }
 
       if (
+        this.#config.maxOutputRate <= 0 ||
+        !Number.isFinite(this.#config.maxOutputRate)
+      ) {
+        throw new Error("Invalid maxOutputRate");
+      }
+
+      if (
         this.#config.memoryLimit < 0 ||
         this.#config.memoryLimit > 1024 * 1024 * 1024
       ) {
@@ -125,6 +145,7 @@ export class QuickJSEngineAdapter {
         this.#runtime.setMemoryLimit(this.#config.memoryLimit);
       }
 
+      this.#rateLimiter.updateMaxMessagesPerWindow(this.#config.maxOutputRate);
       this.#context = this.#runtime.newContext();
       this.#injectSecurityPrelude();
       this.#injectConsole();
@@ -133,7 +154,11 @@ export class QuickJSEngineAdapter {
       this.#sendResponse({
         id,
         jsonrpc: "2.0",
-        result: { timeout: this.#config.timeout, ...defaultCapabilities },
+        result: {
+          maxOutputRate: this.#config.maxOutputRate,
+          timeout: this.#config.timeout,
+          ...defaultCapabilities,
+        },
       });
     } catch (error) {
       this.#sendResponse({
@@ -211,6 +236,7 @@ export class QuickJSEngineAdapter {
       });
     } finally {
       this.#runtime.removeInterruptHandler();
+      this.#rateLimiter.flushSuppressedNotice();
     }
   }
 
@@ -236,6 +262,7 @@ export class QuickJSEngineAdapter {
     }
 
     try {
+      this.#rateLimiter.resetLimits();
       this.#context?.dispose();
       this.#context = this.#runtime.newContext();
       this.#injectSecurityPrelude();
@@ -347,6 +374,10 @@ export class QuickJSEngineAdapter {
     const emitHandle = ctx.newFunction(
       "__glyphide_emit__",
       (methodHandle, jsonHandle) => {
+        if (!this.#rateLimiter.shouldAllowMessage()) {
+          return;
+        }
+
         const method = ctx.getString(methodHandle);
         const json = ctx.getString(jsonHandle);
 

@@ -17,6 +17,7 @@ import {
   installHttpClient,
   restoreHostApis,
 } from "./http-client.ts";
+import { OutputRateLimiter } from "./output-rate-limiter.ts";
 import {
   defaultCapabilities,
   type MicropythonEngineConfig,
@@ -45,9 +46,11 @@ export class MicropythonEngineAdapter {
   #mp: MicroPythonInstance | null = null;
   #sendResponse: ResponseSender;
   #onNotification: NotificationHandler;
+  readonly #rateLimiter: OutputRateLimiter;
 
   constructor(config: MicropythonEngineConfig = {}) {
     this.#config = {
+      maxOutputRate: config.maxOutputRate ?? 5000,
       memoryLimit: config.memoryLimit ?? 1024 * 1024 * 50,
       timeout: config.timeout ?? 30_000,
     };
@@ -57,6 +60,15 @@ export class MicropythonEngineAdapter {
     this.#onNotification = () => {
       /* noop */
     };
+    this.#rateLimiter = new OutputRateLimiter({
+      maxMessagesPerWindow: this.#config.maxOutputRate,
+      onSuppressedFlush: (suppressedCount) => {
+        this.#onNotification(EngineMethod.Output, {
+          data: `${suppressedCount} messages omitted due to high frequency.`,
+          type: "system",
+        } satisfies MicropythonOutputPayload);
+      },
+    });
   }
 
   setup(
@@ -68,6 +80,7 @@ export class MicropythonEngineAdapter {
   }
 
   dispose(): void {
+    this.#rateLimiter.resetLimits();
     this.#mp = null;
   }
 
@@ -100,12 +113,24 @@ export class MicropythonEngineAdapter {
         };
       }
 
+      if (
+        this.#config.maxOutputRate <= 0 ||
+        !Number.isFinite(this.#config.maxOutputRate)
+      ) {
+        throw new Error("Invalid maxOutputRate");
+      }
+
+      this.#rateLimiter.updateMaxMessagesPerWindow(this.#config.maxOutputRate);
       await this.#initializeEngine();
 
       this.#sendResponse({
         id,
         jsonrpc: "2.0",
-        result: { timeout: this.#config.timeout, ...defaultCapabilities },
+        result: {
+          maxOutputRate: this.#config.maxOutputRate,
+          timeout: this.#config.timeout,
+          ...defaultCapabilities,
+        },
       });
     } catch (error) {
       this.#sendResponse({
@@ -128,12 +153,18 @@ export class MicropythonEngineAdapter {
       heapsize:
         this.#config.memoryLimit > 0 ? this.#config.memoryLimit : undefined,
       stderr: (text: string) => {
+        if (!this.#rateLimiter.shouldAllowMessage()) {
+          return;
+        }
         this.#onNotification(EngineMethod.Output, {
           data: text,
           type: "stderr",
         } satisfies MicropythonOutputPayload);
       },
       stdout: (text: string) => {
+        if (!this.#rateLimiter.shouldAllowMessage()) {
+          return;
+        }
         this.#onNotification(EngineMethod.Output, {
           data: text,
           type: "stdout",
@@ -213,6 +244,8 @@ export class MicropythonEngineAdapter {
         id,
         jsonrpc: "2.0",
       });
+    } finally {
+      this.#rateLimiter.flushSuppressedNotice();
     }
   }
 

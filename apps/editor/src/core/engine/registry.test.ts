@@ -260,4 +260,34 @@ describe("Engine output formatters", () => {
       expect(result.variant).toBe("log");
     });
   });
+
+  describe("Engine parameter descriptors and default init params", () => {
+    it("configures default maxOutputRate of 5000 for quickjs and micropython", () => {
+      const quickjsDef = registry.getDefinition("quickjs");
+      const micropythonDef = registry.getDefinition("micropython");
+
+      expect(quickjsDef.defaultInitParams.maxOutputRate).toBe(5000);
+      expect(micropythonDef.defaultInitParams.maxOutputRate).toBe(5000);
+    });
+
+    it("includes maxOutputRate parameter descriptor for quickjs and micropython", () => {
+      const quickjsDef = registry.getDefinition("quickjs");
+      const micropythonDef = registry.getDefinition("micropython");
+
+      const qjsParam = quickjsDef.paramDescriptors.find(
+        (p) => p.key === "maxOutputRate"
+      );
+      const mpParam = micropythonDef.paramDescriptors.find(
+        (p) => p.key === "maxOutputRate"
+      );
+
+      expect(qjsParam).toBeDefined();
+      expect(qjsParam?.inputType).toBe("compact-number");
+      expect(qjsParam?.isEditable).toBe(true);
+
+      expect(mpParam).toBeDefined();
+      expect(mpParam?.inputType).toBe("compact-number");
+      expect(mpParam?.isEditable).toBe(true);
+    });
+  });
 });
