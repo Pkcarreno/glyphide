@@ -1,6 +1,8 @@
 import type { EngineCapabilities } from "@glyphide/rpc-protocol/types";
 
 export interface QuickJSEngineConfig {
+  /** Maximum number of log messages allowed per second. Defaults to 5000. */
+  maxOutputRate?: number;
   /** Maximum memory allowed for the QuickJS runtime in bytes */
   memoryLimit?: number;
   /** Maximum execution time allowed for the QuickJS runtime in milliseconds */

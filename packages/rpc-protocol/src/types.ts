@@ -79,6 +79,8 @@ export interface EngineInputResult {
 export interface EngineInitParams {
   /** Language the engine should activate for this session. */
   language: string;
+  /** Maximum number of log messages allowed per second. */
+  maxOutputRate?: number;
   /** Maximum execution time in milliseconds before timeout. */
   timeout?: number;
 }

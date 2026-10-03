@@ -1,6 +1,12 @@
 import Trash from "lucide-solid/icons/trash";
 import type { JSX } from "solid-js";
-import { createMemo, createSignal, ErrorBoundary, splitProps } from "solid-js";
+import {
+  createMemo,
+  createSignal,
+  ErrorBoundary,
+  Show,
+  splitProps,
+} from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type {
   ConsoleVariant,
@@ -17,8 +23,10 @@ import {
   type FlatConsoleItem,
   flattenConsoleEntries,
 } from "../../helpers/console-hierarchy.ts";
+import { formatCompactCount } from "../../helpers/format-compact-count.ts";
 import { ConsoleTableView } from "../atoms/ConsoleTableView.tsx";
 import { Icon } from "../atoms/Icon.tsx";
+import { Tooltip } from "../atoms/Tooltip.tsx";
 import { VirtualList } from "../atoms/VirtualList.tsx";
 import { ConsoleGroupView } from "../molecules/ConsoleGroupView.tsx";
 import { ConsoleMessage } from "../molecules/ConsoleMessage.tsx";
@@ -137,8 +145,15 @@ function ConsolePane(props: ConsolePaneProps) {
   const formattedEntries = createMemo(() => {
     const current = core.output.entries();
 
-    if (current.length < cachedFormatted.length) {
-      cachedFormatted = cachedFormatted.slice(0, current.length);
+    const isTruncated =
+      cachedFormatted.length > 0 &&
+      current.length > 0 &&
+      cachedFormatted[0].entry.id !== current[0].id;
+
+    if (current.length < cachedFormatted.length || isTruncated) {
+      cachedFormatted = isTruncated
+        ? []
+        : cachedFormatted.slice(0, current.length);
       // If output was cleared/truncated, invalidate the incremental cache
       lastProcessedEntriesCount = 0;
       cachedVisibleItems.length = 0;
@@ -238,9 +253,25 @@ function ConsolePane(props: ConsolePaneProps) {
       {...rest}
     >
       <div class="flex shrink-0 items-center justify-between border-outline-variant border-b px-4 py-1.5">
-        <h2 class="select-none font-bold font-sans text-on-surface-variant text-section-header uppercase tracking-widest">
-          Output
-        </h2>
+        <div class="flex items-baseline gap-1.5">
+          <h2 class="select-none font-bold font-sans text-on-surface-variant text-section-header uppercase tracking-widest">
+            Output
+          </h2>
+          <Show when={core.output.stats().totalDropped > 0}>
+            <Tooltip
+              as="span"
+              class="inline-flex items-baseline"
+              meta={`${core.output.stats().workerDropped.toLocaleString()} rate limit / ${core.output.stats().bufferDropped.toLocaleString()} buffer limit`}
+              position="bottom"
+              tabIndex={0}
+              text={`${core.output.stats().totalDropped.toLocaleString()} omitted log entries`}
+            >
+              <span class="cursor-help select-none font-mono font-normal text-on-surface-variant/70 text-section-header lowercase tabular-nums tracking-normal transition-colors hover:text-on-surface">
+                ({formatCompactCount(core.output.stats().totalDropped)} omitted)
+              </span>
+            </Tooltip>
+          </Show>
+        </div>
         <div class="flex items-center gap-1">
           <button
             class="flex pointer-coarse:min-h-11 cursor-pointer items-center gap-1 pointer-coarse:gap-1.5 rounded-sm border border-transparent pointer-coarse:px-3 px-1.5 py-0.5 font-medium text-on-surface-variant text-status-bar uppercase tracking-wider outline-none transition-colors hover:border-outline-variant hover:bg-surface-variant hover:text-on-surface focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"

@@ -109,7 +109,7 @@ export function createEngineRegistry(): EngineRegistry {
   const definitions: EngineDefinition[] = [
     {
       defaultBufferCode: PYTHON_DEFAULT_BUFFER_CODE,
-      defaultInitParams: { timeout: 30_000 },
+      defaultInitParams: { maxOutputRate: 5000, timeout: 30_000 },
       fileExtensions: [".py"],
       id: "micropython",
       label: "MicroPython Engine",
@@ -144,12 +144,19 @@ export function createEngineRegistry(): EngineRegistry {
           toModel: (val) => Number(val) * 1000,
           toView: (val) => Number(val) / 1000,
         },
+        {
+          inputProps: { max: 50_000, min: 500, step: 500 },
+          inputType: "compact-number",
+          isEditable: true,
+          key: "maxOutputRate",
+          label: "Max Logs / sec",
+        },
       ],
       supportedLanguages: ["python"],
     },
     {
       defaultBufferCode: QUICKJS_DEFAULT_BUFFER_CODE,
-      defaultInitParams: { timeout: 30_000 },
+      defaultInitParams: { maxOutputRate: 5000, timeout: 30_000 },
       fileExtensions: [".js"],
       id: "quickjs",
       label: "QuickJS Engine",
@@ -182,6 +189,13 @@ export function createEngineRegistry(): EngineRegistry {
           label: "Execution Timeout (s)",
           toModel: (val) => Number(val) * 1000,
           toView: (val) => Number(val) / 1000,
+        },
+        {
+          inputProps: { max: 50_000, min: 500, step: 500 },
+          inputType: "compact-number",
+          isEditable: true,
+          key: "maxOutputRate",
+          label: "Max Logs / sec",
         },
       ],
       supportedLanguages: ["javascript"],
