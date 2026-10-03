@@ -52,6 +52,12 @@ describe("createEditorCommands", () => {
       appendEntry: vi.fn(),
       clearEntries: vi.fn(),
       entries: vi.fn(() => []),
+      reportWorkerDropped: vi.fn(),
+      stats: vi.fn(() => ({
+        bufferDropped: 0,
+        totalDropped: 0,
+        workerDropped: 0,
+      })),
     };
 
     mockOverlays = {

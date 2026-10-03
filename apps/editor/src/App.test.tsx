@@ -32,7 +32,16 @@ vi.mock("./core/context", () => ({
       items: () => [],
       unreadCount: () => 0,
     },
-    output: { clearEntries: vi.fn(), entries: () => [] },
+    output: {
+      clearEntries: vi.fn(),
+      entries: () => [],
+      reportWorkerDropped: vi.fn(),
+      stats: () => ({
+        bufferDropped: 0,
+        totalDropped: 0,
+        workerDropped: 0,
+      }),
+    },
     overlays: {
       close: vi.fn(),
       isOpen: () => false,
