@@ -1303,5 +1303,29 @@ describe("EditorCore", () => {
       expect(core.session.code()).toBe("");
       expect(core.session.isShowingDefaultCode()).toBe(false);
     });
+
+    it("switching engine via selectEngine terminates active engine, clears output, and initializes new engine", () => {
+      const core = createEditorCore({
+        fileIo: createMockFileIoDeps(),
+        persistence: createPersistenceWithSettings({
+          isDefaultCodeEnabled: true,
+        }),
+        urlPersistence: createUrlPersistenceWithCodeAndEngine(null, "quickjs"),
+      });
+
+      const terminateSpy = vi.spyOn(core.engine, "terminate");
+      const clearSpy = vi.spyOn(core.output, "clearEntries");
+      const initSpy = vi
+        .spyOn(core.engine, "initializeSelectedEngine")
+        .mockResolvedValue(undefined);
+
+      core.commands.selectEngine("micropython", "python");
+
+      expect(clearSpy).toHaveBeenCalled();
+      expect(terminateSpy).toHaveBeenCalled();
+      expect(core.session.activeEngineId()).toBe("micropython");
+      expect(core.session.activeLanguage()).toBe("python");
+      expect(initSpy).toHaveBeenCalled();
+    });
   });
 });

@@ -64,6 +64,7 @@ describe("createEditorCommands", () => {
     };
 
     mockSession = {
+      activeEngineId: vi.fn(() => "quickjs" as const),
       activeLanguage: vi.fn(() => "javascript"),
       code: vi.fn(() => "console.log('hi');"),
       cursorPosition: vi.fn(),
@@ -156,6 +157,20 @@ describe("createEditorCommands", () => {
       expect(mockSession.selectEngine).toHaveBeenCalledWith(
         "quickjs",
         "javascript"
+      );
+      expect(mockEngine.initializeSelectedEngine).toHaveBeenCalled();
+    });
+
+    it("terminates engine and clears output when switching to a different engine or language", () => {
+      const commands = createEditorCommands(deps);
+
+      commands.selectEngine("micropython", "python");
+
+      expect(mockOutput.clearEntries).toHaveBeenCalled();
+      expect(mockEngine.terminate).toHaveBeenCalled();
+      expect(mockSession.selectEngine).toHaveBeenCalledWith(
+        "micropython",
+        "python"
       );
       expect(mockEngine.initializeSelectedEngine).toHaveBeenCalled();
     });

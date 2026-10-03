@@ -95,6 +95,8 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
 
   let orchestrator: EngineOrchestrator | null = null;
   let isInitialized = false;
+  let initializedEngineId: EngineId | null = null;
+  let initializedLanguage: string | null = null;
   let currentInitParams: EngineInitParams | null = null;
   let disposeEffect: (() => void) | null = null;
 
@@ -128,9 +130,8 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     currentInitParams = params;
 
     try {
-      const factory = await deps.registry.loadFactory(
-        deps.session.activeEngineId()
-      );
+      const selectedEngineId = deps.session.activeEngineId();
+      const factory = await deps.registry.loadFactory(selectedEngineId);
       orchestrator = new EngineOrchestrator({
         createWorker: factory,
         events: { onOutput: handleOutput },
@@ -139,6 +140,8 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
       const result = await orchestrator.init(params);
 
       isInitialized = true;
+      initializedEngineId = selectedEngineId;
+      initializedLanguage = params.language;
       setActiveCapabilities({
         id: result.id,
         isInterruptible: result.isInterruptible,
@@ -151,6 +154,8 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
       deps.output.appendEntry("system", "Engine ready.");
     } catch (error) {
       isInitialized = false;
+      initializedEngineId = null;
+      initializedLanguage = null;
       setEngineStatus("error");
       const errorMessage =
         error instanceof Error ? error.message : String(error);
@@ -176,30 +181,38 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
 
   /**
    * Spawns (or respawns) a worker for the currently selected engine.
-   * No-op when the engine is already healthy (ready/initializing/running)
-   * or blocked (trust gate active). On error state, terminates the failed
-   * worker before retrying.
+   * No-op when the selected engine is already healthy (ready/initializing/running)
+   * or blocked (trust gate active). On error state, or when the running worker
+   * belongs to a different engine or language, terminates the previous worker first.
    */
   async function initializeSelectedEngine(): Promise<void> {
     const status = engineStatusAccessor();
+    const currentEngineId = deps.session.activeEngineId();
+    const currentLanguage = deps.session.activeLanguage();
+
+    if (status === "blocked") {
+      return;
+    }
+
+    const isMatchingEngine =
+      isInitialized &&
+      initializedEngineId === currentEngineId &&
+      initializedLanguage === currentLanguage;
+
     if (
-      status === "ready" ||
-      status === "initializing" ||
-      status === "running" ||
-      status === "blocked"
+      isMatchingEngine &&
+      (status === "ready" || status === "initializing" || status === "running")
     ) {
       return;
     }
 
-    if (status === "error") {
+    if (status === "error" || !isMatchingEngine) {
       terminate();
     }
 
-    const engineDef = deps.registry.getDefinition(
-      deps.session.activeEngineId()
-    );
+    const engineDef = deps.registry.getDefinition(currentEngineId);
     const params: EngineInitParams = {
-      language: deps.session.activeLanguage(),
+      language: currentLanguage,
       ...engineDef.defaultInitParams,
     };
     await initializeEngine(params);
@@ -246,7 +259,13 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     try {
       setIsDirty(false);
 
-      if (isInitialized && orchestrator) {
+      const isMatchingEngine =
+        isInitialized &&
+        orchestrator !== null &&
+        initializedEngineId === deps.session.activeEngineId() &&
+        initializedLanguage === deps.session.activeLanguage();
+
+      if (isMatchingEngine && orchestrator) {
         await orchestrator.reset();
       } else {
         await initializeSelectedEngine();
@@ -283,6 +302,8 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     orchestrator?.terminate();
     orchestrator = null;
     isInitialized = false;
+    initializedEngineId = null;
+    initializedLanguage = null;
     setEngineStatus("idle");
     setIsDirty(false);
     setActiveInitParams(null);
