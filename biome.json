@@ -19,7 +19,8 @@
       "!!**/.turbo",
       "!!**/.vite",
       "!!**/pnpm-lock.yaml",
-      "!!**/.atl"
+      "!!**/.atl",
+      "!!**/.agents"
     ]
   },
   "overrides": [

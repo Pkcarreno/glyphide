@@ -7,6 +7,12 @@
       "skillPath": "skills/accessibility/SKILL.md",
       "computedHash": "612f913bcb03f0787b103c848cd7664b676a9aaf31f25d3270cc69cf5caaab95"
     },
+    "asd-ste100": {
+      "source": "woosal1337/blog",
+      "sourceType": "github",
+      "skillPath": "videos/ep01-the-cure-for-ai-slop/asd-ste100/SKILL.md",
+      "computedHash": "8f91d22b66bb0db98b459c1f67c158402ce32a4261178e08623a2fcea64f459b"
+    },
     "atomic-design-fundamentals": {
       "source": "thebushidocollective/han",
       "sourceType": "github",
