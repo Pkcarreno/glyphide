@@ -47,7 +47,7 @@ const TEST_PROJECT_REGEX = /TEST_PROJECT/;
 const RUN_REGEX = /Run/;
 const STOP_REGEX = /stop/i;
 const TRUST_REGEX = /trust/i;
-const UPDATE_REGEX = /update/i;
+const RELOAD_REGEX = /reload/i;
 const VERSION_LABELS_REGEX = /Glyphide v/;
 
 describe("Header", () => {
@@ -283,36 +283,43 @@ describe("Header - Mobile Dropdown Items", () => {
 
     it("when updateAvailable is false, update button is not visible", () => {
       const { queryByRole } = render(() => <Header />);
-      expect(queryByRole("button", { name: UPDATE_REGEX })).toBeNull();
+      expect(queryByRole("button", { name: RELOAD_REGEX })).toBeNull();
     });
 
     it("when updateAvailable is true, update button is visible", () => {
       setMockUpdateAvailable(true);
       const { getByRole } = render(() => <Header />);
-      expect(getByRole("button", { name: UPDATE_REGEX })).toBeTruthy();
+      expect(getByRole("button", { name: RELOAD_REGEX })).toBeTruthy();
     });
 
-    it("when update button is clicked, calls pwa.applyUpdate()", () => {
+    it("when update button is clicked, calls pwa.applyUpdate() and disables the button", () => {
       setMockUpdateAvailable(true);
       const { getByRole } = render(() => <Header />);
-      const updateButton = getByRole("button", { name: UPDATE_REGEX });
+      const updateButton = getByRole("button", {
+        name: RELOAD_REGEX,
+      }) as HTMLButtonElement;
+      expect(updateButton.disabled).toBe(false);
       updateButton.click();
       expect(applyUpdateMock).toHaveBeenCalled();
+      expect(updateButton.disabled).toBe(true);
     });
 
-    it("when updateAvailable is true, the inline update button is wrapped in a responsive container (hidden on mobile)", () => {
+    it("when updateAvailable is true, update button has accessible touch classes and responsive text label", () => {
       setMockUpdateAvailable(true);
       const { container } = render(() => <Header />);
       const updateButton = container.querySelector(
-        'button[aria-label="Update Available"]'
+        'button[aria-label="Reload application for new version"]'
       );
       expect(updateButton).toBeTruthy();
-      const wrapper = updateButton?.parentElement;
-      expect(wrapper?.className).toContain("hidden");
-      expect(wrapper?.className).toContain("md:flex");
+      expect(updateButton?.className).toContain("pointer-coarse:min-h-11");
+      expect(updateButton?.className).toContain("pointer-coarse:min-w-11");
+
+      const labelSpan = updateButton?.querySelector("span.hidden.md\\:inline");
+      expect(labelSpan).toBeTruthy();
+      expect(labelSpan?.textContent).toBe("Reload");
     });
 
-    it("when updateAvailable is true and dropdown is opened, Update App menuitem is present", () => {
+    it("when updateAvailable is true, dropdown does not contain redundant Update App menuitem", () => {
       setMockUpdateAvailable(true);
       const { getByRole } = render(() => <Header />);
       getByRole("button", { name: "Menu" }).click();
@@ -320,21 +327,7 @@ describe("Header - Mobile Dropdown Items", () => {
       const updateItem = menuItems.find((el) =>
         el.textContent?.includes("Update App")
       );
-      expect(updateItem).toBeTruthy();
-      expect(updateItem?.textContent).toContain("Update App");
-    });
-
-    it("when dropdown Update App item is clicked, calls pwa.applyUpdate()", () => {
-      setMockUpdateAvailable(true);
-      const { getByRole } = render(() => <Header />);
-      getByRole("button", { name: "Menu" }).click();
-      const menuItems = screen.getAllByRole("menuitem");
-      const updateItem = menuItems.find((el) =>
-        el.textContent?.includes("Update App")
-      );
-      expect(updateItem).toBeTruthy();
-      updateItem?.click();
-      expect(applyUpdateMock).toHaveBeenCalled();
+      expect(updateItem).toBeUndefined();
     });
 
     it("when updateAvailable is false, dropdown does not contain Update App menuitem", () => {
@@ -345,30 +338,6 @@ describe("Header - Mobile Dropdown Items", () => {
         el.textContent?.includes("Update App")
       );
       expect(updateItem).toBeUndefined();
-    });
-
-    it("when trust required and updateAvailable, dropdown Update App menuitem is still present", () => {
-      setMockIsTrustRequired(true);
-      setMockUpdateAvailable(true);
-      const { getByRole } = render(() => <Header />);
-      getByRole("button", { name: "Menu" }).click();
-      const menuItems = screen.getAllByRole("menuitem");
-      const updateItem = menuItems.find((el) =>
-        el.textContent?.includes("Update App")
-      );
-      expect(updateItem).toBeTruthy();
-      expect(updateItem?.textContent).toContain("Update App");
-    });
-
-    it("when updateAvailable is true, the mobile Update App group is in a block md:hidden container", () => {
-      setMockUpdateAvailable(true);
-      const { getByRole } = render(() => <Header />);
-      getByRole("button", { name: "Menu" }).click();
-      const groups = document.querySelectorAll("fieldset.block.md\\:hidden");
-      const updateGroup = Array.from(groups).find((g) =>
-        g.textContent?.includes("Update App")
-      );
-      expect(updateGroup).toBeTruthy();
     });
   });
 

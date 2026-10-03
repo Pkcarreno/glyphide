@@ -7,7 +7,7 @@ import Share2 from "lucide-solid/icons/share-2";
 import ShieldAlert from "lucide-solid/icons/shield-alert";
 import Square from "lucide-solid/icons/square";
 import type { JSX } from "solid-js";
-import { Show, splitProps } from "solid-js";
+import { createSignal, Show, splitProps } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { usePwaUpdate } from "../../core/pwa-registration.tsx";
 import { cn } from "../../helpers/cn.ts";
@@ -49,6 +49,13 @@ function Header(props: HeaderProps) {
 
   function handleShareClick() {
     core.overlays.open("share");
+  }
+
+  const [isUpdating, setIsUpdating] = createSignal(false);
+
+  function handleUpdateClick() {
+    setIsUpdating(true);
+    pwa.applyUpdate();
   }
 
   return (
@@ -108,14 +115,6 @@ function Header(props: HeaderProps) {
                   Engine Settings
                 </Dropdown.Item>
               </Dropdown.Group>
-              <Show when={pwa.updateAvailable()}>
-                <Dropdown.Separator class="block md:hidden" />
-                <Dropdown.Group class="block md:hidden">
-                  <Dropdown.Item onSelect={() => pwa.applyUpdate()}>
-                    Update App
-                  </Dropdown.Item>
-                </Dropdown.Group>
-              </Show>
               <Dropdown.Separator />
               <Dropdown.Group>
                 <Dropdown.Link
@@ -133,6 +132,33 @@ function Header(props: HeaderProps) {
             </Dropdown.Content>
           </Dropdown.Portal>
         </Dropdown.Root>
+
+        <Show when={pwa.updateAvailable()}>
+          <ActionTooltip
+            aria-label="Reload application for new version"
+            as={Button}
+            class="relative pointer-coarse:min-h-11 pointer-coarse:min-w-11 border-outline bg-primary text-on-primary hover:bg-primary/90"
+            disabled={isUpdating()}
+            onClick={handleUpdateClick}
+            position="bottom"
+            text="New version ready. Reload to apply."
+            variant="primary"
+          >
+            <Icon
+              class={cn(isUpdating() && "animate-spin", "md:mr-1")}
+              icon={RefreshCw}
+            />
+            <span class="hidden md:inline">Reload</span>
+            <span
+              aria-hidden="true"
+              class="pointer-events-none absolute -top-1 -right-1 flex size-2.5"
+            >
+              <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+              <span class="relative inline-flex size-2.5 rounded-full border border-outline bg-primary" />
+            </span>
+          </ActionTooltip>
+        </Show>
+
         <ActionTooltip
           aria-label="Rename Project"
           as={Button}
@@ -159,23 +185,6 @@ function Header(props: HeaderProps) {
             <Icon class="mr-1" icon={ShieldAlert} />
             Trust Required
           </ActionTooltip>
-        </Show>
-
-        <Show when={pwa.updateAvailable()}>
-          <span class="hidden md:flex">
-            <ActionTooltip
-              aria-label="Update Available"
-              as={Button}
-              class="border-outline bg-primary text-on-primary hover:bg-primary/90"
-              onClick={() => pwa.applyUpdate()}
-              position="bottom"
-              text="New version available"
-              variant="primary"
-            >
-              <Icon class="mr-1" icon={RefreshCw} />
-              Update App
-            </ActionTooltip>
-          </span>
         </Show>
       </div>
 
