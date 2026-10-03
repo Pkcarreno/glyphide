@@ -9,6 +9,11 @@ const clearEntriesMock = vi.fn();
 const [entries, setEntries] = createSignal<
   { id: string; type: string; data: unknown }[]
 >([]);
+const [stats, setStats] = createSignal({
+  bufferDropped: 0,
+  totalDropped: 0,
+  workerDropped: 0,
+});
 
 /** Minimal formatter mock for QuickJS-style engines. */
 const quickjsFormatter = {
@@ -40,19 +45,35 @@ vi.mock("../../core/context", () => ({
         outputFormatter: id === "quickjs" ? quickjsFormatter : undefined,
       }),
     },
-    output: { clearEntries: clearEntriesMock, entries },
+    output: { clearEntries: clearEntriesMock, entries, stats },
   }),
 }));
+
+const OMITTED_LOGS_PATTERN = /omitted/i;
 
 describe("ConsolePane", () => {
   beforeEach(() => {
     clearEntriesMock.mockClear();
+    setStats({ bufferDropped: 0, totalDropped: 0, workerDropped: 0 });
   });
 
   it("when rendered, displays the Output header", () => {
     setEntries([]);
     const { getByText } = render(() => <ConsolePane />);
     expect(getByText("Output")).toBeTruthy();
+  });
+
+  it("when totalDropped is 0, does not render omitted count indicator", () => {
+    setEntries([]);
+    const { queryByText } = render(() => <ConsolePane />);
+    expect(queryByText(OMITTED_LOGS_PATTERN)).toBeNull();
+  });
+
+  it("when totalDropped > 0, renders omitted counter in header", () => {
+    setEntries([]);
+    setStats({ bufferDropped: 200, totalDropped: 1200, workerDropped: 1000 });
+    const { getByText } = render(() => <ConsolePane />);
+    expect(getByText("(1.2k omitted)")).toBeTruthy();
   });
 
   it("renders a Clear button and calls clearEntries on click", () => {
