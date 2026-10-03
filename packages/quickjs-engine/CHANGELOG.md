@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.2.0](https://github.com/Pkcarreno/glyphide/compare/@glyphide/quickjs-engine-v0.1.1...@glyphide/quickjs-engine-v0.2.0) (2026-10-03)
+
+
+### Features
+
+* **engine,editor:** implement output rate limiting and console header dropped counter ([2791240](https://github.com/Pkcarreno/glyphide/commit/2791240fe22ff71ce276b54ea2b416ece0b35417))
+* **engine:** add configurable output rate limiter defaulting to 5000 logs/sec ([0ec17a6](https://github.com/Pkcarreno/glyphide/commit/0ec17a6ee9c39995d9eee49ef6aea44ce30c758a))
+
+
+### Bug Fixes
+
+* **deps:** bump the all group across 1 directory with 17 updates ([c7df9bd](https://github.com/Pkcarreno/glyphide/commit/c7df9bdbea6ea364a2457797efdc1bb90def222e))
+* **deps:** bump the all group across 1 directory with 17 updates ([51b5a4d](https://github.com/Pkcarreno/glyphide/commit/51b5a4dbbf8467899cddbe1451c4a1ee1526ae49))
+* **deps:** bump the all group with 10 updates ([37e89a0](https://github.com/Pkcarreno/glyphide/commit/37e89a033858fcffd6af1e9cd8a034dc71e1bc77))
+* **deps:** bump the all group with 10 updates ([73852f6](https://github.com/Pkcarreno/glyphide/commit/73852f607c235fff4688aef5feb78ee40ed8f909))
+* **deps:** bump the all group with 10 updates ([19af526](https://github.com/Pkcarreno/glyphide/commit/19af52656d7e53fec65f51fdef489b09084d0197))
+* **deps:** bump the all group with 10 updates ([106b85e](https://github.com/Pkcarreno/glyphide/commit/106b85ec6601923a81f18c72de9b3216d9cfcf6b))
+* **editor:** update lucide icon imports and dedupe lezer dependencies ([0189d19](https://github.com/Pkcarreno/glyphide/commit/0189d1944eb426d4a84862db3749e0a365942912))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @glyphide/rpc-protocol bumped to 1.1.0
+  * devDependencies
+    * @glyphide/orchestrator bumped to 1.0.2
+  * peerDependencies
+    * @glyphide/orchestrator bumped to 1.0.2
+
 ## [0.1.1](https://github.com/Pkcarreno/glyphide/compare/@glyphide/quickjs-engine-v0.1.0...@glyphide/quickjs-engine-v0.1.1) (2026-08-01)
 
 
