@@ -1,5 +1,8 @@
 {
   "$schema": "https://unpkg.com/knip@latest/schema.json",
-  "ignore": ["packages/integration-tests/src/shared/run-server.mjs"],
+  "ignore": [
+    "packages/integration-tests/src/shared/run-server.mjs",
+    ".agents/**"
+  ],
   "ignoreDependencies": ["@biomejs/biome"]
 }

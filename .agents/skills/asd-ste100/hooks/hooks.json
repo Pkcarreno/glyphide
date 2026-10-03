@@ -1,0 +1,67 @@
+{
+	"hooks": {
+		"UserPromptSubmit": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "node",
+						"args": [
+							"${CLAUDE_PLUGIN_ROOT}/hooks/run-python.cjs",
+							"${CLAUDE_PLUGIN_ROOT}/hooks/ste-inject.py"
+						],
+						"timeout": 10
+					}
+				]
+			}
+		],
+		"PreToolUse": [
+			{
+				"matcher": "Bash|mcp__elliptic__.*",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "node",
+						"args": [
+							"${CLAUDE_PLUGIN_ROOT}/hooks/run-python.cjs",
+							"${CLAUDE_PLUGIN_ROOT}/hooks/ste-pregate.py"
+						],
+						"timeout": 15
+					}
+				]
+			}
+		],
+		"PostToolUse": [
+			{
+				"matcher": "*",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "node",
+						"args": [
+							"${CLAUDE_PLUGIN_ROOT}/hooks/run-python.cjs",
+							"${CLAUDE_PLUGIN_ROOT}/hooks/ste-refresh.py"
+						],
+						"timeout": 15
+					}
+				]
+			}
+		],
+		"Stop": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "node",
+						"args": [
+							"${CLAUDE_PLUGIN_ROOT}/hooks/run-python.cjs",
+							"${CLAUDE_PLUGIN_ROOT}/hooks/ste-gate.py"
+						],
+						"timeout": 30,
+						"statusMessage": "Checking ASD-STE100"
+					}
+				]
+			}
+		]
+	}
+}
