@@ -26,11 +26,11 @@
     "@glyphide/quickjs-engine": "workspace:*",
     "@glyphide/rpc-protocol": "workspace:*",
     "@glyphide/url-migration": "workspace:*",
-    "@lezer/highlight": "^1.2.4",
+    "@lezer/highlight": "^1.2.5",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",
     "codemirror": "^6.0.2",
-    "lucide-solid": "^1.48.0",
+    "lucide-solid": "^1.51.0",
     "solid-js": "^1.9.15",
     "workbox-window": "^7.3.0"
   },
@@ -42,9 +42,9 @@
     "happy-dom": "^20.14.5",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
-    "vite": "^8.3.1",
-    "vite-plugin-pwa": "^1.0.2",
+    "vite": "^8.3.2",
+    "vite-plugin-pwa": "^2.0.0",
     "vite-plugin-solid": "^2.11.14",
-    "vitest": "^5.0.2"
+    "vitest": "^5.0.3"
   }
 }
