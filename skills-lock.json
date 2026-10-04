@@ -49,12 +49,6 @@
       "skillPath": "skills/seo/SKILL.md",
       "computedHash": "01a735ac18ceb15536ac40b11a5712b3ab8f78ebe94748b3ebc3afc7f58a6f2f"
     },
-    "solid": {
-      "source": "ramziddin/solid-skills",
-      "sourceType": "github",
-      "skillPath": "skills/solid/SKILL.md",
-      "computedHash": "6949aa4c74cf68a489297307515f1e769c3510b68045cbf16f6479403cf0b883"
-    },
     "solid-composition-patterns": {
       "source": "Pkcarreno/skills",
       "sourceType": "github",
