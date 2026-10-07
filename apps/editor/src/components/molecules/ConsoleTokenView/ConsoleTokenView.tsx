@@ -46,6 +46,19 @@ function formatFallbackToken(token: unknown): string {
   }
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/** Guards against malformed worker RPC payloads lacking object properties. */
+function isObjectToken(
+  token: unknown
+): token is Extract<ConsoleToken, { type: "object" }> {
+  return (
+    isRecord(token) && token.type === "object" && isRecord(token.properties)
+  );
+}
+
 /** Renders a single ConsoleToken with type-appropriate styling. */
 function Token(props: { token: unknown; isPreview?: boolean }) {
   const { token, isPreview } = props;
@@ -135,8 +148,11 @@ function Token(props: { token: unknown; isPreview?: boolean }) {
     case "array":
       return <TokenArray isPreview={isPreview} token={typedToken} />;
 
-    case "object":
-      return <TokenObject isPreview={isPreview} token={typedToken} />;
+    case "object": {
+      const objectToken: Extract<ConsoleToken, { type: "object" }> =
+        isObjectToken(token) ? token : { properties: {}, type: "object" };
+      return <TokenObject isPreview={isPreview} token={objectToken} />;
+    }
 
     case "bigint":
       return <span class="text-log-warn">{String(typedToken.value)}n</span>;
@@ -238,10 +254,7 @@ function TokenObject(props: {
   isPreview?: boolean;
 }) {
   const { token, isPreview } = props;
-  const properties =
-    token.properties && typeof token.properties === "object"
-      ? token.properties
-      : {};
+  const { properties } = token;
   const entries = Object.entries(properties).slice(0, 5);
   const hasMore = Object.keys(properties).length > 5;
 
