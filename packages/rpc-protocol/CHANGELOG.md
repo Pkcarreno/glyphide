@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.1](https://github.com/Pkcarreno/glyphide/compare/@glyphide/rpc-protocol-v1.1.0...@glyphide/rpc-protocol-v1.1.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* **deps:** bump the all group with 10 updates ([27176fe](https://github.com/Pkcarreno/glyphide/commit/27176fe9ebb12e4b4de99b44360c2aacaea56d5e))
+* **deps:** bump the all group with 10 updates ([1288b41](https://github.com/Pkcarreno/glyphide/commit/1288b410ef9177929cd9a7f0c9c65519975550b1))
+
 ## [1.1.0](https://github.com/Pkcarreno/glyphide/compare/@glyphide/rpc-protocol-v1.0.1...@glyphide/rpc-protocol-v1.1.0) (2026-10-03)
 
 
