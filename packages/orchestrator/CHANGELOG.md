@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.0.4](https://github.com/Pkcarreno/glyphide/compare/@glyphide/orchestrator-v1.0.3...@glyphide/orchestrator-v1.0.4) (2026-10-15)
+
+
+### Bug Fixes
+
+* **deps:** bump the all group with 10 updates ([8dc655d](https://github.com/Pkcarreno/glyphide/commit/8dc655d471638e33e87cd446cccd01403500dfd4))
+* **deps:** bump the all group with 10 updates ([43c788b](https://github.com/Pkcarreno/glyphide/commit/43c788bea14b6758818ba16ca62679f57f289262))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @glyphide/rpc-protocol bumped to 1.1.2
+
 ## [1.0.3](https://github.com/Pkcarreno/glyphide/compare/@glyphide/orchestrator-v1.0.2...@glyphide/orchestrator-v1.0.3) (2026-10-07)
 
 

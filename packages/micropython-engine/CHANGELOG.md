@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.2.2](https://github.com/Pkcarreno/glyphide/compare/@glyphide/micropython-engine-v0.2.1...@glyphide/micropython-engine-v0.2.2) (2026-10-15)
+
+
+### Bug Fixes
+
+* **deps:** bump the all group with 10 updates ([8dc655d](https://github.com/Pkcarreno/glyphide/commit/8dc655d471638e33e87cd446cccd01403500dfd4))
+* **deps:** bump the all group with 10 updates ([43c788b](https://github.com/Pkcarreno/glyphide/commit/43c788bea14b6758818ba16ca62679f57f289262))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @glyphide/rpc-protocol bumped to 1.1.2
+  * devDependencies
+    * @glyphide/orchestrator bumped to 1.0.4
+  * peerDependencies
+    * @glyphide/orchestrator bumped to 1.0.4
+
 ## [0.2.1](https://github.com/Pkcarreno/glyphide/compare/@glyphide/micropython-engine-v0.2.0...@glyphide/micropython-engine-v0.2.1) (2026-10-07)
 
 
