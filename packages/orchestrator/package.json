@@ -1,6 +1,6 @@
 {
   "name": "@glyphide/orchestrator",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "private": true,
   "description": "Main thread controller for Glyphide execution engines.",
   "license": "MIT",
