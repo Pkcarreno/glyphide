@@ -15,6 +15,11 @@ updates:
           - "*"
     cooldown:
       default-days: 1
+    # TODO(TS 7.1): Desbloquear tsdown cuando TypeScript 7.1 este disponible de forma estable
+    # tsdown 0.23.2 depende de rolldown-plugin-dts 0.29 (beta) que requiere typescript/async (TS 7.1+)
+    ignore:
+      - dependency-name: "tsdown"
+        versions: ["0.23.2"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
