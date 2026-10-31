@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.1.4](https://github.com/Pkcarreno/glyphide/compare/@glyphide/editor-v3.1.3...@glyphide/editor-v3.1.4) (2026-10-31)
+
+
+### Bug Fixes
+
+* **deps:** bump the all group across 1 directory with 11 updates ([9d94f2a](https://github.com/Pkcarreno/glyphide/commit/9d94f2a37b64b5aed1851ac3a84b972874281586))
+* **deps:** bump the all group across 1 directory with 11 updates ([418c176](https://github.com/Pkcarreno/glyphide/commit/418c176fc07891cd88cfc9c84f86827621132e3c))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @glyphide/url-migration bumped to 1.0.6
+
 ## [3.1.3](https://github.com/Pkcarreno/glyphide/compare/@glyphide/editor-v3.1.2...@glyphide/editor-v3.1.3) (2026-10-20)
 
 

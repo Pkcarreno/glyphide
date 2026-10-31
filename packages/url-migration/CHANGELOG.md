@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.6](https://github.com/Pkcarreno/glyphide/compare/@glyphide/url-migration-v1.0.5...@glyphide/url-migration-v1.0.6) (2026-10-31)
+
+
+### Bug Fixes
+
+* **deps:** bump the all group across 1 directory with 11 updates ([9d94f2a](https://github.com/Pkcarreno/glyphide/commit/9d94f2a37b64b5aed1851ac3a84b972874281586))
+* **deps:** bump the all group across 1 directory with 11 updates ([418c176](https://github.com/Pkcarreno/glyphide/commit/418c176fc07891cd88cfc9c84f86827621132e3c))
+
 ## [1.0.5](https://github.com/Pkcarreno/glyphide/compare/@glyphide/url-migration-v1.0.4...@glyphide/url-migration-v1.0.5) (2026-10-20)
 
 
