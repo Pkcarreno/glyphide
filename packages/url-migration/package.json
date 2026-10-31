@@ -61,7 +61,7 @@
   },
   "dependencies": {
     "fflate": "^0.8.3",
-    "js-base64": "^3.9.4"
+    "js-base64": "^3.9.5"
   },
   "devDependencies": {
     "tsdown": "^0.23.1",
