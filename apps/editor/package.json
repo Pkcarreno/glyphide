@@ -28,10 +28,10 @@
     "@glyphide/url-migration": "workspace:*",
     "@lezer/highlight": "^1.2.5",
     "class-variance-authority": "^0.7.1",
-    "cn": "^0.5.0",
+    "cn": "^0.5.1",
     "codemirror": "^6.0.2",
-    "lucide-solid": "^1.62.0",
-    "solid-js": "^1.9.17",
+    "lucide-solid": "^1.66.0",
+    "solid-js": "^1.9.18",
     "workbox-window": "^7.3.0"
   },
   "devDependencies": {
@@ -44,7 +44,7 @@
     "typescript": "^7.0.2",
     "vite": "^8.3.5",
     "vite-plugin-pwa": "^2.0.0",
-    "vite-plugin-solid": "^2.11.14",
+    "vite-plugin-solid": "^2.11.15",
     "vitest": "^5.0.5"
   }
 }
