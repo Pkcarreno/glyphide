@@ -35,9 +35,9 @@
   },
   "devDependencies": {
     "@glyphide/orchestrator": "workspace:*",
-    "tsdown": "^0.23.4",
+    "tsdown": "^0.23.7",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.5"
+    "vitest": "^5.1.0"
   },
   "peerDependencies": {
     "@glyphide/orchestrator": "workspace:*"
