@@ -1,6 +1,6 @@
 import CircleCheckIcon from "lucide-solid/icons/circle-check";
 import CircleXIcon from "lucide-solid/icons/circle-x";
-import TriangleAlertIcon from "lucide-solid/icons/triangle-alert";
+import TriangleAlertIcon from "lucide-solid/icons/triangle-exclamation-point";
 import XIcon from "lucide-solid/icons/x";
 import { createSignal, Match, onMount, Show, Switch } from "solid-js";
 import type { NotificationItem } from "../../core/models/notifications.ts";
@@ -48,7 +48,7 @@ export function Toast(props: ToastProps) {
       <div class="w-full pt-3">
         <div
           aria-live="polite"
-          class="pointer-events-auto relative flex w-full overflow-hidden rounded-lg border border-outline-variant bg-surface shadow-md"
+          class="border-outline-variant bg-surface pointer-events-auto relative flex w-full overflow-hidden rounded-lg border shadow-md"
           role="status"
         >
           <div class="flex w-full items-start p-3 pl-4">
@@ -77,11 +77,11 @@ export function Toast(props: ToastProps) {
             </Show>
 
             <div class="ml-3 flex w-0 flex-1 flex-col gap-1.5">
-              <p class="font-sans font-semibold text-on-surface text-xs">
+              <p class="text-on-surface font-sans text-xs font-semibold">
                 {props.notification.title}
               </p>
               <Show when={props.notification.description}>
-                <p class="wrap-break-word whitespace-pre-wrap font-sans text-on-surface-variant text-xs leading-snug">
+                <p class="text-on-surface-variant font-sans text-xs leading-snug wrap-break-word whitespace-pre-wrap">
                   {props.notification.description}
                 </p>
               </Show>

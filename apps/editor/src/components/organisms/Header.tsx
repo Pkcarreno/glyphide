@@ -4,7 +4,7 @@ import Play from "lucide-solid/icons/play";
 import RefreshCw from "lucide-solid/icons/refresh-cw";
 import Settings from "lucide-solid/icons/settings";
 import Share2 from "lucide-solid/icons/share-2";
-import ShieldAlert from "lucide-solid/icons/shield-alert";
+import ShieldAlert from "lucide-solid/icons/shield-exclamation-point";
 import Square from "lucide-solid/icons/square";
 import type { JSX } from "solid-js";
 import { createSignal, Show, splitProps } from "solid-js";
@@ -61,8 +61,8 @@ function Header(props: HeaderProps) {
   return (
     <header
       class={cn(
-        "flex min-h-header-height items-center justify-between",
-        "border-outline-variant border-b bg-background px-padding-x py-1",
+        "min-h-header-height flex items-center justify-between",
+        "border-outline-variant bg-background px-padding-x border-b py-1",
         local.class
       )}
       {...rest}
@@ -137,7 +137,7 @@ function Header(props: HeaderProps) {
           <ActionTooltip
             aria-label="Reload application for new version"
             as={Button}
-            class="relative pointer-coarse:min-h-11 pointer-coarse:min-w-11 border-outline bg-primary text-on-primary hover:bg-primary/90"
+            class="border-outline bg-primary text-on-primary hover:bg-primary/90 relative pointer-coarse:min-h-11 pointer-coarse:min-w-11"
             disabled={isUpdating()}
             onClick={handleUpdateClick}
             position="bottom"
@@ -153,8 +153,8 @@ function Header(props: HeaderProps) {
               aria-hidden="true"
               class="pointer-events-none absolute -top-1 -right-1 flex size-2.5"
             >
-              <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-              <span class="relative inline-flex size-2.5 rounded-full border border-outline bg-primary" />
+              <span class="bg-primary absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" />
+              <span class="border-outline bg-primary relative inline-flex size-2.5 rounded-full border" />
             </span>
           </ActionTooltip>
         </Show>
@@ -162,7 +162,7 @@ function Header(props: HeaderProps) {
         <ActionTooltip
           aria-label="Rename Project"
           as={Button}
-          class="font-sans font-semibold text-on-surface tracking-wide"
+          class="text-on-surface font-sans font-semibold tracking-wide"
           onClick={() => core.overlays.open("project-rename")}
           position="bottom"
           text="Rename Project"
@@ -188,7 +188,7 @@ function Header(props: HeaderProps) {
         </Show>
       </div>
 
-      <div class="flex items-center gap-gap-compact">
+      <div class="gap-gap-compact flex items-center">
         {/* Hidden on mobile, visible md+ */}
         <span class="hidden md:block">
           <ActionTooltip
