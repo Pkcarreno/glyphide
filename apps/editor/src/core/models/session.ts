@@ -1,5 +1,5 @@
 import type { Accessor } from "solid-js";
-import { batch, createSignal } from "solid-js";
+import { createSignal } from "solid-js";
 import type { EngineId, EngineRegistry } from "../engine/registry.ts";
 import type { UrlPersistencePort } from "../ports/url-persistence.ts";
 
@@ -241,17 +241,15 @@ export function createWorkspaceSession(
   function setCode(newCode: string, options: SetCodeOptions = {}): void {
     const source = options.source ?? "user";
     const isDefaultSource = source === "default" && newCode.length > 0;
-    batch(() => {
-      setCodeSignal(newCode);
-      setIsShowingDefaultCode(isDefaultSource);
-      persistToUrl(
-        newCode,
-        activeEngineId(),
-        activeLanguage(),
-        projectName(),
-        isDefaultSource
-      );
-    });
+    setCodeSignal(newCode);
+    setIsShowingDefaultCode(isDefaultSource);
+    persistToUrl(
+      newCode,
+      activeEngineId(),
+      activeLanguage(),
+      projectName(),
+      isDefaultSource
+    );
   }
 
   function setCursorPosition(
@@ -265,16 +263,14 @@ export function createWorkspaceSession(
 
   function setProjectName(newName: string): void {
     const sanitized = newName.trim() || DEFAULT_PROJECT_NAME;
-    batch(() => {
-      setProjectNameSignal(sanitized);
-      persistToUrl(
-        code(),
-        activeEngineId(),
-        activeLanguage(),
-        sanitized,
-        isShowingDefaultCode()
-      );
-    });
+    setProjectNameSignal(sanitized);
+    persistToUrl(
+      code(),
+      activeEngineId(),
+      activeLanguage(),
+      sanitized,
+      isShowingDefaultCode()
+    );
   }
 
   function setShareableState(isShareable: boolean): void {
@@ -288,51 +284,47 @@ export function createWorkspaceSession(
         ? newLanguage
         : def.supportedLanguages[0];
 
-    batch(() => {
-      setActiveEngineId(newEngineId);
-      setActiveLanguage(resolvedLang);
+    setActiveEngineId(newEngineId);
+    setActiveLanguage(resolvedLang);
 
-      let currentCode = code();
-      let pristine = isShowingDefaultCode();
+    let currentCode = code();
+    let pristine = isShowingDefaultCode();
 
-      // Pristine buffer rule: replace code with the new engine default if untouched
-      if (pristine) {
-        currentCode = resolveDefaultCode(newEngineId, deps.engineRegistry);
-        setCodeSignal(currentCode);
-        pristine = currentCode.length > 0;
-        setIsShowingDefaultCode(pristine);
-      }
+    // Pristine buffer rule: replace code with the new engine default if untouched
+    if (pristine) {
+      currentCode = resolveDefaultCode(newEngineId, deps.engineRegistry);
+      setCodeSignal(currentCode);
+      pristine = currentCode.length > 0;
+      setIsShowingDefaultCode(pristine);
+    }
 
-      persistToUrl(
-        currentCode,
-        newEngineId,
-        resolvedLang,
-        projectName(),
-        pristine
-      );
-    });
+    persistToUrl(
+      currentCode,
+      newEngineId,
+      resolvedLang,
+      projectName(),
+      pristine
+    );
   }
 
   function reset(): void {
-    batch(() => {
-      deps.urlPersistence.clear();
-      setIsUrlShareable(true);
+    deps.urlPersistence.clear();
+    setIsUrlShareable(true);
 
-      const resetContent = deps.isDefaultCodeEnabled()
-        ? resolveDefaultCode(activeEngineId(), deps.engineRegistry)
-        : "";
+    const resetContent = deps.isDefaultCodeEnabled()
+      ? resolveDefaultCode(activeEngineId(), deps.engineRegistry)
+      : "";
 
-      setCodeSignal(resetContent);
-      setIsShowingDefaultCode(resetContent.length > 0);
-      setCursorPositionSignal({
-        column: 1,
-        line: 1,
-        selectionLength: 0,
-        selectionLines: 0,
-      });
-      setProjectNameSignal(DEFAULT_PROJECT_NAME);
-      setIsTrustRequired(false);
+    setCodeSignal(resetContent);
+    setIsShowingDefaultCode(resetContent.length > 0);
+    setCursorPositionSignal({
+      column: 1,
+      line: 1,
+      selectionLength: 0,
+      selectionLines: 0,
     });
+    setProjectNameSignal(DEFAULT_PROJECT_NAME);
+    setIsTrustRequired(false);
   }
 
   function loadFile(payload: LoadFilePayload): void {
@@ -344,16 +336,14 @@ export function createWorkspaceSession(
         : def.supportedLanguages[0];
     const newName = baseName || DEFAULT_PROJECT_NAME;
 
-    batch(() => {
-      setCodeSignal(payload.content);
-      setIsShowingDefaultCode(false);
-      setProjectNameSignal(newName);
-      setActiveEngineId(payload.engineId);
-      setActiveLanguage(lang);
-      setIsTrustRequired(true);
+    setCodeSignal(payload.content);
+    setIsShowingDefaultCode(false);
+    setProjectNameSignal(newName);
+    setActiveEngineId(payload.engineId);
+    setActiveLanguage(lang);
+    setIsTrustRequired(true);
 
-      persistToUrl(payload.content, payload.engineId, lang, newName, false);
-    });
+    persistToUrl(payload.content, payload.engineId, lang, newName, false);
   }
 
   function grantTrust(): void {

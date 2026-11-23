@@ -41,7 +41,7 @@ interface PopoverContextValue {
   toggle: () => void;
 }
 
-const PopoverContext = createContext<PopoverContextValue>();
+const PopoverContext = createContext<PopoverContextValue | null>(null);
 
 /**
  * Retrieves the popover context.

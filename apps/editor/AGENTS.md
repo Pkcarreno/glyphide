@@ -1,6 +1,6 @@
 # @glyphide/editor
 
-SolidJS Single Page Application (SPA) providing the user interface for the Glyphide code editor.
+SolidJS 2 single-page application (SPA) providing the user interface for the Glyphide code editor.
 
 ## Architecture: EditorCore
 
@@ -13,7 +13,8 @@ SolidJS Single Page Application (SPA) providing the user interface for the Glyph
 ## Component Architecture & Reactivity
 
 - Organize components under `src/components/{atoms,molecules,organisms,templates,pages}` applying the `atomic-design-fundamentals` skill.
-- Build flexible and compound UI components applying the `solid-composition-patterns` skill for composition and SolidJS reactivity invariants.
+- Build compound UI components using the `solid-composition-patterns` skill. For SolidJS 2 APIs, read reactive values from `props`, use `omit` for forwarded props, and import DOM and JSX types from `@solidjs/web`.
+- Track dependencies in the first `createEffect` callback and perform side effects in the second. Use `onSettled` for DOM setup and return its cleanup. Signal and store writes settle on a microtask. Use `flush()` at test observation points and imperative boundaries that must read a staged write.
 
 ## Styling & Design Tokens
 

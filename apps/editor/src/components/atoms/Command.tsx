@@ -27,7 +27,7 @@ interface CommandContextValue {
   visibleItems: Accessor<Set<string>>;
 }
 
-const CommandContext = createContext<CommandContextValue>();
+const CommandContext = createContext<CommandContextValue | null>(null);
 
 /** @public */
 export function useCommand() {
@@ -145,6 +145,7 @@ export function CommandRoot(props: CommandRootProps) {
         visibleItems,
       }}
     >
+      {/* biome-ignore lint/a11y/useFocusableInteractive: The command input owns focus. */}
       <div
         aria-expanded="true"
         aria-haspopup="listbox"
@@ -287,6 +288,7 @@ export function CommandItem(props: CommandItemProps) {
 
   return (
     <Show when={isVisible()}>
+      {/* biome-ignore lint/a11y/useFocusableInteractive: The command input controls selection with arrow keys. */}
       <div
         aria-selected={isSelected() ? "true" : "false"}
         class={cn(
@@ -326,6 +328,7 @@ export function CommandItem(props: CommandItemProps) {
 function CommandDialogOverlay(props: JSX.HTMLAttributes<HTMLButtonElement>) {
   const { close } = useDialog();
   return (
+    // biome-ignore lint/a11y/noAriaHiddenOnFocusable: The backdrop is outside the tab order.
     <button
       aria-hidden="true"
       class="fixed inset-0 z-50 m-0 cursor-default border-none bg-transparent p-0"

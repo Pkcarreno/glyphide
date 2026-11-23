@@ -1,5 +1,5 @@
 import type { Accessor } from "solid-js";
-import { batch, createSignal } from "solid-js";
+import { createSignal } from "solid-js";
 
 /**
  * A single output entry emitted by the execution engine.
@@ -75,25 +75,23 @@ export function createOutputModel(
 
   function flush() {
     if (pendingEntries.length > 0) {
-      batch(() => {
-        const toAdd = pendingEntries;
-        pendingEntries = [];
+      const toAdd = pendingEntries;
+      pendingEntries = [];
 
-        setEntries((previous) => {
-          const combined = [...previous, ...toAdd];
-          if (combined.length <= maxEntries) {
-            return combined;
-          }
+      setEntries((previous) => {
+        const combined = [...previous, ...toAdd];
+        if (combined.length <= maxEntries) {
+          return combined;
+        }
 
-          const excessCount = combined.length - maxEntries;
-          setStats((prev) => ({
-            ...prev,
-            bufferDropped: prev.bufferDropped + excessCount,
-            totalDropped: prev.totalDropped + excessCount,
-          }));
+        const excessCount = combined.length - maxEntries;
+        setStats((prev) => ({
+          ...prev,
+          bufferDropped: prev.bufferDropped + excessCount,
+          totalDropped: prev.totalDropped + excessCount,
+        }));
 
-          return combined.slice(excessCount);
-        });
+        return combined.slice(excessCount);
       });
     }
     rafId = null;

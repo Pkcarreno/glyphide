@@ -13,7 +13,7 @@ interface DialogContextValue {
   open: () => void;
 }
 
-const DialogContext = createContext<DialogContextValue>();
+const DialogContext = createContext<DialogContextValue | null>(null);
 
 function useDialog(): DialogContextValue {
   const ctx = useContext(DialogContext);
@@ -119,6 +119,7 @@ function DialogOverlay(props: DialogOverlayProps) {
   }
 
   return (
+    // biome-ignore lint/a11y/noAriaHiddenOnFocusable: The backdrop is outside the tab order.
     <button
       aria-hidden="true"
       class={cn(

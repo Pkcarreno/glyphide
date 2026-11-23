@@ -66,11 +66,7 @@ export function LoadFileModal() {
     }
   }
 
-  function commitLoad(): void {
-    const file = pendingFile();
-    if (!file) {
-      return;
-    }
+  function commitLoad(file: FileReadResult): void {
     const engine = core.engineRegistry.resolveByExtension(file.extension);
     if (!engine) {
       return;
@@ -101,10 +97,10 @@ export function LoadFileModal() {
         setError(unsupportedErrorMessage());
         return;
       }
-      setPendingFile(result);
       if (core.session.code() === "") {
-        commitLoad();
+        commitLoad(result);
       } else {
+        setPendingFile(result);
         setNeedsConfirm(true);
       }
     } catch {
@@ -176,7 +172,16 @@ export function LoadFileModal() {
             <Button onClick={closeModal} size="md" variant="ghost">
               Cancel
             </Button>
-            <Button onClick={commitLoad} size="md" variant="primary">
+            <Button
+              onClick={() => {
+                const file = pendingFile();
+                if (file) {
+                  commitLoad(file);
+                }
+              }}
+              size="md"
+              variant="primary"
+            >
               Overwrite
             </Button>
           </Show>

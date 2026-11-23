@@ -6,6 +6,7 @@ import { Dialog, useDialog } from "../molecules/Dialog.tsx";
 function ProjectRenameOverlay() {
   const { close } = useDialog();
   return (
+    // biome-ignore lint/a11y/noAriaHiddenOnFocusable: The backdrop is outside the tab order.
     <button
       aria-hidden="true"
       class="fixed inset-0 z-50 m-0 cursor-default border-none bg-transparent p-0"

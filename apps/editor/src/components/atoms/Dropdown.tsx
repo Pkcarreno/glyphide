@@ -39,14 +39,9 @@ interface DropdownContextValue {
   unregisterItem: (id: string) => void;
 }
 
-const DropdownContext = createContext<DropdownContextValue>();
+const DropdownContext = createContext<DropdownContextValue | null>(null);
 
-/**
- * Retrieves the dropdown context.
- * Throws if used outside a DropdownRoot.
- *
- * @public
- */
+/** @public */
 export function useDropdown(): DropdownContextValue {
   const ctx = useContext(DropdownContext);
   if (!ctx) {
@@ -219,17 +214,12 @@ type DropdownTriggerProps<T extends ValidComponent = "button"> = {
 function DropdownTrigger<T extends ValidComponent = "button">(
   props: DropdownTriggerProps<T>
 ) {
-  const rest = omit(props, "as", "class", "children");
+  const handlers = props as DropdownTriggerProps<T> & {
+    onClick?: (e: Event) => void;
+    ref?: (el: HTMLElement) => void;
+  };
+  const rest = omit(handlers, "as", "class", "children", "ref", "onClick");
   const ctx = useDropdown();
-
-  // Extract ref and onClick from rest via type casting — these are handled
-  // explicitly to chain with Dropdown context and must not be spread,
-  // because spread overrides explicit JSX props.
-  const {
-    ref: refProp,
-    onClick: onClickProp,
-    ...forwardProps
-  } = rest as Record<string, unknown>;
 
   const Element = dynamic(() => props.as ?? "button");
 
@@ -243,13 +233,13 @@ function DropdownTrigger<T extends ValidComponent = "button">(
       )}
       onClick={(e: Event) => {
         ctx.toggle();
-        (onClickProp as ((e: Event) => void) | undefined)?.(e);
+        handlers.onClick?.(e);
       }}
       ref={(el: HTMLElement) => {
         ctx.setTriggerRef(el);
-        (refProp as ((el: HTMLElement) => void) | undefined)?.(el);
+        handlers.ref?.(el);
       }}
-      {...forwardProps}
+      {...rest}
     >
       {props.children}
     </Element>
@@ -499,8 +489,8 @@ function DropdownItem<T extends ValidComponent = "div">(
         props.isDisabled && "pointer-events-none cursor-default opacity-50",
         props.class
       )}
-      data-active={isActive()}
-      data-disabled={props.isDisabled}
+      data-active={String(isActive())}
+      data-disabled={props.isDisabled?.toString()}
       data-variant={props.variant}
       onClick={handleClick}
       ref={(el: HTMLElement) => {
@@ -575,6 +565,7 @@ function DropdownCheckboxItem(props: DropdownCheckboxItemProps) {
   };
 
   return (
+    // biome-ignore lint/a11y/useFocusableInteractive: Arrow keys focus menu items.
     <div
       aria-checked={props.isChecked ? "true" : "false"}
       class={cn(
@@ -586,8 +577,8 @@ function DropdownCheckboxItem(props: DropdownCheckboxItemProps) {
         props.isDisabled && "pointer-events-none cursor-default opacity-50",
         props.class
       )}
-      data-active={isActive()}
-      data-disabled={props.isDisabled}
+      data-active={String(isActive())}
+      data-disabled={props.isDisabled?.toString()}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       ref={(el) => {
@@ -680,8 +671,8 @@ function DropdownLink<T extends ValidComponent = "a">(
         props.isDisabled && "pointer-events-none cursor-default opacity-50",
         props.class
       )}
-      data-active={isActive()}
-      data-disabled={props.isDisabled}
+      data-active={String(isActive())}
+      data-disabled={props.isDisabled?.toString()}
       onClick={handleClick}
       ref={(el: HTMLElement) => {
         itemRef = el;

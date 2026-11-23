@@ -1,6 +1,5 @@
 import X from "lucide-solid/icons/x";
-import { For, Show } from "solid-js";
-import { createStore } from "solid-js/store";
+import { createStore, For, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { Button } from "../atoms/Button.tsx";
 import { Icon } from "../atoms/Icon.tsx";
@@ -91,10 +90,11 @@ function EngineSettingsForm() {
                       const num = Number(val);
                       const parsed =
                         !Number.isNaN(num) && val.trim() !== "" ? num : val;
-                      setLocalPatch(
-                        desc.key,
-                        desc.toModel ? desc.toModel(parsed) : parsed
-                      );
+                      setLocalPatch((draft) => {
+                        draft[desc.key] = desc.toModel
+                          ? desc.toModel(parsed)
+                          : parsed;
+                      });
                     }}
                     value={String(
                       desc.toView
@@ -109,10 +109,9 @@ function EngineSettingsForm() {
                   {...(desc.inputProps ?? {})}
                   disabled={!(desc.isEditable && isReady())}
                   onValueChange={(val) => {
-                    setLocalPatch(
-                      desc.key,
-                      desc.toModel ? desc.toModel(val) : val
-                    );
+                    setLocalPatch((draft) => {
+                      draft[desc.key] = desc.toModel ? desc.toModel(val) : val;
+                    });
                   }}
                   value={Number(
                     desc.toView

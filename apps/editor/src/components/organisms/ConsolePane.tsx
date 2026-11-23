@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web";
 import Trash from "lucide-solid/icons/trash";
-import { createMemo, createSignal, ErrorBoundary, omit, Show } from "solid-js";
+import { createMemo, createSignal, Errored, omit, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type {
   ConsoleVariant,
@@ -162,7 +162,7 @@ function ConsolePane(props: ConsolePaneProps) {
     }
 
     return [...cachedFormatted];
-  }, []);
+  });
 
   const visibleItems = createMemo(() => {
     const entries = formattedEntries();
@@ -223,17 +223,17 @@ function ConsolePane(props: ConsolePaneProps) {
 
     return (
       <div class="w-full" style={depthStyle}>
-        <ErrorBoundary
+        <Errored
           fallback={(err) => (
             <ConsoleMessage
               class="whitespace-pre-wrap"
-              message={getRawFallback(rendered, err)}
+              message={getRawFallback(rendered, err())}
               type={variant}
             />
           )}
         >
           {renderMessageContent(rendered, variant)}
-        </ErrorBoundary>
+        </Errored>
       </div>
     );
   }

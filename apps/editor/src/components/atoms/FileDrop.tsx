@@ -243,6 +243,7 @@ export function FileDrop(props: FileDropProps) {
             {errorMessage() ?? "Click or drop a file here"}
           </span>
         </Show>
+        {/* biome-ignore lint/a11y/noAriaHiddenOnFocusable: The drop-zone button activates this hidden input. */}
         <input
           accept={props.accept ?? DEFAULT_ACCEPT}
           aria-hidden="true"

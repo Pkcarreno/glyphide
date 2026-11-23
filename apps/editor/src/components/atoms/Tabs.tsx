@@ -25,7 +25,7 @@ interface TabsContextValue {
   unregisterTrigger: (value: string) => void;
 }
 
-const TabsContext = createContext<TabsContextValue>();
+const TabsContext = createContext<TabsContextValue | null>(null);
 
 /**
  * Retrieves the Tabs context.
@@ -358,7 +358,6 @@ function TabsContent(props: TabsContentProps) {
       id={panelId()}
       role="tabpanel"
       // tabpanel must be focusable so Tab from the trigger lands inside it.
-      // biome-ignore lint/a11y/noNoninteractiveTabindex: WAI-ARIA Tabs pattern
       tabindex={0}
       {...rest}
     >

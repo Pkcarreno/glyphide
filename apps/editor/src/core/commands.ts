@@ -1,3 +1,4 @@
+import { flush } from "solid-js";
 import type { EngineId } from "./engine/registry.ts";
 import type { EngineModel } from "./models/engine.ts";
 import type { NotificationModel } from "./models/notifications.ts";
@@ -108,7 +109,8 @@ export function createEditorCommands(deps: EditorCommandsDeps): EditorCommands {
       deps.engine.terminate();
     }
 
-    deps.session.selectEngine(engineId, language);
+    // Initialization reads the selected engine and language immediately.
+    flush(() => deps.session.selectEngine(engineId, language));
     deps.engine.initializeSelectedEngine();
   }
 
@@ -148,11 +150,13 @@ export function createEditorCommands(deps: EditorCommandsDeps): EditorCommands {
   }
 
   function resetProjectState(): void {
-    deps.session.reset();
-    deps.output.clearEntries();
-    deps.overlays.close("trust-required");
-    deps.engine.setBlocked(false);
-    deps.engine.terminate();
+    flush(() => {
+      deps.session.reset();
+      deps.output.clearEntries();
+      deps.overlays.close("trust-required");
+      deps.engine.setBlocked(false);
+      deps.engine.terminate();
+    });
     deps.engine.initializeSelectedEngine();
   }
 

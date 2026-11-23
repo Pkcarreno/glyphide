@@ -1,11 +1,5 @@
 import type { JSX } from "@solidjs/web";
-import {
-  createEffect,
-  createMemo,
-  createSignal,
-  For,
-  onSettled,
-} from "solid-js";
+import { createMemo, createSignal, For, onSettled } from "solid-js";
 
 /**
  * Configuration props for the VirtualList component.
@@ -196,33 +190,29 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
             const absoluteItemIndex = () =>
               visibleRange().start + reactiveVisibleIndex();
 
+            let itemElement: HTMLDivElement | undefined;
+            onSettled(() => {
+              if (!itemElement) {
+                return;
+              }
+              const element = itemElement;
+              elementToItemMap.set(element, item);
+              itemHeightObserver?.observe(element);
+              const height = element.offsetHeight;
+              if (height > 0 && itemHeights.get(item) !== height) {
+                itemHeights.set(item, height);
+              }
+              return () => {
+                itemHeightObserver?.unobserve(element);
+                elementToItemMap.delete(element);
+              };
+            });
+
             return (
               <div
                 class="absolute top-0 left-0 w-full"
-                ref={(itemElement) => {
-                  if (itemElement) {
-                    if (itemHeightObserver) {
-                      itemHeightObserver.observe(itemElement);
-                    }
-
-                    createEffect(
-                      () => item,
-                      (currentItem) => {
-                        elementToItemMap.set(itemElement, currentItem);
-                        const height = itemElement.offsetHeight;
-                        if (
-                          height > 0 &&
-                          itemHeights.get(currentItem) !== height
-                        ) {
-                          itemHeights.set(currentItem, height);
-                        }
-                        return () => {
-                          itemHeightObserver?.unobserve(itemElement);
-                          elementToItemMap.delete(itemElement);
-                        };
-                      }
-                    );
-                  }
+                ref={(element) => {
+                  itemElement = element;
                 }}
                 style={{
                   transform: `translateY(${
