@@ -1,12 +1,6 @@
+import type { JSX } from "@solidjs/web";
 import Trash from "lucide-solid/icons/trash";
-import type { JSX } from "solid-js";
-import {
-  createMemo,
-  createSignal,
-  ErrorBoundary,
-  Show,
-  splitProps,
-} from "solid-js";
+import { createMemo, createSignal, ErrorBoundary, omit, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type {
   ConsoleVariant,
@@ -93,7 +87,7 @@ function renderMessageContent(
 }
 
 function ConsolePane(props: ConsolePaneProps) {
-  const [local, rest] = splitProps(props, ["class"]);
+  const rest = omit(props, "class");
   const core = useEditor();
 
   const [toggledGroups, setToggledGroups] = createSignal<Set<number>>(
@@ -248,7 +242,7 @@ function ConsolePane(props: ConsolePaneProps) {
     <section
       class={cn(
         "flex h-full w-full flex-col overflow-hidden bg-surface",
-        local.class
+        props.class
       )}
       {...rest}
     >
@@ -263,7 +257,7 @@ function ConsolePane(props: ConsolePaneProps) {
               class="inline-flex items-baseline"
               meta={`${core.output.stats().workerDropped.toLocaleString()} rate limit / ${core.output.stats().bufferDropped.toLocaleString()} buffer limit`}
               position="bottom"
-              tabIndex={0}
+              tabindex={0}
               text={`${core.output.stats().totalDropped.toLocaleString()} omitted log entries`}
             >
               <span class="cursor-help select-none font-mono font-normal text-on-surface-variant/70 text-section-header lowercase tabular-nums tracking-normal transition-colors hover:text-on-surface">

@@ -1,5 +1,5 @@
-import type { JSX } from "solid-js";
-import { splitProps } from "solid-js";
+import type { JSX } from "@solidjs/web";
+import { omit } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { cn } from "../../helpers/cn.ts";
 import { Button } from "../atoms/Button.tsx";
@@ -19,7 +19,7 @@ interface TrustRequiredModalProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * Appears when the workspace contains untrusted shared code.
  */
 export function TrustRequiredModal(props: TrustRequiredModalProps) {
-  const [local, rest] = splitProps(props, ["class"]);
+  const rest = omit(props, "class");
   const core = useEditor();
 
   const handleOpenChange = (isOpen: boolean) => {
@@ -36,7 +36,7 @@ export function TrustRequiredModal(props: TrustRequiredModalProps) {
       onOpenChange={handleOpenChange}
     >
       <DialogContent
-        class={cn("w-full max-w-md overflow-hidden p-0", local.class)}
+        class={cn("w-full max-w-md overflow-hidden p-0", props.class)}
         preventBackdropClose
         {...rest}
       >

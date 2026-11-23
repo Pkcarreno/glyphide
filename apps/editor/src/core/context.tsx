@@ -1,4 +1,4 @@
-import type { JSX } from "solid-js";
+import type { JSX } from "@solidjs/web";
 import { createContext, onCleanup, onMount, useContext } from "solid-js";
 import { createBrowserFileIoAdapter } from "./adapters/file-io.ts";
 import { createLocalStorageAdapter } from "./adapters/local-storage.ts";
@@ -43,11 +43,7 @@ export function EditorProvider(props: { children: JSX.Element }) {
 
   onCleanup(() => core.dispose());
 
-  return (
-    <EditorContext.Provider value={core}>
-      {props.children}
-    </EditorContext.Provider>
-  );
+  return <EditorContext value={core}>{props.children}</EditorContext>;
 }
 
 /**

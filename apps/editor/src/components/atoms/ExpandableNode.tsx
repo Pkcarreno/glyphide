@@ -1,5 +1,5 @@
+import type { JSX } from "@solidjs/web";
 import ChevronRight from "lucide-solid/icons/chevron-right";
-import type { JSX } from "solid-js";
 import { createSignal, Show } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { Icon } from "./Icon.tsx";

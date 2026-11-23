@@ -6,17 +6,18 @@ import {
   type Placement,
   shift,
 } from "@floating-ui/dom";
-import type { Accessor, ComponentProps, JSX, ValidComponent } from "solid-js";
+import type { ComponentProps, JSX, ValidComponent } from "@solidjs/web";
+import { dynamic, Portal } from "@solidjs/web";
+import type { Accessor } from "solid-js";
 import {
   createContext,
   createSignal,
+  omit,
   onCleanup,
   onMount,
   Show,
-  splitProps,
   useContext,
 } from "solid-js";
-import { Dynamic, Portal } from "solid-js/web";
 import { cn } from "../../helpers/cn.ts";
 
 /* ---------- Types ---------- */
@@ -84,19 +85,11 @@ export interface PopoverRootProps {
  * @public
  */
 export function PopoverRoot(props: PopoverRootProps) {
-  const [local] = splitProps(props, [
-    "position",
-    "offset",
-    "isOpen",
-    "onOpenChange",
-    "children",
-  ]);
-
-  const position = () => local.position ?? "bottom";
-  const offset = () => local.offset ?? 4;
+  const position = () => props.position ?? "bottom";
+  const offset = () => props.offset ?? 4;
 
   const [internalIsOpen, setInternalIsOpen] = createSignal(false);
-  const isOpen = () => local.isOpen ?? internalIsOpen();
+  const isOpen = () => props.isOpen ?? internalIsOpen();
 
   const [isPositioned, setIsPositioned] = createSignal(false);
   const [coords, setCoords] = createSignal({ left: 0, top: 0 });
@@ -146,10 +139,10 @@ export function PopoverRoot(props: PopoverRootProps) {
   };
 
   const handleOpenStateChange = (nextOpen: boolean) => {
-    if (local.isOpen === undefined) {
+    if (props.isOpen === undefined) {
       setInternalIsOpen(nextOpen);
     }
-    local.onOpenChange?.(nextOpen);
+    props.onOpenChange?.(nextOpen);
 
     if (!nextOpen) {
       setIsPositioned(false);
@@ -196,7 +189,7 @@ export function PopoverRoot(props: PopoverRootProps) {
   });
 
   return (
-    <PopoverContext.Provider
+    <PopoverContext
       value={{
         close,
         coords,
@@ -209,8 +202,8 @@ export function PopoverRoot(props: PopoverRootProps) {
         toggle,
       }}
     >
-      {local.children}
-    </PopoverContext.Provider>
+      {props.children}
+    </PopoverContext>
   );
 }
 
@@ -239,16 +232,17 @@ export type PopoverTriggerProps<T extends ValidComponent = "button"> = {
 export function PopoverTrigger<T extends ValidComponent = "button">(
   props: PopoverTriggerProps<T>
 ) {
-  const [local, rest] = splitProps(props, ["as", "class", "children"]);
+  const rest = omit(props, "as", "class", "children");
   const ctx = usePopover();
 
+  const Element = dynamic(() => props.as ?? "button");
+
   return (
-    <Dynamic
+    <Element
       class={cn(
         "outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
-        local.class
+        props.class
       )}
-      component={local.as ?? "button"}
       onClick={(e: Event) => {
         ctx.toggle();
         const onClickProp = (rest as Record<string, unknown>).onClick;
@@ -259,8 +253,8 @@ export function PopoverTrigger<T extends ValidComponent = "button">(
       ref={(el: HTMLElement) => ctx.setTriggerRef(el)}
       {...rest}
     >
-      {local.children}
-    </Dynamic>
+      {props.children}
+    </Element>
   );
 }
 
@@ -314,12 +308,12 @@ export interface PopoverPositionerProps
  * @public
  */
 export function PopoverPositioner(props: PopoverPositionerProps) {
-  const [local, rest] = splitProps(props, ["class", "children"]);
+  const rest = omit(props, "class", "children");
   const ctx = usePopover();
 
   return (
     <div
-      class={cn("pointer-events-auto fixed z-50 w-max", local.class)}
+      class={cn("pointer-events-auto fixed z-50 w-max", props.class)}
       ref={ctx.setPositionerRef}
       style={{
         left: `${ctx.coords().left}px`,
@@ -328,7 +322,7 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
       }}
       {...rest}
     >
-      {local.children}
+      {props.children}
     </div>
   );
 }
@@ -354,7 +348,7 @@ export interface PopoverPopupProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * @public
  */
 export function PopoverPopup(props: PopoverPopupProps) {
-  const [local, rest] = splitProps(props, ["class", "children"]);
+  const rest = omit(props, "class", "children");
 
   return (
     <div
@@ -362,12 +356,12 @@ export function PopoverPopup(props: PopoverPopupProps) {
         "flex flex-col",
         "rounded-lg bg-surface ring-1 ring-on-surface/10",
         "p-2.5 text-on-surface text-xs shadow-md",
-        local.class
+        props.class
       )}
       role="dialog"
       {...rest}
     >
-      {local.children}
+      {props.children}
     </div>
   );
 }

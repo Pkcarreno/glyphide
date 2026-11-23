@@ -1,12 +1,7 @@
-import type { Accessor, ComponentProps, JSX, ValidComponent } from "solid-js";
-import {
-  createContext,
-  createSignal,
-  Show,
-  splitProps,
-  useContext,
-} from "solid-js";
-import { Dynamic } from "solid-js/web";
+import type { ComponentProps, JSX, ValidComponent } from "@solidjs/web";
+import { dynamic } from "@solidjs/web";
+import type { Accessor } from "solid-js";
+import { createContext, createSignal, omit, Show, useContext } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { ActionTooltip } from "./ActionTooltip.tsx";
 
@@ -45,39 +40,32 @@ interface DialogProps {
  * context to compound children (Trigger, Overlay, Content, Header).
  */
 function Dialog(props: DialogProps) {
-  const [local] = splitProps(props, [
-    "isOpen",
-    "defaultOpen",
-    "onOpenChange",
-    "children",
-  ]);
-
-  const isControlled = () => local.isOpen !== undefined;
+  const isControlled = () => props.isOpen !== undefined;
   const [internalOpen, setInternalOpen] = createSignal(
-    local.defaultOpen ?? false
+    props.defaultOpen ?? false
   );
 
   const isOpen = () =>
-    isControlled() ? (local.isOpen ?? false) : internalOpen();
+    isControlled() ? (props.isOpen ?? false) : internalOpen();
 
   function open() {
     if (!isControlled()) {
       setInternalOpen(true);
     }
-    local.onOpenChange?.(true);
+    props.onOpenChange?.(true);
   }
 
   function close() {
     if (!isControlled()) {
       setInternalOpen(false);
     }
-    local.onOpenChange?.(false);
+    props.onOpenChange?.(false);
   }
 
   return (
-    <DialogContext.Provider value={{ close, isOpen, open }}>
-      {local.children}
-    </DialogContext.Provider>
+    <DialogContext value={{ close, isOpen, open }}>
+      {props.children}
+    </DialogContext>
   );
 }
 
@@ -89,20 +77,20 @@ interface DialogTriggerProps extends JSX.HTMLAttributes<HTMLButtonElement> {
 
 /** Button that opens the dialog. */
 function DialogTrigger(props: DialogTriggerProps) {
-  const [local, rest] = splitProps(props, ["class", "children"]);
+  const rest = omit(props, "class", "children");
   const { open } = useDialog();
 
   return (
     <button
       class={cn(
         "outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
-        local.class
+        props.class
       )}
       onClick={open}
       type="button"
       {...rest}
     >
-      {local.children}
+      {props.children}
     </button>
   );
 }
@@ -116,11 +104,11 @@ interface DialogOverlayProps extends JSX.HTMLAttributes<HTMLButtonElement> {
 
 /** Backdrop overlay that closes the dialog on click. */
 function DialogOverlay(props: DialogOverlayProps) {
-  const [local, rest] = splitProps(props, ["class", "preventBackdropClose"]);
+  const rest = omit(props, "class", "preventBackdropClose");
   const { close } = useDialog();
 
   function handleClick(e: MouseEvent) {
-    if (!local.preventBackdropClose) {
+    if (!props.preventBackdropClose) {
       close();
     }
     if (typeof rest.onClick === "function") {
@@ -135,10 +123,10 @@ function DialogOverlay(props: DialogOverlayProps) {
       aria-hidden="true"
       class={cn(
         "fixed inset-0 z-50 m-0 cursor-default border-none bg-transparent p-0",
-        local.class
+        props.class
       )}
       onClick={handleClick}
-      tabIndex={-1}
+      tabindex={-1}
       type="button"
       {...rest}
     />
@@ -155,17 +143,13 @@ interface DialogContentProps extends JSX.HTMLAttributes<HTMLDivElement> {
 
 /** The visible dialog panel. Shown only when open. */
 function DialogContent(props: DialogContentProps) {
-  const [local, rest] = splitProps(props, [
-    "class",
-    "children",
-    "preventBackdropClose",
-  ]);
+  const rest = omit(props, "class", "children", "preventBackdropClose");
   const { isOpen } = useDialog();
 
   return (
     <Show when={isOpen()}>
       <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <DialogOverlay preventBackdropClose={local.preventBackdropClose} />
+        <DialogOverlay preventBackdropClose={props.preventBackdropClose} />
         <div
           aria-modal="true"
           class={cn(
@@ -174,12 +158,12 @@ function DialogContent(props: DialogContentProps) {
             "overflow-hidden rounded-xl shadow-md",
             "w-full max-w-sm p-4",
             "flex flex-col text-on-surface",
-            local.class
+            props.class
           )}
           role="dialog"
           {...rest}
         >
-          {local.children}
+          {props.children}
         </div>
       </div>
     </Show>
@@ -194,18 +178,18 @@ interface DialogHeaderProps extends JSX.HTMLAttributes<HTMLDivElement> {
 
 /** Header section within the dialog, with a bottom border. */
 function DialogHeader(props: DialogHeaderProps) {
-  const [local, rest] = splitProps(props, ["class", "children"]);
+  const rest = omit(props, "class", "children");
 
   return (
     <div
       class={cn(
         "flex items-center justify-between px-5 py-4",
         "border-outline-variant border-b bg-surface",
-        local.class
+        props.class
       )}
       {...rest}
     >
-      {local.children}
+      {props.children}
     </div>
   );
 }
@@ -237,19 +221,20 @@ type DialogTitleProps<T extends ValidComponent = "h2"> = {
 function DialogTitle<T extends ValidComponent = "h2">(
   props: DialogTitleProps<T>
 ) {
-  const [local, rest] = splitProps(props, ["as", "class", "children"]);
+  const rest = omit(props, "as", "class", "children");
+
+  const Element = dynamic(() => props.as ?? "h2");
 
   return (
-    <Dynamic
+    <Element
       class={cn(
         "font-semibold text-on-surface text-sm tracking-wide",
-        local.class
+        props.class
       )}
-      component={local.as ?? "h2"}
       {...rest}
     >
-      {local.children}
-    </Dynamic>
+      {props.children}
+    </Element>
   );
 }
 
@@ -261,7 +246,7 @@ interface DialogCloseProps extends JSX.HTMLAttributes<HTMLButtonElement> {
 
 /** Button that closes the dialog. */
 function DialogClose(props: DialogCloseProps) {
-  const [local, rest] = splitProps(props, ["class", "children"]);
+  const rest = omit(props, "class", "children");
   const { close } = useDialog();
 
   return (
@@ -270,7 +255,7 @@ function DialogClose(props: DialogCloseProps) {
       class={cn(
         "rounded-lg p-1.5 text-on-surface-variant outline-none transition-colors hover:bg-surface-variant hover:text-on-surface focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
         "pointer-coarse:min-h-11 pointer-coarse:min-w-11",
-        local.class
+        props.class
       )}
       commandId="close-all-overlays"
       onClick={close}
@@ -279,7 +264,7 @@ function DialogClose(props: DialogCloseProps) {
       type="button"
       {...rest}
     >
-      {local.children}
+      {props.children}
     </ActionTooltip>
   );
 }

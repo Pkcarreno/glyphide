@@ -1,5 +1,5 @@
 import X from "lucide-solid/icons/x";
-import { createSignal, createUniqueId, splitProps } from "solid-js";
+import { createSignal, createUniqueId, omit } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { cn } from "../../helpers/cn.ts";
 import { Button } from "../atoms/Button.tsx";
@@ -19,7 +19,7 @@ interface ShareModalProps {
 }
 
 export function ShareModal(props: ShareModalProps) {
-  const [local, rest] = splitProps(props, ["class"]);
+  const rest = omit(props, "class");
   const core = useEditor();
 
   const [isNameIncluded, setIsNameIncluded] = createSignal(true);
@@ -71,7 +71,7 @@ export function ShareModal(props: ShareModalProps) {
       onOpenChange={handleOpenChange}
     >
       <DialogContent
-        class={cn("w-full max-w-lg overflow-hidden p-0", local.class)}
+        class={cn("w-full max-w-lg overflow-hidden p-0", props.class)}
         {...rest}
       >
         <DialogHeader>
@@ -93,7 +93,7 @@ export function ShareModal(props: ShareModalProps) {
               class="font-mono text-on-surface-variant text-sm"
               disabled={!isUrlShareable()}
               id="share-link-input"
-              readOnly
+              readonly
               value={buildShareUrl()}
             />
             {!isUrlShareable() && (

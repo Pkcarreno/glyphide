@@ -1,6 +1,5 @@
 import Minus from "lucide-solid/icons/minus";
 import Plus from "lucide-solid/icons/plus";
-import { splitProps } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import {
   InputGroup,
@@ -37,76 +36,64 @@ export interface StepperInputProps {
  * styling and reusability.
  */
 export function StepperInput(props: StepperInputProps) {
-  const [local] = splitProps(props, [
-    "class",
-    "disabled",
-    "value",
-    "onValueChange",
-    "min",
-    "max",
-    "step",
-    "id",
-    "inputAriaLabel",
-  ]);
-
-  const step = () => local.step ?? 1;
-  const isAtMin = () => local.min !== undefined && local.value <= local.min;
-  const isAtMax = () => local.max !== undefined && local.value >= local.max;
+  const step = () => props.step ?? 1;
+  const isAtMin = () => props.min !== undefined && props.value <= props.min;
+  const isAtMax = () => props.max !== undefined && props.value >= props.max;
 
   const handleDecrement = () => {
-    const next = Number((local.value - step()).toFixed(2));
+    const next = Number((props.value - step()).toFixed(2));
     if (isAtMin()) {
       return;
     }
-    local.onValueChange(next);
+    props.onValueChange(next);
   };
 
   const handleIncrement = () => {
-    const next = Number((local.value + step()).toFixed(2));
+    const next = Number((props.value + step()).toFixed(2));
     if (isAtMax()) {
       return;
     }
-    local.onValueChange(next);
+    props.onValueChange(next);
   };
 
   const handleChange = (e: Event) => {
     const target = e.target as HTMLInputElement;
     const val = Number.parseFloat(target.value);
     if (!Number.isNaN(val)) {
-      local.onValueChange(val);
+      props.onValueChange(val);
     }
   };
 
   return (
-    <InputGroup class={cn(local.disabled && "opacity-50", local.class)}>
+    <InputGroup class={cn(props.disabled && "opacity-50", props.class)}>
       <InputGroupAddon align="inline-start">
         <InputGroupButton
           aria-label="Decrease"
           class="pointer-coarse:size-11 pointer-coarse:justify-center pointer-coarse:p-2"
-          disabled={local.disabled || isAtMin()}
+          disabled={props.disabled || isAtMin()}
           onClick={handleDecrement}
         >
           <Minus />
         </InputGroupButton>
       </InputGroupAddon>
       <InputGroupInput
-        aria-label={local.inputAriaLabel ?? "Numeric input"}
+        aria-label={props.inputAriaLabel ?? "Numeric input"}
         class="text-center tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-        disabled={local.disabled}
-        id={local.id}
-        max={local.max}
-        min={local.min}
+        disabled={props.disabled}
+        id={props.id}
+        max={props.max}
+        min={props.min}
         onChange={handleChange}
         role="spinbutton"
         step={step()}
         type="number"
-        value={local.value}
+        value={props.value}
       />
       <InputGroupAddon align="inline-end">
         <InputGroupButton
           aria-label="Increase"
           class="pointer-coarse:size-11 pointer-coarse:justify-center pointer-coarse:p-2"
-          disabled={local.disabled || isAtMax()}
+          disabled={props.disabled || isAtMax()}
           onClick={handleIncrement}
         >
           <Plus />

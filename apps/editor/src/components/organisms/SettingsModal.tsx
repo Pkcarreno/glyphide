@@ -1,7 +1,7 @@
+import type { JSX } from "@solidjs/web";
 import Undo from "lucide-solid/icons/undo-2";
 import X from "lucide-solid/icons/x";
-import type { JSX } from "solid-js";
-import { createUniqueId, For, Show, splitProps } from "solid-js";
+import { createUniqueId, For, omit, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { DEFAULT_SETTINGS } from "../../core/models/settings.ts";
 import { cn } from "../../helpers/cn.ts";
@@ -140,7 +140,7 @@ const TABS = ["Appearance", "Editor", "Execution"] as const;
  * Displays application settings using high density components and the Tabs primitive.
  */
 function SettingsModal(props: SettingsModalProps) {
-  const [local, rest] = splitProps(props, ["class"]);
+  const rest = omit(props, "class");
 
   const core = useEditor();
 
@@ -160,7 +160,7 @@ function SettingsModal(props: SettingsModalProps) {
       <DialogContent
         class={cn(
           "relative flex h-[80vh] w-full max-w-3xl flex-col overflow-hidden p-0 md:flex-row",
-          local.class
+          props.class
         )}
         {...rest}
       >

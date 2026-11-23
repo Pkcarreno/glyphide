@@ -10,7 +10,7 @@ function ProjectRenameOverlay() {
       aria-hidden="true"
       class="fixed inset-0 z-50 m-0 cursor-default border-none bg-transparent p-0"
       onClick={close}
-      tabIndex={-1}
+      tabindex={-1}
       type="button"
     />
   );

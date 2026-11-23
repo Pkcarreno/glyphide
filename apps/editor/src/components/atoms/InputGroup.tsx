@@ -1,6 +1,6 @@
+import type { JSX } from "@solidjs/web";
 import { cva, type VariantProps } from "class-variance-authority";
-import type { JSX } from "solid-js";
-import { splitProps } from "solid-js";
+import { omit } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
 /* ---------- InputGroup (Root) ---------- */
@@ -15,7 +15,7 @@ interface InputGroupProps extends JSX.HTMLAttributes<HTMLFieldSetElement> {
  * Provides shared focus/invalid styling via CSS group selectors.
  */
 function InputGroup(props: InputGroupProps) {
-  const [local, rest] = splitProps(props, ["class", "children"]);
+  const rest = omit(props, "class", "children");
 
   return (
     <fieldset
@@ -34,12 +34,12 @@ function InputGroup(props: InputGroupProps) {
         "has-[>[data-align=block-end]]:flex-col",
         "has-[>[data-align=block-start]]:h-auto",
         "has-[>[data-align=block-start]]:flex-col",
-        local.class
+        props.class
       )}
       data-slot="input-group"
       {...rest}
     >
-      {local.children}
+      {props.children}
     </fieldset>
   );
 }
@@ -75,16 +75,16 @@ interface InputGroupAddonProps
  * This is a visual layout container, not an interactive element.
  */
 function InputGroupAddon(props: InputGroupAddonProps) {
-  const [local, rest] = splitProps(props, ["class", "align", "children"]);
+  const rest = omit(props, "class", "align", "children");
 
   return (
     <div
-      class={cn(inputGroupAddonVariants({ align: local.align }), local.class)}
-      data-align={local.align ?? "inline-start"}
+      class={cn(inputGroupAddonVariants({ align: props.align }), props.class)}
+      data-align={props.align ?? "inline-start"}
       data-slot="input-group-addon"
       {...rest}
     >
-      {local.children}
+      {props.children}
     </div>
   );
 }
@@ -119,28 +119,23 @@ interface InputGroupButtonProps
  * Uses the project's ghost-button aesthetic by default.
  */
 function InputGroupButton(props: InputGroupButtonProps) {
-  const [local, rest] = splitProps(props, [
-    "class",
-    "size",
-    "type",
-    "children",
-  ]);
+  const rest = omit(props, "class", "size", "type", "children");
 
   return (
     <button
       class={cn(
-        inputGroupButtonVariants({ size: local.size }),
+        inputGroupButtonVariants({ size: props.size }),
         "bg-transparent text-on-surface-variant",
         "hover:bg-surface-variant hover:text-on-surface",
         "disabled:pointer-events-none disabled:opacity-50",
         "cursor-pointer select-none outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
-        local.class
+        props.class
       )}
-      data-size={local.size ?? "xs"}
-      type={local.type ?? "button"}
+      data-size={props.size ?? "xs"}
+      type={props.type ?? "button"}
       {...rest}
     >
-      {local.children}
+      {props.children}
     </button>
   );
 }
@@ -153,18 +148,18 @@ interface InputGroupTextProps extends JSX.HTMLAttributes<HTMLSpanElement> {
 
 /** Read-only text label rendered inside an InputGroupAddon. */
 function InputGroupText(props: InputGroupTextProps) {
-  const [local, rest] = splitProps(props, ["class", "children"]);
+  const rest = omit(props, "class", "children");
 
   return (
     <span
       class={cn(
         "flex items-center gap-2 text-on-surface-variant text-xs/relaxed",
         "[&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none",
-        local.class
+        props.class
       )}
       {...rest}
     >
-      {local.children}
+      {props.children}
     </span>
   );
 }
@@ -181,7 +176,7 @@ interface InputGroupInputProps
  * Apply this as the control inside an InputGroup.
  */
 function InputGroupInput(props: InputGroupInputProps) {
-  const [local, rest] = splitProps(props, ["class", "type"]);
+  const rest = omit(props, "class", "type");
 
   return (
     <input
@@ -191,10 +186,10 @@ function InputGroupInput(props: InputGroupInputProps) {
         "focus-visible:ring-0",
         "aria-invalid:ring-0",
         "disabled:cursor-not-allowed disabled:opacity-50",
-        local.class
+        props.class
       )}
       data-slot="input-group-control"
-      type={local.type ?? "text"}
+      type={props.type ?? "text"}
       {...rest}
     />
   );

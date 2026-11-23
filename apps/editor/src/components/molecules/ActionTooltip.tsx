@@ -1,4 +1,5 @@
-import { splitProps, type ValidComponent } from "solid-js";
+import type { ValidComponent } from "@solidjs/web";
+import { omit } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type { CommandId } from "../../core/shortcuts/registry.ts";
 import {
@@ -27,18 +28,15 @@ export type ActionTooltipProps<T extends ValidComponent = "div"> = Omit<
 export function ActionTooltip<T extends ValidComponent = "div">(
   props: ActionTooltipProps<T>
 ) {
-  const [local, rest] = splitProps(props as ActionTooltipProps<T>, [
-    "commandId",
-    "shortcut",
-  ]);
+  const rest = omit(props as ActionTooltipProps<T>, "commandId", "shortcut");
   const core = useEditor();
 
   const resolvedShortcut = () => {
-    if (local.shortcut) {
-      return local.shortcut;
+    if (props.shortcut) {
+      return props.shortcut;
     }
-    if (local.commandId) {
-      return core.shortcuts.getBinding(local.commandId)?.label;
+    if (props.commandId) {
+      return core.shortcuts.getBinding(props.commandId)?.label;
     }
   };
 

@@ -1,6 +1,6 @@
+import type { JSX } from "@solidjs/web";
 import { cva, type VariantProps } from "class-variance-authority";
-import type { JSX } from "solid-js";
-import { splitProps } from "solid-js";
+import { omit } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
 const consoleMessageVariants = cva(
@@ -44,19 +44,14 @@ interface ConsoleMessageProps
  * precedence over `message`.
  */
 function ConsoleMessage(props: ConsoleMessageProps) {
-  const [local, rest] = splitProps(props, [
-    "type",
-    "message",
-    "children",
-    "class",
-  ]);
+  const rest = omit(props, "type", "message", "children", "class");
 
   return (
     <div
-      class={cn(consoleMessageVariants({ type: local.type }), local.class)}
+      class={cn(consoleMessageVariants({ type: props.type }), props.class)}
       {...rest}
     >
-      {local.children ?? local.message}
+      {props.children ?? props.message}
     </div>
   );
 }

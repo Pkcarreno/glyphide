@@ -1,4 +1,4 @@
-import type { JSX } from "solid-js";
+import type { JSX } from "@solidjs/web";
 import {
   createEffect,
   createMemo,
@@ -179,7 +179,7 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
 
   return (
     <div
-      class={`relative overflow-y-auto overflow-x-hidden ${props.class ?? ""}`}
+      class={`relative overflow-x-hidden overflow-y-auto ${props.class ?? ""}`}
       ref={(containerElement) => {
         scrollContainerElement = containerElement;
       }}

@@ -1,13 +1,14 @@
+import type { JSX } from "@solidjs/web";
 import SearchIcon from "lucide-solid/icons/search";
-import type { Accessor, JSX, Setter } from "solid-js";
+import type { Accessor, Setter } from "solid-js";
 import {
   createContext,
   createEffect,
   createSignal,
+  omit,
   onCleanup,
   onMount,
   Show,
-  splitProps,
   useContext,
 } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
@@ -52,11 +53,7 @@ interface CommandRootProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * @public
  */
 export function CommandRoot(props: CommandRootProps) {
-  const [local, rest] = splitProps(props, [
-    "class",
-    "children",
-    "shouldFilter",
-  ]);
+  const rest = omit(props, "class", "children", "shouldFilter");
   const [search, setSearch] = createSignal("");
   const [selectedId, setSelectedId] = createSignal<string | null>(null);
 
@@ -80,7 +77,7 @@ export function CommandRoot(props: CommandRootProps) {
 
   const visibleItems = () => {
     const query = search().toLowerCase();
-    const shouldFilter = local.shouldFilter !== false;
+    const shouldFilter = props.shouldFilter !== false;
 
     if (!(query && shouldFilter)) {
       return new Set(items().keys());
@@ -135,7 +132,7 @@ export function CommandRoot(props: CommandRootProps) {
   });
 
   return (
-    <CommandContext.Provider
+    <CommandContext
       value={{
         registerItem,
         search,
@@ -147,20 +144,20 @@ export function CommandRoot(props: CommandRootProps) {
       }}
     >
       <div
-        aria-expanded={true}
+        aria-expanded="true"
         aria-haspopup="listbox"
         class={cn(
           "flex flex-col overflow-hidden rounded-xl bg-surface shadow-md ring-1 ring-on-surface/10",
-          local.class
+          props.class
         )}
         onKeyDown={handleKeyDown}
         role="combobox"
-        tabIndex={-1}
+        tabindex={-1}
         {...rest}
       >
-        {local.children}
+        {props.children}
       </div>
-    </CommandContext.Provider>
+    </CommandContext>
   );
 }
 
@@ -172,11 +169,7 @@ export interface CommandInputProps extends InputProps {}
  * Input field for filtering the command menu items.
  */
 export function CommandInput(props: CommandInputProps) {
-  const [local, rest] = splitProps(props, [
-    "class",
-    "wrapperClass",
-    "placeholder",
-  ]);
+  const rest = omit(props, "class", "wrapperClass", "placeholder");
   const ctx = useCommand();
   let inputRef: HTMLInputElement | undefined;
 
@@ -188,17 +181,17 @@ export function CommandInput(props: CommandInputProps) {
 
   return (
     <Input
-      class={local.class}
+      class={props.class}
       inputSize="lg"
       onInput={(e) => ctx.setSearch(e.currentTarget.value)}
-      placeholder={local.placeholder ?? "Search..."}
+      placeholder={props.placeholder ?? "Search..."}
       ref={(el) => {
         inputRef = el;
       }}
       startIcon={<Icon icon={SearchIcon} size={16} />}
       value={ctx.search()}
       variant="bottomBorder"
-      wrapperClass={local.wrapperClass}
+      wrapperClass={props.wrapperClass}
       {...rest}
     />
   );
@@ -207,13 +200,13 @@ export function CommandInput(props: CommandInputProps) {
 /* ---------- List ---------- */
 
 export function CommandList(props: JSX.HTMLAttributes<HTMLDivElement>) {
-  const [local, rest] = splitProps(props, ["class", "children"]);
+  const rest = omit(props, "class", "children");
   return (
     <div
-      class={cn("max-h-75 overflow-y-auto overflow-x-hidden p-1", local.class)}
+      class={cn("max-h-75 overflow-y-auto overflow-x-hidden p-1", props.class)}
       {...rest}
     >
-      {local.children}
+      {props.children}
     </div>
   );
 }
@@ -221,7 +214,7 @@ export function CommandList(props: JSX.HTMLAttributes<HTMLDivElement>) {
 /* ---------- Empty ---------- */
 
 export function CommandEmpty(props: JSX.HTMLAttributes<HTMLDivElement>) {
-  const [local, rest] = splitProps(props, ["class", "children"]);
+  const rest = omit(props, "class", "children");
   const ctx = useCommand();
 
   return (
@@ -229,11 +222,11 @@ export function CommandEmpty(props: JSX.HTMLAttributes<HTMLDivElement>) {
       <div
         class={cn(
           "py-6 text-center text-on-surface-variant text-sm",
-          local.class
+          props.class
         )}
         {...rest}
       >
-        {local.children ?? "No results found."}
+        {props.children ?? "No results found."}
       </div>
     </Show>
   );
@@ -246,16 +239,16 @@ interface CommandGroupProps extends JSX.HTMLAttributes<HTMLDivElement> {
 }
 
 export function CommandGroup(props: CommandGroupProps) {
-  const [local, rest] = splitProps(props, ["class", "children", "heading"]);
+  const rest = omit(props, "class", "children", "heading");
 
   return (
-    <div class={cn("overflow-hidden text-on-surface", local.class)} {...rest}>
-      <Show when={local.heading}>
+    <div class={cn("overflow-hidden text-on-surface", props.class)} {...rest}>
+      <Show when={props.heading}>
         <div class="px-2 py-1.5 font-medium text-on-surface-variant text-xs uppercase">
-          {local.heading}
+          {props.heading}
         </div>
       </Show>
-      {local.children}
+      {props.children}
     </div>
   );
 }
@@ -271,17 +264,12 @@ interface CommandItemProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * A selectable item in the command menu.
  */
 export function CommandItem(props: CommandItemProps) {
-  const [local, rest] = splitProps(props, [
-    "class",
-    "children",
-    "value",
-    "onSelect",
-  ]);
+  const rest = omit(props, "class", "children", "value", "onSelect");
   const ctx = useCommand();
-  const id = local.value;
+  const id = props.value;
 
   onMount(() => {
-    ctx.registerItem(id, local.value);
+    ctx.registerItem(id, props.value);
     onCleanup(() => ctx.unregisterItem(id));
   });
 
@@ -299,23 +287,23 @@ export function CommandItem(props: CommandItemProps) {
   return (
     <Show when={isVisible()}>
       <div
-        aria-selected={isSelected()}
+        aria-selected={isSelected() ? "true" : "false"}
         class={cn(
           "relative flex min-h-7 cursor-pointer select-none items-center rounded-sm px-2.5 py-1.5 text-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
           "pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:py-2.5",
           isSelected()
             ? "bg-surface-variant text-on-surface"
             : "text-on-surface-variant hover:bg-surface-variant/50 hover:text-on-surface",
-          local.class
+          props.class
         )}
         id={`command-item-${id}`}
         onClick={() => {
-          local.onSelect?.();
+          props.onSelect?.();
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            local.onSelect?.();
+            props.onSelect?.();
           }
         }}
         onMouseEnter={() => ctx.setSelectedId(id)}
@@ -323,10 +311,10 @@ export function CommandItem(props: CommandItemProps) {
           ref = el;
         }}
         role="option"
-        tabIndex={0}
+        tabindex={0}
         {...rest}
       >
-        {local.children}
+        {props.children}
       </div>
     </Show>
   );
@@ -341,7 +329,7 @@ function CommandDialogOverlay(props: JSX.HTMLAttributes<HTMLButtonElement>) {
       aria-hidden="true"
       class="fixed inset-0 z-50 m-0 cursor-default border-none bg-transparent p-0"
       onClick={close}
-      tabIndex={-1}
+      tabindex={-1}
       type="button"
       {...props}
     />
