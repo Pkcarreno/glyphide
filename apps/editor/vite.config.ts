@@ -1,8 +1,9 @@
 import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
+import solidPlugin from "@solidjs/vite-plugin";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
-import solidPlugin from "vite-plugin-solid";
 
 const require = createRequire(import.meta.url);
 const pkg = require("./package.json");
@@ -15,7 +16,22 @@ export default defineConfig({
   define: {
     "import.meta.env.VITE_APP_VERSION": JSON.stringify(pkg.version),
   },
+  optimizeDeps: { exclude: ["lucide-solid"] },
   plugins: [
+    {
+      enforce: "pre",
+      name: "lucide-solid-compat",
+      resolveId(source, importer) {
+        if (
+          source === "solid-js" &&
+          importer?.includes("/lucide-solid/dist/")
+        ) {
+          return fileURLToPath(
+            new URL("./src/helpers/lucide-solid-compat.ts", import.meta.url)
+          );
+        }
+      },
+    },
     tailwindcss(),
     solidPlugin(),
     VitePWA({
@@ -54,7 +70,7 @@ export default defineConfig({
                 maxEntries: 50,
               },
             },
-            urlPattern: /\.(?:wasm|js|wasm\.map)$/,
+            urlPattern: /\.(?:wasm|js|wasm\.map)$/u,
           },
           {
             handler: "CacheFirst",
@@ -65,12 +81,15 @@ export default defineConfig({
                 maxEntries: 20,
               },
             },
-            urlPattern: /\.(?:woff2?|ttf|otf|eot)$/,
+            urlPattern: /\.(?:woff2?|ttf|otf|eot)$/u,
           },
         ],
       },
     }),
   ],
+  resolve: {
+    alias: { "solid-js/web": "@solidjs/web" },
+  },
   server: {
     port: 3000,
   },

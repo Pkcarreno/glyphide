@@ -6,7 +6,10 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "jsx": "preserve",
-    "jsxImportSource": "solid-js",
+    "jsxImportSource": "@solidjs/web",
+    "paths": {
+      "solid-js/jsx-runtime": ["./node_modules/@solidjs/web/types/jsx.d.ts"]
+    },
     "types": ["vite/client", "vite-plugin-pwa/client"],
     "noEmit": true,
     "isolatedModules": true,

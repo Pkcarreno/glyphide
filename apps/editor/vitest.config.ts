@@ -6,6 +6,7 @@ export default mergeConfig(
   defineConfig({
     test: {
       environment: "happy-dom",
+      server: { deps: { inline: ["lucide-solid"] } },
     },
   })
 );
