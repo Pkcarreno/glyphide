@@ -14,7 +14,7 @@ import {
   createSignal,
   omit,
   onCleanup,
-  onMount,
+  onSettled,
   Show,
   useContext,
 } from "solid-js";
@@ -163,7 +163,7 @@ export function PopoverRoot(props: PopoverRootProps) {
     handleOpenStateChange(!isOpen());
   };
 
-  onMount(() => {
+  onSettled(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (!isOpen()) {
         return;
@@ -179,9 +179,7 @@ export function PopoverRoot(props: PopoverRootProps) {
       }
     };
     document.addEventListener("mousedown", handleOutsideClick);
-    onCleanup(() => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-    });
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
   });
 
   onCleanup(() => {

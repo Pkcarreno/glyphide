@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web";
 import RefreshCcw from "lucide-solid/icons/refresh-ccw";
 import Settings2 from "lucide-solid/icons/settings-2";
-import { createEffect, createSignal, omit, onCleanup, Show } from "solid-js";
+import { createEffect, createSignal, omit, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type { CommandId } from "../../core/shortcuts/registry.ts";
 import { cn } from "../../helpers/cn.ts";
@@ -104,15 +104,18 @@ function TerminalStatusIndicator(props: { status: string; isDirty?: boolean }) {
   const [frame, setFrame] = createSignal(0);
   const brailleFrames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 
-  createEffect(() => {
-    if (props.status === "running" || props.status === "initializing") {
-      const timer = setInterval(
-        () => setFrame((f) => (f + 1) % brailleFrames.length),
-        80
-      );
-      onCleanup(() => clearInterval(timer));
+  createEffect(
+    () => props.status,
+    (status) => {
+      if (status === "running" || status === "initializing") {
+        const timer = setInterval(
+          () => setFrame((f) => (f + 1) % brailleFrames.length),
+          80
+        );
+        return () => clearInterval(timer);
+      }
     }
-  });
+  );
 
   return (
     <div class="flex items-center gap-1.5">

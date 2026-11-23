@@ -5,6 +5,7 @@ export { createContext, createMemo, For, useContext } from "solid-js";
 
 // Lucide's declarations still reference the Solid 1 JSX type names.
 declare module "solid-js" {
+  // biome-ignore lint/style/noNamespace: Lucide refers to JSX.Element in this namespace.
   namespace JSX {
     type Element = WebJSX.Element;
   }
@@ -12,16 +13,16 @@ declare module "solid-js" {
 }
 
 // Lucide still reads its Solid 1 prop groups. Keep its getter behavior on Solid 2.
-export function splitProps<T extends object, K extends keyof T>(
-  props: T,
-  keys: readonly K[]
-): [Pick<T, K>, Omit<T, K>] {
-  const selected = {} as Pick<T, K>;
+export function splitProps(
+  props: Record<string, unknown>,
+  keys: readonly string[]
+) {
+  const selected: Record<string, unknown> = {};
   for (const key of keys) {
     Object.defineProperty(selected, key, {
       enumerable: true,
       get: () => props[key],
     });
   }
-  return [selected, omit(props, ...keys) as Omit<T, K>];
+  return [selected, omit(props, ...keys)] as const;
 }

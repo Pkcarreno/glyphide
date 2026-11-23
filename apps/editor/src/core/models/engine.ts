@@ -5,7 +5,7 @@ import type {
   EngineOutputPayload,
 } from "@glyphide/rpc-protocol/types";
 import type { Accessor } from "solid-js";
-import { createEffect, createRoot, createSignal, on } from "solid-js";
+import { createEffect, createRoot, createSignal } from "solid-js";
 import type {
   EngineEntry,
   EngineId,
@@ -104,15 +104,13 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
   createRoot((disposeRoot) => {
     disposeEffect = disposeRoot;
     createEffect(
-      on(
-        deps.session.code,
-        () => {
-          if (engineStatus() === "running") {
-            setIsDirty(true);
-          }
-        },
-        { defer: true }
-      )
+      deps.session.code,
+      () => {
+        if (engineStatus() === "running") {
+          setIsDirty(true);
+        }
+      },
+      { defer: true }
     );
   });
 

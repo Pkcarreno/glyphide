@@ -4,8 +4,7 @@ import {
   createMemo,
   createSignal,
   For,
-  onCleanup,
-  onMount,
+  onSettled,
 } from "solid-js";
 
 /**
@@ -114,10 +113,10 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
     };
   });
 
-  const elementToItemMap = new WeakMap<Element, T>();
+  const elementToItemMap = new Map<Element, T>();
   let itemHeightObserver: ResizeObserver | undefined;
 
-  onMount(() => {
+  onSettled(() => {
     if (!scrollContainerElement) {
       return;
     }
@@ -164,11 +163,15 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
     const containerResizeObserver = new ResizeObserver(handleResize);
     containerResizeObserver.observe(scrollContainerElement);
 
-    onCleanup(() => {
+    for (const element of elementToItemMap.keys()) {
+      itemHeightObserver.observe(element);
+    }
+
+    return () => {
       scrollContainerElement?.removeEventListener("scroll", handleScroll);
       containerResizeObserver.disconnect();
       itemHeightObserver?.disconnect();
-    });
+    };
   });
 
   // Return the raw slice to maintain referential stability for Solid's <For>
@@ -202,22 +205,23 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
                       itemHeightObserver.observe(itemElement);
                     }
 
-                    // Keep elementToItemMap synced if the DOM node is reused
-                    createEffect(() => {
-                      elementToItemMap.set(itemElement, item);
-
-                      const height = itemElement.offsetHeight;
-                      if (height > 0 && itemHeights.get(item) !== height) {
-                        itemHeights.set(item, height);
+                    createEffect(
+                      () => item,
+                      (currentItem) => {
+                        elementToItemMap.set(itemElement, currentItem);
+                        const height = itemElement.offsetHeight;
+                        if (
+                          height > 0 &&
+                          itemHeights.get(currentItem) !== height
+                        ) {
+                          itemHeights.set(currentItem, height);
+                        }
+                        return () => {
+                          itemHeightObserver?.unobserve(itemElement);
+                          elementToItemMap.delete(itemElement);
+                        };
                       }
-                    });
-
-                    onCleanup(() => {
-                      if (itemHeightObserver) {
-                        itemHeightObserver.unobserve(itemElement);
-                      }
-                      elementToItemMap.delete(itemElement);
-                    });
+                    );
                   }
                 }}
                 style={{

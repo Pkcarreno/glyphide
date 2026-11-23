@@ -5,7 +5,6 @@ import {
   createContext,
   createEffect,
   createSignal,
-  on,
   useContext,
 } from "solid-js";
 
@@ -44,14 +43,12 @@ export function PwaProvider(props: { children: JSX.Element }) {
 
   let notifiedUpdate = false;
 
-  createEffect(
-    on(needRefresh, (isReady) => {
-      if (isReady && !notifiedUpdate) {
-        notifiedUpdate = true;
-        setUpdateAvailable(true);
-      }
-    })
-  );
+  createEffect(needRefresh, (isReady) => {
+    if (isReady && !notifiedUpdate) {
+      notifiedUpdate = true;
+      setUpdateAvailable(true);
+    }
+  });
 
   function applyUpdate(): void {
     updateServiceWorker(true);

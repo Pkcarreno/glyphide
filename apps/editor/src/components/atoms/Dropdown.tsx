@@ -16,7 +16,7 @@ import {
   createSignal,
   omit,
   onCleanup,
-  onMount,
+  onSettled,
   Show,
   useContext,
 } from "solid-js";
@@ -151,16 +151,14 @@ function DropdownRoot(props: DropdownRootProps) {
     }
   };
 
-  createEffect(() => {
-    if (isOpen()) {
-      // Wait for next frame so content is in DOM
-      requestAnimationFrame(() => {
-        bindAutoUpdate();
-      });
+  createEffect(isOpen, (open) => {
+    if (open) {
+      const frame = requestAnimationFrame(bindAutoUpdate);
+      return () => cancelAnimationFrame(frame);
     }
   });
 
-  onMount(() => {
+  onSettled(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (!isOpen()) {
         return;
@@ -176,9 +174,7 @@ function DropdownRoot(props: DropdownRootProps) {
       }
     };
     document.addEventListener("mousedown", handleOutsideClick);
-    onCleanup(() => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-    });
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
   });
 
   onCleanup(() => {
@@ -376,10 +372,9 @@ function DropdownContent(props: DropdownContentProps) {
   };
 
   // Focus content on open so keyboard events are captured
-  onMount(() => {
-    requestAnimationFrame(() => {
-      contentRef?.focus();
-    });
+  onSettled(() => {
+    const frame = requestAnimationFrame(() => contentRef?.focus());
+    return () => cancelAnimationFrame(frame);
   });
 
   return (
@@ -469,14 +464,11 @@ function DropdownItem<T extends ValidComponent = "div">(
 
   let itemRef: HTMLElement | undefined;
 
-  onMount(() => {
+  onSettled(() => {
     if (itemRef) {
       ctx.registerItem(itemId);
+      return () => ctx.unregisterItem(itemId);
     }
-  });
-
-  onCleanup(() => {
-    ctx.unregisterItem(itemId);
   });
 
   const isActive = () => {
@@ -553,14 +545,11 @@ function DropdownCheckboxItem(props: DropdownCheckboxItemProps) {
 
   let itemRef: HTMLDivElement | undefined;
 
-  onMount(() => {
+  onSettled(() => {
     if (itemRef) {
       ctx.registerItem(itemId);
+      return () => ctx.unregisterItem(itemId);
     }
-  });
-
-  onCleanup(() => {
-    ctx.unregisterItem(itemId);
   });
 
   const isActive = () => {
@@ -658,14 +647,11 @@ function DropdownLink<T extends ValidComponent = "a">(
 
   let itemRef: HTMLElement | undefined;
 
-  onMount(() => {
+  onSettled(() => {
     if (itemRef) {
       ctx.registerItem(itemId);
+      return () => ctx.unregisterItem(itemId);
     }
-  });
-
-  onCleanup(() => {
-    ctx.unregisterItem(itemId);
   });
 
   const isActive = () => {
