@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
+import { flush } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { CommandId } from "../../core/shortcuts/registry.ts";
 import { ActionTooltip } from "./ActionTooltip.tsx";
@@ -29,6 +30,7 @@ describe("ActionTooltip", () => {
     ));
 
     fireEvent.mouseEnter(getByRole("button"));
+    flush();
     const popup = screen.queryByRole("tooltip");
     expect(popup).not.toBeNull();
     expect(popup?.textContent).toContain("Ctrl+Enter");
@@ -42,6 +44,7 @@ describe("ActionTooltip", () => {
     ));
 
     fireEvent.mouseEnter(getByRole("button"));
+    flush();
     const popup = screen.queryByRole("tooltip");
     expect(popup).not.toBeNull();
     expect(popup?.textContent).toContain("Ctrl+,");
@@ -55,6 +58,7 @@ describe("ActionTooltip", () => {
     ));
 
     fireEvent.mouseEnter(getByRole("button"));
+    flush();
     const popup = screen.queryByRole("tooltip");
     expect(popup).not.toBeNull();
     expect(popup?.textContent).toContain("Ctrl+S");
@@ -68,6 +72,7 @@ describe("ActionTooltip", () => {
     ));
 
     fireEvent.mouseEnter(getByRole("button"));
+    flush();
     const popup = screen.queryByRole("tooltip");
     expect(popup).not.toBeNull();
     expect(popup?.textContent).not.toContain("Ctrl+Enter");

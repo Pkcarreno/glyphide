@@ -1,9 +1,10 @@
 import { cleanup, fireEvent, render } from "@solidjs/testing-library";
+import { flush } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { FileDrop } from "./FileDrop.tsx";
 
 /** Top-level regexes for assertions — declared once to avoid re-allocation. */
-const IDLE_TEXT_RE = /click or drop/i;
+const IDLE_TEXT_RE = /click or drop/iu;
 
 /**
  * Helper: simulates a user picking a file via the hidden <input type="file">.
@@ -16,6 +17,7 @@ function uploadFile(input: HTMLInputElement, file: File): void {
     value: [file],
   });
   fireEvent.change(input);
+  flush();
 }
 
 /**
@@ -27,6 +29,7 @@ function dropFile(target: HTMLElement, file: File): void {
   fireEvent.drop(target, {
     dataTransfer: { files: [file], types: ["Files"] },
   });
+  flush();
 }
 
 /**
@@ -125,6 +128,7 @@ describe("FileDrop", () => {
     );
     const removeBtn = getByTestId("file-drop-remove");
     fireEvent.click(removeBtn);
+    flush();
 
     expect(getByTestId("file-drop").getAttribute("data-state")).toBe("idle");
     expect(onFileSelected).toHaveBeenCalledTimes(1); // not re-fired
@@ -164,9 +168,11 @@ describe("FileDrop", () => {
     const zone = getByTestId("file-drop");
 
     fireEvent.dragEnter(zone, { dataTransfer: { types: ["Files"] } });
+    flush();
     expect(zone.getAttribute("data-state")).toBe("drag-over");
 
     fireEvent.dragLeave(zone, { dataTransfer: { types: ["Files"] } });
+    flush();
     expect(zone.getAttribute("data-state")).toBe("idle");
   });
 
@@ -282,6 +288,7 @@ describe("FileDrop", () => {
     expect(onFileSelected).toHaveBeenCalled();
 
     fireEvent.click(getByTestId("file-drop-remove"));
+    flush();
     expect(onFileRemoved).toHaveBeenCalled();
   });
 });

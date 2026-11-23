@@ -1,5 +1,5 @@
 import { render } from "@solidjs/testing-library";
-import { createSignal } from "solid-js";
+import { createSignal, flush } from "solid-js";
 import { describe, expect, it, vi } from "vitest";
 import {
   Dialog,
@@ -41,6 +41,7 @@ describe("Dialog", () => {
     const { getByTestId, queryByRole } = renderDialog(false);
     expect(queryByRole("dialog")).toBeNull();
     getByTestId("trigger").click();
+    flush();
     expect(queryByRole("dialog")).not.toBeNull();
   });
 
@@ -53,6 +54,7 @@ describe("Dialog", () => {
     const { getByTestId, queryByRole } = renderDialog(true);
     expect(queryByRole("dialog")).not.toBeNull();
     getByTestId("close-btn").click();
+    flush();
     expect(queryByRole("dialog")).toBeNull();
   });
 
@@ -97,8 +99,10 @@ describe("Dialog", () => {
     ));
     expect(queryByRole("dialog")).toBeNull();
     setIsOpen(true);
+    flush();
     expect(queryByRole("dialog")).not.toBeNull();
     setIsOpen(false);
+    flush();
     expect(queryByRole("dialog")).toBeNull();
   });
 

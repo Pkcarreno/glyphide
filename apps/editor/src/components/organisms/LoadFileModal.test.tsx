@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render } from "@solidjs/testing-library";
-import { createSignal } from "solid-js";
+import { createSignal, flush } from "solid-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LoadFileModal } from "./LoadFileModal.tsx";
 
@@ -20,8 +20,8 @@ const EXTENSION_MAP: Record<
   ".txt": null,
 };
 
-const OVERWRITE_RE = /overwrite/i;
-const UNSUPPORTED_RE = /unsupported file type/i;
+const OVERWRITE_RE = /overwrite/iu;
+const UNSUPPORTED_RE = /unsupported file type/iu;
 
 let mockSupportedExtensions: readonly string[] = [".js", ".py"];
 
@@ -69,6 +69,7 @@ describe("LoadFileModal", () => {
     mockCloseOverlay.mockClear();
     mockOpenOverlay.mockClear();
     setMockIsOpen(false);
+    flush();
     mockBufferContent.mockReturnValue("");
     mockReadFileFromFile.mockReset();
     mockSupportedExtensions = [".js", ".py"];
@@ -107,6 +108,7 @@ describe("LoadFileModal", () => {
 
   it("dropping a valid file with empty buffer loads immediately", async () => {
     setMockIsOpen(true);
+    flush();
     mockBufferContent.mockReturnValue("");
     mockReadFileFromFile.mockResolvedValue({
       content: "1",
@@ -133,6 +135,7 @@ describe("LoadFileModal", () => {
 
   it("click-to-pick with a valid file through input triggers load", async () => {
     setMockIsOpen(true);
+    flush();
     mockBufferContent.mockReturnValue("");
     mockReadFileFromFile.mockResolvedValue({
       content: "2",
@@ -151,6 +154,7 @@ describe("LoadFileModal", () => {
       writable: false,
     });
     fireEvent.change(input);
+    flush();
 
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -243,6 +247,7 @@ describe("LoadFileModal", () => {
 
   it("removing selected file resets overwrite confirmation state", async () => {
     setMockIsOpen(true);
+    flush();
     mockBufferContent.mockReturnValue("existing");
     mockReadFileFromFile.mockResolvedValue({
       content: "1",
@@ -260,6 +265,7 @@ describe("LoadFileModal", () => {
 
     // Click the remove button
     fireEvent.click(getByTestId("file-drop-remove"));
+    flush();
 
     // Overwrite confirmation should be gone
     expect(queryByText(OVERWRITE_RE)).toBeNull();

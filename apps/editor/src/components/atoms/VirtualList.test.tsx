@@ -1,4 +1,5 @@
 import { fireEvent, render } from "@solidjs/testing-library";
+import { flush } from "solid-js";
 import { describe, expect, it } from "vitest";
 import { ConsoleTokenView } from "../molecules/ConsoleTokenView/ConsoleTokenView.tsx";
 import { VirtualList } from "./VirtualList.tsx";
@@ -97,12 +98,15 @@ describe("VirtualList", () => {
       }
 
       fireEvent.click(expander);
+      flush();
       expect(row0?.textContent).toContain("val:");
 
       fireEvent.scroll(scrollContainer, { target: { scrollTop: 5000 } });
+      flush();
       expect(container.querySelector('[data-testid="row-item-0"]')).toBeNull();
 
       fireEvent.scroll(scrollContainer, { target: { scrollTop: 0 } });
+      flush();
 
       const row0Again = container.querySelector('[data-testid="row-item-0"]');
       expect(row0Again).not.toBeNull();

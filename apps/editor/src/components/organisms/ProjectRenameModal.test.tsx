@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render } from "@solidjs/testing-library";
-import { createSignal } from "solid-js";
+import { createSignal, flush } from "solid-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ProjectRenameModal } from "./ProjectRenameModal.tsx";
 
@@ -28,6 +28,7 @@ describe("ProjectRenameModal", () => {
     mockOpen.mockClear();
     mockClose.mockClear();
     setMockIsOpen(false);
+    flush();
   });
 
   afterEach(() => {
@@ -50,11 +51,14 @@ describe("ProjectRenameModal", () => {
 
   it("submits the project name on enter key", () => {
     setMockIsOpen(true);
+    flush();
     const { getByPlaceholderText } = render(() => <ProjectRenameModal />);
     const input = getByPlaceholderText("Enter project name...");
 
     fireEvent.input(input, { target: { value: "NewProjectName" } });
+    flush();
     fireEvent.keyDown(input, { key: "Enter" });
+    flush();
 
     expect(mockSetProjectName).toHaveBeenCalledWith("NewProjectName");
     expect(mockClose).toHaveBeenCalledWith("project-rename");
@@ -62,11 +66,14 @@ describe("ProjectRenameModal", () => {
 
   it("does not rename if name is empty spaces", () => {
     setMockIsOpen(true);
+    flush();
     const { getByPlaceholderText } = render(() => <ProjectRenameModal />);
     const input = getByPlaceholderText("Enter project name...");
 
     fireEvent.input(input, { target: { value: "   " } });
+    flush();
     fireEvent.keyDown(input, { key: "Enter" });
+    flush();
 
     expect(mockSetProjectName).not.toHaveBeenCalled();
     expect(mockClose).toHaveBeenCalledWith("project-rename");

@@ -1,4 +1,5 @@
 import type { CanonicalState } from "@glyphide/url-migration/types";
+import { flush } from "solid-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createEngineRegistry,
@@ -130,6 +131,7 @@ describe("WorkspaceSession", () => {
       });
 
       session.setCode("const x = 42;");
+      flush();
 
       expect(session.code()).toBe("const x = 42;");
       expect(session.isShowingDefaultCode()).toBe(false);
@@ -150,6 +152,7 @@ describe("WorkspaceSession", () => {
       });
 
       session.setCode("");
+      flush();
 
       expect(session.code()).toBe("");
       expect(session.isShowingDefaultCode()).toBe(false);
@@ -181,6 +184,7 @@ describe("WorkspaceSession", () => {
       });
 
       session.setCursorPosition(10, 5, 12, 2);
+      flush();
 
       expect(session.cursorPosition()).toEqual({
         column: 5,
@@ -202,7 +206,9 @@ describe("WorkspaceSession", () => {
 
       // User adds code first
       session.setCode("console.log(1);");
+      flush();
       session.setProjectName("  awesome_demo  ");
+      flush();
 
       expect(session.projectName()).toBe("awesome_demo");
       expect(session.displayName()).toBe("awesome_demo");
@@ -211,6 +217,7 @@ describe("WorkspaceSession", () => {
       );
 
       session.setProjectName("   ");
+      flush();
       expect(session.projectName()).toBe("untitled_project");
       expect(session.displayName()).toBe("Untitled");
       expect(urlPersistence.save).toHaveBeenCalledWith(
@@ -227,9 +234,11 @@ describe("WorkspaceSession", () => {
       });
 
       session.setShareableState(false);
+      flush();
       expect(session.isUrlShareable()).toBe(false);
 
       session.setShareableState(true);
+      flush();
       expect(session.isUrlShareable()).toBe(true);
     });
   });
@@ -246,6 +255,7 @@ describe("WorkspaceSession", () => {
       expect(session.isShowingDefaultCode()).toBe(true);
 
       session.selectEngine("micropython", "python");
+      flush();
 
       expect(session.activeEngineId()).toBe("micropython");
       expect(session.activeLanguage()).toBe("python");
@@ -263,9 +273,11 @@ describe("WorkspaceSession", () => {
       });
 
       session.setCode("const custom = true;");
+      flush();
       expect(session.isShowingDefaultCode()).toBe(false);
 
       session.selectEngine("micropython", "python");
+      flush();
 
       expect(session.activeEngineId()).toBe("micropython");
       expect(session.activeLanguage()).toBe("python");
@@ -306,7 +318,9 @@ describe("WorkspaceSession", () => {
       });
 
       session.setCode("let x = 1;");
+      flush();
       session.selectEngine("polyglot", "typescript");
+      flush();
 
       expect(urlPersistence.save).toHaveBeenCalledWith({
         code: "let x = 1;",
@@ -332,9 +346,11 @@ describe("WorkspaceSession", () => {
       });
 
       session.setCursorPosition(5, 10, 4, 1);
+      flush();
       expect(session.isTrustRequired()).toBe(true);
 
       session.reset();
+      flush();
 
       expect(urlPersistence.clear).toHaveBeenCalled();
       expect(session.projectName()).toBe("untitled_project");
@@ -366,6 +382,7 @@ describe("WorkspaceSession", () => {
         language: "python",
         name: "algorithm.py",
       });
+      flush();
 
       expect(session.code()).toBe("print('imported from file')");
       expect(session.projectName()).toBe("algorithm");
@@ -401,9 +418,11 @@ describe("WorkspaceSession", () => {
       expect(session.isTrustRequired()).toBe(true);
 
       session.grantTrust();
+      flush();
       expect(session.isTrustRequired()).toBe(false);
 
       session.markTrustRequired();
+      flush();
       expect(session.isTrustRequired()).toBe(true);
     });
   });

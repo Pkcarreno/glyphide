@@ -1,8 +1,9 @@
 import { fireEvent, render } from "@solidjs/testing-library";
+import { flush } from "solid-js";
 import { describe, expect, it } from "vitest";
 import { ExpandableNode } from "./ExpandableNode.tsx";
 
-const EXPANDABLE_CONTENT_REGEX = /^expandable-content-/;
+const EXPANDABLE_CONTENT_REGEX = /^expandable-content-/u;
 
 describe("ExpandableNode", () => {
   it("renders the preview content", () => {
@@ -47,9 +48,11 @@ describe("ExpandableNode", () => {
     expect(container.textContent).not.toContain("Expanded Content");
 
     fireEvent.click(toggleButton);
+    flush();
     expect(container.textContent).toContain("Expanded Content");
 
     fireEvent.click(toggleButton);
+    flush();
     expect(container.textContent).not.toContain("Expanded Content");
   });
 
@@ -67,6 +70,7 @@ describe("ExpandableNode", () => {
     }
 
     fireEvent.click(toggleButton);
+    flush();
     expect(container.textContent).toContain("Expanded Content");
 
     unmount();
@@ -92,6 +96,7 @@ describe("ExpandableNode", () => {
 
     if (button) {
       fireEvent.click(button);
+      flush();
     }
     expect(button?.getAttribute("data-expanded")).toBe("true");
   });
@@ -108,6 +113,7 @@ describe("ExpandableNode", () => {
 
     if (button) {
       fireEvent.click(button);
+      flush();
     }
     expect(button?.getAttribute("aria-expanded")).toBe("true");
   });

@@ -1,4 +1,5 @@
 import { fireEvent, render } from "@solidjs/testing-library";
+import { flush } from "solid-js";
 import { describe, expect, it } from "vitest";
 import { ConsoleTokenView } from "./ConsoleTokenView.tsx";
 
@@ -133,6 +134,7 @@ describe("ConsoleTokenView", () => {
       expect(container.textContent).not.toContain("1:");
 
       fireEvent.click(expander);
+      flush();
 
       expect(container.textContent).toContain("0:");
       expect(container.textContent).toContain("100");
@@ -237,6 +239,7 @@ describe("ConsoleTokenView", () => {
       // Let's just check that clicking doesn't crash and changes the DOM.
       const initialHtml = container.innerHTML;
       fireEvent.click(expander);
+      flush();
       expect(container.innerHTML).not.toBe(initialHtml);
     });
 
@@ -335,6 +338,7 @@ describe("ConsoleTokenView", () => {
 
       const initialHtml = container.innerHTML;
       fireEvent.click(expander);
+      flush();
       expect(container.innerHTML).not.toBe(initialHtml);
     });
   });
@@ -384,6 +388,7 @@ describe("ConsoleTokenView", () => {
 
       const initialHtml = container.innerHTML;
       fireEvent.click(expander);
+      flush();
       expect(container.innerHTML).not.toBe(initialHtml);
     });
   });

@@ -1,5 +1,5 @@
 import { cleanup, render } from "@solidjs/testing-library";
-import { createSignal } from "solid-js";
+import { createSignal, flush } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SettingsModal } from "./SettingsModal.tsx";
 
@@ -80,10 +80,12 @@ describe("SettingsModal", () => {
 
   it("changes tab to Editor when clicked", () => {
     setMockIsOpen(true);
+    flush();
     const { getByRole, getAllByRole } = render(() => <SettingsModal />);
 
     const editorTab = getByRole("tab", { name: "Editor" });
     editorTab.click();
+    flush();
 
     expect(getByRole("switch", { name: "Word Wrap" })).toBeTruthy();
 
@@ -101,10 +103,12 @@ describe("SettingsModal", () => {
 
   it("changes tab when navigation buttons are clicked", () => {
     setMockIsOpen(true);
+    flush();
     const { getByRole, getAllByRole } = render(() => <SettingsModal />);
 
     const executionTab = getByRole("tab", { name: "Execution" });
     executionTab.click();
+    flush();
 
     expect(getByRole("switch", { name: "Auto-run on type" })).toBeTruthy();
     expect(getByRole("switch", { name: "Clear console on run" })).toBeTruthy();
@@ -130,10 +134,12 @@ describe("SettingsModal", () => {
 
   it("when controlled via core state, opens and closes", () => {
     setMockIsOpen(false);
+    flush();
     const { queryByRole } = render(() => <SettingsModal />);
 
     expect(queryByRole("dialog")).toBeNull();
     setMockIsOpen(true);
+    flush();
     expect(queryByRole("dialog")).not.toBeNull();
   });
 
@@ -184,13 +190,16 @@ describe("SettingsModal", () => {
 
   it("Editor tab exposes a Default Code toggle that updates the setting", () => {
     setMockSettings((prev) => ({ ...prev, isDefaultCodeEnabled: true }));
+    flush();
     setMockIsOpen(true);
+    flush();
     updateSettingsMock.mockClear();
 
     const { getByRole } = render(() => <SettingsModal />);
 
     // Switch to Editor tab
     getByRole("tab", { name: "Editor" }).click();
+    flush();
 
     const defaultCodeSwitch = getByRole("switch", {
       name: "Default Code on New Project",
@@ -199,6 +208,7 @@ describe("SettingsModal", () => {
 
     // Toggling off should call updateSettings
     defaultCodeSwitch.click();
+    flush();
     expect(updateSettingsMock).toHaveBeenCalledWith({
       isDefaultCodeEnabled: false,
     });
@@ -206,12 +216,15 @@ describe("SettingsModal", () => {
 
   it("Default Code toggle reflects setting's modified state via reset button", () => {
     setMockSettings((prev) => ({ ...prev, isDefaultCodeEnabled: false }));
+    flush();
     setMockIsOpen(true);
+    flush();
     resetSettingMock.mockClear();
 
     const { getByRole } = render(() => <SettingsModal />);
 
     getByRole("tab", { name: "Editor" }).click();
+    flush();
 
     const resetButton = getByRole("button", {
       name: "Reset Default Code on New Project to default",
@@ -219,6 +232,7 @@ describe("SettingsModal", () => {
     expect(resetButton).toBeTruthy();
 
     resetButton.click();
+    flush();
     expect(resetSettingMock).toHaveBeenCalledWith("isDefaultCodeEnabled");
   });
 });

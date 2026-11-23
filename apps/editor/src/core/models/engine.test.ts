@@ -1,6 +1,7 @@
 import { EngineMethod } from "@glyphide/rpc-protocol/constants";
 import type { CanonicalState } from "@glyphide/url-migration/types";
 import { waitFor } from "@solidjs/testing-library";
+import { flush } from "solid-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { createEngineRegistry } from "../engine/registry.ts";
 import type { PersistencePort } from "../ports/persistence.ts";
@@ -136,6 +137,9 @@ describe("EngineModel (Integration)", () => {
   let registry: ReturnType<typeof createEngineRegistry>;
   let urlPersistence: ReturnType<typeof createMockUrlPersistence>;
 
+  const createModel = () =>
+    createEngineModel({ output, registry, session, settings });
+
   beforeEach(() => {
     urlPersistence = createMockUrlPersistence();
     registry = createTestRegistry();
@@ -147,37 +151,30 @@ describe("EngineModel (Integration)", () => {
     output = createOutputModel();
     settings = createSettingsModel(createMockPersistence());
     settings.updateSettings({ isClearOnRunEnabled: false });
+    flush();
   });
 
   it("initializes in idle state", () => {
-    const model = createEngineModel({
-      output,
-      registry,
-      session,
-      settings,
-    });
+    const model = createModel();
     expect(model.engineStatus()).toBe("idle");
     expect(model.activeEngineId()).toBe("quickjs");
     expect(model.activeLanguage()).toBe("javascript");
   });
 
   it("selectEngineEntry is selection-only; initializeSelectedEngine transitions to ready", async () => {
-    const model = createEngineModel({
-      output,
-      registry,
-      session,
-      settings,
-    });
+    const model = createModel();
     model.selectEngineEntry({
       engineId: "mock",
       label: "",
       language: "typescript",
     });
+    flush();
     expect(model.activeEngineId()).toBe("mock");
     expect(model.activeLanguage()).toBe("typescript");
     expect(model.engineStatus()).toBe("idle");
 
     const p = model.initializeSelectedEngine();
+    flush();
     expect(model.engineStatus()).toBe("initializing");
     await p;
     expect(model.engineStatus()).toBe("ready");
@@ -185,19 +182,16 @@ describe("EngineModel (Integration)", () => {
   });
 
   it("executes code using mock engine and captures output", async () => {
-    const model = createEngineModel({
-      output,
-      registry,
-      session,
-      settings,
-    });
+    const model = createModel();
     model.selectEngineEntry({
       engineId: "mock",
       label: "",
       language: "javascript",
     });
+    flush();
     await model.initializeSelectedEngine();
     session.setCode("test code");
+    flush();
 
     await model.executeCode();
     await sleep(50);
@@ -210,12 +204,7 @@ describe("EngineModel (Integration)", () => {
   });
 
   it("interrupts running execution", async () => {
-    const model = createEngineModel({
-      output,
-      registry,
-      session,
-      settings,
-    });
+    const model = createModel();
     model.selectEngineEntry({
       engineId: "mock",
       label: "",
@@ -301,12 +290,7 @@ describe("EngineModel (Integration)", () => {
 
   it("clears output on run if setting is enabled", async () => {
     settings.updateSettings({ isClearOnRunEnabled: true });
-    const model = createEngineModel({
-      output,
-      registry,
-      session,
-      settings,
-    });
+    const model = createModel();
     model.selectEngineEntry({
       engineId: "mock",
       label: "",
@@ -324,26 +308,24 @@ describe("EngineModel (Integration)", () => {
   });
 
   it("updates isDirty state only if modified while running", async () => {
-    const model = createEngineModel({
-      output,
-      registry,
-      session,
-      settings,
-    });
+    const model = createModel();
 
     model.selectEngineEntry({
       engineId: "mock",
       label: "",
       language: "javascript",
     });
+    flush();
     await model.initializeSelectedEngine();
 
     expect(model.isDirty()).toBe(false);
 
     session.setCode("new code");
+    flush();
     expect(model.isDirty()).toBe(false);
 
     const execPromise = model.executeCode();
+    flush();
 
     const waitForRunning = async (): Promise<void> => {
       if (model.engineStatus() === "running") {
@@ -355,6 +337,7 @@ describe("EngineModel (Integration)", () => {
     await waitForRunning();
 
     session.setCode("modified while running");
+    flush();
     expect(model.isDirty()).toBe(true);
 
     await execPromise;
@@ -364,12 +347,7 @@ describe("EngineModel (Integration)", () => {
   });
 
   it("clears output when switching to a different engine", async () => {
-    const model = createEngineModel({
-      output,
-      registry,
-      session,
-      settings,
-    });
+    const model = createModel();
     model.selectEngineEntry({
       engineId: "mock",
       label: "",
@@ -392,12 +370,7 @@ describe("EngineModel (Integration)", () => {
   });
 
   it("does not clear output when re-selecting the same engine and language", async () => {
-    const model = createEngineModel({
-      output,
-      registry,
-      session,
-      settings,
-    });
+    const model = createModel();
     model.selectEngineEntry({
       engineId: "mock",
       label: "",
@@ -424,12 +397,7 @@ describe("EngineModel (Integration)", () => {
   it("clears output on engine switch regardless of isClearOnRunEnabled", async () => {
     expect(settings.settings.isClearOnRunEnabled).toBe(false);
 
-    const model = createEngineModel({
-      output,
-      registry,
-      session,
-      settings,
-    });
+    const model = createModel();
     model.selectEngineEntry({
       engineId: "mock",
       label: "",
@@ -469,6 +437,7 @@ describe("EngineModel URL conditional persistence (delegated to WorkspaceSession
     output = createOutputModel();
     settings = createSettingsModel(createMockPersistence());
     settings.updateSettings({ isClearOnRunEnabled: false });
+    flush();
   });
 
   it("clearing code removes engine from URL", () => {
@@ -500,12 +469,14 @@ describe("EngineModel URL conditional persistence (delegated to WorkspaceSession
       settings,
     });
     session.setCode("hello world");
+    flush();
 
     model.selectEngineEntry({
       engineId: "mock",
       label: "",
       language: "javascript",
     });
+    flush();
 
     expect(urlPersistence.load()?.engine).toBe("mock");
   });
@@ -524,6 +495,7 @@ describe("EngineModel URL conditional persistence (delegated to WorkspaceSession
       label: "",
       language: "javascript",
     });
+    flush();
 
     expect(model.activeEngineId()).toBe("mock");
     expect(urlPersistence.saveCalls.length).toBe(saveCallsBefore);
@@ -548,6 +520,7 @@ describe("EngineModel select/init split contract", () => {
     output = createOutputModel();
     settings = createSettingsModel(createMockPersistence());
     settings.updateSettings({ isClearOnRunEnabled: false });
+    flush();
   });
 
   it("selectEngineEntry is synchronous (void return type) and does NOT spawn worker", () => {
@@ -564,6 +537,7 @@ describe("EngineModel select/init split contract", () => {
       label: "",
       language: "javascript",
     });
+    flush();
     expect(result).toBeUndefined();
 
     expect(model.activeEngineId()).toBe("mock");
@@ -584,8 +558,10 @@ describe("EngineModel select/init split contract", () => {
       label: "",
       language: "javascript",
     });
+    flush();
 
     const p = model.initializeSelectedEngine();
+    flush();
     expect(model.engineStatus()).toBe("initializing");
     await p;
     expect(model.engineStatus()).toBe("ready");
@@ -604,6 +580,7 @@ describe("EngineModel select/init split contract", () => {
       label: "",
       language: "javascript",
     });
+    flush();
     await model.initializeSelectedEngine();
     expect(model.engineStatus()).toBe("ready");
 
@@ -656,7 +633,9 @@ describe("EngineModel select/init split contract", () => {
       label: "",
       language: "javascript",
     });
+    flush();
     model.setBlocked(true);
+    flush();
     expect(model.engineStatus()).toBe("blocked");
 
     const factorySpy = vi.spyOn(registry, "loadFactory");
@@ -755,6 +734,7 @@ describe("EngineModel select/init split contract", () => {
     expect(factorySpy).toHaveBeenCalledWith("quickjs");
 
     session.selectEngine("mock", "typescript");
+    flush();
     await model.initializeSelectedEngine();
     expect(model.engineStatus()).toBe("ready");
     expect(factorySpy).toHaveBeenCalledWith("mock");
@@ -774,7 +754,9 @@ describe("EngineModel select/init split contract", () => {
     expect(factorySpy).toHaveBeenCalledWith("quickjs");
 
     session.selectEngine("mock", "javascript");
+    flush();
     session.setCode("print('switched')");
+    flush();
     await model.executeCode();
 
     expect(factorySpy).toHaveBeenCalledWith("mock");

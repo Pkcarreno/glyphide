@@ -1,3 +1,4 @@
+import { flush } from "solid-js";
 import { describe, expect, it } from "vitest";
 import { createNotificationModel } from "./notifications.ts";
 
@@ -13,6 +14,7 @@ describe("NotificationModel", () => {
       title: "Test notification",
       type: "info",
     });
+    flush();
 
     const activeToasts = model.activeToasts();
     expect(activeToasts.length).toBe(1);
@@ -24,11 +26,13 @@ describe("NotificationModel", () => {
   it("dismisses an active toast", () => {
     const model = createNotificationModel();
     model.dispatchNotification({ title: "To dismiss", type: "success" });
+    flush();
     const [{ id }] = model.activeToasts();
 
     expect(model.activeToasts().length).toBe(1);
 
     model.dismissToast(id);
+    flush();
 
     expect(model.activeToasts().length).toBe(0);
   });

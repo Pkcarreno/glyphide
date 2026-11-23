@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
-import { createSignal } from "solid-js";
+import { createSignal, flush } from "solid-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EngineSettingsModal } from "./EngineSettingsModal.tsx";
 
@@ -83,7 +83,9 @@ afterEach(() => {
 describe("EngineSettingsModal", () => {
   beforeEach(() => {
     setMockIsOpen(false);
+    flush();
     setMockEngineStatus("ready");
+    flush();
   });
 
   it("when core.overlays is false, dialog is not in the DOM", () => {
@@ -109,7 +111,9 @@ describe("EngineSettingsModal", () => {
 describe("EngineSettingsModal Apply behavior", () => {
   beforeEach(() => {
     setMockIsOpen(true);
+    flush();
     setMockEngineStatus("ready");
+    flush();
     updateEngineConfigMock.mockClear();
     openOverlayMock.mockClear();
     closeOverlayMock.mockClear();
@@ -124,9 +128,11 @@ describe("EngineSettingsModal Apply behavior", () => {
 
     const input = screen.getByRole("spinbutton");
     fireEvent.change(input, { target: { value: "2" } });
+    flush();
 
     const applyButton = screen.getByRole("button", { name: "Apply" });
     fireEvent.click(applyButton);
+    flush();
 
     expect(updateEngineConfigMock).toHaveBeenCalledWith({
       retries: 3,
@@ -168,7 +174,9 @@ describe("EngineSettingsModal Apply behavior", () => {
 describe("EngineSettingsModal ready-state gate", () => {
   beforeEach(() => {
     setMockIsOpen(true);
+    flush();
     setMockEngineStatus("ready");
+    flush();
     updateEngineConfigMock.mockClear();
     openOverlayMock.mockClear();
     closeOverlayMock.mockClear();

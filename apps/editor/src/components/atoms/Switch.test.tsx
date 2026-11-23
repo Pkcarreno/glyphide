@@ -1,5 +1,5 @@
 import { render } from "@solidjs/testing-library";
-import { createSignal } from "solid-js";
+import { createSignal, flush } from "solid-js";
 import { describe, expect, it, vi } from "vitest";
 import { Switch } from "./Switch.tsx";
 
@@ -22,8 +22,10 @@ describe("Switch", () => {
     const sw = getByRole("switch");
     expect(sw.getAttribute("aria-checked")).toBe("false");
     sw.click();
+    flush();
     expect(sw.getAttribute("aria-checked")).toBe("true");
     sw.click();
+    flush();
     expect(sw.getAttribute("aria-checked")).toBe("false");
   });
 
@@ -33,8 +35,10 @@ describe("Switch", () => {
       <Switch aria-label="Toggle" onCheckedChange={handler} />
     ));
     getByRole("switch").click();
+    flush();
     expect(handler).toHaveBeenCalledWith(true);
     getByRole("switch").click();
+    flush();
     expect(handler).toHaveBeenCalledWith(false);
   });
 
@@ -50,6 +54,7 @@ describe("Switch", () => {
     const sw = getByRole("switch");
     expect(sw.getAttribute("aria-checked")).toBe("false");
     sw.click();
+    flush();
     expect(sw.getAttribute("aria-checked")).toBe("true");
   });
 

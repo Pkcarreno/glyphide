@@ -1,5 +1,5 @@
 import { render, screen } from "@solidjs/testing-library";
-import { createSignal } from "solid-js";
+import { createSignal, flush } from "solid-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Header } from "./Header.tsx";
 
@@ -43,12 +43,12 @@ vi.mock("../../core/context", () => ({
   }),
 }));
 
-const TEST_PROJECT_REGEX = /TEST_PROJECT/;
-const RUN_REGEX = /Run/;
-const STOP_REGEX = /stop/i;
-const TRUST_REGEX = /trust/i;
-const RELOAD_REGEX = /reload/i;
-const VERSION_LABELS_REGEX = /Glyphide v/;
+const TEST_PROJECT_REGEX = /TEST_PROJECT/u;
+const RUN_REGEX = /Run/u;
+const STOP_REGEX = /stop/iu;
+const TRUST_REGEX = /trust/iu;
+const RELOAD_REGEX = /reload/iu;
+const VERSION_LABELS_REGEX = /Glyphide v/u;
 
 describe("Header", () => {
   beforeEach(() => {
@@ -58,7 +58,9 @@ describe("Header", () => {
     toggleOverlayMock.mockClear();
     applyUpdateMock.mockClear();
     setMockEngineStatus("idle");
+    flush();
     setMockIsTrustRequired(false);
+    flush();
   });
 
   it("when rendered, displays the app title", () => {
@@ -139,6 +141,7 @@ describe("Header - Mobile Dropdown Items", () => {
     openOverlayMock.mockClear();
     toggleOverlayMock.mockClear();
     setMockIsTrustRequired(false);
+    flush();
   });
 
   it("when dropdown is opened, displays mobile-only dropdown items", () => {
@@ -147,6 +150,7 @@ describe("Header - Mobile Dropdown Items", () => {
     // Open the dropdown by clicking the trigger (LogoSquare) - use aria-label to be specific
     const triggerButton = getByRole("button", { name: "Menu" });
     triggerButton.click();
+    flush();
 
     // Query for all menu items in the dropdown using screen (finds in document.body portal)
     const menuItems = screen.getAllByRole("menuitem");
@@ -279,6 +283,7 @@ describe("Header - Mobile Dropdown Items", () => {
     beforeEach(() => {
       applyUpdateMock.mockClear();
       setMockUpdateAvailable(false);
+      flush();
     });
 
     it("when updateAvailable is false, update button is not visible", () => {
@@ -294,12 +299,14 @@ describe("Header - Mobile Dropdown Items", () => {
 
     it("when update button is clicked, calls pwa.applyUpdate() and disables the button", () => {
       setMockUpdateAvailable(true);
+      flush();
       const { getByRole } = render(() => <Header />);
       const updateButton = getByRole("button", {
         name: RELOAD_REGEX,
       }) as HTMLButtonElement;
       expect(updateButton.disabled).toBe(false);
       updateButton.click();
+      flush();
       expect(applyUpdateMock).toHaveBeenCalled();
       expect(updateButton.disabled).toBe(true);
     });
@@ -424,6 +431,7 @@ describe("Header - Menu Trigger", () => {
     const menuButton = getByRole("button", { name: "Menu" });
     expect(menuButton.getAttribute("aria-expanded")).toBe("false");
     menuButton.click();
+    flush();
     expect(menuButton.getAttribute("aria-expanded")).toBe("true");
     const menuItems = screen.getAllByRole("menuitem");
     expect(menuItems.length).toBeGreaterThan(0);
@@ -434,8 +442,10 @@ describe("Header - Menu Trigger", () => {
     const menuButton = getByRole("button", { name: "Menu" });
     expect(menuButton.getAttribute("aria-expanded")).toBe("false");
     menuButton.click();
+    flush();
     expect(menuButton.getAttribute("aria-expanded")).toBe("true");
     menuButton.click();
+    flush();
     expect(menuButton.getAttribute("aria-expanded")).toBe("false");
   });
 });

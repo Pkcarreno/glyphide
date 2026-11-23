@@ -1,9 +1,20 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
-import type { JSX } from "solid-js";
+import type { JSX } from "@solidjs/web";
+import { flush } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Dropdown } from "./Dropdown.tsx";
 
 afterEach(() => cleanup());
+
+function click(target: HTMLElement): void {
+  fireEvent.click(target);
+  flush();
+}
+
+function keyDown(target: HTMLElement, init: KeyboardEventInit): void {
+  fireEvent.keyDown(target, init);
+  flush();
+}
 
 describe("Dropdown", () => {
   describe("Open/Close", () => {
@@ -39,7 +50,7 @@ describe("Dropdown", () => {
 
       expect(screen.queryByText("Item 1")).toBeNull();
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       expect(screen.getByText("Item 1")).not.toBeNull();
@@ -57,12 +68,13 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       expect(screen.getByText("Item 1")).not.toBeNull();
 
       fireEvent.mouseDown(document.body);
+      flush();
       await Promise.resolve();
 
       expect(screen.queryByText("Item 1")).toBeNull();
@@ -80,13 +92,13 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       expect(screen.getByText("Item 1")).not.toBeNull();
 
       const content = screen.getByRole("menu");
-      fireEvent.keyDown(content, { key: "Escape" });
+      keyDown(content, { key: "Escape" });
       await Promise.resolve();
 
       expect(screen.queryByText("Item 1")).toBeNull();
@@ -108,32 +120,32 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const content = screen.getByRole("menu");
 
       // No item active on open — first ArrowDown goes to Item 1
-      fireEvent.keyDown(content, { key: "ArrowDown" });
+      keyDown(content, { key: "ArrowDown" });
       await Promise.resolve();
       expect(screen.getByText("Item 1").getAttribute("data-active")).toBe(
         "true"
       );
 
-      fireEvent.keyDown(content, { key: "ArrowDown" });
+      keyDown(content, { key: "ArrowDown" });
       await Promise.resolve();
       expect(screen.getByText("Item 2").getAttribute("data-active")).toBe(
         "true"
       );
 
-      fireEvent.keyDown(content, { key: "ArrowDown" });
+      keyDown(content, { key: "ArrowDown" });
       await Promise.resolve();
       expect(screen.getByText("Item 3").getAttribute("data-active")).toBe(
         "true"
       );
 
       // Wraps to first
-      fireEvent.keyDown(content, { key: "ArrowDown" });
+      keyDown(content, { key: "ArrowDown" });
       await Promise.resolve();
       expect(screen.getByText("Item 1").getAttribute("data-active")).toBe(
         "true"
@@ -154,19 +166,19 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const content = screen.getByRole("menu");
 
       // No item active — ArrowUp wraps to last item
-      fireEvent.keyDown(content, { key: "ArrowUp" });
+      keyDown(content, { key: "ArrowUp" });
       await Promise.resolve();
       expect(screen.getByText("Item 3").getAttribute("data-active")).toBe(
         "true"
       );
 
-      fireEvent.keyDown(content, { key: "ArrowUp" });
+      keyDown(content, { key: "ArrowUp" });
       await Promise.resolve();
       expect(screen.getByText("Item 2").getAttribute("data-active")).toBe(
         "true"
@@ -186,22 +198,22 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const content = screen.getByRole("menu");
 
       // Navigate to Item 2
-      fireEvent.keyDown(content, { key: "ArrowDown" });
+      keyDown(content, { key: "ArrowDown" });
       await Promise.resolve();
-      fireEvent.keyDown(content, { key: "ArrowDown" });
+      keyDown(content, { key: "ArrowDown" });
       await Promise.resolve();
       expect(screen.getByText("Item 2").getAttribute("data-active")).toBe(
         "true"
       );
 
       // Home goes to Item 1
-      fireEvent.keyDown(content, { key: "Home" });
+      keyDown(content, { key: "Home" });
       await Promise.resolve();
       expect(screen.getByText("Item 1").getAttribute("data-active")).toBe(
         "true"
@@ -221,12 +233,12 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const content = screen.getByRole("menu");
 
-      fireEvent.keyDown(content, { key: "End" });
+      keyDown(content, { key: "End" });
       await Promise.resolve();
       expect(screen.getByText("Item 2").getAttribute("data-active")).toBe(
         "true"
@@ -248,16 +260,16 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const content = screen.getByRole("menu");
 
       // Navigate to Item 1 first
-      fireEvent.keyDown(content, { key: "ArrowDown" });
+      keyDown(content, { key: "ArrowDown" });
       await Promise.resolve();
 
-      fireEvent.keyDown(content, { key: "Enter" });
+      keyDown(content, { key: "Enter" });
       await Promise.resolve();
 
       expect(handleSelect).toHaveBeenCalledTimes(1);
@@ -277,16 +289,16 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const content = screen.getByRole("menu");
 
       // Navigate to Item 1 first
-      fireEvent.keyDown(content, { key: "ArrowDown" });
+      keyDown(content, { key: "ArrowDown" });
       await Promise.resolve();
 
-      fireEvent.keyDown(content, { key: " " });
+      keyDown(content, { key: " " });
       await Promise.resolve();
 
       expect(handleSelect).toHaveBeenCalledTimes(1);
@@ -313,16 +325,16 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const content = screen.getByRole("menu");
 
       // Navigate to checkbox item first
-      fireEvent.keyDown(content, { key: "ArrowDown" });
+      keyDown(content, { key: "ArrowDown" });
       await Promise.resolve();
 
-      fireEvent.keyDown(content, { key: "Enter" });
+      keyDown(content, { key: "Enter" });
       await Promise.resolve();
 
       expect(handleCheckedChange).toHaveBeenCalledWith(true);
@@ -342,7 +354,7 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const checkIcon = screen.getByTestId("dropdown-check-icon");
@@ -363,7 +375,7 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const content = screen.getByRole("menu");
@@ -384,7 +396,7 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const item = screen.getByText("Inset Item");
@@ -403,7 +415,7 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const item = screen.getByText("Delete");
@@ -422,7 +434,7 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const item = screen.getByText("Item");
@@ -445,7 +457,7 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const shortcut = screen.getByText("⌘,");
@@ -469,7 +481,7 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       expect(onOpenChange).toHaveBeenCalledWith(true);
@@ -489,7 +501,7 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const link = screen.getByText("Home");
@@ -511,20 +523,20 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const content = screen.getByRole("menu");
 
       // First ArrowDown -> Item 1
-      fireEvent.keyDown(content, { key: "ArrowDown" });
+      keyDown(content, { key: "ArrowDown" });
       await Promise.resolve();
       expect(screen.getByText("Item 1").getAttribute("data-active")).toBe(
         "true"
       );
 
       // Second ArrowDown -> Link
-      fireEvent.keyDown(content, { key: "ArrowDown" });
+      keyDown(content, { key: "ArrowDown" });
       await Promise.resolve();
       expect(screen.getByText("Home").getAttribute("data-active")).toBe("true");
     });
@@ -545,10 +557,10 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
-      fireEvent.click(screen.getByText("Home"));
+      click(screen.getByText("Home"));
       await Promise.resolve();
 
       expect(handleSelect).toHaveBeenCalledTimes(1);
@@ -571,17 +583,17 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const content = screen.getByRole("menu");
 
       // ArrowDown to focus the link
-      fireEvent.keyDown(content, { key: "ArrowDown" });
+      keyDown(content, { key: "ArrowDown" });
       await Promise.resolve();
 
       // Enter should not trigger onSelect
-      fireEvent.keyDown(content, { key: "Enter" });
+      keyDown(content, { key: "Enter" });
       await Promise.resolve();
 
       expect(handleSelect).not.toHaveBeenCalled();
@@ -606,7 +618,7 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const customLink = screen.getByTestId("custom-link");
@@ -632,7 +644,7 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const link = screen.getByText("GitHub");
@@ -655,7 +667,7 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const caption = screen.getByText("Glyphide v1.0");
@@ -677,20 +689,20 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const content = screen.getByRole("menu");
 
       // Navigate to Item 1
-      fireEvent.keyDown(content, { key: "ArrowDown" });
+      keyDown(content, { key: "ArrowDown" });
       await Promise.resolve();
       expect(screen.getByText("Item 1").getAttribute("data-active")).toBe(
         "true"
       );
 
       // ArrowDown should skip Caption and go to Item 2
-      fireEvent.keyDown(content, { key: "ArrowDown" });
+      keyDown(content, { key: "ArrowDown" });
       await Promise.resolve();
       expect(screen.getByText("Item 2").getAttribute("data-active")).toBe(
         "true"
@@ -715,7 +727,7 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const content = screen.getByRole("menu");
@@ -736,7 +748,7 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const caption = screen.getByText("Glyphide v1.0");
@@ -757,7 +769,7 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       const caption = screen.getByText("Glyphide v1.0");
@@ -804,7 +816,7 @@ describe("Dropdown", () => {
 
       expect(screen.queryByText("Item 1")).toBeNull();
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       expect(screen.getByText("Item 1")).not.toBeNull();
@@ -826,7 +838,7 @@ describe("Dropdown", () => {
         </Dropdown.Root>
       ));
 
-      fireEvent.click(screen.getByText("Menu"));
+      click(screen.getByText("Menu"));
       await Promise.resolve();
 
       expect(parentClick).toHaveBeenCalledTimes(1);

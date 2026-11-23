@@ -1,4 +1,5 @@
 import type { CanonicalState } from "@glyphide/url-migration/types";
+import { flush } from "solid-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createBrowserUrlPersistenceAdapter } from "./adapters/url-persistence.ts";
 import { PYTHON_DEFAULT_BUFFER_CODE } from "./data/python-default-buffer-code.ts";
@@ -57,13 +58,21 @@ function createMockFileIo(): {
   };
 }
 
+function createDefaultTestCore(
+  urlPersistence: UrlPersistencePort = createMockUrlPersistence()
+) {
+  const core = createEditorCore({
+    fileIo: createMockFileIoDeps(),
+    persistence: createMockPersistence(),
+    urlPersistence,
+  });
+  flush();
+  return core;
+}
+
 describe("EditorCore", () => {
   it("initializes all models correctly", () => {
-    const core = createEditorCore({
-      fileIo: createMockFileIoDeps(),
-      persistence: createMockPersistence(),
-      urlPersistence: createMockUrlPersistence(),
-    });
+    const core = createDefaultTestCore();
 
     expect(core.session).toBeDefined();
     expect(core.settings).toBeDefined();
@@ -76,11 +85,7 @@ describe("EditorCore", () => {
   });
 
   it("wires commands and models", () => {
-    const core = createEditorCore({
-      fileIo: createMockFileIoDeps(),
-      persistence: createMockPersistence(),
-      urlPersistence: createMockUrlPersistence(),
-    });
+    const core = createDefaultTestCore();
 
     const setCodeSpy = vi.spyOn(core.session, "setCode");
     core.commands.updateBuffer("hello");
@@ -125,11 +130,7 @@ describe("EditorCore", () => {
   });
 
   it("cleans up resources on dispose", () => {
-    const core = createEditorCore({
-      fileIo: createMockFileIoDeps(),
-      persistence: createMockPersistence(),
-      urlPersistence: createMockUrlPersistence(),
-    });
+    const core = createDefaultTestCore();
 
     const terminateSpy = vi.spyOn(core.engine, "terminate");
     const disposeNotificationsSpy = vi.spyOn(core.notifications, "dispose");
@@ -149,33 +150,28 @@ describe("EditorCore", () => {
     });
 
     it("triggers executeCode after debounce when autoRun is enabled", () => {
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence: createMockUrlPersistence(),
-      });
+      const core = createDefaultTestCore();
       core.settings.updateSettings({
         autoRunDelay: 500,
         isAutoRunEnabled: true,
       });
+      flush();
       vi.spyOn(core.engine, "engineStatus").mockReturnValue("ready");
       const executeCodeSpy = vi
         .spyOn(core.engine, "executeCode")
         .mockResolvedValue(undefined);
 
       core.commands.updateBuffer("code");
+      flush();
 
       expect(executeCodeSpy).not.toHaveBeenCalled();
       vi.advanceTimersByTime(500);
+      flush();
       expect(executeCodeSpy).toHaveBeenCalled();
     });
 
     it("does not trigger executeCode when autoRun is disabled", () => {
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence: createMockUrlPersistence(),
-      });
+      const core = createDefaultTestCore();
       core.settings.updateSettings({
         autoRunDelay: 500,
         isAutoRunEnabled: false,
@@ -192,11 +188,7 @@ describe("EditorCore", () => {
     });
 
     it("ignores autoRun if engine is running", () => {
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence: createMockUrlPersistence(),
-      });
+      const core = createDefaultTestCore();
       core.settings.updateSettings({
         autoRunDelay: 500,
         isAutoRunEnabled: true,
@@ -213,11 +205,7 @@ describe("EditorCore", () => {
     });
 
     it("does not call executeCode when selectEngine is called even if isAutoRunEnabled is true", () => {
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence: createMockUrlPersistence(),
-      });
+      const core = createDefaultTestCore();
       core.settings.updateSettings({
         autoRunDelay: 500,
         isAutoRunEnabled: true,
@@ -234,11 +222,7 @@ describe("EditorCore", () => {
     });
 
     it("schedules auto-run when user edits buffer (updateBuffer) after engine switch", () => {
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence: createMockUrlPersistence(),
-      });
+      const core = createDefaultTestCore();
       core.settings.updateSettings({
         autoRunDelay: 500,
         isAutoRunEnabled: true,
@@ -273,22 +257,18 @@ describe("EditorCore", () => {
     }
 
     it("exposes trust model on EditorCore", () => {
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence: createMockUrlStateWithCode("console.log(1)"),
-      });
+      const core = createDefaultTestCore(
+        createMockUrlStateWithCode("console.log(1)")
+      );
 
       expect(core.session).toBeDefined();
       expect(core.session.isTrustRequired()).toBe(true);
     });
 
     it("when URL has code param, defers initial engine init and opens trust dialog", () => {
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence: createMockUrlStateWithCode("console.log('shared')"),
-      });
+      const core = createDefaultTestCore(
+        createMockUrlStateWithCode("console.log('shared')")
+      );
 
       // Trust model should detect shared code
       expect(core.session.isTrustRequired()).toBe(true);
@@ -297,11 +277,7 @@ describe("EditorCore", () => {
     });
 
     it("when no code param, engine init proceeds normally", () => {
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence: createMockUrlStateWithCode(null),
-      });
+      const core = createDefaultTestCore(createMockUrlStateWithCode(null));
 
       expect(core.session.isTrustRequired()).toBe(false);
       // Trust dialog should NOT auto-open
@@ -309,11 +285,9 @@ describe("EditorCore", () => {
     });
 
     it("when trust required, RUN_CODE opens dialog and does NOT execute", async () => {
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence: createMockUrlStateWithCode("console.log(1)"),
-      });
+      const core = createDefaultTestCore(
+        createMockUrlStateWithCode("console.log(1)")
+      );
 
       const executeSpy = vi.spyOn(core.engine, "executeCode");
       const openSpy = vi.spyOn(core.overlays, "open");
@@ -325,11 +299,7 @@ describe("EditorCore", () => {
     });
 
     it("when trust granted, RUN_CODE executes normally", async () => {
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence: createMockUrlStateWithCode(null),
-      });
+      const core = createDefaultTestCore(createMockUrlStateWithCode(null));
 
       expect(core.session.isTrustRequired()).toBe(false);
       const executeSpy = vi.spyOn(core.engine, "executeCode");
@@ -340,11 +310,9 @@ describe("EditorCore", () => {
     });
 
     it("when trust required, selectEngine opens dialog and blocks init", () => {
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence: createMockUrlStateWithCode("console.log(1)"),
-      });
+      const core = createDefaultTestCore(
+        createMockUrlStateWithCode("console.log(1)")
+      );
 
       const selectSpy = vi.spyOn(core.engine, "selectEngineEntry");
       const openSpy = vi.spyOn(core.overlays, "open");
@@ -356,11 +324,9 @@ describe("EditorCore", () => {
     });
 
     it("when trust required, retryEngineInit opens dialog and blocks init", () => {
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence: createMockUrlStateWithCode("console.log(1)"),
-      });
+      const core = createDefaultTestCore(
+        createMockUrlStateWithCode("console.log(1)")
+      );
 
       const retrySpy = vi.spyOn(core.engine, "retryInit");
       const openSpy = vi.spyOn(core.overlays, "open");
@@ -372,11 +338,9 @@ describe("EditorCore", () => {
     });
 
     it("when grantTrust called, grants trust and closes dialog (init deferred to RUN_CODE)", async () => {
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence: createMockUrlStateWithCode("console.log(1)"),
-      });
+      const core = createDefaultTestCore(
+        createMockUrlStateWithCode("console.log(1)")
+      );
 
       expect(core.session.isTrustRequired()).toBe(true);
 
@@ -387,6 +351,7 @@ describe("EditorCore", () => {
       const closeSpy = vi.spyOn(core.overlays, "close");
 
       core.commands.grantTrust();
+      flush();
 
       // Drain microtasks so async handler bodies settle.
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -409,11 +374,9 @@ describe("EditorCore", () => {
       });
 
       it("when trust required, auto-run does NOT fire", () => {
-        const core = createEditorCore({
-          fileIo: createMockFileIoDeps(),
-          persistence: createMockPersistence(),
-          urlPersistence: createMockUrlStateWithCode("console.log(1)"),
-        });
+        const core = createDefaultTestCore(
+          createMockUrlStateWithCode("console.log(1)")
+        );
         core.settings.updateSettings({
           autoRunDelay: 500,
           isAutoRunEnabled: true,
@@ -430,23 +393,22 @@ describe("EditorCore", () => {
       });
 
       it("when trust not required, auto-run fires normally", () => {
-        const core = createEditorCore({
-          fileIo: createMockFileIoDeps(),
-          persistence: createMockPersistence(),
-          urlPersistence: createMockUrlStateWithCode(null),
-        });
+        const core = createDefaultTestCore(createMockUrlStateWithCode(null));
         core.settings.updateSettings({
           autoRunDelay: 500,
           isAutoRunEnabled: true,
         });
+        flush();
         vi.spyOn(core.engine, "engineStatus").mockReturnValue("ready");
         const executeCodeSpy = vi
           .spyOn(core.engine, "executeCode")
           .mockResolvedValue(undefined);
 
         core.commands.updateBuffer("code");
+        flush();
 
         vi.advanceTimersByTime(500);
+        flush();
         expect(executeCodeSpy).toHaveBeenCalled();
       });
     });
@@ -520,11 +482,14 @@ describe("EditorCore", () => {
           persistence: createMockPersistence(),
           urlPersistence,
         });
+        flush();
         // Force trust required to simulate a previous session
         freshCore.session.markTrustRequired();
+        flush();
         expect(freshCore.session.isTrustRequired()).toBe(true);
 
         freshCore.commands.resetProjectState();
+        flush();
 
         expect(freshCore.session.isTrustRequired()).toBe(false);
       });
@@ -533,6 +498,7 @@ describe("EditorCore", () => {
     describe("LOAD_FILE_FROM_DISK", () => {
       it("populates buffer, project name (without extension), and engine entry", () => {
         const { core } = createCoreWithFileIo();
+        flush();
 
         core.commands.loadFile({
           content: "console.log(1)",
@@ -540,6 +506,7 @@ describe("EditorCore", () => {
           language: "javascript",
           name: "script.js",
         });
+        flush();
 
         expect(core.session.code()).toBe("console.log(1)");
         expect(core.session.projectName()).toBe("script");
@@ -565,6 +532,7 @@ describe("EditorCore", () => {
 
       it("re-arms the trust gate so file-loaded code requires acknowledgment", () => {
         const { core } = createCoreWithFileIo();
+        flush();
         // Start with trust granted (no URL code)
         expect(core.session.isTrustRequired()).toBe(false);
 
@@ -574,6 +542,7 @@ describe("EditorCore", () => {
           language: "javascript",
           name: "script.js",
         });
+        flush();
 
         expect(core.session.isTrustRequired()).toBe(true);
         // Trust-required dialog should be open
@@ -596,6 +565,7 @@ describe("EditorCore", () => {
 
       it("download after load produces correct filename without double extension", async () => {
         const { core, writeFile } = createCoreWithFileIo();
+        flush();
 
         // Load file with extension
         core.commands.loadFile({
@@ -604,6 +574,7 @@ describe("EditorCore", () => {
           language: "javascript",
           name: "myscript.js",
         });
+        flush();
 
         // Verify project name is stripped
         expect(core.session.projectName()).toBe("myscript");
@@ -621,8 +592,11 @@ describe("EditorCore", () => {
     describe("DOWNLOAD_BUFFER_TO_FILE", () => {
       it("writes the current buffer content to the file adapter with .js for javascript engines", async () => {
         const { core, writeFile } = createCoreWithFileIo();
+        flush();
         core.session.setCode("console.log('hi')");
+        flush();
         core.session.setProjectName("myapp");
+        flush();
         vi.spyOn(core.engine, "activeLanguage").mockReturnValue("javascript");
 
         await core.commands.downloadBufferToFile();
@@ -632,9 +606,13 @@ describe("EditorCore", () => {
 
       it("uses .py for python engines", async () => {
         const { core, writeFile } = createCoreWithFileIo();
+        flush();
         core.session.setCode("print('hi')");
+        flush();
         core.session.setProjectName("script");
+        flush();
         core.session.selectEngine("micropython", "python");
+        flush();
 
         await core.commands.downloadBufferToFile();
 
@@ -661,8 +639,11 @@ describe("EditorCore", () => {
 
       it("downloads empty buffer as file with empty content", async () => {
         const { core, writeFile } = createCoreWithFileIo();
+        flush();
         core.session.setCode("");
+        flush();
         core.session.setProjectName("empty-project");
+        flush();
         vi.spyOn(core.engine, "activeLanguage").mockReturnValue("javascript");
 
         await core.commands.downloadBufferToFile();
@@ -672,8 +653,11 @@ describe("EditorCore", () => {
 
       it("downloads empty buffer with empty project name (sanitizes to untitled_project.js)", async () => {
         const { core, writeFile } = createCoreWithFileIo();
+        flush();
         core.session.setCode("");
+        flush();
         core.session.setProjectName("");
+        flush();
         vi.spyOn(core.engine, "activeLanguage").mockReturnValue("javascript");
 
         await core.commands.downloadBufferToFile();
@@ -704,11 +688,7 @@ describe("EditorCore", () => {
     // must be seeded in URL.
     it("LOAD_FILE_FROM_DISK with same engine seeds engine in URL", () => {
       const urlPersistence = createSpyUrlPersistence();
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence,
-      });
+      const core = createDefaultTestCore(urlPersistence);
 
       expect(urlPersistence.load()).toBeNull();
 
@@ -731,11 +711,7 @@ describe("EditorCore", () => {
         language: "plaintext",
         name: "",
       });
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence,
-      });
+      const core = createDefaultTestCore(urlPersistence);
 
       // Prime the model with some code so the state is consistent
       core.commands.updateBuffer("hi");
@@ -766,15 +742,12 @@ describe("EditorCore", () => {
     it("strips URL when limit exceeded, resets tracker on empty buffer, re-seeds on next valid write", () => {
       const urlPersistence = createBrowserUrlPersistenceAdapter();
 
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence,
-      });
+      const core = createDefaultTestCore(urlPersistence);
 
       // Step 1: Load editor with initial code. Default engine is "quickjs";
       // the first non-empty buffer update seeds it to the URL.
       core.commands.updateBuffer("initial code");
+      flush();
 
       expect(urlPersistence.load()?.engine).toBe("quickjs");
       expect(core.session.isUrlShareable()).toBe(true);
@@ -785,17 +758,20 @@ describe("EditorCore", () => {
         massiveCode += `${Math.random().toString(36)}-`;
       }
       core.commands.updateBuffer(massiveCode);
+      flush();
 
       expect(urlPersistence.load()).toBeNull();
       expect(core.session.isUrlShareable()).toBe(false);
 
       // Step 3: Clear the buffer.
       core.commands.updateBuffer("");
+      flush();
 
       expect(urlPersistence.load()).toBeNull();
 
       // Step 4: Type new code that fits within the limit.
       core.commands.updateBuffer("short code");
+      flush();
 
       expect(urlPersistence.load()?.engine).toBe("quickjs");
       expect(core.session.isUrlShareable()).toBe(true);
@@ -814,11 +790,7 @@ describe("EditorCore", () => {
     }
 
     it("on startup without trust: selectEngineEntry + initializeSelectedEngine are called", () => {
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence: createMockUrlStateWithCode(null),
-      });
+      const core = createDefaultTestCore(createMockUrlStateWithCode(null));
       const selectSpy = vi.spyOn(core.engine, "selectEngineEntry");
       const initSpy = vi
         .spyOn(core.engine, "initializeSelectedEngine")
@@ -833,11 +805,9 @@ describe("EditorCore", () => {
     });
 
     it("on startup with trust required: initializeSelectedEngine is NOT called", () => {
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence: createMockUrlStateWithCode("console.log(1)"),
-      });
+      const core = createDefaultTestCore(
+        createMockUrlStateWithCode("console.log(1)")
+      );
       // Trust-required startup path: signals seeded from URL, no init.
       // Init is deferred to GRANT_TRUST.
       expect(core.session.isTrustRequired()).toBe(true);
@@ -845,11 +815,7 @@ describe("EditorCore", () => {
     });
 
     it("SELECT_ENGINE_ENTRY in trusted mode calls selectEngine AND initializeSelectedEngine", () => {
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence: createMockUrlStateWithCode(null),
-      });
+      const core = createDefaultTestCore(createMockUrlStateWithCode(null));
       const selectSpy = vi.spyOn(core.session, "selectEngine");
       const initSpy = vi
         .spyOn(core.engine, "initializeSelectedEngine")
@@ -862,11 +828,9 @@ describe("EditorCore", () => {
     });
 
     it("GRANT_TRUST does NOT call initializeSelectedEngine (init deferred to RUN_CODE)", async () => {
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence: createMockUrlStateWithCode("console.log(1)"),
-      });
+      const core = createDefaultTestCore(
+        createMockUrlStateWithCode("console.log(1)")
+      );
 
       const selectSpy = vi.spyOn(core.session, "selectEngine");
       const initSpy = vi
@@ -874,6 +838,7 @@ describe("EditorCore", () => {
         .mockResolvedValue(undefined);
 
       core.commands.grantTrust();
+      flush();
 
       // Drain microtasks
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -885,17 +850,16 @@ describe("EditorCore", () => {
     });
 
     it("after GRANT_TRUST, RUN_CODE executes code (lazy init happens inside executeCode)", async () => {
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence: createMockUrlStateWithCode("console.log(1)"),
-      });
+      const core = createDefaultTestCore(
+        createMockUrlStateWithCode("console.log(1)")
+      );
 
       // Trust is required initially
       expect(core.session.isTrustRequired()).toBe(true);
 
       // Grant trust — should NOT initialize
       core.commands.grantTrust();
+      flush();
       expect(core.session.isTrustRequired()).toBe(false);
       expect(core.engine.engineStatus()).toBe("idle");
 
@@ -906,11 +870,7 @@ describe("EditorCore", () => {
     });
 
     it("LOAD_FILE_FROM_DISK calls session.loadFile but NOT initializeSelectedEngine", () => {
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence: createMockUrlStateWithCode(null),
-      });
+      const core = createDefaultTestCore(createMockUrlStateWithCode(null));
       const loadFileSpy = vi.spyOn(core.session, "loadFile");
       const initSpy = vi.spyOn(core.engine, "initializeSelectedEngine");
 
@@ -932,11 +892,7 @@ describe("EditorCore", () => {
     });
 
     it("RESET_PROJECT_STATE calls session.reset AND initializeSelectedEngine", () => {
-      const core = createEditorCore({
-        fileIo: createMockFileIoDeps(),
-        persistence: createMockPersistence(),
-        urlPersistence: createMockUrlStateWithCode(null),
-      });
+      const core = createDefaultTestCore(createMockUrlStateWithCode(null));
       const resetSpy = vi.spyOn(core.session, "reset");
       const initSpy = vi
         .spyOn(core.engine, "initializeSelectedEngine")
@@ -1034,12 +990,15 @@ describe("EditorCore", () => {
         }),
         urlPersistence: createUrlPersistenceWithCode(null),
       });
+      flush();
 
       // User edits the buffer
       core.session.setCode("// user code");
+      flush();
       expect(core.session.code()).toBe("// user code");
 
       core.commands.resetProjectState();
+      flush();
 
       expect(core.session.code()).toBe(QUICKJS_DEFAULT_BUFFER_CODE);
     });
@@ -1052,11 +1011,14 @@ describe("EditorCore", () => {
         }),
         urlPersistence: createUrlPersistenceWithCode(null),
       });
+      flush();
 
       core.session.setCode("// user code");
+      flush();
       expect(core.session.code()).toBe("// user code");
 
       core.commands.resetProjectState();
+      flush();
 
       expect(core.session.code()).toBe("");
     });
@@ -1183,9 +1145,11 @@ describe("EditorCore", () => {
         }),
         urlPersistence: createUrlPersistenceWithCodeAndEngine(null, "quickjs"),
       });
+      flush();
 
       // User edits the buffer (pristine flag disarmed).
       core.commands.updateBuffer("user-typed-something");
+      flush();
       expect(core.session.isShowingDefaultCode()).toBe(false);
 
       vi.spyOn(core.engine, "initializeSelectedEngine").mockResolvedValue(
@@ -1193,6 +1157,7 @@ describe("EditorCore", () => {
       );
 
       core.commands.selectEngine("micropython", "python");
+      flush();
 
       // User's content is preserved — engine switch does NOT touch the buffer.
       expect(core.session.code()).toBe("user-typed-something");
@@ -1260,6 +1225,7 @@ describe("EditorCore", () => {
         }),
         urlPersistence: createUrlPersistenceWithCodeAndEngine(null, "quickjs"),
       });
+      flush();
 
       // Buffer was pristine.
       expect(core.session.isShowingDefaultCode()).toBe(true);
@@ -1268,6 +1234,7 @@ describe("EditorCore", () => {
       const setCodeSpy = vi.spyOn(core.session, "setCode");
 
       core.commands.updateBuffer("user-edit");
+      flush();
 
       expect(setCodeSpy).toHaveBeenCalledWith("user-edit", {
         source: "user",

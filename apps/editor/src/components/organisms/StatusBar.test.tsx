@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
+import { flush } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { StatusBar } from "./StatusBar.tsx";
 
@@ -64,7 +65,7 @@ afterEach(() => {
   openOverlayMock.mockClear();
 });
 
-const JS_REGEX = /javascript/i;
+const JS_REGEX = /javascript/iu;
 
 describe("StatusBar", () => {
   it("when rendered with defaults, shows idle status and 'idle'", () => {
@@ -169,6 +170,7 @@ describe("StatusBar.Button", () => {
     ));
     expect(screen.queryByRole("tooltip")).toBeNull();
     fireEvent.mouseEnter(getByRole("button"));
+    flush();
     expect(screen.queryByRole("tooltip")).not.toBeNull();
     expect(screen.queryByRole("tooltip")?.textContent).toContain("Help text");
   });
@@ -180,6 +182,7 @@ describe("StatusBar.Button", () => {
       </StatusBar.Button>
     ));
     fireEvent.mouseEnter(getByRole("button"));
+    flush();
     const popup = screen.queryByRole("tooltip");
     expect(popup).not.toBeNull();
     expect(popup?.textContent).toContain("⌘S");
@@ -195,6 +198,7 @@ describe("StatusBar.Button", () => {
       </StatusBar.Button>
     ));
     fireEvent.mouseEnter(getByRole("button"));
+    flush();
     const popup = screen.queryByRole("tooltip");
     expect(popup).not.toBeNull();
     expect(popup?.textContent).toContain("Select the execution engine");

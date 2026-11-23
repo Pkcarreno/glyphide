@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
+import { flush } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Tabs } from "./Tabs.tsx";
 
@@ -9,6 +10,7 @@ afterEach(() => {
 /** Helper: dispatch a KeyboardEvent with the given key on the element. */
 function pressKey(el: HTMLElement, key: string) {
   fireEvent.keyDown(el, { key });
+  flush();
 }
 
 describe("Tabs", () => {
@@ -67,6 +69,7 @@ describe("Tabs", () => {
       expect(triggerA.getAttribute("aria-selected")).toBe("true");
 
       fireEvent.click(triggerB);
+      flush();
 
       expect(triggerA.getAttribute("aria-selected")).toBe("false");
       expect(triggerB.getAttribute("aria-selected")).toBe("true");
@@ -399,6 +402,7 @@ describe("Tabs", () => {
       expect(triggerA.tabIndex).toBe(0);
 
       fireEvent.click(triggerB);
+      flush();
 
       expect(triggerA.tabIndex).toBe(-1);
       expect(triggerB.tabIndex).toBe(0);

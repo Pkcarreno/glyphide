@@ -1,4 +1,5 @@
 import { waitFor } from "@solidjs/testing-library";
+import { flush } from "solid-js";
 import { describe, expect, it } from "vitest";
 import { createOutputModel, DEFAULT_MAX_OUTPUT_ENTRIES } from "./output.ts";
 
@@ -113,14 +114,18 @@ describe("OutputModel", () => {
   it("resets stats on clearEntries", async () => {
     const model = createOutputModel(5);
     model.appendEntry("log", "msg-1");
+    flush();
     model.reportWorkerDropped(100);
+    flush();
     model.appendEntry("system", "50 messages omitted due to high frequency.");
+    flush();
 
     await waitFor(() => {
       expect(model.stats().workerDropped).toBe(150);
     });
 
     model.clearEntries();
+    flush();
     expect(model.entries()).toEqual([]);
     expect(model.stats()).toEqual({
       bufferDropped: 0,

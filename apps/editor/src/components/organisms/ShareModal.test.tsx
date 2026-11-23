@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render } from "@solidjs/testing-library";
-import { createSignal } from "solid-js";
+import { createSignal, flush } from "solid-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ShareModal } from "./ShareModal.tsx";
 
@@ -34,6 +34,7 @@ describe("ShareModal", () => {
   beforeEach(() => {
     mockDownloadBufferToFile.mockClear();
     setMockIsOpen(false);
+    flush();
     vi.clearAllMocks();
   });
 
@@ -68,6 +69,7 @@ describe("ShareModal", () => {
   it("updates URL when Include project name is toggled", () => {
     window.history.replaceState({}, "", "?name=TestProject");
     setMockIsOpen(true);
+    flush();
     const { getByRole } = render(() => <ShareModal />);
 
     const toggle = getByRole("switch", { name: "Include project name" });
@@ -76,6 +78,7 @@ describe("ShareModal", () => {
     const urlBefore = input.value;
 
     fireEvent.click(toggle);
+    flush();
 
     const urlAfter = input.value;
     expect(urlBefore).not.toBe(urlAfter);

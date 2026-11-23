@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
+import { flush } from "solid-js";
 import { afterEach, describe, expect, it } from "vitest";
 import { Tooltip } from "./Tooltip.tsx";
 
@@ -21,6 +22,7 @@ describe("Tooltip", () => {
       </Tooltip>
     ));
     fireEvent.mouseEnter(getByTestId("trigger"));
+    flush();
     expect(screen.queryByRole("tooltip")).not.toBeNull();
   });
 
@@ -31,8 +33,10 @@ describe("Tooltip", () => {
       </Tooltip>
     ));
     fireEvent.mouseEnter(getByTestId("trigger"));
+    flush();
     expect(screen.queryByRole("tooltip")).not.toBeNull();
     fireEvent.mouseLeave(getByTestId("trigger"));
+    flush();
     expect(screen.queryByRole("tooltip")).toBeNull();
   });
 
@@ -43,6 +47,7 @@ describe("Tooltip", () => {
       </Tooltip>
     ));
     fireEvent.mouseEnter(getByTestId("trigger"));
+    flush();
     const popup = screen.queryByRole("tooltip");
     expect(popup).not.toBeNull();
     expect(popup?.getAttribute("role")).toBe("tooltip");
@@ -62,6 +67,7 @@ describe("Tooltip", () => {
     ));
 
     fireEvent.mouseEnter(getByTestId("trigger"));
+    flush();
     const popup = screen.queryByRole("tooltip");
     expect(popup).not.toBeNull();
 
@@ -78,6 +84,7 @@ describe("Tooltip", () => {
     ));
 
     fireEvent.mouseEnter(getByTestId("trigger"));
+    flush();
     const popup = screen.queryByRole("tooltip");
 
     expect(popup?.textContent).toContain("Paste");
