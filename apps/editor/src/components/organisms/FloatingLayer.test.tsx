@@ -15,7 +15,22 @@ vi.mock("../../core/context", () => ({
     engine: {
       activeEngineId: () => "mock-engine",
       activeInitParams: () => ({ timeout: 1000 }),
-      engineStatus: () => "ready",
+      activeLanguage: () => "plaintext",
+      engine: () => ({
+        capabilities: {
+          id: "mock-engine",
+          isInterruptible: true,
+          isStateful: true,
+          supportedLanguages: ["plaintext"],
+        },
+        engineId: "mock-engine",
+        initParams: { language: "plaintext", timeout: 1000 },
+        language: "plaintext",
+      }),
+      executionState: () => 0,
+      isBlocked: () => false,
+      isDirty: () => false,
+      isRunning: () => false,
       updateEngineConfig: vi.fn(),
     },
     engineRegistry: {

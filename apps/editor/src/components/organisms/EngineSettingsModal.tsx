@@ -1,5 +1,14 @@
+import type { EngineInitParams } from "@glyphide/rpc-protocol/types";
 import X from "lucide-solid/icons/x";
-import { createStore, For, Show } from "solid-js";
+import {
+  createEffect,
+  createStore,
+  Errored,
+  For,
+  isPending,
+  Loading,
+  Show,
+} from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { Button } from "../atoms/Button.tsx";
 import { Icon } from "../atoms/Icon.tsx";
@@ -14,45 +23,36 @@ import {
 
 /* ---------- Internal Components ---------- */
 
-function EngineSettingsForm() {
+interface EngineSettingsFormProps {
+  initialParams?: EngineInitParams | null;
+  isReady: boolean;
+  statusMessage: string;
+}
+
+function EngineSettingsForm(props: EngineSettingsFormProps) {
   const core = useEditor();
-
-  const engineStatus = () => core.engine.engineStatus();
-  const isReady = () => engineStatus() === "ready";
-
-  const statusMessage = (): string => {
-    switch (engineStatus() as string) {
-      case "idle":
-        return "The engine initializes when you run code. Parameters can be modified once initialized.";
-      case "initializing":
-        return "The engine is initializing. Please wait...";
-      case "running":
-        return "The engine is currently running. Stop execution to modify parameters.";
-      case "error":
-        return "Engine initialization failed. Retry to modify parameters.";
-      default:
-        return "";
-    }
-  };
 
   const engineDef = () =>
     core.engineRegistry.getDefinition(core.engine.activeEngineId());
 
-  const activeParams =
-    core.engine.activeInitParams() ?? engineDef().defaultInitParams;
-  const initialPatch: Record<string, unknown> = {};
-  if (activeParams) {
-    for (const desc of engineDef().paramDescriptors) {
-      if (desc.key in activeParams) {
-        initialPatch[desc.key] =
-          activeParams[desc.key as keyof typeof activeParams];
-      }
-    }
-  }
-
   // Local state to store intermediate edits before applying
-  const [localPatch, setLocalPatch] =
-    createStore<Record<string, unknown>>(initialPatch);
+  const [localPatch, setLocalPatch] = createStore<Record<string, unknown>>({});
+
+  createEffect(
+    () => ({
+      def: engineDef(),
+      params: props.initialParams ?? engineDef().defaultInitParams,
+    }),
+    ({ def, params }) => {
+      setLocalPatch((draft) => {
+        for (const desc of def.paramDescriptors) {
+          if (params && desc.key in params) {
+            draft[desc.key] = params[desc.key as keyof typeof params];
+          }
+        }
+      });
+    }
+  );
 
   const handleApply = () => {
     core.engine.updateEngineConfig({ ...localPatch });
@@ -83,7 +83,7 @@ function EngineSettingsForm() {
                 fallback={
                   <input
                     class="border-outline-variant text-on-surface focus:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 h-5 w-16 rounded border bg-transparent px-1 text-right text-xs outline-none focus:outline-none focus-visible:ring-3 disabled:opacity-50 aria-invalid:ring-3"
-                    disabled={!(desc.isEditable && isReady())}
+                    disabled={!(desc.isEditable && props.isReady)}
                     id={`engine-param-${desc.key}`}
                     onInput={(e) => {
                       const val = e.currentTarget.value;
@@ -107,7 +107,7 @@ function EngineSettingsForm() {
               >
                 <StepperInput
                   {...(desc.inputProps ?? {})}
-                  disabled={!(desc.isEditable && isReady())}
+                  disabled={!(desc.isEditable && props.isReady)}
                   onValueChange={(val) => {
                     setLocalPatch((draft) => {
                       draft[desc.key] = desc.toModel ? desc.toModel(val) : val;
@@ -125,13 +125,13 @@ function EngineSettingsForm() {
         </For>
       </Show>
 
-      <Show when={!isReady()}>
-        <div class="text-on-surface-variant text-xs">{statusMessage()}</div>
+      <Show when={!props.isReady && props.statusMessage}>
+        <div class="text-on-surface-variant text-xs">{props.statusMessage}</div>
       </Show>
 
       <Button
         class="w-full"
-        disabled={!isReady()}
+        disabled={!props.isReady}
         onClick={handleApply}
         type="button"
         variant="primary"
@@ -139,6 +139,46 @@ function EngineSettingsForm() {
         Apply
       </Button>
     </div>
+  );
+}
+
+function EngineSettingsContent() {
+  const core = useEditor();
+  const isEnginePending = () => isPending(() => core.engine.engine());
+
+  const isReady = () =>
+    !(
+      core.engine.isBlocked() ||
+      core.engine.isRunning() ||
+      isEnginePending()
+    ) && core.engine.engine() !== null;
+
+  const statusMessage = (): string => {
+    if (core.engine.isBlocked()) {
+      return "The engine initializes when you grant trust. Parameters can be modified once initialized.";
+    }
+    if (isEnginePending()) {
+      return "The engine is initializing. Please wait...";
+    }
+    if (core.engine.isRunning()) {
+      return "The engine is currently running. Stop execution to modify parameters.";
+    }
+    if (core.engine.engine() === null) {
+      return "The engine initializes when you run code. Parameters can be modified once initialized.";
+    }
+    return "";
+  };
+
+  return (
+    <Show when={core.engine.engine() !== undefined}>
+      <EngineSettingsForm
+        initialParams={
+          core.engine.engine()?.initParams ?? core.engine.activeInitParams()
+        }
+        isReady={isReady()}
+        statusMessage={statusMessage()}
+      />
+    </Show>
   );
 }
 
@@ -172,7 +212,25 @@ function EngineSettingsModal() {
             <Icon icon={X} size={16} />
           </DialogClose>
         </DialogHeader>
-        <EngineSettingsForm />
+        <Errored
+          fallback={
+            <EngineSettingsForm
+              isReady={false}
+              statusMessage="Engine initialization failed. Retry to modify parameters."
+            />
+          }
+        >
+          <Loading
+            fallback={
+              <EngineSettingsForm
+                isReady={false}
+                statusMessage="The engine is initializing. Please wait..."
+              />
+            }
+          >
+            <EngineSettingsContent />
+          </Loading>
+        </Errored>
       </DialogContent>
     </Dialog>
   );

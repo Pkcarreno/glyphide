@@ -1,5 +1,5 @@
-import { render, screen } from "@solidjs/testing-library";
-import { createSignal } from "solid-js";
+import { render, screen, waitFor } from "@solidjs/testing-library";
+import { action, createSignal, flush } from "solid-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Header } from "./Header.tsx";
 
@@ -7,12 +7,38 @@ vi.spyOn(console, "info").mockImplementation(() => {
   /* Suppress info logs in test */
 });
 
-const runCodeMock = vi.fn();
-const interruptExecutionMock = vi.fn();
+let runActionDeferred: {
+  reject: (reason?: unknown) => void;
+  resolve: () => void;
+} | null = null;
+const [mockRunState, setMockRunState] = createSignal(0);
+const [mockExecutionState, setMockExecutionState] = createSignal(0);
+
+const runCodeImpl = action(function* () {
+  if (!runActionDeferred) {
+    return;
+  }
+  setMockRunState((state) => state + 1);
+  setMockExecutionState((state) => state + 1);
+  const deferred = runActionDeferred;
+  try {
+    yield new Promise<void>((resolve, reject) => {
+      deferred.resolve = resolve;
+      deferred.reject = reject;
+    });
+  } catch {
+    // Allow error rollback tests to settle cleanly
+  }
+});
+
+const runCodeMock = vi.fn(() => runCodeImpl());
+const interruptExecutionMock = vi.fn(() => {
+  runActionDeferred?.reject(new Error("Interrupted"));
+});
 const openOverlayMock = vi.fn();
 const toggleOverlayMock = vi.fn();
 const applyUpdateMock = vi.fn();
-const [mockEngineStatus, setMockEngineStatus] = createSignal("idle");
+const [mockIsRunning, setMockIsRunning] = createSignal(false);
 const [mockIsTrustRequired, setMockIsTrustRequired] = createSignal(false);
 const [mockUpdateAvailable, setMockUpdateAvailable] = createSignal(false);
 
@@ -28,8 +54,12 @@ vi.mock("../../core/context", () => ({
     commands: {
       interruptExecution: interruptExecutionMock,
       runCode: runCodeMock,
+      runState: () => mockRunState(),
     },
-    engine: { engineStatus: () => mockEngineStatus() },
+    engine: {
+      executionState: () => mockExecutionState(),
+      isRunning: () => mockIsRunning(),
+    },
     overlays: {
       open: openOverlayMock,
       toggle: toggleOverlayMock,
@@ -54,13 +84,15 @@ const VERSION_LABELS_REGEX = /Glyphide v/u;
 
 describe("Header", () => {
   beforeEach(() => {
+    runActionDeferred = null;
     runCodeMock.mockClear();
     interruptExecutionMock.mockClear();
     openOverlayMock.mockClear();
     toggleOverlayMock.mockClear();
     applyUpdateMock.mockClear();
-    setMockEngineStatus("idle");
+    setMockIsRunning(false);
     setMockIsTrustRequired(false);
+    flush();
   });
 
   it("when rendered, displays the app title", () => {
@@ -88,11 +120,71 @@ describe("Header", () => {
   });
 
   it("when stop button clicked while running, calls core.commands.interruptExecution()", () => {
-    setMockEngineStatus("running");
+    setMockIsRunning(true);
+    flush();
     const { getByRole } = render(() => <Header />);
     const stopButton = getByRole("button", { name: STOP_REGEX });
     stopButton.click();
     expect(interruptExecutionMock).toHaveBeenCalledOnce();
+  });
+
+  it("binds Run button spinner and disabled state to isPending while action is in flight", async () => {
+    runActionDeferred = {
+      reject: () => undefined,
+      resolve: () => undefined,
+    };
+    const { getAllByRole, queryByRole } = render(() => <Header />);
+
+    const runButton = getAllByRole("button", {
+      name: RUN_REGEX,
+    })[0] as HTMLButtonElement;
+    expect(runButton.disabled).toBe(false);
+    expect(runButton.querySelector("svg.animate-spin")).toBeNull();
+    expect(queryByRole("button", { name: STOP_REGEX })).toBeNull();
+
+    runButton.click();
+    flush();
+
+    expect(runButton.disabled).toBe(true);
+    expect(runButton.querySelector("svg.animate-spin")).toBeTruthy();
+    const stopButton = queryByRole("button", {
+      name: STOP_REGEX,
+    }) as HTMLButtonElement | null;
+    expect(stopButton).toBeTruthy();
+    expect(stopButton?.disabled).toBe(false);
+
+    runActionDeferred.resolve();
+
+    await waitFor(() => {
+      expect(runButton.disabled).toBe(false);
+      expect(runButton.querySelector("svg.animate-spin")).toBeNull();
+      expect(queryByRole("button", { name: STOP_REGEX })).toBeNull();
+    });
+  });
+
+  it("reverts Run button pending state cleanly when execution is interrupted via Stop button", async () => {
+    runActionDeferred = {
+      reject: () => undefined,
+      resolve: () => undefined,
+    };
+    const { getAllByRole, getByRole, queryByRole } = render(() => <Header />);
+
+    const runButton = getAllByRole("button", {
+      name: RUN_REGEX,
+    })[0] as HTMLButtonElement;
+    runButton.click();
+    flush();
+
+    expect(runButton.disabled).toBe(true);
+    const stopButton = getByRole("button", { name: STOP_REGEX });
+    stopButton.click();
+
+    await waitFor(() => {
+      expect(interruptExecutionMock).toHaveBeenCalledOnce();
+      expect(runButton.disabled).toBe(false);
+      expect(runButton.querySelector("svg.animate-spin")).toBeNull();
+      expect(queryByRole("button", { name: STOP_REGEX })).toBeNull();
+    });
   });
 
   it("when rename project button clicked, opens project-rename overlay", () => {

@@ -1,6 +1,13 @@
 import { Compartment, EditorState, type Extension } from "@codemirror/state";
 import { basicSetup, EditorView } from "codemirror";
-import { createEffect, createSignal, onSettled } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  onCleanup,
+  onSettled,
+} from "solid-js";
+import { loadLanguageExtension } from "./language.ts";
 import { getEditorAppearance, glyphideSyntaxHighlight } from "./theme.ts";
 
 export interface CodeFieldProps {
@@ -136,39 +143,32 @@ export function CodeField(props: CodeFieldProps) {
     }
   );
 
-  createEffect(
-    () => ({ lang: props.language, v: editorView() }),
-    ({ lang, v }) => {
-      if (!(v && lang)) {
-        return;
+  const languageExtension = createMemo(async (): Promise<Extension> => {
+    const { language } = props;
+    let isCancelled = false;
+    onCleanup(() => {
+      isCancelled = true;
+    });
+
+    try {
+      const extension = await loadLanguageExtension(language);
+      return isCancelled ? [] : extension;
+    } catch (error) {
+      if (!isCancelled) {
+        console.error(`Error loading language engine for ${language}:`, error);
       }
+      return [];
+    }
+  });
 
-      const loadLanguageEngine = async () => {
-        let languageExtension: Extension | undefined;
-        try {
-          if (lang === "javascript") {
-            const { javascript } = await import("@codemirror/lang-javascript");
-            languageExtension = javascript();
-          } else if (lang === "python") {
-            const { python } = await import("@codemirror/lang-python");
-            languageExtension = python();
-          }
-
-          if (languageExtension) {
-            v.dispatch({
-              effects: languageCompartment.reconfigure(languageExtension),
-            });
-          } else {
-            v.dispatch({
-              effects: languageCompartment.reconfigure([]),
-            });
-          }
-        } catch (error) {
-          console.error(`Error loading language engine for ${lang}:`, error);
-        }
-      };
-
-      loadLanguageEngine();
+  createEffect(
+    () => ({ currentView: editorView(), extension: languageExtension() }),
+    ({ currentView, extension }) => {
+      if (currentView) {
+        currentView.dispatch({
+          effects: languageCompartment.reconfigure(extension),
+        });
+      }
     }
   );
 

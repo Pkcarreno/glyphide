@@ -16,7 +16,6 @@ const toggleOverlayMock = vi.fn((id: string) => {
 });
 const openOverlayMock = vi.fn();
 const closeOverlayMock = vi.fn();
-let mockStatus = "idle";
 const [mockIsOpen, setMockIsOpen] = createSignal(false);
 
 vi.mock("../../core/context", () => ({
@@ -29,6 +28,7 @@ vi.mock("../../core/context", () => ({
       resetProjectState: vi.fn(),
       retryEngineInit: vi.fn(),
       runCode: vi.fn(),
+      runState: () => 0,
       selectEngine: vi.fn(),
       updateBuffer: vi.fn(),
     },
@@ -36,8 +36,21 @@ vi.mock("../../core/context", () => ({
       activeEngineId: () => "quickjs",
       activeInitParams: () => ({}),
       activeLanguage: () => "javascript",
-      engineStatus: () => mockStatus,
+      engine: () => ({
+        capabilities: {
+          id: "quickjs",
+          isInterruptible: true,
+          isStateful: true,
+          supportedLanguages: ["javascript"],
+        },
+        engineId: "quickjs",
+        initParams: { language: "javascript" },
+        language: "javascript",
+      }),
+      executionState: () => 0,
+      isBlocked: () => false,
       isDirty: () => false,
+      isRunning: () => false,
       updateEngineConfig: vi.fn(),
     },
     engineRegistry: {
@@ -105,7 +118,6 @@ describe("EditorPage", () => {
     toggleOverlayMock.mockClear();
     openOverlayMock.mockClear();
     closeOverlayMock.mockClear();
-    mockStatus = "idle";
     setMockIsOpen(false);
   });
 
@@ -114,7 +126,7 @@ describe("EditorPage", () => {
 
     expect(getByText(TEST_PROJECT_REGEX)).toBeTruthy();
     expect(getByText("Output")).toBeTruthy();
-    expect(getByText("idle")).toBeTruthy();
+    expect(getByText("ready")).toBeTruthy();
     expect(getByRole("main")).toBeTruthy();
   });
 });

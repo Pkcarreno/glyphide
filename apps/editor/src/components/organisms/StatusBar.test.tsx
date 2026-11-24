@@ -1,4 +1,19 @@
-import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@solidjs/testing-library";
+import {
+  action,
+  affects,
+  createMemo,
+  createRoot,
+  createSignal,
+  flush,
+  refresh,
+} from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { StatusBar } from "./StatusBar.tsx";
 
@@ -14,18 +29,76 @@ const { mockCursorPositionFn, retryEngineInitMock, openOverlayMock } =
     retryEngineInitMock: vi.fn(),
   }));
 
-let mockStatus = "idle";
-let mockEngineId = "quickjs";
-let mockIsDirty = false;
+interface MockEngineEntry {
+  engineId: string;
+  language: string;
+}
+
+const [mockEngineId, setMockEngineId] = createSignal("quickjs");
+const [mockLanguage, setMockLanguage] = createSignal("javascript");
+const [mockIsRunning, setMockIsRunning] = createSignal(false);
+const [mockIsDirty, setMockIsDirty] = createSignal(false);
+const [mockIsBlocked, setMockIsBlocked] = createSignal(false);
+const [mockRunState, setMockRunState] = createSignal(0);
+const [mockExecutionState, setMockExecutionState] = createSignal(0);
+let engineResolver:
+  | ((
+      entry: MockEngineEntry
+    ) => MockEngineEntry | null | Promise<MockEngineEntry | null>)
+  | null = null;
+let disposeRoot: (() => void) | null = null;
+
+const createEngineAccessor = () => {
+  let memo!: ReturnType<typeof createMemo<MockEngineEntry | null>>;
+  createRoot((dispose) => {
+    disposeRoot = dispose;
+    memo = createMemo<MockEngineEntry | null>(() => {
+      const entry = {
+        engineId: mockEngineId(),
+        language: mockLanguage(),
+      };
+      if (engineResolver) {
+        return engineResolver(entry);
+      }
+      if (mockIsBlocked()) {
+        return null;
+      }
+      return entry;
+    });
+  });
+  return memo;
+};
+
+let currentEngineMemo = createEngineAccessor();
+
+function createDeferred<T>() {
+  let resolvePromise!: (value: T) => void;
+  let rejectPromise!: (reason?: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolvePromise = res;
+    rejectPromise = rej;
+  });
+  return { promise, reject: rejectPromise, resolve: resolvePromise };
+}
 
 vi.mock("../../core/context.tsx", () => ({
   useEditor: () => ({
-    commands: { retryEngineInit: retryEngineInitMock },
+    commands: {
+      retryEngineInit: () => {
+        retryEngineInitMock();
+        affects(currentEngineMemo);
+        return refresh(currentEngineMemo).catch(() => undefined);
+      },
+      runState: () => mockRunState(),
+    },
     engine: {
-      activeEngineId: () => mockEngineId,
-      activeLanguage: () => "javascript",
-      engineStatus: () => mockStatus,
-      isDirty: () => mockIsDirty,
+      activeEngineId: () => mockEngineId(),
+      activeLanguage: () => mockLanguage(),
+      engine: currentEngineMemo,
+      executionState: () => mockExecutionState(),
+      isBlocked: () => mockIsBlocked(),
+      isDirty: () => mockIsDirty(),
+      isRunning: () => mockIsRunning(),
     },
     engineRegistry: {
       getDefinition: () => ({ paramDescriptors: [] }),
@@ -51,9 +124,15 @@ vi.mock("../../core/context.tsx", () => ({
 
 afterEach(() => {
   cleanup();
-  mockStatus = "idle";
-  mockEngineId = "quickjs";
-  mockIsDirty = false;
+  disposeRoot?.();
+  engineResolver = null;
+  setMockEngineId("quickjs");
+  setMockLanguage("javascript");
+  setMockIsRunning(false);
+  setMockIsDirty(false);
+  setMockIsBlocked(false);
+  flush();
+  currentEngineMemo = createEngineAccessor();
   mockCursorPositionFn.mockReturnValue({
     column: 5,
     line: 1,
@@ -65,21 +144,134 @@ afterEach(() => {
 });
 
 const JS_REGEX = /javascript/iu;
+const PYTHON_REGEX = /^python$/iu;
 
 describe("StatusBar", () => {
-  it("when rendered with defaults, shows idle status and 'idle'", () => {
+  it("when rendered with defaults, shows ready status", () => {
     const { getByText } = render(() => <StatusBar />);
-    expect(getByText("idle")).toBeTruthy();
+    expect(getByText("ready")).toBeTruthy();
   });
 
-  it("when status provided via core, displays it", () => {
-    mockStatus = "running";
+  it("when initial engine computation is pending, shows Loading fallback with initializing and spinner", () => {
+    const deferred = createDeferred<MockEngineEntry | null>();
+    engineResolver = () => deferred.promise;
+    currentEngineMemo = createEngineAccessor();
+
+    const { container, getByText } = render(() => <StatusBar />);
+    expect(getByText("initializing")).toBeTruthy();
+    expect(container.textContent).toContain("⠋");
+
+    deferred.resolve({ engineId: "quickjs", language: "javascript" });
+  });
+
+  it("when engine is blocked, displays blocked status", () => {
+    setMockIsBlocked(true);
+    flush();
+    const { getByText } = render(() => <StatusBar />);
+    expect(getByText("blocked")).toBeTruthy();
+  });
+
+  it("when running is true, displays running status", () => {
+    setMockIsRunning(true);
+    flush();
     const { getByText } = render(() => <StatusBar />);
     expect(getByText("running")).toBeTruthy();
   });
 
+  it("binds braille spinner and running status to action isPending and settles on success", async () => {
+    const deferred = createDeferred<void>();
+    const runAction = action(function* () {
+      setMockRunState((state) => state + 1);
+      setMockExecutionState((state) => state + 1);
+      yield deferred.promise;
+    });
+
+    const { container, getByText } = render(() => <StatusBar />);
+    expect(getByText("ready")).toBeTruthy();
+
+    const runPromise = runAction();
+    flush();
+
+    expect(getByText("running")).toBeTruthy();
+    expect(container.textContent).toContain("⠋");
+
+    deferred.resolve();
+    await runPromise;
+    flush();
+
+    await waitFor(() => {
+      expect(getByText("ready")).toBeTruthy();
+      expect(container.textContent).not.toContain("⠋");
+    });
+  });
+
+  it("stops braille animation and returns to ready when action rejects", async () => {
+    const deferred = createDeferred<void>();
+    const runAction = action(function* () {
+      setMockRunState((state) => state + 1);
+      setMockExecutionState((state) => state + 1);
+      try {
+        yield deferred.promise;
+      } catch {
+        // Settle cleanly on error
+      }
+    });
+
+    const { container, getByText } = render(() => <StatusBar />);
+
+    const runPromise = runAction();
+    flush();
+
+    expect(getByText("running")).toBeTruthy();
+    expect(container.textContent).toContain("⠋");
+
+    deferred.reject(new Error("Execution failed"));
+    await runPromise;
+    flush();
+
+    await waitFor(() => {
+      expect(getByText("ready")).toBeTruthy();
+      expect(container.textContent).not.toContain("⠋");
+    });
+  });
+
+  it("holds previous engine UI state and shows isPending spinner until switched engine resolves", async () => {
+    const switchDeferred = createDeferred<MockEngineEntry | null>();
+    engineResolver = (entry) => {
+      if (entry.engineId === "micropython") {
+        return switchDeferred.promise;
+      }
+      return entry;
+    };
+    currentEngineMemo = createEngineAccessor();
+
+    const { container, getByText } = render(() => <StatusBar />);
+    expect(getByText("ready")).toBeTruthy();
+    expect(getByText("quickjs")).toBeTruthy();
+    expect(getByText(JS_REGEX)).toBeTruthy();
+
+    setMockEngineId("micropython");
+    setMockLanguage("python");
+    flush();
+
+    // UI holds previous engine/language while isPending displays initializing + spinner
+    expect(getByText("initializing")).toBeTruthy();
+    expect(container.textContent).toContain("⠋");
+    expect(getByText("quickjs")).toBeTruthy();
+    expect(getByText(JS_REGEX)).toBeTruthy();
+
+    switchDeferred.resolve({ engineId: "micropython", language: "python" });
+
+    await waitFor(() => {
+      expect(getByText("ready")).toBeTruthy();
+      expect(getByText("micropython")).toBeTruthy();
+      expect(getByText(PYTHON_REGEX)).toBeTruthy();
+    });
+  });
+
   it("when isDirty is true, displays the EXECUTION STALE badge", () => {
-    mockIsDirty = true;
+    setMockIsDirty(true);
+    flush();
     const { getByText } = render(() => <StatusBar />);
     expect(getByText("Execution Stale")).toBeTruthy();
   });
@@ -219,59 +411,67 @@ describe("StatusBar.Button", () => {
   });
 });
 
-describe("StatusBar - Mobile Visibility", () => {
-  it("when idle status, engine selector has hidden md:block class for mobile visibility toggle", () => {
-    mockStatus = "idle";
+describe("StatusBar - Errored boundary & Mobile Visibility", () => {
+  it("when ready status, engine selector has hidden md:block class for mobile visibility toggle", () => {
     const { container } = render(() => <StatusBar />);
 
-    // Find the engine selector StatusBarButton - it has tooltip "Select Engine"
-    // The Tooltip wraps the button, so we find by text content
     const engineSelectorBtn = Array.from(
       container.querySelectorAll("button")
-    ).find((btn) => btn.textContent?.includes(mockEngineId));
+    ).find((btn) => btn.textContent?.includes(mockEngineId()));
     expect(engineSelectorBtn).toBeTruthy();
 
-    // The parent StatusBarItem should have hidden md:block class (hidden on mobile, visible on desktop)
     const parentItem = engineSelectorBtn?.closest(".hidden");
     expect(parentItem).toBeTruthy();
   });
 
-  it("when idle status, engine settings has hidden md:block class for mobile visibility toggle", () => {
-    mockStatus = "idle";
+  it("when ready status, engine settings has hidden md:block class for mobile visibility toggle", () => {
     const { container } = render(() => <StatusBar />);
 
-    // Find the engine settings button by its id
     const engineSettingsBtn = container.querySelector(
       "#engine-settings-trigger"
     );
     expect(engineSettingsBtn).toBeTruthy();
 
-    // The parent wrapper should have hidden md:block class
     const wrapper = engineSettingsBtn?.closest(".hidden");
     expect(wrapper).toBeTruthy();
   });
 
-  it("when error status, retry button is visible without wrapper class restriction", () => {
-    mockStatus = "error";
-    const { container } = render(() => <StatusBar />);
+  it("when engine initialization fails, Errored boundary renders error status and retry button", async () => {
+    engineResolver = () => Promise.reject(new Error("WASM load failed"));
+    currentEngineMemo = createEngineAccessor();
 
-    // Retry button should be visible - find all buttons and find the one with red icon
+    const { container, getByText } = render(() => <StatusBar />);
+
+    await waitFor(() => {
+      expect(getByText("error")).toBeTruthy();
+    });
+
     const buttons = container.querySelectorAll("button");
     const retryBtn = Array.from(buttons).find((btn) =>
       btn.querySelector("svg")?.classList.contains("text-red-500")
     );
     expect(retryBtn).toBeTruthy();
 
-    // Engine settings should NOT be visible (error replaces it)
     const engineSettingsBtn = container.querySelector(
       "#engine-settings-trigger"
     );
     expect(engineSettingsBtn).toBeFalsy();
   });
 
-  it("clicking retry button calls core.commands.retryEngineInit()", () => {
-    mockStatus = "error";
-    const { container } = render(() => <StatusBar />);
+  it("clicking retry button triggers retryEngineInit and recovers Errored boundary via refresh", async () => {
+    let shouldFail: boolean;
+    shouldFail = true;
+    engineResolver = (entry) =>
+      shouldFail ? Promise.reject(new Error("WASM load failed")) : entry;
+    currentEngineMemo = createEngineAccessor();
+
+    const { container, getByText } = render(() => <StatusBar />);
+
+    await waitFor(() => {
+      expect(getByText("error")).toBeTruthy();
+    });
+
+    shouldFail = false;
     const buttons = container.querySelectorAll("button");
     const retryBtn = Array.from(buttons).find((btn) =>
       btn.querySelector("svg")?.classList.contains("text-red-500")
@@ -280,15 +480,20 @@ describe("StatusBar - Mobile Visibility", () => {
     if (retryBtn) {
       fireEvent.click(retryBtn);
     }
+
     expect(retryEngineInitMock).toHaveBeenCalledOnce();
+
+    await waitFor(() => {
+      expect(getByText("ready")).toBeTruthy();
+      expect(container.querySelector("#engine-settings-trigger")).toBeTruthy();
+    });
   });
 
   it("clicking engine selector button opens engine-selector overlay", () => {
-    mockStatus = "idle";
     const { container } = render(() => <StatusBar />);
     const engineSelectorBtn = Array.from(
       container.querySelectorAll("button")
-    ).find((btn) => btn.textContent?.includes(mockEngineId));
+    ).find((btn) => btn.textContent?.includes(mockEngineId()));
     expect(engineSelectorBtn).toBeDefined();
     if (engineSelectorBtn) {
       fireEvent.click(engineSelectorBtn);
@@ -297,7 +502,6 @@ describe("StatusBar - Mobile Visibility", () => {
   });
 
   it("clicking engine settings button opens engine-settings overlay", () => {
-    mockStatus = "idle";
     const { container } = render(() => <StatusBar />);
     const engineSettingsBtn = container.querySelector(
       "#engine-settings-trigger"

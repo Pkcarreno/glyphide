@@ -1,3 +1,4 @@
+import { flush, isPending } from "solid-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { EditorCommandsDeps } from "./commands.ts";
 import { createEditorCommands } from "./commands.ts";
@@ -25,13 +26,17 @@ describe("createEditorCommands", () => {
       activeEngineId: vi.fn(() => "quickjs"),
       activeInitParams: vi.fn(() => null),
       activeLanguage: vi.fn(() => "javascript"),
-      engineStatus: vi.fn(() => "ready"),
+      dispose: vi.fn(),
+      engine: vi.fn(() => null),
       executeCode: vi.fn().mockResolvedValue(undefined),
-      initializeSelectedEngine: vi.fn(),
-      interruptExecution: vi.fn(),
-      retryInit: vi.fn(),
+      executionState: vi.fn(() => 0),
+      interruptExecution: vi.fn().mockResolvedValue(undefined),
+      isBlocked: vi.fn(() => false),
+      isDirty: vi.fn(() => false),
+      isRunning: vi.fn(() => false),
+      retryInit: vi.fn().mockResolvedValue(undefined),
+      selectEngineEntry: vi.fn(),
       setBlocked: vi.fn(),
-      terminate: vi.fn(),
       updateEngineConfig: vi.fn(),
     } as unknown as EngineModel;
 
@@ -132,6 +137,29 @@ describe("createEditorCommands", () => {
       expect(mockEngine.executeCode).toHaveBeenCalled();
       expect(mockOverlays.open).not.toHaveBeenCalled();
     });
+
+    it("holds runState inside the action transaction while executeCode is pending", async () => {
+      let resolveExecution!: () => void;
+      vi.mocked(mockEngine.executeCode).mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveExecution = resolve;
+          })
+      );
+      const commands = createEditorCommands(deps);
+
+      expect(isPending(() => commands.runState())).toBe(false);
+
+      const runPromise = commands.runCode();
+      flush();
+      expect(isPending(() => commands.runState())).toBe(true);
+
+      resolveExecution();
+      await runPromise;
+      flush();
+
+      expect(isPending(() => commands.runState())).toBe(false);
+    });
   });
 
   describe("interruptExecution", () => {
@@ -155,7 +183,7 @@ describe("createEditorCommands", () => {
       expect(mockSession.selectEngine).not.toHaveBeenCalled();
     });
 
-    it("selects engine in session and initializes engine when trusted", () => {
+    it("selects engine in session when trusted", () => {
       const commands = createEditorCommands(deps);
 
       commands.selectEngine("quickjs", "javascript");
@@ -164,21 +192,19 @@ describe("createEditorCommands", () => {
         "quickjs",
         "javascript"
       );
-      expect(mockEngine.initializeSelectedEngine).toHaveBeenCalled();
+      expect(mockOutput.clearEntries).not.toHaveBeenCalled();
     });
 
-    it("terminates engine and clears output when switching to a different engine or language", () => {
+    it("clears output without terminating old engine when switching to a different engine or language", () => {
       const commands = createEditorCommands(deps);
 
       commands.selectEngine("micropython", "python");
 
       expect(mockOutput.clearEntries).toHaveBeenCalled();
-      expect(mockEngine.terminate).toHaveBeenCalled();
       expect(mockSession.selectEngine).toHaveBeenCalledWith(
         "micropython",
         "python"
       );
-      expect(mockEngine.initializeSelectedEngine).toHaveBeenCalled();
     });
   });
 
@@ -215,7 +241,7 @@ describe("createEditorCommands", () => {
   });
 
   describe("resetProjectState", () => {
-    it("resets session, clears output, closes overlay, and restarts engine", () => {
+    it("resets session, clears output, closes overlay, and retries engine init", () => {
       const commands = createEditorCommands(deps);
 
       commands.resetProjectState();
@@ -224,13 +250,12 @@ describe("createEditorCommands", () => {
       expect(mockOutput.clearEntries).toHaveBeenCalled();
       expect(mockOverlays.close).toHaveBeenCalledWith("trust-required");
       expect(mockEngine.setBlocked).toHaveBeenCalledWith(false);
-      expect(mockEngine.terminate).toHaveBeenCalled();
-      expect(mockEngine.initializeSelectedEngine).toHaveBeenCalled();
+      expect(mockEngine.retryInit).toHaveBeenCalled();
     });
   });
 
   describe("loadFile", () => {
-    it("loads file into session, terminates and blocks engine, opens trust overlay", () => {
+    it("loads file into session, blocks engine, and opens trust overlay", () => {
       const commands = createEditorCommands(deps);
 
       commands.loadFile({
@@ -246,7 +271,6 @@ describe("createEditorCommands", () => {
         language: "python",
         name: "test.py",
       });
-      expect(mockEngine.terminate).toHaveBeenCalled();
       expect(mockEngine.setBlocked).toHaveBeenCalledWith(true);
       expect(mockOverlays.open).toHaveBeenCalledWith("trust-required");
     });
