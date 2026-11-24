@@ -19,8 +19,20 @@ vi.mock("./core/context", () => ({
       activeEngineId: () => "quickjs",
       activeInitParams: () => ({}),
       activeLanguage: () => "javascript",
-      engineStatus: () => "idle",
+      engine: () => ({
+        capabilities: {
+          id: "quickjs",
+          isInterruptible: true,
+          isStateful: true,
+          supportedLanguages: ["javascript"],
+        },
+        engineId: "quickjs",
+        initParams: { language: "javascript" },
+        language: "javascript",
+      }),
+      isBlocked: () => false,
       isDirty: () => false,
+      isRunning: () => false,
       updateEngineConfig: vi.fn(),
     },
     engineRegistry: {

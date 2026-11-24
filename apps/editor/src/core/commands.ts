@@ -105,11 +105,9 @@ export function createEditorCommands(deps: EditorCommandsDeps): EditorCommands {
 
     if (isDifferent) {
       deps.output.clearEntries();
-      deps.engine.terminate();
     }
 
     deps.session.selectEngine(engineId, language);
-    deps.engine.initializeSelectedEngine();
   }
 
   function retryEngineInit(): void {
@@ -130,10 +128,10 @@ export function createEditorCommands(deps: EditorCommandsDeps): EditorCommands {
       !deps.session.isTrustRequired()
     ) {
       autoRunTimer = setTimeout(() => {
-        const status = deps.engine.engineStatus();
         if (
           deps.settings.settings.isAutoRunEnabled &&
-          (status === "ready" || status === "idle")
+          !deps.engine.isBlocked() &&
+          !deps.engine.isRunning()
         ) {
           deps.engine.executeCode().catch(() => undefined);
         }
@@ -152,8 +150,7 @@ export function createEditorCommands(deps: EditorCommandsDeps): EditorCommands {
     deps.output.clearEntries();
     deps.overlays.close("trust-required");
     deps.engine.setBlocked(false);
-    deps.engine.terminate();
-    deps.engine.initializeSelectedEngine();
+    deps.engine.retryInit();
   }
 
   function loadFile(payload: LoadFilePayload): void {
@@ -163,7 +160,6 @@ export function createEditorCommands(deps: EditorCommandsDeps): EditorCommands {
       language: payload.language,
       name: payload.name,
     });
-    deps.engine.terminate();
     deps.engine.setBlocked(true);
     deps.overlays.open("trust-required");
   }

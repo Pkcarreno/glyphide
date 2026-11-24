@@ -119,12 +119,8 @@ describe("EditorCore", () => {
     expect(clearEntriesSpy).toHaveBeenCalled();
 
     const selectEngineSpy = vi.spyOn(core.session, "selectEngine");
-    const initializeSelectedEngineSpy = vi
-      .spyOn(core.engine, "initializeSelectedEngine")
-      .mockResolvedValue(undefined);
     core.commands.selectEngine("mock", "plaintext");
     expect(selectEngineSpy).toHaveBeenCalledWith("mock", "plaintext");
-    expect(initializeSelectedEngineSpy).toHaveBeenCalled();
 
     const openSpy = vi.spyOn(core.overlays, "open");
     core.overlays.open("settings");
@@ -159,11 +155,11 @@ describe("EditorCore", () => {
       urlPersistence: createMockUrlPersistence(),
     });
 
-    const terminateSpy = vi.spyOn(core.engine, "terminate");
+    const disposeEngineSpy = vi.spyOn(core.engine, "dispose");
     const disposeNotificationsSpy = vi.spyOn(core.notifications, "dispose");
     core.dispose();
 
-    expect(terminateSpy).toHaveBeenCalled();
+    expect(disposeEngineSpy).toHaveBeenCalled();
     expect(disposeNotificationsSpy).toHaveBeenCalled();
   });
 
@@ -186,7 +182,7 @@ describe("EditorCore", () => {
         autoRunDelay: 500,
         isAutoRunEnabled: true,
       });
-      vi.spyOn(core.engine, "engineStatus").mockReturnValue("ready");
+      vi.spyOn(core.engine, "isRunning").mockReturnValue(false);
       const executeCodeSpy = vi
         .spyOn(core.engine, "executeCode")
         .mockResolvedValue(undefined);
@@ -208,7 +204,7 @@ describe("EditorCore", () => {
         autoRunDelay: 500,
         isAutoRunEnabled: false,
       });
-      vi.spyOn(core.engine, "engineStatus").mockReturnValue("ready");
+      vi.spyOn(core.engine, "isRunning").mockReturnValue(false);
       const executeCodeSpy = vi
         .spyOn(core.engine, "executeCode")
         .mockResolvedValue(undefined);
@@ -229,7 +225,7 @@ describe("EditorCore", () => {
         autoRunDelay: 500,
         isAutoRunEnabled: true,
       });
-      vi.spyOn(core.engine, "engineStatus").mockReturnValue("running");
+      vi.spyOn(core.engine, "isRunning").mockReturnValue(true);
       const executeCodeSpy = vi
         .spyOn(core.engine, "executeCode")
         .mockResolvedValue(undefined);
@@ -250,7 +246,7 @@ describe("EditorCore", () => {
         autoRunDelay: 500,
         isAutoRunEnabled: true,
       });
-      vi.spyOn(core.engine, "engineStatus").mockReturnValue("ready");
+      vi.spyOn(core.engine, "isRunning").mockReturnValue(false);
       const executeCodeSpy = vi
         .spyOn(core.engine, "executeCode")
         .mockResolvedValue(undefined);
@@ -271,7 +267,7 @@ describe("EditorCore", () => {
         autoRunDelay: 500,
         isAutoRunEnabled: true,
       });
-      vi.spyOn(core.engine, "engineStatus").mockReturnValue("ready");
+      vi.spyOn(core.engine, "isRunning").mockReturnValue(false);
       const executeCodeSpy = vi
         .spyOn(core.engine, "executeCode")
         .mockResolvedValue(undefined);
@@ -399,7 +395,7 @@ describe("EditorCore", () => {
       expect(retrySpy).not.toHaveBeenCalled();
     });
 
-    it("when grantTrust called, grants trust and closes dialog (init deferred to RUN_CODE)", async () => {
+    it("when grantTrust called, grants trust, unblocks engine, and closes dialog", async () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
@@ -407,11 +403,10 @@ describe("EditorCore", () => {
       });
 
       expect(core.session.isTrustRequired()).toBe(true);
+      expect(core.engine.isBlocked()).toBe(true);
 
       const selectSpy = vi.spyOn(core.engine, "selectEngineEntry");
-      const initializeSpy = vi
-        .spyOn(core.engine, "initializeSelectedEngine")
-        .mockResolvedValue(undefined);
+      const setBlockedSpy = vi.spyOn(core.engine, "setBlocked");
       const closeSpy = vi.spyOn(core.overlays, "close");
 
       core.commands.grantTrust();
@@ -420,9 +415,9 @@ describe("EditorCore", () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(core.session.isTrustRequired()).toBe(false);
+      expect(core.engine.isBlocked()).toBe(false);
+      expect(setBlockedSpy).toHaveBeenCalledWith(false);
       expect(closeSpy).toHaveBeenCalledWith("trust-required");
-      // Init is deferred to RUN_CODE — GRANT_TRUST does NOT initialize.
-      expect(initializeSpy).not.toHaveBeenCalled();
       // Selection already happened during file load or startup; no re-select.
       expect(selectSpy).not.toHaveBeenCalled();
     });
@@ -446,7 +441,7 @@ describe("EditorCore", () => {
           autoRunDelay: 500,
           isAutoRunEnabled: true,
         });
-        vi.spyOn(core.engine, "engineStatus").mockReturnValue("ready");
+        vi.spyOn(core.engine, "isRunning").mockReturnValue(false);
         const executeCodeSpy = vi
           .spyOn(core.engine, "executeCode")
           .mockResolvedValue(undefined);
@@ -467,7 +462,7 @@ describe("EditorCore", () => {
           autoRunDelay: 500,
           isAutoRunEnabled: true,
         });
-        vi.spyOn(core.engine, "engineStatus").mockReturnValue("ready");
+        vi.spyOn(core.engine, "isRunning").mockReturnValue(false);
         const executeCodeSpy = vi
           .spyOn(core.engine, "executeCode")
           .mockResolvedValue(undefined);
@@ -532,13 +527,15 @@ describe("EditorCore", () => {
         });
       });
 
-      it("terminates the engine so it returns to an idle state", () => {
+      it("retries engine initialization via refresh", () => {
         const { core } = createCoreWithFileIo();
-        const terminateSpy = vi.spyOn(core.engine, "terminate");
+        const retrySpy = vi
+          .spyOn(core.engine, "retryInit")
+          .mockResolvedValue(undefined);
 
         core.commands.resetProjectState();
 
-        expect(terminateSpy).toHaveBeenCalled();
+        expect(retrySpy).toHaveBeenCalled();
       });
 
       it("grants trust after reset so the editor is unblocked", () => {
@@ -575,9 +572,9 @@ describe("EditorCore", () => {
         expect(core.session.activeLanguage()).toBe("javascript");
       });
 
-      it("selects the engine but does NOT call initializeSelectedEngine (THE FIX)", () => {
+      it("blocks the engine when loading a file from disk", () => {
         const { core } = createCoreWithFileIo();
-        const initializeSpy = vi.spyOn(core.engine, "initializeSelectedEngine");
+        const setBlockedSpy = vi.spyOn(core.engine, "setBlocked");
 
         core.commands.loadFile({
           content: "console.log(1)",
@@ -586,9 +583,8 @@ describe("EditorCore", () => {
           name: "script.js",
         });
 
-        // THE FIX: file-loaded code is untrusted — engine must NOT be
-        // initialized here. Init is deferred to GRANT_TRUST.
-        expect(initializeSpy).not.toHaveBeenCalled();
+        expect(setBlockedSpy).toHaveBeenCalledWith(true);
+        expect(core.engine.isBlocked()).toBe(true);
       });
 
       it("re-arms the trust gate so file-loaded code requires acknowledgment", () => {
@@ -841,55 +837,42 @@ describe("EditorCore", () => {
       );
     }
 
-    it("on startup without trust: selectEngineEntry + initializeSelectedEngine are called", () => {
+    it("on startup without trust: engine is unblocked", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
         urlPersistence: createMockUrlStateWithCode(null),
       });
-      const selectSpy = vi.spyOn(core.engine, "selectEngineEntry");
-      const initSpy = vi
-        .spyOn(core.engine, "initializeSelectedEngine")
-        .mockResolvedValue(undefined);
-
-      // The non-trust startup path was already taken during construction.
-      // Spies installed AFTER construction won't see those initial calls.
-      // Verify the public post-construction state is correct instead.
       expect(core.session.isTrustRequired()).toBe(false);
-      expect(selectSpy).not.toHaveBeenCalled(); // spies installed after init
-      expect(initSpy).not.toHaveBeenCalled(); // spies installed after init
+      expect(core.engine.isBlocked()).toBe(false);
     });
 
-    it("on startup with trust required: initializeSelectedEngine is NOT called", () => {
+    it("on startup with trust required: engine is blocked", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
         urlPersistence: createMockUrlStateWithCode("console.log(1)"),
       });
-      // Trust-required startup path: signals seeded from URL, no init.
-      // Init is deferred to GRANT_TRUST.
+      // Trust-required startup path: signals seeded from URL, engine blocked.
       expect(core.session.isTrustRequired()).toBe(true);
+      expect(core.engine.isBlocked()).toBe(true);
       expect(core.overlays.isOpen("trust-required")).toBe(true);
     });
 
-    it("SELECT_ENGINE_ENTRY in trusted mode calls selectEngine AND initializeSelectedEngine", () => {
+    it("SELECT_ENGINE_ENTRY in trusted mode calls selectEngine", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
         urlPersistence: createMockUrlStateWithCode(null),
       });
       const selectSpy = vi.spyOn(core.session, "selectEngine");
-      const initSpy = vi
-        .spyOn(core.engine, "initializeSelectedEngine")
-        .mockResolvedValue(undefined);
 
       core.commands.selectEngine("mock", "plaintext");
 
       expect(selectSpy).toHaveBeenCalledWith("mock", "plaintext");
-      expect(initSpy).toHaveBeenCalled();
     });
 
-    it("GRANT_TRUST does NOT call initializeSelectedEngine (init deferred to RUN_CODE)", async () => {
+    it("GRANT_TRUST unblocks the engine without calling selectEngine", async () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
@@ -897,22 +880,18 @@ describe("EditorCore", () => {
       });
 
       const selectSpy = vi.spyOn(core.session, "selectEngine");
-      const initSpy = vi
-        .spyOn(core.engine, "initializeSelectedEngine")
-        .mockResolvedValue(undefined);
 
       core.commands.grantTrust();
 
       // Drain microtasks
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      // Init is deferred to RUN_CODE — GRANT_TRUST only grants trust.
-      expect(initSpy).not.toHaveBeenCalled();
+      expect(core.engine.isBlocked()).toBe(false);
       // Selection already happened — no re-select.
       expect(selectSpy).not.toHaveBeenCalled();
     });
 
-    it("after GRANT_TRUST, RUN_CODE executes code (lazy init happens inside executeCode)", async () => {
+    it("after GRANT_TRUST, RUN_CODE executes code", async () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
@@ -922,25 +901,25 @@ describe("EditorCore", () => {
       // Trust is required initially
       expect(core.session.isTrustRequired()).toBe(true);
 
-      // Grant trust — should NOT initialize
+      // Grant trust — unblocks engine
       core.commands.grantTrust();
       expect(core.session.isTrustRequired()).toBe(false);
-      expect(core.engine.engineStatus()).toBe("idle");
+      expect(core.engine.isBlocked()).toBe(false);
 
-      // Now run code — executeCode is called (lazy init is internal to executeCode)
+      // Now run code — executeCode is called
       const executeSpy = vi.spyOn(core.engine, "executeCode");
       await core.commands.runCode();
       expect(executeSpy).toHaveBeenCalled();
     });
 
-    it("LOAD_FILE_FROM_DISK calls session.loadFile but NOT initializeSelectedEngine", () => {
+    it("LOAD_FILE_FROM_DISK calls session.loadFile and blocks engine", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
         urlPersistence: createMockUrlStateWithCode(null),
       });
       const loadFileSpy = vi.spyOn(core.session, "loadFile");
-      const initSpy = vi.spyOn(core.engine, "initializeSelectedEngine");
+      const setBlockedSpy = vi.spyOn(core.engine, "setBlocked");
 
       core.commands.loadFile({
         content: "evil()",
@@ -955,25 +934,26 @@ describe("EditorCore", () => {
         language: "plaintext",
         name: "evil.js",
       });
-      // THE FIX: untrusted file-loaded code must not spawn a worker.
-      expect(initSpy).not.toHaveBeenCalled();
+      // THE FIX: untrusted file-loaded code blocks engine initialization.
+      expect(setBlockedSpy).toHaveBeenCalledWith(true);
+      expect(core.engine.isBlocked()).toBe(true);
     });
 
-    it("RESET_PROJECT_STATE calls session.reset AND initializeSelectedEngine", () => {
+    it("RESET_PROJECT_STATE calls session.reset AND engine.retryInit", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createMockPersistence(),
         urlPersistence: createMockUrlStateWithCode(null),
       });
       const resetSpy = vi.spyOn(core.session, "reset");
-      const initSpy = vi
-        .spyOn(core.engine, "initializeSelectedEngine")
+      const retrySpy = vi
+        .spyOn(core.engine, "retryInit")
         .mockResolvedValue(undefined);
 
       core.commands.resetProjectState();
 
       expect(resetSpy).toHaveBeenCalled();
-      expect(initSpy).toHaveBeenCalled();
+      expect(retrySpy).toHaveBeenCalled();
     });
   });
 
@@ -1192,11 +1172,6 @@ describe("EditorCore", () => {
       expect(core.session.code()).toBe(QUICKJS_DEFAULT_BUFFER_CODE);
       expect(core.session.isShowingDefaultCode()).toBe(true);
 
-      // Suppress engine initialization side-effects for the switch.
-      vi.spyOn(core.engine, "initializeSelectedEngine").mockResolvedValue(
-        undefined
-      );
-
       core.commands.selectEngine("micropython", "python");
 
       expect(core.session.code()).toBe(PYTHON_DEFAULT_BUFFER_CODE);
@@ -1215,10 +1190,6 @@ describe("EditorCore", () => {
       // User edits the buffer (pristine flag disarmed).
       core.commands.updateBuffer("user-typed-something");
       expect(core.session.isShowingDefaultCode()).toBe(false);
-
-      vi.spyOn(core.engine, "initializeSelectedEngine").mockResolvedValue(
-        undefined
-      );
 
       core.commands.selectEngine("micropython", "python");
 
@@ -1243,10 +1214,6 @@ describe("EditorCore", () => {
       expect(core.session.code()).toBe(sharedCode);
       expect(core.session.isShowingDefaultCode()).toBe(false);
 
-      vi.spyOn(core.engine, "initializeSelectedEngine").mockResolvedValue(
-        undefined
-      );
-
       core.commands.selectEngine("micropython", "python");
 
       // URL-shared code survives the engine switch.
@@ -1268,10 +1235,6 @@ describe("EditorCore", () => {
 
       // Sanity: editor started on MicroPython with its default.
       expect(core.session.code()).toBe(PYTHON_DEFAULT_BUFFER_CODE);
-
-      vi.spyOn(core.engine, "initializeSelectedEngine").mockResolvedValue(
-        undefined
-      );
 
       core.commands.resetProjectState();
 
@@ -1318,10 +1281,6 @@ describe("EditorCore", () => {
       expect(core.session.code()).toBe(QUICKJS_DEFAULT_BUFFER_CODE);
       expect(core.session.isShowingDefaultCode()).toBe(true);
 
-      vi.spyOn(core.engine, "initializeSelectedEngine").mockResolvedValue(
-        undefined
-      );
-
       core.commands.selectEngine("mock", "plaintext");
 
       // Mock has no defaultBufferCode → empty fallback, flag still armed
@@ -1332,7 +1291,7 @@ describe("EditorCore", () => {
       expect(core.session.isShowingDefaultCode()).toBe(false);
     });
 
-    it("switching engine via selectEngine terminates active engine, clears output, and initializes new engine", () => {
+    it("switching engine via selectEngine clears output and updates active engine/language", () => {
       const core = createEditorCore({
         fileIo: createMockFileIoDeps(),
         persistence: createPersistenceWithSettings({
@@ -1341,19 +1300,13 @@ describe("EditorCore", () => {
         urlPersistence: createUrlPersistenceWithCodeAndEngine(null, "quickjs"),
       });
 
-      const terminateSpy = vi.spyOn(core.engine, "terminate");
       const clearSpy = vi.spyOn(core.output, "clearEntries");
-      const initSpy = vi
-        .spyOn(core.engine, "initializeSelectedEngine")
-        .mockResolvedValue(undefined);
 
       core.commands.selectEngine("micropython", "python");
 
       expect(clearSpy).toHaveBeenCalled();
-      expect(terminateSpy).toHaveBeenCalled();
       expect(core.session.activeEngineId()).toBe("micropython");
       expect(core.session.activeLanguage()).toBe("python");
-      expect(initSpy).toHaveBeenCalled();
     });
   });
 });

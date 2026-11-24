@@ -1,7 +1,16 @@
 import type { JSX } from "@solidjs/web";
 import RefreshCcw from "lucide-solid/icons/refresh-ccw";
 import Settings2 from "lucide-solid/icons/settings-2";
-import { createEffect, createSignal, omit, Show } from "solid-js";
+import {
+  createEffect,
+  createSignal,
+  Errored,
+  isPending,
+  Loading,
+  latest,
+  omit,
+  Show,
+} from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type { CommandId } from "../../core/shortcuts/registry.ts";
 import { cn } from "../../helpers/cn.ts";
@@ -100,12 +109,16 @@ function StatusBarButton(props: StatusBarButtonProps) {
   );
 }
 
-function TerminalStatusIndicator(props: { status: string; isDirty?: boolean }) {
+function TerminalStatusIndicator(props: {
+  status: string;
+  isDirty?: boolean;
+  isSpinning?: boolean;
+}) {
   const [frame, setFrame] = createSignal(0);
   const brailleFrames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 
   createEffect(
-    () => props.status === "running" || props.status === "initializing",
+    () => Boolean(props.isSpinning),
     (isActive) => {
       if (isActive) {
         const timer = setInterval(
@@ -120,10 +133,10 @@ function TerminalStatusIndicator(props: { status: string; isDirty?: boolean }) {
   return (
     <div class="flex items-center gap-1.5">
       <span>{props.status}</span>
-      <Show
-        when={props.status === "running" || props.status === "initializing"}
-      >
-        <span class="w-3 text-center">{brailleFrames[frame()]}</span>
+      <Show when={props.isSpinning}>
+        <span aria-hidden="true" class="w-3 text-center">
+          {brailleFrames[frame()]}
+        </span>
       </Show>
       <Show when={props.isDirty}>
         <span class="rounded bg-amber-500/20 px-1 text-[10px] font-bold tracking-wider text-amber-500 uppercase">
@@ -131,6 +144,142 @@ function TerminalStatusIndicator(props: { status: string; isDirty?: boolean }) {
         </span>
       </Show>
     </div>
+  );
+}
+
+function StatusBarEngineLanguage() {
+  const core = useEditor();
+  return (
+    <Errored
+      fallback={<span class="capitalize">{core.engine.activeLanguage()}</span>}
+    >
+      <Loading
+        fallback={
+          <span class="capitalize">
+            {latest(() => core.engine.activeLanguage())}
+          </span>
+        }
+      >
+        <span class="capitalize">
+          {core.engine.engine()?.language ?? core.engine.activeLanguage()}
+        </span>
+      </Loading>
+    </Errored>
+  );
+}
+
+function StatusBarEngineStatusContent() {
+  const core = useEditor();
+  const isEnginePending = () => isPending(() => core.engine.engine());
+
+  const status = (): string => {
+    if (core.engine.isRunning()) {
+      return "running";
+    }
+    if (isEnginePending()) {
+      return "initializing";
+    }
+    return core.engine.engine() === null ? "blocked" : "ready";
+  };
+
+  return (
+    <TerminalStatusIndicator
+      isDirty={core.engine.isDirty()}
+      isSpinning={core.engine.isRunning() || isEnginePending()}
+      status={status()}
+    />
+  );
+}
+
+function StatusBarEngineStatus() {
+  const core = useEditor();
+  return (
+    <Errored
+      fallback={
+        <TerminalStatusIndicator
+          isDirty={core.engine.isDirty()}
+          isSpinning={false}
+          status="error"
+        />
+      }
+    >
+      <Loading
+        fallback={
+          <TerminalStatusIndicator
+            isDirty={core.engine.isDirty()}
+            isSpinning={true}
+            status="initializing"
+          />
+        }
+      >
+        <StatusBarEngineStatusContent />
+      </Loading>
+    </Errored>
+  );
+}
+
+function StatusBarEngineSelector() {
+  const core = useEditor();
+
+  function openEngineSelector() {
+    core.overlays.open("engine-selector");
+  }
+
+  return (
+    <StatusBarItem class="hidden md:block">
+      <StatusBarButton
+        onClick={openEngineSelector}
+        tooltip="Select Engine"
+        tooltipDescription="Switch the active execution engine."
+      >
+        <Errored fallback={<span>{core.engine.activeEngineId()}</span>}>
+          <Loading
+            fallback={<span>{latest(() => core.engine.activeEngineId())}</span>}
+          >
+            <span>
+              {core.engine.engine()?.engineId ?? core.engine.activeEngineId()}
+            </span>
+          </Loading>
+        </Errored>
+      </StatusBarButton>
+    </StatusBarItem>
+  );
+}
+
+function StatusBarEngineAction() {
+  const core = useEditor();
+
+  const renderSettingsButton = () => (
+    /* Hidden on mobile, visible md+ */
+    <span class="hidden md:block">
+      <StatusBarButton
+        id="engine-settings-trigger"
+        onClick={() => core.overlays.open("engine-settings")}
+        tooltip="Engine Settings"
+      >
+        <Icon icon={Settings2} size={14} />
+      </StatusBarButton>
+    </span>
+  );
+
+  return (
+    <Errored
+      fallback={
+        <StatusBarButton
+          aria-label="Retry engine initialization"
+          onClick={() => core.commands.retryEngineInit()}
+          tooltip="Retry Initialization"
+        >
+          <Icon class="text-red-500" icon={RefreshCcw} size={12} />
+        </StatusBarButton>
+      }
+    >
+      <Loading fallback={renderSettingsButton()}>
+        <Show when={core.engine.engine() !== undefined}>
+          {renderSettingsButton()}
+        </Show>
+      </Loading>
+    </Errored>
   );
 }
 
@@ -144,10 +293,6 @@ function StatusBar(props: StatusBarProps) {
   const rest = omit(props, "class");
   const core = useEditor();
 
-  function openEngineSelector() {
-    core.overlays.open("engine-selector");
-  }
-
   return (
     <footer
       class={cn(
@@ -160,14 +305,11 @@ function StatusBar(props: StatusBarProps) {
     >
       <div class="flex h-full items-center gap-1">
         <StatusBarItem>
-          <span class="capitalize">{core.engine.activeLanguage()}</span>
+          <StatusBarEngineLanguage />
         </StatusBarItem>
 
         <StatusBarItem class="lowercase">
-          <TerminalStatusIndicator
-            isDirty={core.engine.isDirty()}
-            status={core.engine.engineStatus()}
-          />
+          <StatusBarEngineStatus />
         </StatusBarItem>
       </div>
 
@@ -184,37 +326,9 @@ function StatusBar(props: StatusBarProps) {
           </span>
         </StatusBarItem>
 
-        {/* Hidden on mobile, visible md+ */}
-        <StatusBarItem class="hidden md:block">
-          <StatusBarButton
-            onClick={openEngineSelector}
-            tooltip="Select Engine"
-            tooltipDescription="Switch the active execution engine."
-          >
-            <span>{core.engine.activeEngineId()}</span>
-          </StatusBarButton>
-        </StatusBarItem>
+        <StatusBarEngineSelector />
 
-        {core.engine.engineStatus() === "error" ? (
-          <StatusBarButton
-            aria-label="Retry engine initialization"
-            onClick={() => core.commands.retryEngineInit()}
-            tooltip="Retry Initialization"
-          >
-            <Icon class="text-red-500" icon={RefreshCcw} size={12} />
-          </StatusBarButton>
-        ) : (
-          /* Hidden on mobile, visible md+ */
-          <span class="hidden md:block">
-            <StatusBarButton
-              id="engine-settings-trigger"
-              onClick={() => core.overlays.open("engine-settings")}
-              tooltip="Engine Settings"
-            >
-              <Icon icon={Settings2} size={14} />
-            </StatusBarButton>
-          </span>
-        )}
+        <StatusBarEngineAction />
       </div>
     </footer>
   );
