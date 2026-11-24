@@ -175,27 +175,27 @@ function ConsoleTableView(props: ConsoleTableViewProps) {
         const cols = () => getColumns(resolvedRows());
 
         return (
-          <div class="my-2 w-full overflow-x-auto rounded-md border border-outline-variant shadow-sm">
+          <div class="border-outline-variant my-2 w-full overflow-x-auto rounded-md border shadow-sm">
             <table class="w-full min-w-max table-auto border-collapse text-left text-sm">
-              <thead class="bg-surface-variant font-medium text-on-surface-variant">
+              <thead class="bg-surface-variant text-on-surface-variant font-medium">
                 <tr>
-                  <th class="select-none border-outline-variant border-b px-3 py-1.5 font-medium">
+                  <th class="border-outline-variant border-b px-3 py-1.5 font-medium select-none">
                     (index)
                   </th>
                   <For each={cols()}>
                     {(col) => (
-                      <th class="select-none border-outline-variant border-b px-3 py-1.5 font-medium">
+                      <th class="border-outline-variant border-b px-3 py-1.5 font-medium select-none">
                         {col}
                       </th>
                     )}
                   </For>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-outline-variant bg-surface">
+              <tbody class="divide-outline-variant bg-surface divide-y">
                 <For each={resolvedRows()}>
                   {(row) => (
-                    <tr class="transition-colors hover:bg-surface-variant/50">
-                      <td class="select-none px-3 py-1.5 align-top font-bold text-on-surface-variant">
+                    <tr class="hover:bg-surface-variant/50 transition-colors">
+                      <td class="text-on-surface-variant px-3 py-1.5 align-top font-bold select-none">
                         {row.key}
                       </td>
                       <For each={cols()}>

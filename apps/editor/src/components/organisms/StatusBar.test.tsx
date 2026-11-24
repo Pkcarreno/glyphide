@@ -64,7 +64,7 @@ afterEach(() => {
   openOverlayMock.mockClear();
 });
 
-const JS_REGEX = /javascript/i;
+const JS_REGEX = /javascript/iu;
 
 describe("StatusBar", () => {
   it("when rendered with defaults, shows idle status and 'idle'", () => {

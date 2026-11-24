@@ -1,4 +1,4 @@
-import { createStore } from "solid-js/store";
+import { createStore } from "solid-js";
 import type { PersistencePort } from "../ports/persistence.ts";
 
 const SETTINGS_STORAGE_KEY = "settings";

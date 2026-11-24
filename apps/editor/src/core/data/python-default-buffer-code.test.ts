@@ -2,26 +2,26 @@ import { describe, expect, it } from "vitest";
 import { PYTHON_DEFAULT_BUFFER_CODE } from "./python-default-buffer-code.ts";
 
 const LOOP_REGEX =
-  /for\s+\w+\s+in\s+range\s*\(\s*(1000|10000|100000|1000000)\b/;
-const PRINT_MULTI_ARG_REGEX = /print\s*\([^)]*,[^)]*\)/;
-const INT_LITERAL_REGEX = /\b42\b/;
-const FLOAT_LITERAL_REGEX = /\b3\.14\b/;
-const STRING_LITERAL_REGEX = /["'].*["']/;
-const BOOL_LITERAL_REGEX = /\b(True|False)\b/;
-const NONE_LITERAL_REGEX = /\bNone\b/;
-const LIST_LITERAL_REGEX = /\[.*\]/;
-const DICT_LITERAL_REGEX = /\{.*:.*\}/;
-const TUPLE_LITERAL_REGEX = /\(.*,\s*.*\)/;
-const SET_LITERAL_REGEX = /\{[^:{}]+\}/;
-const DEF_REGEX = /def\s+\w+\s*\(/;
-const RETURN_REGEX = /\breturn\b/;
-const DEFAULT_ARG_REGEX = /def\s+\w+\s*\([^)]*=\s*[^),]+/;
-const CLASS_REGEX = /class\s+\w+/;
-const INIT_REGEX = /def\s+__init__\s*\(/;
-const TRY_REGEX = /\btry\s*:/;
-const EXCEPT_REGEX = /\bexcept\b/;
-const EVAL_REGEX = /\beval\s*\(/;
-const EXEC_REGEX = /\bexec\s*\(/;
+  /for\s+\w+\s+in\s+range\s*\(\s*(?:1000|10000|100000|1000000)\b/u;
+const PRINT_MULTI_ARG_REGEX = /print\s*\([^)]*,[^)]*\)/u;
+const INT_LITERAL_REGEX = /\b42\b/u;
+const FLOAT_LITERAL_REGEX = /\b3\.14\b/u;
+const STRING_LITERAL_REGEX = /["'].*["']/u;
+const BOOL_LITERAL_REGEX = /\b(?:True|False)\b/u;
+const NONE_LITERAL_REGEX = /\bNone\b/u;
+const LIST_LITERAL_REGEX = /\[.*\]/u;
+const DICT_LITERAL_REGEX = /\{.*:.*\}/u;
+const TUPLE_LITERAL_REGEX = /\(.*,\s*.*\)/u;
+const SET_LITERAL_REGEX = /\{[^:{}]+\}/u;
+const DEF_REGEX = /def\s+\w+\s*\(/u;
+const RETURN_REGEX = /\breturn\b/u;
+const DEFAULT_ARG_REGEX = /def\s+\w+\s*\([^)]*=\s*[^),]+/u;
+const CLASS_REGEX = /class\s+\w+/u;
+const INIT_REGEX = /def\s+__init__\s*\(/u;
+const TRY_REGEX = /\btry\s*:/u;
+const EXCEPT_REGEX = /\bexcept\b/u;
+const EVAL_REGEX = /\beval\s*\(/u;
+const EXEC_REGEX = /\bexec\s*\(/u;
 
 describe("PYTHON_DEFAULT_BUFFER_CODE", () => {
   it("is a non-empty string", () => {

@@ -1,10 +1,11 @@
-import type { Accessor, JSX } from "solid-js";
+import type { JSX } from "@solidjs/web";
+import type { Accessor } from "solid-js";
 import {
   createContext,
   createSignal,
+  omit,
   onCleanup,
   useContext,
-  omit,
 } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
@@ -212,7 +213,7 @@ function TabsList(props: TabsListProps) {
 
   const stepBy = (delta: number) => (triggers: HTMLElement[]) => {
     const base = findCurrentIndex(triggers);
-    const start = base >= 0 ? base : 0;
+    const start = Math.max(base, 0);
     const next = (start + delta + triggers.length) % triggers.length;
     focusAndSelect(triggers[next] as HTMLElement);
   };
@@ -300,10 +301,10 @@ function TabsTrigger(props: TabsTriggerProps) {
   return (
     <button
       aria-controls={panelId()}
-      aria-selected={isActive()}
+      aria-selected={isActive() ? "true" : "false"}
       class={cn(
-        "rounded-md px-3 py-2 text-left font-medium text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
-        "pointer-coarse:min-h-11 flex-1 pointer-coarse:px-4 md:w-full",
+        "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors outline-none focus-visible:ring-3 aria-invalid:ring-3",
+        "flex-1 md:w-full pointer-coarse:min-h-11 pointer-coarse:px-4",
         isActive()
           ? "bg-surface-variant text-on-surface"
           : "text-on-surface-variant hover:bg-surface-variant/50 hover:text-on-surface",
@@ -319,7 +320,7 @@ function TabsTrigger(props: TabsTriggerProps) {
         setDisabledRef?.(props.value, !!props.disabled);
       }}
       role="tab"
-      tabIndex={isActive() ? 0 : -1}
+      tabindex={isActive() ? 0 : -1}
       type="button"
       {...rest}
     >
@@ -357,8 +358,7 @@ function TabsContent(props: TabsContentProps) {
       id={panelId()}
       role="tabpanel"
       // tabpanel must be focusable so Tab from the trigger lands inside it.
-      // biome-ignore lint/a11y/noNoninteractiveTabindex: WAI-ARIA Tabs pattern
-      tabIndex={0}
+      tabindex={0}
       {...rest}
     >
       {props.children}

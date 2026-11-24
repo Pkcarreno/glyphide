@@ -2,9 +2,9 @@ import { buildCurrentUrl } from "@glyphide/url-migration/build-url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createBrowserUrlPersistenceAdapter } from "./url-persistence.ts";
 
-const PLUS_GLOBAL_REGEX = /\+/g;
-const SLASH_GLOBAL_REGEX = /\//g;
-const TRAILING_EQUALS_REGEX = /[=]+$/;
+const PLUS_GLOBAL_REGEX = /\+/gu;
+const SLASH_GLOBAL_REGEX = /\//gu;
+const TRAILING_EQUALS_REGEX = /[=]+$/u;
 
 describe("createBrowserUrlPersistenceAdapter", () => {
   beforeEach(() => {

@@ -1,3 +1,4 @@
+import { flush } from "solid-js";
 import { describe, expect, it } from "vitest";
 import { createOverlayModel } from "./overlay.ts";
 
@@ -10,21 +11,26 @@ describe("OverlayModel", () => {
   it("when opened, sets the overlay as open", () => {
     const overlays = createOverlayModel();
     overlays.open("settings");
+    flush();
     expect(overlays.isOpen("settings")).toBe(true);
   });
 
   it("when closed, sets the overlay as not open", () => {
     const overlays = createOverlayModel();
     overlays.open("settings");
+    flush();
     overlays.close("settings");
+    flush();
     expect(overlays.isOpen("settings")).toBe(false);
   });
 
   it("when toggled, toggles the open state", () => {
     const overlays = createOverlayModel();
     overlays.toggle("settings");
+    flush();
     expect(overlays.isOpen("settings")).toBe(true);
     overlays.toggle("settings");
+    flush();
     expect(overlays.isOpen("settings")).toBe(false);
   });
 });

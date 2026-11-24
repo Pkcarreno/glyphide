@@ -1,11 +1,33 @@
 import type { CanonicalState } from "@glyphide/url-migration/types";
+import { flush } from "solid-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createEngineRegistry,
   type EngineRegistry,
 } from "../engine/registry.ts";
 import type { UrlPersistencePort } from "../ports/url-persistence.ts";
-import { createWorkspaceSession } from "./session.ts";
+import {
+  createWorkspaceSession as baseCreateWorkspaceSession,
+  type WorkspaceSession,
+  type WorkspaceSessionDeps,
+} from "./session.ts";
+
+function createWorkspaceSession(deps: WorkspaceSessionDeps): WorkspaceSession {
+  const session = baseCreateWorkspaceSession(deps);
+  return new Proxy(session, {
+    get(target, prop, receiver) {
+      const val = Reflect.get(target, prop, receiver);
+      if (typeof val === "function") {
+        return (...args: unknown[]) => {
+          const res = val.apply(target, args);
+          flush();
+          return res;
+        };
+      }
+      return val;
+    },
+  });
+}
 
 function createMockUrlPersistence(
   initialState: CanonicalState | null = null

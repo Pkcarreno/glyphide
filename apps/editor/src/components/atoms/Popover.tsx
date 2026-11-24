@@ -6,17 +6,19 @@ import {
   type Placement,
   shift,
 } from "@floating-ui/dom";
-import type { Accessor, ComponentProps, JSX, ValidComponent } from "solid-js";
+import type { ComponentProps, JSX, ValidComponent } from "@solidjs/web";
+import { dynamic, Portal } from "@solidjs/web";
+import type { Accessor } from "solid-js";
 import {
   createContext,
+  createEffect,
   createSignal,
+  omit,
   onCleanup,
   onSettled,
   Show,
   useContext,
-  omit,
 } from "solid-js";
-import { dynamic, Portal } from "@solidjs/web";
 import { cn } from "../../helpers/cn.ts";
 
 /* ---------- Types ---------- */
@@ -93,16 +95,12 @@ export function PopoverRoot(props: PopoverRootProps) {
   const [isPositioned, setIsPositioned] = createSignal(false);
   const [coords, setCoords] = createSignal({ left: 0, top: 0 });
 
-  let triggerEl: HTMLElement | undefined;
-  let positionerEl: HTMLElement | undefined;
+  const [triggerEl, setTriggerEl] = createSignal<HTMLElement>();
+  const [positionerEl, setPositionerEl] = createSignal<HTMLElement>();
   let cleanupAutoUpdate: (() => void) | undefined;
 
-  const updatePosition = () => {
-    if (!(triggerEl && positionerEl)) {
-      return;
-    }
-
-    computePosition(triggerEl, positionerEl, {
+  const updatePosition = (trigger: HTMLElement, positioner: HTMLElement) => {
+    computePosition(trigger, positioner, {
       middleware: [floatingOffset(offset()), flip(), shift({ padding: 8 })],
       placement: position(),
     })
@@ -115,26 +113,30 @@ export function PopoverRoot(props: PopoverRootProps) {
       });
   };
 
-  const bindAutoUpdate = () => {
-    if (triggerEl && positionerEl && isOpen()) {
+  createEffect(
+    () => ({ open: isOpen(), pos: positionerEl(), trig: triggerEl() }),
+    ({ open, pos, trig }) => {
       cleanupAutoUpdate?.();
-      try {
-        cleanupAutoUpdate = autoUpdate(triggerEl, positionerEl, updatePosition);
-      } catch {
-        updatePosition();
-        cleanupAutoUpdate = () => undefined;
+      cleanupAutoUpdate = undefined;
+      if (open && trig && pos) {
+        try {
+          cleanupAutoUpdate = autoUpdate(trig, pos, () =>
+            updatePosition(trig, pos)
+          );
+        } catch {
+          updatePosition(trig, pos);
+          cleanupAutoUpdate = () => undefined;
+        }
       }
     }
-  };
+  );
 
   const setTriggerRef = (el: HTMLElement) => {
-    triggerEl = el;
-    bindAutoUpdate();
+    setTriggerEl(el);
   };
 
   const setPositionerRef = (el: HTMLElement) => {
-    positionerEl = el;
-    bindAutoUpdate();
+    setPositionerEl(el);
   };
 
   const handleOpenStateChange = (nextOpen: boolean) => {
@@ -168,12 +170,9 @@ export function PopoverRoot(props: PopoverRootProps) {
         return;
       }
       const target = e.target as Node;
-      if (
-        triggerEl &&
-        positionerEl &&
-        !triggerEl.contains(target) &&
-        !positionerEl.contains(target)
-      ) {
+      const trig = triggerEl();
+      const pos = positionerEl();
+      if (trig && pos && !trig.contains(target) && !pos.contains(target)) {
         close();
       }
     };
@@ -238,7 +237,7 @@ export function PopoverTrigger<T extends ValidComponent = "button">(
   return (
     <Comp
       class={cn(
-        "outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 outline-none focus-visible:ring-3 aria-invalid:ring-3",
         props.class
       )}
       onClick={(e: Event) => {
@@ -352,8 +351,8 @@ export function PopoverPopup(props: PopoverPopupProps) {
     <div
       class={cn(
         "flex flex-col",
-        "rounded-lg bg-surface ring-1 ring-on-surface/10",
-        "p-2.5 text-on-surface text-xs shadow-md",
+        "bg-surface ring-on-surface/10 rounded-lg ring-1",
+        "text-on-surface p-2.5 text-xs shadow-md",
         props.class
       )}
       role="dialog"

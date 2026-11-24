@@ -104,9 +104,9 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
   createRoot((disposeRoot) => {
     disposeEffect = disposeRoot;
     createEffect(
-      () => deps.session.code(),
-      (_code, prev) => {
-        if (prev !== undefined && engineStatus() === "running") {
+      () => ({ code: deps.session.code(), status: engineStatus() }),
+      ({ status }, prev) => {
+        if (prev !== undefined && status === "running") {
           setIsDirty(true);
         }
       }

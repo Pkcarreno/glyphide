@@ -6,11 +6,12 @@ import { Dialog, useDialog } from "../molecules/Dialog.tsx";
 function ProjectRenameOverlay() {
   const { close } = useDialog();
   return (
+    // biome-ignore lint/a11y/noAriaHiddenOnFocusable: Backdrop overlay button is intentionally hidden from assistive tech
     <button
       aria-hidden="true"
       class="fixed inset-0 z-50 m-0 cursor-default border-none bg-transparent p-0"
       onClick={close}
-      tabIndex={-1}
+      tabindex={-1}
       type="button"
     />
   );
@@ -53,7 +54,7 @@ function ProjectRenameContent() {
         <ProjectRenameOverlay />
         <div
           aria-modal="true"
-          class="relative z-50 flex w-full max-w-lg flex-col overflow-hidden rounded-xl border border-outline-variant bg-surface shadow-2xl"
+          class="border-outline-variant bg-surface relative z-50 flex w-full max-w-lg flex-col overflow-hidden rounded-xl border shadow-2xl"
           role="dialog"
         >
           <Input

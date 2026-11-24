@@ -1,9 +1,10 @@
+import type { JSX } from "@solidjs/web";
 import { cva, type VariantProps } from "class-variance-authority";
-import { type JSX, omit, Show } from "solid-js";
+import { omit, Show } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
 const inputWrapperVariants = cva(
-  "flex items-center text-on-surface transition-colors",
+  "text-on-surface flex items-center transition-colors",
   {
     defaultVariants: {
       size: "default",
@@ -17,11 +18,11 @@ const inputWrapperVariants = cva(
       },
       variant: {
         bottomBorder:
-          "rounded-none border-outline-variant border-b bg-transparent px-2",
+          "border-outline-variant rounded-none border-b bg-transparent px-2",
         default:
-          "rounded-sm border border-outline-variant bg-surface px-2 focus-within:ring-2 focus-within:ring-primary/30",
+          "border-outline-variant bg-surface focus-within:ring-primary/30 rounded-sm border px-2 focus-within:ring-2",
         ghost:
-          "rounded-sm border-none bg-transparent px-2 focus-within:bg-surface-variant/30",
+          "focus-within:bg-surface-variant/30 rounded-sm border-none bg-transparent px-2",
       },
     },
   }
@@ -73,19 +74,19 @@ export function Input(props: InputProps) {
       )}
     >
       <Show when={props.startIcon}>
-        <div class="mr-2 flex shrink-0 items-center justify-center text-on-surface-variant">
+        <div class="text-on-surface-variant mr-2 flex shrink-0 items-center justify-center">
           {props.startIcon}
         </div>
       </Show>
       <input
         class={cn(
-          "flex h-full w-full bg-transparent outline-none placeholder:text-on-surface-variant/40 disabled:cursor-not-allowed disabled:opacity-50",
+          "placeholder:text-on-surface-variant/40 flex h-full w-full bg-transparent outline-none disabled:cursor-not-allowed disabled:opacity-50",
           props.class
         )}
         {...rest}
       />
       <Show when={props.endIcon}>
-        <div class="ml-2 flex shrink-0 items-center justify-center text-on-surface-variant">
+        <div class="text-on-surface-variant ml-2 flex shrink-0 items-center justify-center">
           {props.endIcon}
         </div>
       </Show>

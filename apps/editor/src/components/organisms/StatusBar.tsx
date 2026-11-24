@@ -1,12 +1,7 @@
+import type { JSX } from "@solidjs/web";
 import RefreshCcw from "lucide-solid/icons/refresh-ccw";
 import Settings2 from "lucide-solid/icons/settings-2";
-import type { JSX } from "solid-js";
-import {
-  createEffect,
-  createSignal,
-  Show,
-  omit,
-} from "solid-js";
+import { createEffect, createSignal, omit, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type { CommandId } from "../../core/shortcuts/registry.ts";
 import { cn } from "../../helpers/cn.ts";
@@ -75,8 +70,8 @@ function StatusBarButton(props: StatusBarButtonProps) {
   );
 
   const buttonClass = cn(
-    "flex h-full items-center gap-1 rounded-md px-1 outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
-    "cursor-pointer transition-colors hover:bg-surface-variant hover:text-on-surface",
+    "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 flex h-full items-center gap-1 rounded-md px-1 outline-none focus-visible:ring-3 aria-invalid:ring-3",
+    "hover:bg-surface-variant hover:text-on-surface cursor-pointer transition-colors",
     props.class
   );
 
@@ -131,7 +126,7 @@ function TerminalStatusIndicator(props: { status: string; isDirty?: boolean }) {
         <span class="w-3 text-center">{brailleFrames[frame()]}</span>
       </Show>
       <Show when={props.isDirty}>
-        <span class="rounded bg-amber-500/20 px-1 font-bold text-[10px] text-amber-500 uppercase tracking-wider">
+        <span class="rounded bg-amber-500/20 px-1 text-[10px] font-bold tracking-wider text-amber-500 uppercase">
           Execution Stale
         </span>
       </Show>
@@ -156,9 +151,9 @@ function StatusBar(props: StatusBarProps) {
   return (
     <footer
       class={cn(
-        "flex h-status-bar-height items-center justify-between",
-        "border-outline-variant border-t bg-background px-padding-x",
-        "select-none font-sans text-on-surface-variant text-status-bar uppercase opacity-80",
+        "h-status-bar-height flex items-center justify-between",
+        "border-outline-variant bg-background px-padding-x border-t",
+        "text-on-surface-variant text-status-bar font-sans uppercase opacity-80 select-none",
         props.class
       )}
       {...rest}

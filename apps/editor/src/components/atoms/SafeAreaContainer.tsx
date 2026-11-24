@@ -1,4 +1,4 @@
-import type { JSX } from "solid-js";
+import type { JSX } from "@solidjs/web";
 import { omit } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 

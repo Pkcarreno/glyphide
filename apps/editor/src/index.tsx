@@ -5,7 +5,7 @@ import App from "./App.tsx";
 import { EditorProvider } from "./core/context.tsx";
 import { PwaProvider } from "./core/pwa-registration.tsx";
 
-const root = document.getElementById("root");
+const root = document.querySelector("#root");
 
 if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
   throw new Error(

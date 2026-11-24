@@ -12,6 +12,7 @@
     "isolatedModules": true,
     "strict": true,
     "lib": ["es2022", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
     "allowImportingTsExtensions": true
   },
   "include": ["src"],

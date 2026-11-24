@@ -1,12 +1,7 @@
-import type { Accessor, ComponentProps, JSX, ValidComponent } from "solid-js";
-import {
-  createContext,
-  createSignal,
-  Show,
-  useContext,
-  omit,
-} from "solid-js";
+import type { ComponentProps, JSX, ValidComponent } from "@solidjs/web";
 import { dynamic } from "@solidjs/web";
+import type { Accessor } from "solid-js";
+import { createContext, createSignal, omit, Show, useContext } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { ActionTooltip } from "./ActionTooltip.tsx";
 
@@ -88,7 +83,7 @@ function DialogTrigger(props: DialogTriggerProps) {
   return (
     <button
       class={cn(
-        "outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 outline-none focus-visible:ring-3 aria-invalid:ring-3",
         props.class
       )}
       onClick={open}
@@ -124,6 +119,7 @@ function DialogOverlay(props: DialogOverlayProps) {
   }
 
   return (
+    // biome-ignore lint/a11y/noAriaHiddenOnFocusable: Backdrop overlay button is intentionally hidden from assistive tech
     <button
       aria-hidden="true"
       class={cn(
@@ -131,7 +127,7 @@ function DialogOverlay(props: DialogOverlayProps) {
         props.class
       )}
       onClick={handleClick}
-      tabIndex={-1}
+      tabindex={-1}
       type="button"
       {...rest}
     />
@@ -159,10 +155,10 @@ function DialogContent(props: DialogContentProps) {
           aria-modal="true"
           class={cn(
             "relative z-50",
-            "bg-surface ring-1 ring-on-surface/10",
+            "bg-surface ring-on-surface/10 ring-1",
             "overflow-hidden rounded-xl shadow-md",
             "w-full max-w-sm p-4",
-            "flex flex-col text-on-surface",
+            "text-on-surface flex flex-col",
             props.class
           )}
           role="dialog"
@@ -189,7 +185,7 @@ function DialogHeader(props: DialogHeaderProps) {
     <div
       class={cn(
         "flex items-center justify-between px-5 py-4",
-        "border-outline-variant border-b bg-surface",
+        "border-outline-variant bg-surface border-b",
         props.class
       )}
       {...rest}
@@ -232,7 +228,7 @@ function DialogTitle<T extends ValidComponent = "h2">(
   return (
     <Comp
       class={cn(
-        "font-semibold text-on-surface text-sm tracking-wide",
+        "text-on-surface text-sm font-semibold tracking-wide",
         props.class
       )}
       {...rest}
@@ -257,7 +253,7 @@ function DialogClose(props: DialogCloseProps) {
     <ActionTooltip
       as="button"
       class={cn(
-        "rounded-lg p-1.5 text-on-surface-variant outline-none transition-colors hover:bg-surface-variant hover:text-on-surface focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        "text-on-surface-variant hover:bg-surface-variant hover:text-on-surface focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 rounded-lg p-1.5 transition-colors outline-none focus-visible:ring-3 aria-invalid:ring-3",
         "pointer-coarse:min-h-11 pointer-coarse:min-w-11",
         props.class
       )}

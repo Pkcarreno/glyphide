@@ -2,7 +2,7 @@ import { fireEvent, render } from "@solidjs/testing-library";
 import { describe, expect, it } from "vitest";
 import { ExpandableNode } from "./ExpandableNode.tsx";
 
-const EXPANDABLE_CONTENT_REGEX = /^expandable-content-/;
+const EXPANDABLE_CONTENT_REGEX = /^expandable-content-/u;
 
 describe("ExpandableNode", () => {
   it("renders the preview content", () => {

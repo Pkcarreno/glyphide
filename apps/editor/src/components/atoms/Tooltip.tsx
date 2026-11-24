@@ -1,4 +1,4 @@
-import type { ComponentProps, JSX, ValidComponent } from "solid-js";
+import type { ComponentProps, JSX, ValidComponent } from "@solidjs/web";
 import { createSignal, omit, Show } from "solid-js";
 import type { PopoverPosition } from "./Popover.tsx";
 import { Popover } from "./Popover.tsx";
@@ -81,19 +81,19 @@ export function Tooltip<T extends ValidComponent = "div">(
       <Popover.Portal>
         <Popover.Positioner>
           <Popover.Popup
-            class="w-max max-w-64 px-2 py-1 text-surface text-xs"
+            class="text-surface w-max max-w-64 px-2 py-1 text-xs"
             role="tooltip"
           >
             <div class="flex items-baseline justify-between gap-4">
               <span class="text-on-surface text-xs">{props.text}</span>
               <Show when={props.shortcut}>
-                <span class="whitespace-nowrap font-mono text-token-comment text-tooltip-shortcut">
+                <span class="text-token-comment text-tooltip-shortcut font-mono whitespace-nowrap">
                   {props.shortcut}
                 </span>
               </Show>
             </div>
             <Show when={props.meta}>
-              <span class="mt-1.5 block text-token-comment text-tooltip-meta">
+              <span class="text-token-comment text-tooltip-meta mt-1.5 block">
                 {props.meta}
               </span>
             </Show>

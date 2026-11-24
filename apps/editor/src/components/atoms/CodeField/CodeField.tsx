@@ -1,6 +1,6 @@
 import { Compartment, EditorState, type Extension } from "@codemirror/state";
 import { basicSetup, EditorView } from "codemirror";
-import { createEffect, onSettled } from "solid-js";
+import { createEffect, createSignal, onSettled } from "solid-js";
 import { getEditorAppearance, glyphideSyntaxHighlight } from "./theme.ts";
 
 export interface CodeFieldProps {
@@ -34,6 +34,7 @@ export interface CodeFieldProps {
 export function CodeField(props: CodeFieldProps) {
   let containerRef: HTMLDivElement | undefined;
   let view: EditorView | undefined;
+  const [editorView, setEditorView] = createSignal<EditorView>();
   let isProgrammaticSync = false;
 
   const languageCompartment = new Compartment();
@@ -83,13 +84,14 @@ export function CodeField(props: CodeFieldProps) {
       ],
     });
 
-    view = new EditorView({ parent: containerRef, state });
+    const v = new EditorView({ parent: containerRef, state });
+    view = v;
+    setEditorView(v);
 
     return () => {
-      if (view) {
-        view.destroy();
-        view = undefined;
-      }
+      v.destroy();
+      view = undefined;
+      setEditorView(undefined);
     };
   });
 
@@ -98,7 +100,9 @@ export function CodeField(props: CodeFieldProps) {
     (isDark) => {
       if (view) {
         view.dispatch({
-          effects: appearanceCompartment.reconfigure(getEditorAppearance(isDark)),
+          effects: appearanceCompartment.reconfigure(
+            getEditorAppearance(isDark)
+          ),
         });
       }
     }
@@ -133,9 +137,9 @@ export function CodeField(props: CodeFieldProps) {
   );
 
   createEffect(
-    () => props.language,
-    (lang) => {
-      if (!(view && lang)) {
+    () => ({ lang: props.language, v: editorView() }),
+    ({ lang, v }) => {
+      if (!(v && lang)) {
         return;
       }
 
@@ -151,11 +155,11 @@ export function CodeField(props: CodeFieldProps) {
           }
 
           if (languageExtension) {
-            view?.dispatch({
+            v.dispatch({
               effects: languageCompartment.reconfigure(languageExtension),
             });
           } else {
-            view?.dispatch({
+            v.dispatch({
               effects: languageCompartment.reconfigure([]),
             });
           }
@@ -193,7 +197,7 @@ export function CodeField(props: CodeFieldProps) {
 
   return (
     <div
-      class="h-full min-h-[300px] w-full overflow-hidden bg-editor-bg"
+      class="bg-editor-bg h-full min-h-[300px] w-full overflow-hidden"
       ref={(el) => {
         containerRef = el;
       }}

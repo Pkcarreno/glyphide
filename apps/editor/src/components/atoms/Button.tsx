@@ -1,17 +1,17 @@
+import type { JSX } from "@solidjs/web";
 import { cva, type VariantProps } from "class-variance-authority";
-import type { JSX } from "solid-js";
 import { omit } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
 const buttonVariants = cva(
   [
     "inline-flex items-center justify-center rounded-sm",
-    "font-medium font-sans",
+    "font-sans font-medium",
     "transition-colors duration-200",
     "cursor-pointer select-none",
     "disabled:pointer-events-none disabled:opacity-50",
     "min-h-[var(--ui-target-size)] min-w-[var(--ui-target-size)]",
-    "outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+    "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 outline-none focus-visible:ring-3 aria-invalid:ring-3",
     "active:not-aria-[haspopup]:translate-y-px",
     "[&_svg]:size-3.5",
   ],
@@ -34,12 +34,12 @@ const buttonVariants = cva(
           "hover:bg-surface-variant hover:text-on-surface",
         ],
         outline: [
-          "border border-outline-variant bg-transparent",
+          "border-outline-variant border bg-transparent",
           "text-on-surface-variant",
           "hover:bg-surface-variant hover:text-on-surface",
         ],
         primary: [
-          "border border-outline-variant bg-surface-variant",
+          "border-outline-variant bg-surface-variant border",
           "text-on-surface",
           "hover:bg-outline-variant",
         ],

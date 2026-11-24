@@ -1,11 +1,63 @@
 import { createRequire } from "node:module";
-import tailwindcss from "@tailwindcss/vite";
-import { defineConfig } from "vite";
-import { VitePWA } from "vite-plugin-pwa";
 import solid from "@solidjs/vite-plugin";
+import tailwindcss from "@tailwindcss/vite";
+import { defineConfig, type Plugin } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 
 const require = createRequire(import.meta.url);
 const pkg = require("./package.json");
+
+/**
+ * Backward compatibility transform for lucide-solid.
+ * In Solid 2.0, splitProps was removed from solid-js.
+ * This plugin injects a reactive splitProps shim directly into lucide-solid modules.
+ */
+const SOLID_JS_IMPORT_REGEX =
+  /import\s*\{(?<imports>[^}]+)\}\s*from\s*['"]solid-js['"]/u;
+
+function lucideSolidCompatPlugin(): Plugin {
+  return {
+    name: "lucide-solid-compat",
+    enforce: "pre",
+    transform(code, id) {
+      if (id.includes("lucide-solid") && code.includes("splitProps")) {
+        const shim = `
+function splitProps(props, descriptors) {
+  const local = {};
+  const blocked = new Set(descriptors);
+  for (const key of descriptors) {
+    Object.defineProperty(local, key, {
+      get() { return props[key]; },
+      enumerable: true,
+    });
+  }
+  const rest = {};
+  for (const key in props) {
+    if (!blocked.has(key)) {
+      Object.defineProperty(rest, key, {
+        get() { return props[key]; },
+        enumerable: true,
+      });
+    }
+  }
+  return [local, rest];
+}
+`;
+        return {
+          code: code.replace(SOLID_JS_IMPORT_REGEX, (_match, imports) => {
+            const cleanImports = imports
+              .split(",")
+              .map((s: string) => s.trim())
+              .filter((s: string) => s !== "splitProps")
+              .join(", ");
+            return `import { ${cleanImports} } from "solid-js";\n${shim}`;
+          }),
+          map: null,
+        };
+      }
+    },
+  };
+}
 
 export default defineConfig({
   base: process.env.VITE_BASE_URL ?? "/",
@@ -16,6 +68,7 @@ export default defineConfig({
     "import.meta.env.VITE_APP_VERSION": JSON.stringify(pkg.version),
   },
   plugins: [
+    lucideSolidCompatPlugin(),
     tailwindcss(),
     solid(),
     VitePWA({
@@ -54,7 +107,7 @@ export default defineConfig({
                 maxEntries: 50,
               },
             },
-            urlPattern: /\.(?:wasm|js|wasm\.map)$/,
+            urlPattern: /\.(?:wasm|js|wasm\.map)$/u,
           },
           {
             handler: "CacheFirst",
@@ -65,7 +118,7 @@ export default defineConfig({
                 maxEntries: 20,
               },
             },
-            urlPattern: /\.(?:woff2?|ttf|otf|eot)$/,
+            urlPattern: /\.(?:woff2?|ttf|otf|eot)$/u,
           },
         ],
       },

@@ -1,4 +1,5 @@
-import { omit, type ValidComponent } from "solid-js";
+import type { ValidComponent } from "@solidjs/web";
+import { omit } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type { CommandId } from "../../core/shortcuts/registry.ts";
 import {

@@ -1,5 +1,5 @@
+import type { JSX } from "@solidjs/web";
 import { cva, type VariantProps } from "class-variance-authority";
-import type { JSX } from "solid-js";
 import { omit } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
@@ -21,9 +21,9 @@ function InputGroup(props: InputGroupProps) {
     <fieldset
       class={cn(
         "group/input-group relative flex h-7 w-full min-w-0 items-center",
-        "rounded-sm border border-outline-variant bg-surface",
+        "border-outline-variant bg-surface rounded-sm border",
         "m-0 border-0 p-0",
-        "outline-none transition-colors",
+        "transition-colors outline-none",
         "has-[[data-slot=input-group-control]:focus-visible]:border-ring",
         "has-[[data-slot=input-group-control]:focus-visible]:ring-3",
         "has-[[data-slot=input-group-control]:focus-visible]:ring-ring/50",
@@ -47,7 +47,7 @@ function InputGroup(props: InputGroupProps) {
 /* ---------- InputGroupAddon ---------- */
 
 const inputGroupAddonVariants = cva(
-  "flex h-auto cursor-text select-none items-center justify-center gap-1 py-2 font-medium text-on-surface-variant text-xs/relaxed group-data-[disabled=true]/input-group:opacity-50",
+  "text-on-surface-variant flex h-auto cursor-text items-center justify-center gap-1 py-2 text-xs/relaxed font-medium select-none group-data-[disabled=true]/input-group:opacity-50",
   {
     defaultVariants: {
       align: "inline-start",
@@ -125,10 +125,10 @@ function InputGroupButton(props: InputGroupButtonProps) {
     <button
       class={cn(
         inputGroupButtonVariants({ size: props.size }),
-        "bg-transparent text-on-surface-variant",
+        "text-on-surface-variant bg-transparent",
         "hover:bg-surface-variant hover:text-on-surface",
         "disabled:pointer-events-none disabled:opacity-50",
-        "cursor-pointer select-none outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 cursor-pointer transition-colors outline-none select-none focus-visible:ring-3 aria-invalid:ring-3",
         props.class
       )}
       data-size={props.size ?? "xs"}
@@ -153,8 +153,8 @@ function InputGroupText(props: InputGroupTextProps) {
   return (
     <span
       class={cn(
-        "flex items-center gap-2 text-on-surface-variant text-xs/relaxed",
-        "[&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none",
+        "text-on-surface-variant flex items-center gap-2 text-xs/relaxed",
+        "[&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4",
         props.class
       )}
       {...rest}

@@ -81,19 +81,19 @@ export function ShareModal(props: ShareModalProps) {
           </DialogClose>
         </DialogHeader>
 
-        <div class="flex flex-col gap-6 bg-surface px-5 py-6">
+        <div class="bg-surface flex flex-col gap-6 px-5 py-6">
           <div class="flex flex-col gap-2">
             <label
-              class="font-medium text-on-surface text-sm"
+              class="text-on-surface text-sm font-medium"
               for="share-link-input"
             >
               Preview Link
             </label>
             <Input
-              class="font-mono text-on-surface-variant text-sm"
+              class="text-on-surface-variant font-mono text-sm"
               disabled={!isUrlShareable()}
               id="share-link-input"
-              readOnly
+              readonly
               value={buildShareUrl()}
             />
             {!isUrlShareable() && (
@@ -134,14 +134,14 @@ export function ShareModal(props: ShareModalProps) {
           </div>
         </div>
 
-        <div class="border-outline-variant border-t bg-surface-variant/50 px-5 py-5">
-          <h3 class="mb-4 font-semibold text-on-surface-variant text-xs uppercase tracking-wider">
+        <div class="border-outline-variant bg-surface-variant/50 border-t px-5 py-5">
+          <h3 class="text-on-surface-variant mb-4 text-xs font-semibold tracking-wider uppercase">
             Options
           </h3>
           <div class="flex items-center justify-between gap-4">
             <div class="flex flex-col gap-1">
               <label
-                class="cursor-pointer font-medium text-on-surface text-sm"
+                class="text-on-surface cursor-pointer text-sm font-medium"
                 for={switchId}
               >
                 Include project name

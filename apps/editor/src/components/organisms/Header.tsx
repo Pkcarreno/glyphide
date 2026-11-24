@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 import ChevronDown from "lucide-solid/icons/chevron-down";
 import ExternalLink from "lucide-solid/icons/external-link";
 import Play from "lucide-solid/icons/play";
@@ -6,8 +7,7 @@ import Settings from "lucide-solid/icons/settings";
 import Share2 from "lucide-solid/icons/share-2";
 import ShieldAlert from "lucide-solid/icons/shield-exclamation-point";
 import Square from "lucide-solid/icons/square";
-import type { JSX } from "solid-js";
-import { createSignal, Show, omit } from "solid-js";
+import { createSignal, omit, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { usePwaUpdate } from "../../core/pwa-registration.tsx";
 import { cn } from "../../helpers/cn.ts";

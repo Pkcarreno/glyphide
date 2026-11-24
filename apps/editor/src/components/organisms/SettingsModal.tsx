@@ -1,7 +1,7 @@
+import type { JSX } from "@solidjs/web";
 import Undo from "lucide-solid/icons/undo-2";
 import X from "lucide-solid/icons/x";
-import type { JSX } from "solid-js";
-import { createUniqueId, For, Show, omit } from "solid-js";
+import { createUniqueId, For, omit, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { DEFAULT_SETTINGS } from "../../core/models/settings.ts";
 import { cn } from "../../helpers/cn.ts";
@@ -35,7 +35,7 @@ function SettingsItem(props: SettingsItemProps) {
       <div class="flex flex-col gap-1.5 pr-4">
         <div class="flex items-center gap-2">
           <label
-            class="cursor-pointer font-medium text-on-surface text-sm"
+            class="text-on-surface cursor-pointer text-sm font-medium"
             for={props.forId}
           >
             {props.label}
@@ -43,7 +43,7 @@ function SettingsItem(props: SettingsItemProps) {
           <Show when={props.isModified}>
             <button
               aria-label={`Reset ${props.label} to default`}
-              class="flex h-5 pointer-coarse:min-h-11 w-5 pointer-coarse:min-w-11 items-center justify-center rounded-md text-on-surface-variant/50 outline-none transition-colors hover:bg-surface-variant hover:text-on-surface focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"
+              class="text-on-surface-variant/50 hover:bg-surface-variant hover:text-on-surface focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 flex h-5 w-5 items-center justify-center rounded-md transition-colors outline-none focus-visible:ring-3 aria-invalid:ring-3 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
               onClick={props.onReset}
               title="Reset to default"
               type="button"
@@ -175,8 +175,8 @@ function SettingsModal(props: SettingsModalProps) {
           class="flex h-full w-full flex-col overflow-hidden md:flex-row"
           defaultValue="Appearance"
         >
-          <div class="scrollbar-hide w-full shrink-0 overflow-x-auto border-outline-variant border-b bg-surface-variant/30 px-3 pt-4 pb-2 md:w-56 md:overflow-y-auto md:overflow-x-visible md:border-r md:border-b-0 md:p-4">
-            <h2 class="mb-3 px-3 font-semibold text-on-surface-variant text-xs uppercase tracking-wider">
+          <div class="scrollbar-hide border-outline-variant bg-surface-variant/30 w-full shrink-0 overflow-x-auto border-b px-3 pt-4 pb-2 md:w-56 md:overflow-x-visible md:overflow-y-auto md:border-r md:border-b-0 md:p-4">
+            <h2 class="text-on-surface-variant mb-3 px-3 text-xs font-semibold tracking-wider uppercase">
               Settings
             </h2>
             <Tabs.List class="flex-row overflow-x-auto md:flex-col">
@@ -190,12 +190,12 @@ function SettingsModal(props: SettingsModalProps) {
             </Tabs.List>
           </div>
 
-          <div class="flex min-w-0 flex-1 flex-col bg-background">
+          <div class="bg-background flex min-w-0 flex-1 flex-col">
             <div class="flex w-full flex-1 flex-col overflow-y-auto p-6 pt-8 md:p-8 md:pt-8">
               <Tabs.Content class="w-full" value="Appearance">
-                <div class="fade-in flex w-full animate-in flex-col gap-8 duration-300">
+                <div class="fade-in animate-in flex w-full flex-col gap-8 duration-300">
                   <section class="w-full">
-                    <div class="flex w-full flex-col divide-y divide-outline-variant/50 border-outline-variant/50 border-b">
+                    <div class="divide-outline-variant/50 border-outline-variant/50 flex w-full flex-col divide-y border-b">
                       <SettingsItem
                         description="Select the color theme for the editor interface."
                         forId="theme-select"
@@ -248,9 +248,9 @@ function SettingsModal(props: SettingsModalProps) {
               </Tabs.Content>
 
               <Tabs.Content class="w-full" value="Editor">
-                <div class="fade-in flex w-full animate-in flex-col gap-8 duration-300">
+                <div class="fade-in animate-in flex w-full flex-col gap-8 duration-300">
                   <section class="w-full">
-                    <div class="flex w-full flex-col divide-y divide-outline-variant/50 border-outline-variant/50 border-b">
+                    <div class="divide-outline-variant/50 border-outline-variant/50 flex w-full flex-col divide-y border-b">
                       <SettingsNumberItem
                         description="Base font size for the code editor (px)."
                         isModified={
@@ -329,9 +329,9 @@ function SettingsModal(props: SettingsModalProps) {
               </Tabs.Content>
 
               <Tabs.Content class="w-full" value="Execution">
-                <div class="fade-in flex w-full animate-in flex-col gap-8 duration-300">
+                <div class="fade-in animate-in flex w-full flex-col gap-8 duration-300">
                   <section class="w-full">
-                    <div class="flex w-full flex-col divide-y divide-outline-variant/50 border-outline-variant/50 border-b">
+                    <div class="divide-outline-variant/50 border-outline-variant/50 flex w-full flex-col divide-y border-b">
                       <SettingsSwitchItem
                         checked={core.settings.settings.isAutoRunEnabled}
                         description="Execute code automatically after a short delay."

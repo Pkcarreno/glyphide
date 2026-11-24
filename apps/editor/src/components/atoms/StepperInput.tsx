@@ -78,7 +78,7 @@ export function StepperInput(props: StepperInputProps) {
       </InputGroupAddon>
       <InputGroupInput
         aria-label={props.inputAriaLabel ?? "Numeric input"}
-        class="text-center tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        class="[appearance:textfield] text-center tabular-nums [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         disabled={props.disabled}
         id={props.id}
         max={props.max}

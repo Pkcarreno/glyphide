@@ -1,5 +1,5 @@
+import type { JSX } from "@solidjs/web";
 import ChevronDown from "lucide-solid/icons/chevron-down";
-import type { JSX } from "solid-js";
 import { omit } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { Icon } from "./Icon.tsx";
@@ -25,12 +25,12 @@ export function Select(props: SelectProps) {
     <div class="relative w-full">
       <select
         class={cn(
-          "w-full appearance-none border border-outline-variant bg-surface-variant",
-          "h-7 rounded-sm px-2 py-1 pr-8 text-on-surface text-xs",
+          "border-outline-variant bg-surface-variant w-full appearance-none border",
+          "text-on-surface h-7 rounded-sm px-2 py-1 pr-8 text-xs",
           "pointer-coarse:h-11 pointer-coarse:px-3 pointer-coarse:text-sm",
-          "focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/50",
+          "focus:border-ring focus:ring-ring/50 focus:ring-3 focus:outline-none",
           "disabled:cursor-not-allowed disabled:opacity-50",
-          "cursor-pointer transition-colors hover:bg-surface-variant/80",
+          "hover:bg-surface-variant/80 cursor-pointer transition-colors",
           props.class
         )}
         // @ts-expect-error: SolidJS requires prop:value for select elements to bind correctly before children render, but TS doesn't type namespaces natively.
@@ -39,7 +39,7 @@ export function Select(props: SelectProps) {
       >
         {props.children}
       </select>
-      <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-on-surface-variant">
+      <div class="text-on-surface-variant pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
         <Icon icon={ChevronDown} size={16} />
       </div>
     </div>

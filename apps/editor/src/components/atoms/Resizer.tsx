@@ -1,4 +1,4 @@
-import type { JSX } from "solid-js";
+import type { JSX } from "@solidjs/web";
 import { omit } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
@@ -49,16 +49,16 @@ function Resizer(props: ResizerProps) {
       aria-orientation="vertical"
       aria-valuenow={0}
       class={cn(
-        "m-0 shrink-0 cursor-col-resize touch-none border-none outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 m-0 shrink-0 cursor-col-resize touch-none border-none outline-none focus-visible:ring-3 aria-invalid:ring-3",
         "h-full w-1 md:hover:w-1", // Keep it 1px visual, maybe expand hit area?
-        "bg-outline-variant transition-colors delay-75 hover:bg-primary active:bg-primary",
+        "bg-outline-variant hover:bg-primary active:bg-primary transition-colors delay-75",
         props.class
       )}
       onPointerCancel={handlePointerUp}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      tabIndex={0}
+      tabindex={0}
       {...rest}
     />
   );

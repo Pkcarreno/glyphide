@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { FileDrop } from "./FileDrop.tsx";
 
 /** Top-level regexes for assertions — declared once to avoid re-allocation. */
-const IDLE_TEXT_RE = /click or drop/i;
+const IDLE_TEXT_RE = /click or drop/iu;
 
 /**
  * Helper: simulates a user picking a file via the hidden <input type="file">.

@@ -1,4 +1,4 @@
-import type { JSX } from "solid-js";
+import type { JSX } from "@solidjs/web";
 import { createContext, onCleanup, onSettled, useContext } from "solid-js";
 import { createBrowserFileIoAdapter } from "./adapters/file-io.ts";
 import { createLocalStorageAdapter } from "./adapters/local-storage.ts";
@@ -7,7 +7,7 @@ import type { EditorCore } from "./editor-core.ts";
 import { createEditorCore } from "./editor-core.ts";
 import { parseKeyCombo } from "./shortcuts/registry.ts";
 
-const EditorContext = createContext<EditorCore>();
+const EditorContext = createContext<EditorCore | null>(null);
 
 /**
  * SolidJS provider that creates the `EditorCore` and makes it
@@ -43,11 +43,7 @@ export function EditorProvider(props: { children: JSX.Element }) {
 
   onCleanup(() => core.dispose());
 
-  return (
-    <EditorContext value={core}>
-      {props.children}
-    </EditorContext>
-  );
+  return <EditorContext value={core}>{props.children}</EditorContext>;
 }
 
 /**

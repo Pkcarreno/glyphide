@@ -6,25 +6,20 @@ import {
   type Placement,
   shift,
 } from "@floating-ui/dom";
+import type { ComponentProps, JSX, ValidComponent } from "@solidjs/web";
+import { dynamic, Portal } from "@solidjs/web";
 import Check from "lucide-solid/icons/check";
-import type {
-  Accessor,
-  ComponentProps,
-  JSX,
-  Setter,
-  ValidComponent,
-} from "solid-js";
+import type { Accessor, Setter } from "solid-js";
 import {
   createContext,
   createEffect,
   createSignal,
+  omit,
   onCleanup,
   onSettled,
   Show,
   useContext,
-  omit,
 } from "solid-js";
-import { dynamic, Portal } from "@solidjs/web";
 import { cn } from "../../helpers/cn.ts";
 
 /* ---------- Context ---------- */
@@ -201,7 +196,6 @@ function DropdownRoot(props: DropdownRootProps) {
         contentRef: () => contentEl,
         isOpen,
         itemIds,
-        open,
         registerItem,
         setActiveIndex,
         setContentRef,
@@ -248,10 +242,10 @@ function DropdownTrigger<T extends ValidComponent = "button">(
 
   return (
     <Comp
-      aria-expanded={ctx.isOpen()}
+      aria-expanded={ctx.isOpen() ? "true" : "false"}
       aria-haspopup="true"
       class={cn(
-        "outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 outline-none focus-visible:ring-3 aria-invalid:ring-3",
         props.class
       )}
       onClick={(e: Event) => {
@@ -397,15 +391,15 @@ function DropdownContent(props: DropdownContentProps) {
         <div
           class={cn(
             "pointer-events-auto fixed z-50 w-max origin-top-left",
-            "overflow-y-auto overflow-x-hidden rounded-lg",
-            "bg-surface p-1 text-on-surface text-xs shadow-md ring-1 ring-on-surface/10",
+            "overflow-x-hidden overflow-y-auto rounded-lg",
+            "bg-surface text-on-surface ring-on-surface/10 p-1 text-xs shadow-md ring-1",
             "animate-[dropdown-in_100ms_ease-out]",
             props.class
           )}
           onKeyDown={handleKeyDown}
           ref={handleRef}
           role="menu"
-          tabIndex={-1}
+          tabindex={-1}
           {...rest}
         >
           {props.children}
@@ -432,7 +426,7 @@ function DropdownGroup(props: DropdownGroupProps) {
   return (
     <fieldset aria-label={props.heading} class={cn(props.class)} {...rest}>
       <Show when={props.heading}>
-        <div class="px-2 font-medium text-on-surface-variant text-xs">
+        <div class="text-on-surface-variant px-2 text-xs font-medium">
           {props.heading}
         </div>
       </Show>
@@ -505,7 +499,7 @@ function DropdownItem<T extends ValidComponent = "div">(
   return (
     <Comp
       class={cn(
-        "relative flex min-h-7 cursor-pointer select-none items-center gap-1.5 rounded-sm px-2 py-1 text-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 relative flex min-h-7 cursor-pointer items-center gap-1.5 rounded-sm px-2 py-1 text-xs transition-colors outline-none select-none focus-visible:ring-3 aria-invalid:ring-3",
         "pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:py-2.5",
         "hover:bg-surface-variant hover:text-on-surface",
         "data-[active=true]:bg-surface-variant data-[active=true]:text-on-surface",
@@ -515,7 +509,7 @@ function DropdownItem<T extends ValidComponent = "div">(
         props.isDisabled && "pointer-events-none cursor-default opacity-50",
         props.class
       )}
-      data-active={isActive()}
+      data-active={isActive() ? "true" : undefined}
       data-disabled={props.isDisabled}
       data-variant={props.variant}
       onClick={handleClick}
@@ -523,7 +517,7 @@ function DropdownItem<T extends ValidComponent = "div">(
         itemRef = el;
       }}
       role="menuitem"
-      tabIndex={-1}
+      tabindex={-1}
       {...rest}
     >
       {props.children}
@@ -593,10 +587,11 @@ function DropdownCheckboxItem(props: DropdownCheckboxItemProps) {
   };
 
   return (
+    // biome-ignore lint/a11y/useFocusableInteractive: Solid 2 uses lowercase tabindex attribute
     <div
-      aria-checked={props.isChecked}
+      aria-checked={props.isChecked ? "true" : "false"}
       class={cn(
-        "relative flex cursor-pointer select-none items-center gap-1.5 rounded-sm py-1 pr-8 pl-1.5 text-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 relative flex cursor-pointer items-center gap-1.5 rounded-sm py-1 pr-8 pl-1.5 text-xs transition-colors outline-none select-none focus-visible:ring-3 aria-invalid:ring-3",
         "pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:py-2.5",
         "hover:bg-surface-variant hover:text-on-surface",
         "data-[active=true]:bg-surface-variant data-[active=true]:text-on-surface",
@@ -604,7 +599,7 @@ function DropdownCheckboxItem(props: DropdownCheckboxItemProps) {
         props.isDisabled && "pointer-events-none cursor-default opacity-50",
         props.class
       )}
-      data-active={isActive()}
+      data-active={isActive() ? "true" : undefined}
       data-disabled={props.isDisabled}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
@@ -612,7 +607,7 @@ function DropdownCheckboxItem(props: DropdownCheckboxItemProps) {
         itemRef = el;
       }}
       role="menuitemcheckbox"
-      tabIndex={-1}
+      tabindex={-1}
       {...rest}
     >
       <span
@@ -692,7 +687,7 @@ function DropdownLink<T extends ValidComponent = "a">(
   return (
     <Comp
       class={cn(
-        "relative flex min-h-7 cursor-pointer select-none items-center gap-1.5 rounded-sm px-2 py-1 text-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 relative flex min-h-7 cursor-pointer items-center gap-1.5 rounded-sm px-2 py-1 text-xs transition-colors outline-none select-none focus-visible:ring-3 aria-invalid:ring-3",
         "pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:py-2.5",
         "hover:bg-surface-variant hover:text-on-surface",
         "data-[active=true]:bg-surface-variant data-[active=true]:text-on-surface",
@@ -700,14 +695,14 @@ function DropdownLink<T extends ValidComponent = "a">(
         props.isDisabled && "pointer-events-none cursor-default opacity-50",
         props.class
       )}
-      data-active={isActive()}
+      data-active={isActive() ? "true" : undefined}
       data-disabled={props.isDisabled}
       onClick={handleClick}
       ref={(el: HTMLElement) => {
         itemRef = el;
       }}
       role="menuitem"
-      tabIndex={-1}
+      tabindex={-1}
       {...rest}
     >
       {props.children}
@@ -733,7 +728,7 @@ function DropdownCaption(props: DropdownCaptionProps) {
 
   return (
     <div
-      class={cn("px-2 py-1 text-on-surface-variant text-xs", props.class)}
+      class={cn("text-on-surface-variant px-2 py-1 text-xs", props.class)}
       role="presentation"
       {...rest}
     >
@@ -758,7 +753,7 @@ function DropdownLabel(props: DropdownLabelProps) {
   return (
     <div
       class={cn(
-        "px-2 py-1.5 font-medium text-on-surface-variant text-xs",
+        "text-on-surface-variant px-2 py-1.5 text-xs font-medium",
         props.class
       )}
       role="presentation"
@@ -784,7 +779,7 @@ function DropdownSeparator(props: DropdownSeparatorProps) {
   return (
     <hr
       aria-orientation="horizontal"
-      class={cn("-mx-1 my-1 h-px border-none bg-outline-variant", props.class)}
+      class={cn("bg-outline-variant -mx-1 my-1 h-px border-none", props.class)}
       {...rest}
     />
   );
@@ -806,7 +801,7 @@ function DropdownShortcut(props: DropdownShortcutProps) {
   return (
     <span
       class={cn(
-        "ml-auto text-on-surface-variant text-xs tracking-widest",
+        "text-on-surface-variant ml-auto text-xs tracking-widest",
         props.class
       )}
       {...rest}

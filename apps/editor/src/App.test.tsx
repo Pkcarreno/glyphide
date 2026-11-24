@@ -85,7 +85,7 @@ vi.mock("./components/atoms/CodeField/CodeField.tsx", () => ({
   CodeField: () => <div data-testid="code-field-stub" />,
 }));
 
-const TEST_PROJECT_REGEX = /TEST_PROJECT/;
+const TEST_PROJECT_REGEX = /TEST_PROJECT/u;
 
 describe("App", () => {
   it("renders the EditorPage component", () => {

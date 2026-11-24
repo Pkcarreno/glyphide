@@ -1,13 +1,14 @@
+import type { JSX } from "@solidjs/web";
 import SearchIcon from "lucide-solid/icons/search";
-import type { Accessor, JSX, Setter } from "solid-js";
+import type { Accessor, Setter } from "solid-js";
 import {
   createContext,
   createEffect,
   createSignal,
+  omit,
   onSettled,
   Show,
   useContext,
-  omit,
 } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { Dialog, useDialog } from "../molecules/Dialog.tsx";
@@ -113,7 +114,9 @@ export function CommandRoot(props: CommandRootProps) {
       e.preventDefault();
       const selected = selectedId();
       if (selected) {
-        const el = document.getElementById(`command-item-${selected}`);
+        const el = document.querySelector<HTMLElement>(
+          `#command-item-${selected}`
+        );
         el?.click();
       }
     }
@@ -142,16 +145,17 @@ export function CommandRoot(props: CommandRootProps) {
         visibleItems,
       }}
     >
+      {/* biome-ignore lint/a11y/useFocusableInteractive: Solid 2 uses lowercase tabindex attribute */}
       <div
-        aria-expanded={true}
+        aria-expanded="true"
         aria-haspopup="listbox"
         class={cn(
-          "flex flex-col overflow-hidden rounded-xl bg-surface shadow-md ring-1 ring-on-surface/10",
+          "bg-surface ring-on-surface/10 flex flex-col overflow-hidden rounded-xl shadow-md ring-1",
           props.class
         )}
         onKeyDown={handleKeyDown}
         role="combobox"
-        tabIndex={-1}
+        tabindex={-1}
         {...rest}
       >
         {props.children}
@@ -203,7 +207,7 @@ export function CommandList(props: JSX.HTMLAttributes<HTMLDivElement>) {
   const rest = omit(props, "class", "children");
   return (
     <div
-      class={cn("max-h-75 overflow-y-auto overflow-x-hidden p-1", props.class)}
+      class={cn("max-h-75 overflow-x-hidden overflow-y-auto p-1", props.class)}
       {...rest}
     >
       {props.children}
@@ -221,7 +225,7 @@ export function CommandEmpty(props: JSX.HTMLAttributes<HTMLDivElement>) {
     <Show when={ctx.visibleItems().size === 0}>
       <div
         class={cn(
-          "py-6 text-center text-on-surface-variant text-sm",
+          "text-on-surface-variant py-6 text-center text-sm",
           props.class
         )}
         {...rest}
@@ -242,9 +246,9 @@ export function CommandGroup(props: CommandGroupProps) {
   const rest = omit(props, "class", "children", "heading");
 
   return (
-    <div class={cn("overflow-hidden text-on-surface", props.class)} {...rest}>
+    <div class={cn("text-on-surface overflow-hidden", props.class)} {...rest}>
       <Show when={props.heading}>
-        <div class="px-2 py-1.5 font-medium text-on-surface-variant text-xs uppercase">
+        <div class="text-on-surface-variant px-2 py-1.5 text-xs font-medium uppercase">
           {props.heading}
         </div>
       </Show>
@@ -289,10 +293,11 @@ export function CommandItem(props: CommandItemProps) {
 
   return (
     <Show when={isVisible()}>
+      {/* biome-ignore lint/a11y/useFocusableInteractive: Solid 2 uses lowercase tabindex attribute */}
       <div
-        aria-selected={isSelected()}
+        aria-selected={isSelected() ? "true" : "false"}
         class={cn(
-          "relative flex min-h-7 cursor-pointer select-none items-center rounded-sm px-2.5 py-1.5 text-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+          "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 relative flex min-h-7 cursor-pointer items-center rounded-sm px-2.5 py-1.5 text-xs transition-colors outline-none select-none focus-visible:ring-3 aria-invalid:ring-3",
           "pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:py-2.5",
           isSelected()
             ? "bg-surface-variant text-on-surface"
@@ -314,7 +319,7 @@ export function CommandItem(props: CommandItemProps) {
           ref = el;
         }}
         role="option"
-        tabIndex={0}
+        tabindex={0}
         {...rest}
       >
         {props.children}
@@ -328,11 +333,12 @@ export function CommandItem(props: CommandItemProps) {
 function CommandDialogOverlay(props: JSX.HTMLAttributes<HTMLButtonElement>) {
   const { close } = useDialog();
   return (
+    // biome-ignore lint/a11y/noAriaHiddenOnFocusable: Backdrop overlay button is intentionally hidden from assistive tech
     <button
       aria-hidden="true"
       class="fixed inset-0 z-50 m-0 cursor-default border-none bg-transparent p-0"
       onClick={close}
-      tabIndex={-1}
+      tabindex={-1}
       type="button"
       {...props}
     />
