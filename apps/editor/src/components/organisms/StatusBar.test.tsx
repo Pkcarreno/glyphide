@@ -6,6 +6,7 @@ import {
   waitFor,
 } from "@solidjs/testing-library";
 import {
+  action,
   affects,
   createMemo,
   createRoot,
@@ -38,6 +39,8 @@ const [mockLanguage, setMockLanguage] = createSignal("javascript");
 const [mockIsRunning, setMockIsRunning] = createSignal(false);
 const [mockIsDirty, setMockIsDirty] = createSignal(false);
 const [mockIsBlocked, setMockIsBlocked] = createSignal(false);
+const [mockRunState, setMockRunState] = createSignal(0);
+const [mockExecutionState, setMockExecutionState] = createSignal(0);
 let engineResolver:
   | ((
       entry: MockEngineEntry
@@ -86,11 +89,13 @@ vi.mock("../../core/context.tsx", () => ({
         affects(currentEngineMemo);
         return refresh(currentEngineMemo).catch(() => undefined);
       },
+      runState: () => mockRunState(),
     },
     engine: {
       activeEngineId: () => mockEngineId(),
       activeLanguage: () => mockLanguage(),
       engine: currentEngineMemo,
+      executionState: () => mockExecutionState(),
       isBlocked: () => mockIsBlocked(),
       isDirty: () => mockIsDirty(),
       isRunning: () => mockIsRunning(),
@@ -171,6 +176,63 @@ describe("StatusBar", () => {
     flush();
     const { getByText } = render(() => <StatusBar />);
     expect(getByText("running")).toBeTruthy();
+  });
+
+  it("binds braille spinner and running status to action isPending and settles on success", async () => {
+    const deferred = createDeferred<void>();
+    const runAction = action(function* () {
+      setMockRunState((state) => state + 1);
+      setMockExecutionState((state) => state + 1);
+      yield deferred.promise;
+    });
+
+    const { container, getByText } = render(() => <StatusBar />);
+    expect(getByText("ready")).toBeTruthy();
+
+    const runPromise = runAction();
+    flush();
+
+    expect(getByText("running")).toBeTruthy();
+    expect(container.textContent).toContain("⠋");
+
+    deferred.resolve();
+    await runPromise;
+    flush();
+
+    await waitFor(() => {
+      expect(getByText("ready")).toBeTruthy();
+      expect(container.textContent).not.toContain("⠋");
+    });
+  });
+
+  it("stops braille animation and returns to ready when action rejects", async () => {
+    const deferred = createDeferred<void>();
+    const runAction = action(function* () {
+      setMockRunState((state) => state + 1);
+      setMockExecutionState((state) => state + 1);
+      try {
+        yield deferred.promise;
+      } catch {
+        // Settle cleanly on error
+      }
+    });
+
+    const { container, getByText } = render(() => <StatusBar />);
+
+    const runPromise = runAction();
+    flush();
+
+    expect(getByText("running")).toBeTruthy();
+    expect(container.textContent).toContain("⠋");
+
+    deferred.reject(new Error("Execution failed"));
+    await runPromise;
+    flush();
+
+    await waitFor(() => {
+      expect(getByText("ready")).toBeTruthy();
+      expect(container.textContent).not.toContain("⠋");
+    });
   });
 
   it("holds previous engine UI state and shows isPending spinner until switched engine resolves", async () => {

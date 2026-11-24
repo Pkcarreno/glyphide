@@ -1,3 +1,5 @@
+import type { Accessor } from "solid-js";
+import { action, createSignal } from "solid-js";
 import type { EngineId } from "./engine/registry.ts";
 import type { EngineModel } from "./models/engine.ts";
 import type { NotificationModel } from "./models/notifications.ts";
@@ -50,6 +52,11 @@ export interface EditorCommands {
   retryEngineInit: () => void;
   /** Executes the buffer code, prompting for trust if required. */
   runCode: () => Promise<void>;
+  /**
+   * Held transaction marker for `runCode`.
+   * Probe with `isPending(() => commands.runState())` to track active execution commands.
+   */
+  runState: Accessor<number>;
   /** Switches the active engine and language, reinitializing the runner. */
   selectEngine: (engineId: EngineId, language: string) => void;
   /** Updates the buffer code and schedules debounced auto-run if enabled. */
@@ -72,6 +79,7 @@ function languageToExtension(language: string): string {
 /** Creates the orchestrated editor commands. */
 export function createEditorCommands(deps: EditorCommandsDeps): EditorCommands {
   let autoRunTimer: ReturnType<typeof setTimeout> | undefined;
+  const [runState, setRunState] = createSignal<number>(0);
 
   function clearAutoRunTimer(): void {
     if (autoRunTimer) {
@@ -80,16 +88,17 @@ export function createEditorCommands(deps: EditorCommandsDeps): EditorCommands {
     }
   }
 
-  async function runCode(): Promise<void> {
+  const runCode = action(function* () {
     if (deps.session.isTrustRequired()) {
       deps.overlays.open("trust-required");
       return;
     }
-    await deps.engine.executeCode();
-  }
+    setRunState((state) => state + 1);
+    yield deps.engine.executeCode();
+  });
 
   function interruptExecution(): void {
-    deps.engine.interruptExecution();
+    deps.engine.interruptExecution().catch(() => undefined);
   }
 
   function selectEngine(engineId: EngineId, language: string): void {
@@ -195,6 +204,7 @@ export function createEditorCommands(deps: EditorCommandsDeps): EditorCommands {
     resetProjectState,
     retryEngineInit,
     runCode,
+    runState,
     selectEngine,
     updateBuffer,
   };

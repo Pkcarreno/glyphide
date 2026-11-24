@@ -6,12 +6,15 @@ import type {
 } from "@glyphide/rpc-protocol/types";
 import type { Accessor, SourceAccessor } from "solid-js";
 import {
+  action,
   affects,
   createEffect,
   createMemo,
+  createOptimistic,
   createRoot,
   createSignal,
   onCleanup,
+  onFlush,
   refresh,
   resolve,
 } from "solid-js";
@@ -75,13 +78,18 @@ export interface EngineModel {
   engine: SourceAccessor<InitializedEngine | null>;
   /** Executes the current buffer content in the active engine. */
   executeCode: () => Promise<void>;
+  /**
+   * Held transaction marker for code execution.
+   * Probe with `isPending(() => model.executionState())` to track in-flight runs.
+   */
+  executionState: Accessor<number>;
   /** Forcefully interrupts the running execution. */
   interruptExecution: () => Promise<void>;
   /** Indicates whether engine initialization is blocked by the trust gate. */
   isBlocked: Accessor<boolean>;
   /** Indicates if the buffer was modified while an execution is in progress. */
   isDirty: Accessor<boolean>;
-  /** Indicates whether code execution is currently running in the worker. */
+  /** Optimistic indicator of whether code execution is currently running. */
   isRunning: Accessor<boolean>;
   /** Retries initialization for the current entry via `refresh(engine)`. */
   retryInit: () => Promise<void>;
@@ -97,16 +105,45 @@ function formatErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+function raceWithAbort<T>(
+  promise: Promise<T>,
+  signal: AbortSignal
+): Promise<T> {
+  if (signal.aborted) {
+    return Promise.reject(
+      new DOMException("Execution interrupted", "AbortError")
+    );
+  }
+  return new Promise<T>((resolvePromise, rejectPromise) => {
+    const handleAbort = () => {
+      rejectPromise(new DOMException("Execution interrupted", "AbortError"));
+    };
+    signal.addEventListener("abort", handleAbort, { once: true });
+    promise.then(
+      (value) => {
+        signal.removeEventListener("abort", handleAbort);
+        resolvePromise(value);
+      },
+      (error) => {
+        signal.removeEventListener("abort", handleAbort);
+        rejectPromise(error);
+      }
+    );
+  });
+}
+
 /** Creates an `EngineModel` wired to the given dependencies. */
 export function createEngineModel(deps: EngineModelDeps): EngineModel {
   return createRoot((disposeRoot) => {
     const [isDirty, setIsDirty] = createSignal<boolean>(false);
-    const [isRunning, setIsRunning] = createSignal<boolean>(false);
+    const [executionState, setExecutionState] = createSignal<number>(0);
+    const [isRunning, setIsRunning] = createOptimistic<boolean>(false);
     const [isBlocked, setIsBlocked] = createSignal<boolean>(
       deps.session.isTrustRequired()
     );
     const [configOverrides, setConfigOverrides] =
       createSignal<EngineConfigOverride | null>(null);
+    let activeExecutionAbort: AbortController | null = null;
 
     function handleOutput(payload: EngineOutputPayload): void {
       deps.output.appendEntry(payload.type, payload.data);
@@ -230,8 +267,8 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     // Track code edits while execution is running to set isDirty automatically.
     createEffect(
       () => ({ code: deps.session.code(), running: isRunning() }),
-      ({ running }, prev) => {
-        if (prev !== undefined && running) {
+      ({ code, running }, prev) => {
+        if (prev !== undefined && running && code !== prev.code) {
           setIsDirty(true);
         }
       }
@@ -245,6 +282,7 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
         return;
       }
 
+      activeExecutionAbort?.abort();
       deps.output.clearEntries();
       deps.session.selectEngine(entry.engineId, entry.language);
     }
@@ -291,54 +329,65 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
       }
     }
 
-    async function runWithActiveEngine(
-      activeEngine: InitializedEngine,
-      code: string
-    ): Promise<void> {
-      try {
-        setIsDirty(false);
-        setIsRunning(true);
-        await activeEngine.orchestrator.reset();
-        await activeEngine.orchestrator.run(code);
-      } catch (error) {
-        deps.output.appendEntry("error", formatErrorMessage(error));
-      } finally {
-        setIsRunning(false);
-        setIsDirty(false);
+    function* runInEngine(code: string, signal: AbortSignal) {
+      const activeEngine = (yield raceWithAbort(
+        resolveActiveEngine(true),
+        signal
+      )) as InitializedEngine | null;
+
+      if (!activeEngine || signal.aborted) {
+        return;
       }
+
+      yield raceWithAbort(activeEngine.orchestrator.reset(), signal);
+      if (signal.aborted) {
+        return;
+      }
+
+      yield raceWithAbort(activeEngine.orchestrator.run(code), signal);
     }
 
-    async function executeCode(): Promise<void> {
+    const executeCode = action(function* () {
       const code = deps.session.code();
-      if (!code.trim()) {
+      if (!code.trim() || isBlocked() || isRunning()) {
         return;
       }
 
       if (deps.settings.settings.isClearOnRunEnabled) {
-        deps.output.clearEntries();
+        // Defer clear past the current flush so output stays live during execution.
+        onFlush(() => deps.output.clearEntries());
       }
 
-      if (isBlocked() || isRunning()) {
-        return;
-      }
+      const abortController = new AbortController();
+      activeExecutionAbort = abortController;
 
-      const activeEngine = await resolveActiveEngine(true);
-      if (!activeEngine) {
-        return;
-      }
+      setExecutionState((state) => state + 1);
+      setIsRunning(true);
+      setIsDirty(false);
 
-      await runWithActiveEngine(activeEngine, code);
-    }
+      try {
+        yield* runInEngine(code, abortController.signal);
+      } catch (error) {
+        if (!abortController.signal.aborted) {
+          deps.output.appendEntry("error", formatErrorMessage(error));
+        }
+      } finally {
+        if (activeExecutionAbort === abortController) {
+          activeExecutionAbort = null;
+        }
+        setIsDirty(false);
+      }
+    });
 
     async function interruptExecution(): Promise<void> {
       if (!isRunning()) {
         return;
       }
 
+      activeExecutionAbort?.abort();
+
       const activeEngine = await resolveActiveEngine(false);
       if (!activeEngine) {
-        setIsRunning(false);
-        setIsDirty(false);
         return;
       }
 
@@ -347,14 +396,19 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         deps.output.appendEntry("error", `Interrupt failed: ${message}`);
-      } finally {
-        setIsRunning(false);
-        setIsDirty(false);
       }
     }
 
     function setBlocked(blocked: boolean): void {
+      if (blocked) {
+        activeExecutionAbort?.abort();
+      }
       setIsBlocked(blocked);
+    }
+
+    function dispose(): void {
+      activeExecutionAbort?.abort();
+      disposeRoot();
     }
 
     return {
@@ -362,9 +416,10 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
       activeEngineId: deps.session.activeEngineId,
       activeInitParams: () => engine()?.initParams ?? null,
       activeLanguage: deps.session.activeLanguage,
-      dispose: disposeRoot,
+      dispose,
       engine,
       executeCode,
+      executionState,
       interruptExecution,
       isBlocked,
       isDirty,

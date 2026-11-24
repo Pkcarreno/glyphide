@@ -14,11 +14,29 @@ import {
 } from "./session.ts";
 import { createSettingsModel } from "./settings.ts";
 
+const MUTATING_METHODS = new Set([
+  "executeCode",
+  "grantTrust",
+  "interruptExecution",
+  "loadFile",
+  "markTrustRequired",
+  "reset",
+  "retryInit",
+  "selectEngine",
+  "selectEngineEntry",
+  "setBlocked",
+  "setCode",
+  "setCursorPosition",
+  "setProjectName",
+  "setShareableState",
+  "updateEngineConfig",
+]);
+
 function withFlush<T extends object>(target: T): T {
   return new Proxy(target, {
     get(t, prop, receiver) {
       const val = Reflect.get(t, prop, receiver);
-      if (typeof val === "function") {
+      if (typeof val === "function" && MUTATING_METHODS.has(String(prop))) {
         return (...args: unknown[]) => {
           const res = val.apply(t, args);
           flush();
@@ -850,6 +868,320 @@ describe("EngineModel trust gate contract", () => {
 
     expect(factorySpy).toHaveBeenCalledWith("mock");
     expect(model.engine()?.engineId).toBe("mock");
+
+    model.dispose();
+  });
+});
+
+describe("EngineModel transactional execution and optimistic state", () => {
+  let session: WorkspaceSession;
+  let output: ReturnType<typeof createOutputModel>;
+  let settings: ReturnType<typeof createSettingsModel>;
+  let registry: ReturnType<typeof createEngineRegistry>;
+
+  beforeEach(() => {
+    registry = createTestRegistry();
+    session = createWorkspaceSession({
+      engineRegistry: registry,
+      isDefaultCodeEnabled: () => false,
+      urlPersistence: createMockUrlPersistence(),
+    });
+    output = createOutputModel();
+    settings = createSettingsModel(createMockPersistence());
+    settings.updateSettings({ isClearOnRunEnabled: false });
+  });
+
+  it("updates isRunning and executionState pending state optimistically and settles on success", async () => {
+    const runDeferred = createDeferred<{ executed: boolean }>();
+    const deferredRegistry: ReturnType<typeof createEngineRegistry> = {
+      ...registry,
+      loadFactory: async () => () => {
+        const worker = {
+          onmessage: null as ((msg: unknown) => void) | null,
+          postMessage(msg: Record<string, unknown>) {
+            const onMessage = worker.onmessage;
+            if (!onMessage) {
+              return;
+            }
+            if (msg.method === EngineMethod.Init) {
+              setTimeout(() => {
+                onMessage({
+                  data: {
+                    id: msg.id,
+                    jsonrpc: "2.0",
+                    result: {
+                      id: "test",
+                      isInterruptible: true,
+                      isStateful: true,
+                      supportedLanguages: ["javascript"],
+                      timeout: 30_000,
+                    },
+                  },
+                });
+              }, 0);
+            } else if (msg.method === EngineMethod.Reset) {
+              setTimeout(() => {
+                onMessage({
+                  data: { id: msg.id, jsonrpc: "2.0", result: { reset: true } },
+                });
+              }, 0);
+            } else if (msg.method === EngineMethod.Run) {
+              runDeferred.promise.then((res) => {
+                onMessage({
+                  data: { id: msg.id, jsonrpc: "2.0", result: res },
+                });
+              });
+            }
+          },
+          terminate: vi.fn(),
+        };
+        return worker as unknown as Worker;
+      },
+    };
+
+    const model = createEngineModel({
+      output,
+      registry: deferredRegistry,
+      session,
+      settings,
+    });
+    await resolve(() => model.engine());
+    session.setCode("1 + 1");
+
+    expect(model.isRunning()).toBe(false);
+    expect(isPending(() => model.executionState())).toBe(false);
+
+    const execPromise = model.executeCode();
+
+    expect(model.isRunning()).toBe(true);
+    expect(isPending(() => model.executionState())).toBe(true);
+
+    runDeferred.resolve({ executed: true });
+    await execPromise;
+    flush();
+
+    expect(model.isRunning()).toBe(false);
+    expect(isPending(() => model.executionState())).toBe(false);
+
+    model.dispose();
+  });
+
+  it("reverts optimistic isRunning cleanly on execution error", async () => {
+    const failingRegistry: ReturnType<typeof createEngineRegistry> = {
+      ...registry,
+      loadFactory: async () => () => {
+        const worker = {
+          onmessage: null as ((msg: unknown) => void) | null,
+          postMessage(msg: Record<string, unknown>) {
+            const onMessage = worker.onmessage;
+            if (!onMessage) {
+              return;
+            }
+            setTimeout(() => {
+              if (msg.method === EngineMethod.Init) {
+                onMessage({
+                  data: {
+                    id: msg.id,
+                    jsonrpc: "2.0",
+                    result: {
+                      id: "test",
+                      isInterruptible: true,
+                      isStateful: true,
+                      supportedLanguages: ["javascript"],
+                      timeout: 30_000,
+                    },
+                  },
+                });
+              } else if (msg.method === EngineMethod.Reset) {
+                onMessage({
+                  data: { id: msg.id, jsonrpc: "2.0", result: { reset: true } },
+                });
+              } else if (msg.method === EngineMethod.Run) {
+                onMessage({
+                  data: {
+                    error: { code: -32_000, message: "ReferenceError: boom" },
+                    id: msg.id,
+                    jsonrpc: "2.0",
+                  },
+                });
+              }
+            }, 5);
+          },
+          terminate: vi.fn(),
+        };
+        return worker as unknown as Worker;
+      },
+    };
+
+    const model = createEngineModel({
+      output,
+      registry: failingRegistry,
+      session,
+      settings,
+    });
+    await resolve(() => model.engine());
+    session.setCode("boom()");
+
+    const execPromise = model.executeCode();
+    expect(model.isRunning()).toBe(true);
+    expect(isPending(() => model.executionState())).toBe(true);
+
+    await execPromise;
+    flush();
+
+    expect(model.isRunning()).toBe(false);
+    expect(isPending(() => model.executionState())).toBe(false);
+    await waitFor(() => {
+      expect(
+        output
+          .entries()
+          .some((e) => e.type === "error" && String(e.data).includes("boom"))
+      ).toBe(true);
+    });
+
+    model.dispose();
+  });
+
+  it("terminates interrupted execution cleanly without dangling optimistic state", async () => {
+    const neverResolves = createDeferred<unknown>();
+    const hangingRegistry: ReturnType<typeof createEngineRegistry> = {
+      ...registry,
+      loadFactory: async () => () => {
+        const worker = {
+          onmessage: null as ((msg: unknown) => void) | null,
+          postMessage(msg: Record<string, unknown>) {
+            const onMessage = worker.onmessage;
+            if (!onMessage) {
+              return;
+            }
+            if (msg.method === EngineMethod.Init) {
+              setTimeout(() => {
+                onMessage({
+                  data: {
+                    id: msg.id,
+                    jsonrpc: "2.0",
+                    result: {
+                      id: "test",
+                      isInterruptible: true,
+                      isStateful: true,
+                      supportedLanguages: ["javascript"],
+                      timeout: 30_000,
+                    },
+                  },
+                });
+              }, 5);
+            } else if (msg.method === EngineMethod.Reset) {
+              setTimeout(() => {
+                onMessage({
+                  data: { id: msg.id, jsonrpc: "2.0", result: { reset: true } },
+                });
+              }, 5);
+            } else if (msg.method === EngineMethod.Run) {
+              neverResolves.promise.catch(() => undefined);
+            }
+          },
+          terminate: vi.fn(),
+        };
+        return worker as unknown as Worker;
+      },
+    };
+
+    const model = createEngineModel({
+      output,
+      registry: hangingRegistry,
+      session,
+      settings,
+    });
+    await resolve(() => model.engine());
+    session.setCode("while (true) {}");
+
+    const execPromise = model.executeCode();
+    expect(model.isRunning()).toBe(true);
+    expect(isPending(() => model.executionState())).toBe(true);
+
+    await model.interruptExecution();
+    await execPromise;
+    flush();
+
+    expect(model.isRunning()).toBe(false);
+    expect(model.isDirty()).toBe(false);
+    expect(isPending(() => model.executionState())).toBe(false);
+
+    model.dispose();
+  });
+
+  it("ignores concurrent executeCode calls while execution is already running", async () => {
+    const runDeferred = createDeferred<{ executed: boolean }>();
+    let runPostCount = 0;
+    const controlledRegistry: ReturnType<typeof createEngineRegistry> = {
+      ...registry,
+      loadFactory: async () => () => {
+        const worker = {
+          onmessage: null as ((msg: unknown) => void) | null,
+          postMessage(msg: Record<string, unknown>) {
+            const onMessage = worker.onmessage;
+            if (!onMessage) {
+              return;
+            }
+            if (msg.method === EngineMethod.Init) {
+              setTimeout(() => {
+                onMessage({
+                  data: {
+                    id: msg.id,
+                    jsonrpc: "2.0",
+                    result: {
+                      id: "test",
+                      isInterruptible: true,
+                      isStateful: true,
+                      supportedLanguages: ["javascript"],
+                      timeout: 30_000,
+                    },
+                  },
+                });
+              }, 0);
+            } else if (msg.method === EngineMethod.Reset) {
+              setTimeout(() => {
+                onMessage({
+                  data: { id: msg.id, jsonrpc: "2.0", result: { reset: true } },
+                });
+              }, 0);
+            } else if (msg.method === EngineMethod.Run) {
+              runPostCount += 1;
+              runDeferred.promise.then((res) => {
+                onMessage({
+                  data: { id: msg.id, jsonrpc: "2.0", result: res },
+                });
+              });
+            }
+          },
+          terminate: vi.fn(),
+        };
+        return worker as unknown as Worker;
+      },
+    };
+
+    const model = createEngineModel({
+      output,
+      registry: controlledRegistry,
+      session,
+      settings,
+    });
+    await resolve(() => model.engine());
+    session.setCode("console.log(1)");
+
+    const firstExec = model.executeCode();
+    const secondExec = model.executeCode();
+    await secondExec;
+    flush();
+
+    expect(model.isRunning()).toBe(true);
+
+    runDeferred.resolve({ executed: true });
+    await firstExec;
+    flush();
+
+    expect(runPostCount).toBe(1);
+    expect(model.isRunning()).toBe(false);
 
     model.dispose();
   });

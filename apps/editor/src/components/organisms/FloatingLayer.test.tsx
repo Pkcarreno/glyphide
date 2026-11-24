@@ -27,6 +27,7 @@ vi.mock("../../core/context", () => ({
         initParams: { language: "plaintext", timeout: 1000 },
         language: "plaintext",
       }),
+      executionState: () => 0,
       isBlocked: () => false,
       isDirty: () => false,
       isRunning: () => false,
