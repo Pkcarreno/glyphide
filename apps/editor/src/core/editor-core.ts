@@ -89,7 +89,6 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
 
     function dispose(): void {
       commands.dispose();
-      engine.terminate();
       engine.dispose();
       notifications.dispose();
       disposeRoot();
@@ -99,8 +98,6 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
       if (session.isTrustRequired()) {
         engine.setBlocked(true);
         overlays.open("trust-required");
-      } else {
-        engine.initializeSelectedEngine();
       }
       flush();
     });

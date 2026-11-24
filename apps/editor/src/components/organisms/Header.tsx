@@ -36,7 +36,7 @@ function Header(props: HeaderProps) {
   const pwa = usePwaUpdate();
 
   function handleRunClick() {
-    if (core.engine.engineStatus() === "running") {
+    if (core.engine.isRunning()) {
       core.commands.interruptExecution();
     } else {
       core.commands.runCode();
@@ -220,20 +220,12 @@ function Header(props: HeaderProps) {
         <ActionTooltip
           as={Button}
           commandId={
-            core.engine.engineStatus() === "running"
-              ? "interrupt-execution"
-              : "run-code"
+            core.engine.isRunning() ? "interrupt-execution" : "run-code"
           }
           onClick={handleRunClick}
           position="bottom"
-          text={
-            core.engine.engineStatus() === "running"
-              ? "Stop Execution"
-              : "Run Code"
-          }
-          variant={
-            core.engine.engineStatus() === "running" ? "outline" : "primary"
-          }
+          text={core.engine.isRunning() ? "Stop Execution" : "Run Code"}
+          variant={core.engine.isRunning() ? "outline" : "primary"}
         >
           <Show
             fallback={
@@ -241,7 +233,7 @@ function Header(props: HeaderProps) {
                 <Icon class="mr-1" icon={Play} /> Run
               </>
             }
-            when={core.engine.engineStatus() === "running"}
+            when={core.engine.isRunning()}
           >
             <Icon class="mr-1" icon={Square} /> Stop
           </Show>

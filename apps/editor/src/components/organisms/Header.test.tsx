@@ -12,7 +12,7 @@ const interruptExecutionMock = vi.fn();
 const openOverlayMock = vi.fn();
 const toggleOverlayMock = vi.fn();
 const applyUpdateMock = vi.fn();
-const [mockEngineStatus, setMockEngineStatus] = createSignal("idle");
+const [mockIsRunning, setMockIsRunning] = createSignal(false);
 const [mockIsTrustRequired, setMockIsTrustRequired] = createSignal(false);
 const [mockUpdateAvailable, setMockUpdateAvailable] = createSignal(false);
 
@@ -29,7 +29,7 @@ vi.mock("../../core/context", () => ({
       interruptExecution: interruptExecutionMock,
       runCode: runCodeMock,
     },
-    engine: { engineStatus: () => mockEngineStatus() },
+    engine: { isRunning: () => mockIsRunning() },
     overlays: {
       open: openOverlayMock,
       toggle: toggleOverlayMock,
@@ -59,7 +59,7 @@ describe("Header", () => {
     openOverlayMock.mockClear();
     toggleOverlayMock.mockClear();
     applyUpdateMock.mockClear();
-    setMockEngineStatus("idle");
+    setMockIsRunning(false);
     setMockIsTrustRequired(false);
   });
 
@@ -88,7 +88,7 @@ describe("Header", () => {
   });
 
   it("when stop button clicked while running, calls core.commands.interruptExecution()", () => {
-    setMockEngineStatus("running");
+    setMockIsRunning(true);
     const { getByRole } = render(() => <Header />);
     const stopButton = getByRole("button", { name: STOP_REGEX });
     stopButton.click();
