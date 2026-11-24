@@ -4,8 +4,7 @@ import {
   createContext,
   createEffect,
   createSignal,
-  onCleanup,
-  onMount,
+  onSettled,
   Show,
   useContext,
   omit,
@@ -120,15 +119,16 @@ export function CommandRoot(props: CommandRootProps) {
     }
   };
 
-  createEffect(() => {
-    const visible = Array.from(visibleItems());
-    const currentId = selectedId();
-    if (visible.length > 0 && !(currentId && visible.includes(currentId))) {
-      setSelectedId(visible[0]);
-    } else if (visible.length === 0) {
-      setSelectedId(null);
+  createEffect(
+    () => ({ currentId: selectedId(), visible: Array.from(visibleItems()) }),
+    ({ currentId, visible }) => {
+      if (visible.length > 0 && !(currentId && visible.includes(currentId))) {
+        setSelectedId(visible[0]);
+      } else if (visible.length === 0) {
+        setSelectedId(null);
+      }
     }
-  });
+  );
 
   return (
     <CommandContext
@@ -172,10 +172,11 @@ export function CommandInput(props: CommandInputProps) {
   const ctx = useCommand();
   let inputRef: HTMLInputElement | undefined;
 
-  onMount(() => {
-    setTimeout(() => {
+  onSettled(() => {
+    const timer = setTimeout(() => {
       inputRef?.focus();
     }, 0);
+    return () => clearTimeout(timer);
   });
 
   return (
@@ -267,9 +268,9 @@ export function CommandItem(props: CommandItemProps) {
   const ctx = useCommand();
   const id = props.value;
 
-  onMount(() => {
+  onSettled(() => {
     ctx.registerItem(id, props.value);
-    onCleanup(() => ctx.unregisterItem(id));
+    return () => ctx.unregisterItem(id);
   });
 
   const isVisible = () => ctx.visibleItems().has(id);
@@ -277,11 +278,14 @@ export function CommandItem(props: CommandItemProps) {
 
   let ref: HTMLDivElement | undefined;
 
-  createEffect(() => {
-    if (isSelected() && ref && typeof ref.scrollIntoView === "function") {
-      ref.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  createEffect(
+    () => isSelected(),
+    (selected) => {
+      if (selected && ref && typeof ref.scrollIntoView === "function") {
+        ref.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
     }
-  });
+  );
 
   return (
     <Show when={isVisible()}>

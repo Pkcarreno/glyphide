@@ -5,7 +5,7 @@ import {
   createSignal,
   For,
   onCleanup,
-  onMount,
+  onSettled,
 } from "solid-js";
 
 /**
@@ -117,7 +117,7 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
   const elementToItemMap = new WeakMap<Element, T>();
   let itemHeightObserver: ResizeObserver | undefined;
 
-  onMount(() => {
+  onSettled(() => {
     if (!scrollContainerElement) {
       return;
     }
@@ -164,11 +164,11 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
     const containerResizeObserver = new ResizeObserver(handleResize);
     containerResizeObserver.observe(scrollContainerElement);
 
-    onCleanup(() => {
+    return () => {
       scrollContainerElement?.removeEventListener("scroll", handleScroll);
       containerResizeObserver.disconnect();
       itemHeightObserver?.disconnect();
-    });
+    };
   });
 
   // Return the raw slice to maintain referential stability for Solid's <For>
@@ -203,14 +203,17 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
                     }
 
                     // Keep elementToItemMap synced if the DOM node is reused
-                    createEffect(() => {
-                      elementToItemMap.set(itemElement, item);
+                    createEffect(
+                      () => ({ currentItem: item, element: itemElement }),
+                      ({ currentItem, element }) => {
+                        elementToItemMap.set(element, currentItem);
 
-                      const height = itemElement.offsetHeight;
-                      if (height > 0 && itemHeights.get(item) !== height) {
-                        itemHeights.set(item, height);
+                        const height = element.offsetHeight;
+                        if (height > 0 && itemHeights.get(currentItem) !== height) {
+                          itemHeights.set(currentItem, height);
+                        }
                       }
-                    });
+                    );
 
                     onCleanup(() => {
                       if (itemHeightObserver) {

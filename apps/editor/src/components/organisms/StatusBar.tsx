@@ -4,7 +4,6 @@ import type { JSX } from "solid-js";
 import {
   createEffect,
   createSignal,
-  onCleanup,
   Show,
   omit,
 } from "solid-js";
@@ -110,15 +109,18 @@ function TerminalStatusIndicator(props: { status: string; isDirty?: boolean }) {
   const [frame, setFrame] = createSignal(0);
   const brailleFrames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 
-  createEffect(() => {
-    if (props.status === "running" || props.status === "initializing") {
-      const timer = setInterval(
-        () => setFrame((f) => (f + 1) % brailleFrames.length),
-        80
-      );
-      onCleanup(() => clearInterval(timer));
+  createEffect(
+    () => props.status === "running" || props.status === "initializing",
+    (isActive) => {
+      if (isActive) {
+        const timer = setInterval(
+          () => setFrame((f) => (f + 1) % brailleFrames.length),
+          80
+        );
+        return () => clearInterval(timer);
+      }
     }
-  });
+  );
 
   return (
     <div class="flex items-center gap-1.5">

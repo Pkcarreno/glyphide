@@ -22,16 +22,19 @@ function ProjectRenameContent() {
   const [name, setName] = createSignal("");
   let inputRef: HTMLInputElement | undefined;
 
-  createEffect(() => {
-    if (isOpen()) {
-      const currentName = core.session.projectName();
-      setName(currentName === "untitled_project" ? "" : currentName);
-      setTimeout(() => {
-        inputRef?.focus();
-        inputRef?.select();
-      }, 0);
+  createEffect(
+    () => ({ currentName: core.session.projectName(), open: isOpen() }),
+    ({ currentName, open }) => {
+      if (open) {
+        setName(currentName === "untitled_project" ? "" : currentName);
+        const timer = setTimeout(() => {
+          inputRef?.focus();
+          inputRef?.select();
+        }, 0);
+        return () => clearTimeout(timer);
+      }
     }
-  });
+  );
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Enter") {
