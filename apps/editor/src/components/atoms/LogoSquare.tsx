@@ -1,5 +1,5 @@
 import type { JSX } from "solid-js";
-import { splitProps } from "solid-js";
+import { omit } from "solid-js";
 
 interface LogoSquareProps extends JSX.SvgSVGAttributes<SVGSVGElement> {
   /** Optional alt text for accessibility. If provided, renders as aria-label. */
@@ -12,13 +12,13 @@ interface LogoSquareProps extends JSX.SvgSVGAttributes<SVGSVGElement> {
  * Renders a 24x24 square SVG with the Glyphide brand mark.
  */
 function LogoSquare(props: LogoSquareProps) {
-  const [local, rest] = splitProps(props, ["alt", "class"]);
+  const rest = omit(props, "alt", "class");
 
   return (
     <svg
-      aria-hidden={local.alt ? undefined : "true"}
-      aria-label={local.alt}
-      class={local.class ?? "h-6 w-6"}
+      aria-hidden={props.alt ? undefined : "true"}
+      aria-label={props.alt}
+      class={props.class ?? "h-6 w-6"}
       height="24"
       role="img"
       viewBox="0 0 900 883"

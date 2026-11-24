@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type { JSX } from "solid-js";
-import { splitProps } from "solid-js";
+import { omit } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
 const buttonVariants = cva(
@@ -62,22 +62,17 @@ interface ButtonProps
  * and visual states via CVA.
  */
 function Button(props: ButtonProps) {
-  const [local, rest] = splitProps(props, [
-    "class",
-    "variant",
-    "size",
-    "children",
-  ]);
+  const rest = omit(props, "class", "variant", "size", "children");
 
   return (
     <button
       class={cn(
-        buttonVariants({ size: local.size, variant: local.variant }),
-        local.class
+        buttonVariants({ size: props.size, variant: props.variant }),
+        props.class
       )}
       {...rest}
     >
-      {local.children}
+      {props.children}
     </button>
   );
 }

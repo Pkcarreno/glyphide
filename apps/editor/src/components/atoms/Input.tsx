@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { type JSX, Show, splitProps } from "solid-js";
+import { type JSX, omit, Show } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
 const inputWrapperVariants = cva(
@@ -55,37 +55,38 @@ export interface InputProps extends JSX.InputHTMLAttributes<HTMLInputElement> {
  * Handles variants for standard inputs, ghost inputs, and bottom-bordered inputs.
  */
 export function Input(props: InputProps) {
-  const [local, rest] = splitProps(props, [
+  const rest = omit(
+    props,
     "class",
     "wrapperClass",
     "variant",
     "inputSize",
     "startIcon",
-    "endIcon",
-  ]);
+    "endIcon"
+  );
 
   return (
     <div
       class={cn(
-        inputWrapperVariants({ size: local.inputSize, variant: local.variant }),
-        local.wrapperClass
+        inputWrapperVariants({ size: props.inputSize, variant: props.variant }),
+        props.wrapperClass
       )}
     >
-      <Show when={local.startIcon}>
+      <Show when={props.startIcon}>
         <div class="mr-2 flex shrink-0 items-center justify-center text-on-surface-variant">
-          {local.startIcon}
+          {props.startIcon}
         </div>
       </Show>
       <input
         class={cn(
           "flex h-full w-full bg-transparent outline-none placeholder:text-on-surface-variant/40 disabled:cursor-not-allowed disabled:opacity-50",
-          local.class
+          props.class
         )}
         {...rest}
       />
-      <Show when={local.endIcon}>
+      <Show when={props.endIcon}>
         <div class="ml-2 flex shrink-0 items-center justify-center text-on-surface-variant">
-          {local.endIcon}
+          {props.endIcon}
         </div>
       </Show>
     </div>

@@ -7,7 +7,7 @@ import Share2 from "lucide-solid/icons/share-2";
 import ShieldAlert from "lucide-solid/icons/shield-exclamation-point";
 import Square from "lucide-solid/icons/square";
 import type { JSX } from "solid-js";
-import { createSignal, Show, splitProps } from "solid-js";
+import { createSignal, Show, omit } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { usePwaUpdate } from "../../core/pwa-registration.tsx";
 import { cn } from "../../helpers/cn.ts";
@@ -30,7 +30,7 @@ interface HeaderProps
  * and primary actions (Settings, Share, Run).
  */
 function Header(props: HeaderProps) {
-  const [local, rest] = splitProps(props, ["class"]);
+  const rest = omit(props, "class");
 
   const core = useEditor();
   const pwa = usePwaUpdate();
@@ -63,7 +63,7 @@ function Header(props: HeaderProps) {
       class={cn(
         "min-h-header-height flex items-center justify-between",
         "border-outline-variant bg-background px-padding-x border-b py-1",
-        local.class
+        props.class
       )}
       {...rest}
     >

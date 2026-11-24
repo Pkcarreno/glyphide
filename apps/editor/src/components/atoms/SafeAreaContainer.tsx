@@ -1,5 +1,5 @@
 import type { JSX } from "solid-js";
-import { splitProps } from "solid-js";
+import { omit } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
 interface SafeAreaContainerProps extends JSX.HTMLAttributes<HTMLDivElement> {
@@ -11,17 +11,17 @@ interface SafeAreaContainerProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * Applies env(safe-area-inset-*) padding to prevent content clipping by notches.
  */
 function SafeAreaContainer(props: SafeAreaContainerProps) {
-  const [local, rest] = splitProps(props, ["class", "children"]);
+  const rest = omit(props, "class", "children");
 
   return (
     <div
       class={cn(
         "pt-safearea-t pr-safearea-r pb-safearea-b pl-safearea-l",
-        local.class
+        props.class
       )}
       {...rest}
     >
-      {local.children}
+      {props.children}
     </div>
   );
 }

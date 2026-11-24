@@ -5,7 +5,7 @@ import {
   createSignal,
   ErrorBoundary,
   Show,
-  splitProps,
+  omit,
 } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type {
@@ -93,7 +93,7 @@ function renderMessageContent(
 }
 
 function ConsolePane(props: ConsolePaneProps) {
-  const [local, rest] = splitProps(props, ["class"]);
+  const rest = omit(props, "class");
   const core = useEditor();
 
   const [toggledGroups, setToggledGroups] = createSignal<Set<number>>(
@@ -248,7 +248,7 @@ function ConsolePane(props: ConsolePaneProps) {
     <section
       class={cn(
         "flex h-full w-full flex-col overflow-hidden bg-surface",
-        local.class
+        props.class
       )}
       {...rest}
     >

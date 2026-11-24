@@ -3,8 +3,8 @@ import {
   createContext,
   createSignal,
   onCleanup,
-  splitProps,
   useContext,
+  omit,
 } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
@@ -60,21 +60,12 @@ interface TabsRootProps {
  * Supports both controlled and uncontrolled modes.
  */
 function TabsRoot(props: TabsRootProps) {
-  const [local] = splitProps(props, [
-    "value",
-    "defaultValue",
-    "onValueChange",
-    "orientation",
-    "children",
-    "class",
-  ]);
-
-  const isControlled = () => local.value !== undefined;
+  const isControlled = () => props.value !== undefined;
   const [internalValue, setInternalValue] = createSignal(
-    local.defaultValue ?? ""
+    props.defaultValue ?? ""
   );
   const activeValue = () =>
-    isControlled() ? (local.value ?? "") : internalValue();
+    isControlled() ? (props.value ?? "") : internalValue();
 
   // Map keeps DOM order via insertion order; keyed by value for O(1) lookup.
   const [triggerMap, setTriggerMap] = createSignal<Map<string, HTMLElement>>(
@@ -106,7 +97,7 @@ function TabsRoot(props: TabsRootProps) {
     if (!isControlled()) {
       setInternalValue(next);
     }
-    local.onValueChange?.(next);
+    props.onValueChange?.(next);
   };
 
   const registerTrigger = (value: string, el: HTMLElement) => {
@@ -159,7 +150,7 @@ function TabsRoot(props: TabsRootProps) {
     activeValue,
     generateId,
     getNavigableTriggers,
-    orientation: () => local.orientation ?? "horizontal",
+    orientation: () => props.orientation ?? "horizontal",
     registerTrigger,
     selectValue,
     unregisterTrigger,
@@ -172,9 +163,9 @@ function TabsRoot(props: TabsRootProps) {
   setDisabledRef = setDisabled;
 
   return (
-    <TabsContext.Provider value={context}>
-      <div class={cn(local.class)}>{local.children}</div>
-    </TabsContext.Provider>
+    <TabsContext value={context}>
+      <div class={cn(props.class)}>{props.children}</div>
+    </TabsContext>
   );
 }
 
@@ -195,7 +186,7 @@ interface TabsListProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * Handles orientation-aware keyboard navigation (Arrow keys, Home, End).
  */
 function TabsList(props: TabsListProps) {
-  const [local, rest] = splitProps(props, ["class", "children"]);
+  const rest = omit(props, "class", "children");
   const ctx = useTabs();
 
   const focusAndSelect = (el: HTMLElement) => {
@@ -261,12 +252,12 @@ function TabsList(props: TabsListProps) {
   return (
     <div
       aria-orientation={ctx.orientation()}
-      class={cn("flex gap-1", local.class)}
+      class={cn("flex gap-1", props.class)}
       onKeyDown={handleKeyDown}
       role="tablist"
       {...rest}
     >
-      {local.children}
+      {props.children}
     </div>
   );
 }
@@ -287,28 +278,23 @@ interface TabsTriggerProps extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
  * Applies ARIA, roving tabindex, registers with context, and renders visual states.
  */
 function TabsTrigger(props: TabsTriggerProps) {
-  const [local, rest] = splitProps(props, [
-    "class",
-    "children",
-    "value",
-    "disabled",
-  ]);
+  const rest = omit(props, "class", "children", "value", "disabled");
   const ctx = useTabs();
 
-  const triggerId = () => ctx.generateId(local.value, "trigger");
-  const panelId = () => ctx.generateId(local.value, "panel");
+  const triggerId = () => ctx.generateId(props.value, "trigger");
+  const panelId = () => ctx.generateId(props.value, "panel");
 
-  const isActive = () => ctx.activeValue() === local.value;
+  const isActive = () => ctx.activeValue() === props.value;
 
   const handleClick = () => {
-    if (local.disabled) {
+    if (props.disabled) {
       return;
     }
-    ctx.selectValue(local.value);
+    ctx.selectValue(props.value);
   };
 
   onCleanup(() => {
-    ctx.unregisterTrigger(local.value);
+    ctx.unregisterTrigger(props.value);
   });
 
   return (
@@ -321,23 +307,23 @@ function TabsTrigger(props: TabsTriggerProps) {
         isActive()
           ? "bg-surface-variant text-on-surface"
           : "text-on-surface-variant hover:bg-surface-variant/50 hover:text-on-surface",
-        local.disabled && "cursor-not-allowed opacity-50",
-        local.class
+        props.disabled && "cursor-not-allowed opacity-50",
+        props.class
       )}
-      data-tab-value={local.value}
-      disabled={local.disabled}
+      data-tab-value={props.value}
+      disabled={props.disabled}
       id={triggerId()}
       onClick={handleClick}
       ref={(node) => {
-        ctx.registerTrigger(local.value, node);
-        setDisabledRef?.(local.value, !!local.disabled);
+        ctx.registerTrigger(props.value, node);
+        setDisabledRef?.(props.value, !!props.disabled);
       }}
       role="tab"
       tabIndex={isActive() ? 0 : -1}
       type="button"
       {...rest}
     >
-      {local.children}
+      {props.children}
     </button>
   );
 }
@@ -356,17 +342,17 @@ interface TabsContentProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * Mounts all panels; hides non-active ones via the `hidden` attribute.
  */
 function TabsContent(props: TabsContentProps) {
-  const [local, rest] = splitProps(props, ["class", "children", "value"]);
+  const rest = omit(props, "class", "children", "value");
   const ctx = useTabs();
 
-  const triggerId = () => ctx.generateId(local.value, "trigger");
-  const panelId = () => ctx.generateId(local.value, "panel");
-  const isActive = () => ctx.activeValue() === local.value;
+  const triggerId = () => ctx.generateId(props.value, "trigger");
+  const panelId = () => ctx.generateId(props.value, "panel");
+  const isActive = () => ctx.activeValue() === props.value;
 
   return (
     <div
       aria-labelledby={triggerId()}
-      class={cn("flex flex-col gap-8", local.class)}
+      class={cn("flex flex-col gap-8", props.class)}
       hidden={!isActive()}
       id={panelId()}
       role="tabpanel"
@@ -375,7 +361,7 @@ function TabsContent(props: TabsContentProps) {
       tabIndex={0}
       {...rest}
     >
-      {local.children}
+      {props.children}
     </div>
   );
 }

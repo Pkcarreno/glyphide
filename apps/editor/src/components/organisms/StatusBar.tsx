@@ -6,7 +6,7 @@ import {
   createSignal,
   onCleanup,
   Show,
-  splitProps,
+  omit,
 } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type { CommandId } from "../../core/shortcuts/registry.ts";
@@ -34,13 +34,13 @@ interface StatusBarItemProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * Enforces standardized padding and vertical alignment.
  */
 function StatusBarItem(props: StatusBarItemProps) {
-  const [local, rest] = splitProps(props, ["class", "children"]);
+  const rest = omit(props, "class", "children");
   return (
     <div
-      class={cn("flex h-full items-center gap-1 px-1.5", local.class)}
+      class={cn("flex h-full items-center gap-1 px-1.5", props.class)}
       {...rest}
     >
-      {local.children}
+      {props.children}
     </div>
   );
 }
@@ -65,41 +65,42 @@ type StatusBarButtonProps = StatusBarButtonBaseProps;
  * Enforces standard padding, hover effects, and automatic Tooltip integration.
  */
 function StatusBarButton(props: StatusBarButtonProps) {
-  const [local, rest] = splitProps(props, [
+  const rest = omit(
+    props,
     "class",
     "commandId",
     "tooltip",
     "tooltipShortcut",
     "tooltipDescription",
-    "children",
-  ]);
+    "children"
+  );
 
   const buttonClass = cn(
     "flex h-full items-center gap-1 rounded-md px-1 outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
     "cursor-pointer transition-colors hover:bg-surface-variant hover:text-on-surface",
-    local.class
+    props.class
   );
 
   return (
     <Show
       fallback={
         <button class={buttonClass} {...rest}>
-          {local.children}
+          {props.children}
         </button>
       }
-      when={local.tooltip}
+      when={props.tooltip}
     >
       <ActionTooltip
         as="button"
         class={buttonClass}
-        commandId={local.commandId}
-        meta={local.tooltipDescription}
+        commandId={props.commandId}
+        meta={props.tooltipDescription}
         position="top"
-        shortcut={local.tooltipShortcut}
-        text={local.tooltip ?? ""}
+        shortcut={props.tooltipShortcut}
+        text={props.tooltip ?? ""}
         {...rest}
       >
-        {local.children}
+        {props.children}
       </ActionTooltip>
     </Show>
   );
@@ -143,7 +144,7 @@ function TerminalStatusIndicator(props: { status: string; isDirty?: boolean }) {
  * Compound parts: `StatusBar.Item`, `StatusBar.Button`.
  */
 function StatusBar(props: StatusBarProps) {
-  const [local, rest] = splitProps(props, ["class"]);
+  const rest = omit(props, "class");
   const core = useEditor();
 
   function openEngineSelector() {
@@ -156,7 +157,7 @@ function StatusBar(props: StatusBarProps) {
         "flex h-status-bar-height items-center justify-between",
         "border-outline-variant border-t bg-background px-padding-x",
         "select-none font-sans text-on-surface-variant text-status-bar uppercase opacity-80",
-        local.class
+        props.class
       )}
       {...rest}
     >

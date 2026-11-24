@@ -1,6 +1,6 @@
 import ChevronDown from "lucide-solid/icons/chevron-down";
 import type { JSX } from "solid-js";
-import { splitProps } from "solid-js";
+import { omit } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { Icon } from "./Icon.tsx";
 
@@ -19,7 +19,7 @@ export interface SelectProps
  * whilst overriding the default appearance to match the application's aesthetic.
  */
 export function Select(props: SelectProps) {
-  const [local, rest] = splitProps(props, ["class", "children", "value"]);
+  const rest = omit(props, "class", "children", "value");
 
   return (
     <div class="relative w-full">
@@ -31,13 +31,13 @@ export function Select(props: SelectProps) {
           "focus:border-ring focus:outline-none focus:ring-3 focus:ring-ring/50",
           "disabled:cursor-not-allowed disabled:opacity-50",
           "cursor-pointer transition-colors hover:bg-surface-variant/80",
-          local.class
+          props.class
         )}
         // @ts-expect-error: SolidJS requires prop:value for select elements to bind correctly before children render, but TS doesn't type namespaces natively.
-        prop:value={local.value}
+        prop:value={props.value}
         {...rest}
       >
-        {local.children}
+        {props.children}
       </select>
       <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-on-surface-variant">
         <Icon icon={ChevronDown} size={16} />

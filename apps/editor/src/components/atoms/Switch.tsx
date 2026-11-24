@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { createSignal, splitProps } from "solid-js";
+import { createSignal, omit } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
 const switchVariants = cva(
@@ -56,38 +56,39 @@ interface SwitchProps extends VariantProps<typeof switchVariants> {
  * for accessibility. Supports both controlled and uncontrolled usage.
  */
 function Switch(props: SwitchProps) {
-  const [local, rest] = splitProps(props, [
+  const rest = omit(
+    props,
     "checked",
     "defaultChecked",
     "onCheckedChange",
     "disabled",
-    "class",
-  ]);
+    "class"
+  );
 
-  const isControlled = () => local.checked !== undefined;
+  const isControlled = () => props.checked !== undefined;
   const [internalChecked, setInternalChecked] = createSignal(
-    local.defaultChecked ?? false
+    props.defaultChecked ?? false
   );
 
   const isChecked = () =>
-    isControlled() ? (local.checked ?? false) : internalChecked();
+    isControlled() ? (props.checked ?? false) : internalChecked();
 
   function handleToggle() {
-    if (local.disabled) {
+    if (props.disabled) {
       return;
     }
     const next = !isChecked();
     if (!isControlled()) {
       setInternalChecked(next);
     }
-    local.onCheckedChange?.(next);
+    props.onCheckedChange?.(next);
   }
 
   return (
     <button
       aria-checked={isChecked()}
-      class={cn(switchVariants({ checked: isChecked(), class: local.class }))}
-      disabled={local.disabled}
+      class={cn(switchVariants({ checked: isChecked(), class: props.class }))}
+      disabled={props.disabled}
       onClick={handleToggle}
       role="switch"
       type="button"

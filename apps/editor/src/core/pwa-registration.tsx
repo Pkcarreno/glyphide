@@ -63,7 +63,7 @@ export function PwaProvider(props: { children: JSX.Element }) {
   };
 
   return (
-    <PwaContext.Provider value={value}>{props.children}</PwaContext.Provider>
+    <PwaContext value={value}>{props.children}</PwaContext>
   );
 }
 

@@ -44,9 +44,9 @@ export function EditorProvider(props: { children: JSX.Element }) {
   onCleanup(() => core.dispose());
 
   return (
-    <EditorContext.Provider value={core}>
+    <EditorContext value={core}>
       {props.children}
-    </EditorContext.Provider>
+    </EditorContext>
   );
 }
 
