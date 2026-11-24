@@ -91,10 +91,9 @@ function EngineSettingsForm() {
                       const num = Number(val);
                       const parsed =
                         !Number.isNaN(num) && val.trim() !== "" ? num : val;
-                      setLocalPatch(
-                        desc.key,
-                        desc.toModel ? desc.toModel(parsed) : parsed
-                      );
+                      setLocalPatch((draft) => {
+                        draft[desc.key] = desc.toModel ? desc.toModel(parsed) : parsed;
+                      });
                     }}
                     value={String(
                       desc.toView
@@ -109,10 +108,9 @@ function EngineSettingsForm() {
                   {...(desc.inputProps ?? {})}
                   disabled={!(desc.isEditable && isReady())}
                   onValueChange={(val) => {
-                    setLocalPatch(
-                      desc.key,
-                      desc.toModel ? desc.toModel(val) : val
-                    );
+                    setLocalPatch((draft) => {
+                      draft[desc.key] = desc.toModel ? desc.toModel(val) : val;
+                    });
                   }}
                   value={Number(
                     desc.toView

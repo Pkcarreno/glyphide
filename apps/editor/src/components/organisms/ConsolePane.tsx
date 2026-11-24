@@ -3,7 +3,7 @@ import type { JSX } from "solid-js";
 import {
   createMemo,
   createSignal,
-  ErrorBoundary,
+  Errored,
   Show,
   omit,
 } from "solid-js";
@@ -229,17 +229,17 @@ function ConsolePane(props: ConsolePaneProps) {
 
     return (
       <div class="w-full" style={depthStyle}>
-        <ErrorBoundary
+        <Errored
           fallback={(err) => (
             <ConsoleMessage
               class="whitespace-pre-wrap"
-              message={getRawFallback(rendered, err)}
+              message={getRawFallback(rendered, err())}
               type={variant}
             />
           )}
         >
           {renderMessageContent(rendered, variant)}
-        </ErrorBoundary>
+        </Errored>
       </div>
     );
   }

@@ -61,7 +61,9 @@ export function createSettingsModel(
   const [settings, setSettings] = createStore<EditorSettings>(initial);
 
   function updateSettings(patch: Partial<EditorSettings>): void {
-    setSettings(patch);
+    setSettings((draft) => {
+      Object.assign(draft, patch);
+    });
     persistSettings(persistence, { ...settings, ...patch });
   }
 
