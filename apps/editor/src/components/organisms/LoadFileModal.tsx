@@ -66,8 +66,11 @@ export function LoadFileModal() {
     }
   }
 
-  function commitLoad(): void {
-    const file = pendingFile();
+  function commitLoad(targetFile?: FileReadResult | unknown): void {
+    const file =
+      targetFile && typeof targetFile === "object" && "extension" in targetFile
+        ? (targetFile as FileReadResult)
+        : pendingFile();
     if (!file) {
       return;
     }
@@ -103,7 +106,7 @@ export function LoadFileModal() {
       }
       setPendingFile(result);
       if (core.session.code() === "") {
-        commitLoad();
+        commitLoad(result);
       } else {
         setNeedsConfirm(true);
       }
@@ -134,7 +137,7 @@ export function LoadFileModal() {
           </DialogClose>
         </DialogHeader>
 
-        <div class="flex flex-col gap-5 bg-surface px-5 py-6">
+        <div class="bg-surface flex flex-col gap-5 px-5 py-6">
           <FileDrop
             accept={acceptPattern()}
             onError={handleFileError}
@@ -145,7 +148,7 @@ export function LoadFileModal() {
 
           <Show when={error()}>
             <p
-              class="rounded-md border border-error/40 bg-error/10 px-3 py-2 text-error text-sm"
+              class="border-error/40 bg-error/10 text-error rounded-md border px-3 py-2 text-sm"
               role="alert"
             >
               {error()}
@@ -154,7 +157,7 @@ export function LoadFileModal() {
 
           <Show when={needsConfirm()}>
             <div
-              class="flex flex-col gap-3 rounded-md border border-outline-variant bg-surface-variant/50 px-4 py-3"
+              class="border-outline-variant bg-surface-variant/50 flex flex-col gap-3 rounded-md border px-4 py-3"
               data-testid="overwrite-confirm"
             >
               <p class="text-on-surface text-sm leading-relaxed">
@@ -164,7 +167,7 @@ export function LoadFileModal() {
           </Show>
         </div>
 
-        <div class="flex items-center justify-end gap-2 border-outline-variant border-t bg-surface-variant/50 px-5 py-4">
+        <div class="border-outline-variant bg-surface-variant/50 flex items-center justify-end gap-2 border-t px-5 py-4">
           <Show
             fallback={
               <Button onClick={closeModal} size="md" variant="ghost">
@@ -176,7 +179,7 @@ export function LoadFileModal() {
             <Button onClick={closeModal} size="md" variant="ghost">
               Cancel
             </Button>
-            <Button onClick={commitLoad} size="md" variant="primary">
+            <Button onClick={() => commitLoad()} size="md" variant="primary">
               Overwrite
             </Button>
           </Show>

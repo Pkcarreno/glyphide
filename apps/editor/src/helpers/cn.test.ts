@@ -42,9 +42,7 @@ describe("cn", () => {
 
   it("when given complex conflicting utilities, resolves correctly", () => {
     const result = cn(
-      // biome-ignore lint/nursery/useSortedClasses: it's an intentional test for conflicting classes
       "text-sm font-bold text-red-500",
-      // biome-ignore lint/nursery/useSortedClasses: it's an intentional test for conflicting classes
       "text-lg text-blue-500"
     );
     expect(result).toBe("font-bold text-lg text-blue-500");

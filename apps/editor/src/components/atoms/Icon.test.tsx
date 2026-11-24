@@ -5,10 +5,11 @@ import { Icon } from "./Icon.tsx";
 
 /** Minimal stub that mimics a lucide-solid icon component. */
 function MockIcon(props: LucideProps) {
+  const p = props as Record<string, unknown>;
   return (
     <svg
-      aria-hidden={props["aria-hidden"]}
-      aria-label={props["aria-label"]}
+      aria-hidden={p["aria-hidden"] ? "true" : undefined}
+      aria-label={p["aria-label"] as string | undefined}
       class={props.class}
       data-testid="mock-icon"
       height={props.size}

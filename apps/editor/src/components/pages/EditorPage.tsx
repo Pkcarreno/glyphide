@@ -15,46 +15,58 @@ import { WorkspaceLayout } from "../templates/WorkspaceLayout.tsx";
 function EditorPage() {
   const core = useEditor();
 
-  createEffect(() => {
-    const { theme } = core.settings.settings;
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  createEffect(
+    () => core.settings.settings.theme,
+    (theme) => {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
-    const updateTheme = () => {
-      const isDark =
-        theme === "dark" || (theme === "system" && mediaQuery.matches);
-      document.documentElement.classList.toggle("dark", isDark);
-    };
+      const updateTheme = () => {
+        const isDark =
+          theme === "dark" || (theme === "system" && mediaQuery.matches);
+        document.documentElement.classList.toggle("dark", isDark);
+      };
 
-    updateTheme();
+      updateTheme();
 
-    if (theme === "system") {
-      mediaQuery.addEventListener("change", updateTheme);
-      return () => mediaQuery.removeEventListener("change", updateTheme);
+      if (theme === "system") {
+        mediaQuery.addEventListener("change", updateTheme);
+        return () => mediaQuery.removeEventListener("change", updateTheme);
+      }
     }
-  });
+  );
 
-  createEffect(() => {
-    const { uiFontSize, bufferFontSize, bufferLineHeight } =
-      core.settings.settings;
-    const uiScale = uiFontSize / 14;
-    const bufferScale = bufferFontSize / 15;
-    document.documentElement.style.setProperty(
-      "--ui-scale",
-      uiScale.toString()
-    );
-    document.documentElement.style.setProperty(
-      "--buffer-scale",
-      bufferScale.toString()
-    );
-    document.documentElement.style.setProperty(
-      "--buffer-line-height",
-      bufferLineHeight.toString()
-    );
-  });
+  createEffect(
+    () => {
+      const { uiFontSize, bufferFontSize, bufferLineHeight } =
+        core.settings.settings;
+      return {
+        bufferLineHeight,
+        bufferScale: bufferFontSize / 15,
+        uiScale: uiFontSize / 14,
+      };
+    },
+    ({ uiScale, bufferScale, bufferLineHeight }) => {
+      document.documentElement.style.setProperty(
+        "--ui-scale",
+        uiScale.toString()
+      );
+      document.documentElement.style.setProperty(
+        "--buffer-scale",
+        bufferScale.toString()
+      );
+      document.documentElement.style.setProperty(
+        "--buffer-line-height",
+        bufferLineHeight.toString()
+      );
+    }
+  );
 
-  createEffect(() => {
-    document.title = `${core.session.displayName()} - Glyphide`;
-  });
+  createEffect(
+    () => core.session.displayName(),
+    (displayName) => {
+      document.title = `${displayName} - Glyphide`;
+    }
+  );
 
   return (
     <>

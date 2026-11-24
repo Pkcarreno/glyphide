@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createBrowserFileIoAdapter } from "./file-io.ts";
 
-const CANCEL_RE = /no file selected|canceled|cancelled/i;
+const CANCEL_RE = /no file selected|canceled|cancelled/iu;
 
 /**
  * Tests for the browser-backed FileIoPort implementation.

@@ -49,7 +49,7 @@ vi.mock("../../core/context", () => ({
   }),
 }));
 
-const OMITTED_LOGS_PATTERN = /omitted/i;
+const OMITTED_LOGS_PATTERN = /omitted/iu;
 
 describe("ConsolePane", () => {
   beforeEach(() => {

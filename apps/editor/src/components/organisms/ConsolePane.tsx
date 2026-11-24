@@ -1,12 +1,6 @@
+import type { JSX } from "@solidjs/web";
 import Trash from "lucide-solid/icons/trash";
-import type { JSX } from "solid-js";
-import {
-  createMemo,
-  createSignal,
-  ErrorBoundary,
-  Show,
-  splitProps,
-} from "solid-js";
+import { createMemo, createSignal, Errored, omit, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type {
   ConsoleVariant,
@@ -93,7 +87,7 @@ function renderMessageContent(
 }
 
 function ConsolePane(props: ConsolePaneProps) {
-  const [local, rest] = splitProps(props, ["class"]);
+  const rest = omit(props, "class");
   const core = useEditor();
 
   const [toggledGroups, setToggledGroups] = createSignal<Set<number>>(
@@ -168,7 +162,7 @@ function ConsolePane(props: ConsolePaneProps) {
     }
 
     return [...cachedFormatted];
-  }, []);
+  });
 
   const visibleItems = createMemo(() => {
     const entries = formattedEntries();
@@ -229,17 +223,17 @@ function ConsolePane(props: ConsolePaneProps) {
 
     return (
       <div class="w-full" style={depthStyle}>
-        <ErrorBoundary
+        <Errored
           fallback={(err) => (
             <ConsoleMessage
               class="whitespace-pre-wrap"
-              message={getRawFallback(rendered, err)}
+              message={getRawFallback(rendered, err())}
               type={variant}
             />
           )}
         >
           {renderMessageContent(rendered, variant)}
-        </ErrorBoundary>
+        </Errored>
       </div>
     );
   }
@@ -247,14 +241,14 @@ function ConsolePane(props: ConsolePaneProps) {
   return (
     <section
       class={cn(
-        "flex h-full w-full flex-col overflow-hidden bg-surface",
-        local.class
+        "bg-surface flex h-full w-full flex-col overflow-hidden",
+        props.class
       )}
       {...rest}
     >
-      <div class="flex shrink-0 items-center justify-between border-outline-variant border-b px-4 py-1.5">
+      <div class="border-outline-variant flex shrink-0 items-center justify-between border-b px-4 py-1.5">
         <div class="flex items-baseline gap-1.5">
-          <h2 class="select-none font-bold font-sans text-on-surface-variant text-section-header uppercase tracking-widest">
+          <h2 class="text-on-surface-variant text-section-header font-sans font-bold tracking-widest uppercase select-none">
             Output
           </h2>
           <Show when={core.output.stats().totalDropped > 0}>
@@ -263,10 +257,10 @@ function ConsolePane(props: ConsolePaneProps) {
               class="inline-flex items-baseline"
               meta={`${core.output.stats().workerDropped.toLocaleString()} rate limit / ${core.output.stats().bufferDropped.toLocaleString()} buffer limit`}
               position="bottom"
-              tabIndex={0}
+              tabindex={0}
               text={`${core.output.stats().totalDropped.toLocaleString()} omitted log entries`}
             >
-              <span class="cursor-help select-none font-mono font-normal text-on-surface-variant/70 text-section-header lowercase tabular-nums tracking-normal transition-colors hover:text-on-surface">
+              <span class="text-on-surface-variant/70 text-section-header hover:text-on-surface cursor-help font-mono font-normal tracking-normal lowercase tabular-nums transition-colors select-none">
                 ({formatCompactCount(core.output.stats().totalDropped)} omitted)
               </span>
             </Tooltip>
@@ -274,7 +268,7 @@ function ConsolePane(props: ConsolePaneProps) {
         </div>
         <div class="flex items-center gap-1">
           <button
-            class="flex pointer-coarse:min-h-11 cursor-pointer items-center gap-1 pointer-coarse:gap-1.5 rounded-sm border border-transparent pointer-coarse:px-3 px-1.5 py-0.5 font-medium text-on-surface-variant text-status-bar uppercase tracking-wider outline-none transition-colors hover:border-outline-variant hover:bg-surface-variant hover:text-on-surface focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"
+            class="text-on-surface-variant text-status-bar hover:border-outline-variant hover:bg-surface-variant hover:text-on-surface focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 flex cursor-pointer items-center gap-1 rounded-sm border border-transparent px-1.5 py-0.5 font-medium tracking-wider uppercase transition-colors outline-none focus-visible:ring-3 aria-invalid:ring-3 pointer-coarse:min-h-11 pointer-coarse:gap-1.5 pointer-coarse:px-3"
             onClick={handleClear}
             type="button"
           >

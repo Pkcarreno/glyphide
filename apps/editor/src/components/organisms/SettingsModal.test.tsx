@@ -1,5 +1,5 @@
 import { cleanup, render } from "@solidjs/testing-library";
-import { createSignal } from "solid-js";
+import { createSignal, flush } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SettingsModal } from "./SettingsModal.tsx";
 
@@ -134,6 +134,7 @@ describe("SettingsModal", () => {
 
     expect(queryByRole("dialog")).toBeNull();
     setMockIsOpen(true);
+    flush();
     expect(queryByRole("dialog")).not.toBeNull();
   });
 

@@ -1,6 +1,5 @@
+import type { JSX } from "@solidjs/web";
 import type { LucideProps } from "lucide-solid";
-import type { JSX } from "solid-js";
-import { splitProps } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
 interface IconProps {
@@ -19,14 +18,12 @@ interface IconProps {
  * sizing and accessibility attributes.
  */
 function Icon(props: IconProps) {
-  const [local] = splitProps(props, ["icon", "size", "class", "label"]);
-
   return (
-    <local.icon
-      aria-hidden={!local.label}
-      aria-label={local.label}
-      class={cn("shrink-0", local.class)}
-      size={local.size ?? 14}
+    <props.icon
+      aria-hidden={props.label ? undefined : "true"}
+      aria-label={props.label}
+      class={cn("shrink-0", props.class)}
+      size={props.size ?? 14}
     />
   );
 }

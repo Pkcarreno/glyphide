@@ -1,11 +1,10 @@
 // biome-ignore lint/correctness/noUnresolvedImports: virtual module provided by vite-plugin-pwa at build time
 import { useRegisterSW } from "virtual:pwa-register/solid";
-import type { JSX } from "solid-js";
+import type { JSX } from "@solidjs/web";
 import {
   createContext,
   createEffect,
   createSignal,
-  on,
   useContext,
 } from "solid-js";
 
@@ -45,12 +44,13 @@ export function PwaProvider(props: { children: JSX.Element }) {
   let notifiedUpdate = false;
 
   createEffect(
-    on(needRefresh, (isReady) => {
+    () => needRefresh(),
+    (isReady) => {
       if (isReady && !notifiedUpdate) {
         notifiedUpdate = true;
         setUpdateAvailable(true);
       }
-    })
+    }
   );
 
   function applyUpdate(): void {
@@ -62,9 +62,7 @@ export function PwaProvider(props: { children: JSX.Element }) {
     updateAvailable,
   };
 
-  return (
-    <PwaContext.Provider value={value}>{props.children}</PwaContext.Provider>
-  );
+  return <PwaContext value={value}>{props.children}</PwaContext>;
 }
 
 /**

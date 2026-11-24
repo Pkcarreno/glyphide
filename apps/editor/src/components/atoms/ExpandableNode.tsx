@@ -1,5 +1,5 @@
+import type { JSX } from "@solidjs/web";
 import ChevronRight from "lucide-solid/icons/chevron-right";
-import type { JSX } from "solid-js";
 import { createSignal, Show } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { Icon } from "./Icon.tsx";
@@ -76,14 +76,14 @@ function ExpandableNode(props: ExpandableNodeProps) {
       <button
         aria-controls={contentId}
         aria-expanded={isExpanded() ? "true" : "false"}
-        class="group -ml-1 inline-flex pointer-coarse:min-h-11 cursor-pointer items-center gap-1 rounded pointer-coarse:px-3 px-1 text-left outline-none transition-colors hover:bg-surface-variant/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"
+        class="group hover:bg-surface-variant/50 focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 -ml-1 inline-flex cursor-pointer items-center gap-1 rounded px-1 text-left transition-colors outline-none focus-visible:ring-3 aria-invalid:ring-3 pointer-coarse:min-h-11 pointer-coarse:px-3"
         data-expanded={isExpanded() ? "true" : "false"}
         onClick={toggle}
         type="button"
       >
         <span
           class={cn(
-            "rotate-0 text-on-surface-variant opacity-70 motion-safe:transition-transform motion-safe:duration-150",
+            "text-on-surface-variant rotate-0 opacity-70 motion-safe:transition-transform motion-safe:duration-150",
             "group-data-[expanded=true]:rotate-90 motion-reduce:transition-none motion-reduce:duration-0"
           )}
         >
@@ -93,7 +93,7 @@ function ExpandableNode(props: ExpandableNodeProps) {
       </button>
 
       <span
-        class="mt-1 ml-1.5 flex flex-col gap-1 border-outline-variant/30 border-l pl-4"
+        class="border-outline-variant/30 mt-1 ml-1.5 flex flex-col gap-1 border-l pl-4"
         id={contentId}
       >
         <Show when={isExpanded()}>{props.children}</Show>

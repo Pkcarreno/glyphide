@@ -1,14 +1,44 @@
 import { EngineMethod } from "@glyphide/rpc-protocol/constants";
 import type { CanonicalState } from "@glyphide/url-migration/types";
 import { waitFor } from "@solidjs/testing-library";
+import { flush } from "solid-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { createEngineRegistry } from "../engine/registry.ts";
 import type { PersistencePort } from "../ports/persistence.ts";
 import type { UrlPersistencePort } from "../ports/url-persistence.ts";
-import { createEngineModel } from "./engine.ts";
+import { createEngineModel as baseCreateEngineModel } from "./engine.ts";
 import { createOutputModel } from "./output.ts";
-import { createWorkspaceSession, type WorkspaceSession } from "./session.ts";
+import {
+  createWorkspaceSession as baseCreateWorkspaceSession,
+  type WorkspaceSession,
+} from "./session.ts";
 import { createSettingsModel } from "./settings.ts";
+
+function withFlush<T extends object>(target: T): T {
+  return new Proxy(target, {
+    get(t, prop, receiver) {
+      const val = Reflect.get(t, prop, receiver);
+      if (typeof val === "function") {
+        return (...args: unknown[]) => {
+          const res = val.apply(t, args);
+          flush();
+          return res;
+        };
+      }
+      return val;
+    },
+  });
+}
+
+function createEngineModel(deps: Parameters<typeof baseCreateEngineModel>[0]) {
+  return withFlush(baseCreateEngineModel(deps));
+}
+
+function createWorkspaceSession(
+  deps: Parameters<typeof baseCreateWorkspaceSession>[0]
+) {
+  return withFlush(baseCreateWorkspaceSession(deps));
+}
 
 function createMockPersistence(): PersistencePort {
   const data = new Map();

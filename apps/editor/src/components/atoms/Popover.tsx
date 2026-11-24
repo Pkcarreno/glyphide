@@ -6,17 +6,19 @@ import {
   type Placement,
   shift,
 } from "@floating-ui/dom";
-import type { Accessor, ComponentProps, JSX, ValidComponent } from "solid-js";
+import type { ComponentProps, JSX, ValidComponent } from "@solidjs/web";
+import { dynamic, Portal } from "@solidjs/web";
+import type { Accessor } from "solid-js";
 import {
   createContext,
+  createEffect,
   createSignal,
+  omit,
   onCleanup,
-  onMount,
+  onSettled,
   Show,
-  splitProps,
   useContext,
 } from "solid-js";
-import { Dynamic, Portal } from "solid-js/web";
 import { cn } from "../../helpers/cn.ts";
 
 /* ---------- Types ---------- */
@@ -84,33 +86,21 @@ export interface PopoverRootProps {
  * @public
  */
 export function PopoverRoot(props: PopoverRootProps) {
-  const [local] = splitProps(props, [
-    "position",
-    "offset",
-    "isOpen",
-    "onOpenChange",
-    "children",
-  ]);
-
-  const position = () => local.position ?? "bottom";
-  const offset = () => local.offset ?? 4;
+  const position = () => props.position ?? "bottom";
+  const offset = () => props.offset ?? 4;
 
   const [internalIsOpen, setInternalIsOpen] = createSignal(false);
-  const isOpen = () => local.isOpen ?? internalIsOpen();
+  const isOpen = () => props.isOpen ?? internalIsOpen();
 
   const [isPositioned, setIsPositioned] = createSignal(false);
   const [coords, setCoords] = createSignal({ left: 0, top: 0 });
 
-  let triggerEl: HTMLElement | undefined;
-  let positionerEl: HTMLElement | undefined;
+  const [triggerEl, setTriggerEl] = createSignal<HTMLElement>();
+  const [positionerEl, setPositionerEl] = createSignal<HTMLElement>();
   let cleanupAutoUpdate: (() => void) | undefined;
 
-  const updatePosition = () => {
-    if (!(triggerEl && positionerEl)) {
-      return;
-    }
-
-    computePosition(triggerEl, positionerEl, {
+  const updatePosition = (trigger: HTMLElement, positioner: HTMLElement) => {
+    computePosition(trigger, positioner, {
       middleware: [floatingOffset(offset()), flip(), shift({ padding: 8 })],
       placement: position(),
     })
@@ -123,33 +113,37 @@ export function PopoverRoot(props: PopoverRootProps) {
       });
   };
 
-  const bindAutoUpdate = () => {
-    if (triggerEl && positionerEl && isOpen()) {
+  createEffect(
+    () => ({ open: isOpen(), pos: positionerEl(), trig: triggerEl() }),
+    ({ open, pos, trig }) => {
       cleanupAutoUpdate?.();
-      try {
-        cleanupAutoUpdate = autoUpdate(triggerEl, positionerEl, updatePosition);
-      } catch {
-        updatePosition();
-        cleanupAutoUpdate = () => undefined;
+      cleanupAutoUpdate = undefined;
+      if (open && trig && pos) {
+        try {
+          cleanupAutoUpdate = autoUpdate(trig, pos, () =>
+            updatePosition(trig, pos)
+          );
+        } catch {
+          updatePosition(trig, pos);
+          cleanupAutoUpdate = () => undefined;
+        }
       }
     }
-  };
+  );
 
   const setTriggerRef = (el: HTMLElement) => {
-    triggerEl = el;
-    bindAutoUpdate();
+    setTriggerEl(el);
   };
 
   const setPositionerRef = (el: HTMLElement) => {
-    positionerEl = el;
-    bindAutoUpdate();
+    setPositionerEl(el);
   };
 
   const handleOpenStateChange = (nextOpen: boolean) => {
-    if (local.isOpen === undefined) {
+    if (props.isOpen === undefined) {
       setInternalIsOpen(nextOpen);
     }
-    local.onOpenChange?.(nextOpen);
+    props.onOpenChange?.(nextOpen);
 
     if (!nextOpen) {
       setIsPositioned(false);
@@ -170,25 +164,22 @@ export function PopoverRoot(props: PopoverRootProps) {
     handleOpenStateChange(!isOpen());
   };
 
-  onMount(() => {
+  onSettled(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (!isOpen()) {
         return;
       }
       const target = e.target as Node;
-      if (
-        triggerEl &&
-        positionerEl &&
-        !triggerEl.contains(target) &&
-        !positionerEl.contains(target)
-      ) {
+      const trig = triggerEl();
+      const pos = positionerEl();
+      if (trig && pos && !trig.contains(target) && !pos.contains(target)) {
         close();
       }
     };
     document.addEventListener("mousedown", handleOutsideClick);
-    onCleanup(() => {
+    return () => {
       document.removeEventListener("mousedown", handleOutsideClick);
-    });
+    };
   });
 
   onCleanup(() => {
@@ -196,7 +187,7 @@ export function PopoverRoot(props: PopoverRootProps) {
   });
 
   return (
-    <PopoverContext.Provider
+    <PopoverContext
       value={{
         close,
         coords,
@@ -209,8 +200,8 @@ export function PopoverRoot(props: PopoverRootProps) {
         toggle,
       }}
     >
-      {local.children}
-    </PopoverContext.Provider>
+      {props.children}
+    </PopoverContext>
   );
 }
 
@@ -239,16 +230,16 @@ export type PopoverTriggerProps<T extends ValidComponent = "button"> = {
 export function PopoverTrigger<T extends ValidComponent = "button">(
   props: PopoverTriggerProps<T>
 ) {
-  const [local, rest] = splitProps(props, ["as", "class", "children"]);
+  const rest = omit(props, "as", "class", "children");
   const ctx = usePopover();
+  const Comp = dynamic(() => props.as ?? "button");
 
   return (
-    <Dynamic
+    <Comp
       class={cn(
-        "outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
-        local.class
+        "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 outline-none focus-visible:ring-3 aria-invalid:ring-3",
+        props.class
       )}
-      component={local.as ?? "button"}
       onClick={(e: Event) => {
         ctx.toggle();
         const onClickProp = (rest as Record<string, unknown>).onClick;
@@ -259,8 +250,8 @@ export function PopoverTrigger<T extends ValidComponent = "button">(
       ref={(el: HTMLElement) => ctx.setTriggerRef(el)}
       {...rest}
     >
-      {local.children}
-    </Dynamic>
+      {props.children}
+    </Comp>
   );
 }
 
@@ -314,12 +305,12 @@ export interface PopoverPositionerProps
  * @public
  */
 export function PopoverPositioner(props: PopoverPositionerProps) {
-  const [local, rest] = splitProps(props, ["class", "children"]);
+  const rest = omit(props, "class", "children");
   const ctx = usePopover();
 
   return (
     <div
-      class={cn("pointer-events-auto fixed z-50 w-max", local.class)}
+      class={cn("pointer-events-auto fixed z-50 w-max", props.class)}
       ref={ctx.setPositionerRef}
       style={{
         left: `${ctx.coords().left}px`,
@@ -328,7 +319,7 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
       }}
       {...rest}
     >
-      {local.children}
+      {props.children}
     </div>
   );
 }
@@ -354,20 +345,20 @@ export interface PopoverPopupProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * @public
  */
 export function PopoverPopup(props: PopoverPopupProps) {
-  const [local, rest] = splitProps(props, ["class", "children"]);
+  const rest = omit(props, "class", "children");
 
   return (
     <div
       class={cn(
         "flex flex-col",
-        "rounded-lg bg-surface ring-1 ring-on-surface/10",
-        "p-2.5 text-on-surface text-xs shadow-md",
-        local.class
+        "bg-surface ring-on-surface/10 rounded-lg ring-1",
+        "text-on-surface p-2.5 text-xs shadow-md",
+        props.class
       )}
       role="dialog"
       {...rest}
     >
-      {local.children}
+      {props.children}
     </div>
   );
 }

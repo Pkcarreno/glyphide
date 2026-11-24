@@ -20,8 +20,8 @@ const EXTENSION_MAP: Record<
   ".txt": null,
 };
 
-const OVERWRITE_RE = /overwrite/i;
-const UNSUPPORTED_RE = /unsupported file type/i;
+const OVERWRITE_RE = /overwrite/iu;
+const UNSUPPORTED_RE = /unsupported file type/iu;
 
 let mockSupportedExtensions: readonly string[] = [".js", ".py"];
 

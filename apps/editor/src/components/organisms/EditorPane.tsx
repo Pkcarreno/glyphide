@@ -1,5 +1,5 @@
-import type { JSX } from "solid-js";
-import { splitProps } from "solid-js";
+import type { JSX } from "@solidjs/web";
+import { omit } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { cn } from "../../helpers/cn.ts";
 import { CodeField } from "../atoms/CodeField/CodeField.tsx";
@@ -13,7 +13,7 @@ interface EditorPaneProps
  * Main code editor organism.
  */
 function EditorPane(props: EditorPaneProps) {
-  const [local, rest] = splitProps(props, ["class"]);
+  const rest = omit(props, "class");
   const core = useEditor();
 
   function handleValueChange(value: string) {
@@ -47,7 +47,7 @@ function EditorPane(props: EditorPaneProps) {
 
   return (
     <section
-      class={cn("flex h-full flex-1 flex-col overflow-hidden", local.class)}
+      class={cn("flex h-full flex-1 flex-col overflow-hidden", props.class)}
       {...rest}
     >
       <CodeField

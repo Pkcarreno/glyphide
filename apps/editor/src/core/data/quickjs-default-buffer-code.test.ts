@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { QUICKJS_DEFAULT_BUFFER_CODE } from "./quickjs-default-buffer-code.ts";
 
-const THROWS_ERROR_REGEX = /throw\s+new\s+Error/;
-const LARGE_LOOP_REGEX = /index\s*<\s*(100000|1000000|5000000)\b/;
-const USES_PROXY_REGEX = /new\s+Proxy\b/;
+const THROWS_ERROR_REGEX = /throw\s+new\s+Error/u;
+const LARGE_LOOP_REGEX = /index\s*<\s*(?:100000|1000000|5000000)\b/u;
+const USES_PROXY_REGEX = /new\s+Proxy\b/u;
 
 describe("QUICKJS_DEFAULT_BUFFER_CODE", () => {
   it("is a non-empty string", () => {

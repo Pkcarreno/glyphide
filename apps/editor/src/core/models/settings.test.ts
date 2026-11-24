@@ -1,3 +1,4 @@
+import { flush } from "solid-js";
 import { describe, expect, it } from "vitest";
 import type { PersistencePort } from "../ports/persistence.ts";
 import { createSettingsModel } from "./settings.ts";
@@ -63,6 +64,7 @@ describe("SettingsModel", () => {
     const model = createSettingsModel(persistence);
 
     model.updateSettings({ theme: "light" });
+    flush();
 
     expect(model.settings.theme).toBe("light");
     const raw = persistence.get("settings");
@@ -75,10 +77,12 @@ describe("SettingsModel", () => {
     const model = createSettingsModel(persistence);
 
     model.updateSettings({ theme: "dark", uiFontSize: 20 });
+    flush();
     expect(model.settings.theme).toBe("dark");
     expect(model.settings.uiFontSize).toBe(20);
 
     model.resetSetting("theme");
+    flush();
     expect(model.settings.theme).toBe("system");
     expect(model.settings.uiFontSize).toBe(20);
 

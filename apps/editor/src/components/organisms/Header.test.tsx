@@ -3,7 +3,9 @@ import { createSignal } from "solid-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Header } from "./Header.tsx";
 
-vi.stubGlobal("console", { info: vi.fn() });
+vi.spyOn(console, "info").mockImplementation(() => {
+  /* Suppress info logs in test */
+});
 
 const runCodeMock = vi.fn();
 const interruptExecutionMock = vi.fn();
@@ -43,12 +45,12 @@ vi.mock("../../core/context", () => ({
   }),
 }));
 
-const TEST_PROJECT_REGEX = /TEST_PROJECT/;
-const RUN_REGEX = /Run/;
-const STOP_REGEX = /stop/i;
-const TRUST_REGEX = /trust/i;
-const RELOAD_REGEX = /reload/i;
-const VERSION_LABELS_REGEX = /Glyphide v/;
+const TEST_PROJECT_REGEX = /TEST_PROJECT/u;
+const RUN_REGEX = /Run/u;
+const STOP_REGEX = /stop/iu;
+const TRUST_REGEX = /trust/iu;
+const RELOAD_REGEX = /reload/iu;
+const VERSION_LABELS_REGEX = /Glyphide v/u;
 
 describe("Header", () => {
   beforeEach(() => {

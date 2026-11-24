@@ -3,11 +3,11 @@ import { cleanup, render, screen } from "@solidjs/testing-library";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EditorProvider, useEditor } from "./context.tsx";
 
-const PLUS_GLOBAL_REGEX = /\+/g;
-const SLASH_GLOBAL_REGEX = /\//g;
-const TRAILING_EQUALS_REGEX = /[=]+$/;
-const V3_URL_PREFIX_REGEX = /^https:\/\/glyphide\.com\/\?/;
-const LOCAL_URL_PREFIX_REGEX = /^http:\/\/localhost:3000\/\?/;
+const PLUS_GLOBAL_REGEX = /\+/gu;
+const SLASH_GLOBAL_REGEX = /\//gu;
+const TRAILING_EQUALS_REGEX = /[=]+$/u;
+const V3_URL_PREFIX_REGEX = /^https:\/\/glyphide\.com\/\?/u;
+const LOCAL_URL_PREFIX_REGEX = /^http:\/\/localhost:3000\/\?/u;
 
 function TestComponent() {
   const core = useEditor();

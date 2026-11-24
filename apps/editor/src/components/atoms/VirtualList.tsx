@@ -1,12 +1,5 @@
-import type { JSX } from "solid-js";
-import {
-  createEffect,
-  createMemo,
-  createSignal,
-  For,
-  onCleanup,
-  onMount,
-} from "solid-js";
+import type { JSX } from "@solidjs/web";
+import { createMemo, createSignal, For, onSettled } from "solid-js";
 
 /**
  * Configuration props for the VirtualList component.
@@ -29,6 +22,54 @@ interface VirtualListProps<T> {
   overscan?: number;
   /** Render callback for each item */
   renderItem: (item: T, index: number) => JSX.Element;
+}
+
+interface VirtualRowProps<T> {
+  children: JSX.Element;
+  elementToItemMap: WeakMap<Element, T>;
+  item: T;
+  itemHeights: Map<T, number>;
+  observer?: ResizeObserver;
+  offset: number;
+}
+
+function VirtualRow<T>(props: VirtualRowProps<T>) {
+  let element: HTMLDivElement | undefined;
+
+  onSettled(() => {
+    if (element) {
+      if (props.observer) {
+        props.observer.observe(element);
+      }
+      props.elementToItemMap.set(element, props.item);
+      const height = element.offsetHeight;
+      if (height > 0 && props.itemHeights.get(props.item) !== height) {
+        props.itemHeights.set(props.item, height);
+      }
+    }
+    return () => {
+      if (element) {
+        if (props.observer) {
+          props.observer.unobserve(element);
+        }
+        props.elementToItemMap.delete(element);
+      }
+    };
+  });
+
+  return (
+    <div
+      class="absolute top-0 left-0 w-full"
+      ref={(el) => {
+        element = el;
+      }}
+      style={{
+        transform: `translateY(${props.offset}px)`,
+      }}
+    >
+      {props.children}
+    </div>
+  );
 }
 
 /**
@@ -117,7 +158,7 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
   const elementToItemMap = new WeakMap<Element, T>();
   let itemHeightObserver: ResizeObserver | undefined;
 
-  onMount(() => {
+  onSettled(() => {
     if (!scrollContainerElement) {
       return;
     }
@@ -164,11 +205,11 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
     const containerResizeObserver = new ResizeObserver(handleResize);
     containerResizeObserver.observe(scrollContainerElement);
 
-    onCleanup(() => {
+    return () => {
       scrollContainerElement?.removeEventListener("scroll", handleScroll);
       containerResizeObserver.disconnect();
       itemHeightObserver?.disconnect();
-    });
+    };
   });
 
   // Return the raw slice to maintain referential stability for Solid's <For>
@@ -179,7 +220,7 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
 
   return (
     <div
-      class={`relative overflow-y-auto overflow-x-hidden ${props.class ?? ""}`}
+      class={`relative overflow-x-hidden overflow-y-auto ${props.class ?? ""}`}
       ref={(containerElement) => {
         scrollContainerElement = containerElement;
       }}
@@ -194,40 +235,17 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
               visibleRange().start + reactiveVisibleIndex();
 
             return (
-              <div
-                class="absolute top-0 left-0 w-full"
-                ref={(itemElement) => {
-                  if (itemElement) {
-                    if (itemHeightObserver) {
-                      itemHeightObserver.observe(itemElement);
-                    }
-
-                    // Keep elementToItemMap synced if the DOM node is reused
-                    createEffect(() => {
-                      elementToItemMap.set(itemElement, item);
-
-                      const height = itemElement.offsetHeight;
-                      if (height > 0 && itemHeights.get(item) !== height) {
-                        itemHeights.set(item, height);
-                      }
-                    });
-
-                    onCleanup(() => {
-                      if (itemHeightObserver) {
-                        itemHeightObserver.unobserve(itemElement);
-                      }
-                      elementToItemMap.delete(itemElement);
-                    });
-                  }
-                }}
-                style={{
-                  transform: `translateY(${
-                    computedLayout().itemVerticalOffsets[absoluteItemIndex()]
-                  }px)`,
-                }}
+              <VirtualRow
+                elementToItemMap={elementToItemMap}
+                item={item}
+                itemHeights={itemHeights}
+                observer={itemHeightObserver}
+                offset={
+                  computedLayout().itemVerticalOffsets[absoluteItemIndex()]
+                }
               >
                 {props.renderItem(item, absoluteItemIndex())}
-              </div>
+              </VirtualRow>
             );
           }}
         </For>

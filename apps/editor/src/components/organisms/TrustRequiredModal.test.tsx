@@ -8,9 +8,9 @@ const mockClose = vi.fn();
 const mockOpen = vi.fn();
 const [mockIsOpen, setMockIsOpen] = createSignal(false);
 
-const SHARED_CODE_REGEX = /shared code/i;
-const UNKNOWN_SOURCE_REGEX = /unknown source/i;
-const DENY_REGEX = /deny/i;
+const SHARED_CODE_REGEX = /shared code/iu;
+const UNKNOWN_SOURCE_REGEX = /unknown source/iu;
+const DENY_REGEX = /deny/iu;
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({

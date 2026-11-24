@@ -1,5 +1,5 @@
 import { render } from "@solidjs/testing-library";
-import { createSignal } from "solid-js";
+import { createSignal, flush } from "solid-js";
 import { describe, expect, it, vi } from "vitest";
 import {
   Dialog,
@@ -97,8 +97,10 @@ describe("Dialog", () => {
     ));
     expect(queryByRole("dialog")).toBeNull();
     setIsOpen(true);
+    flush();
     expect(queryByRole("dialog")).not.toBeNull();
     setIsOpen(false);
+    flush();
     expect(queryByRole("dialog")).toBeNull();
   });
 

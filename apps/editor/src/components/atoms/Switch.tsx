@@ -1,9 +1,9 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { createSignal, splitProps } from "solid-js";
+import { createSignal, omit } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
 const switchVariants = cva(
-  "relative inline-flex h-4 pointer-coarse:h-7 pointer-coarse:w-11 w-7 shrink-0 cursor-pointer items-center rounded-sm border border-transparent outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+  "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-offset-surface aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 relative inline-flex h-4 w-7 shrink-0 cursor-pointer items-center rounded-sm border border-transparent transition-colors outline-none focus-visible:ring-3 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:ring-3 pointer-coarse:h-7 pointer-coarse:w-11",
   {
     defaultVariants: {
       checked: false,
@@ -18,15 +18,15 @@ const switchVariants = cva(
 );
 
 const thumbVariants = cva(
-  "pointer-events-none block h-3 pointer-coarse:h-4 pointer-coarse:w-4 w-3 rounded-sm shadow-none ring-0 transition-transform",
+  "pointer-events-none block h-3 w-3 rounded-sm shadow-none ring-0 transition-transform pointer-coarse:h-4 pointer-coarse:w-4",
   {
     defaultVariants: {
       checked: false,
     },
     variants: {
       checked: {
-        false: "pointer-coarse:translate-x-1 translate-x-[2px] bg-on-surface",
-        true: "pointer-coarse:translate-x-6 translate-x-[14px] bg-on-primary",
+        false: "bg-on-surface translate-x-[2px] pointer-coarse:translate-x-1",
+        true: "bg-on-primary translate-x-[14px] pointer-coarse:translate-x-6",
       },
     },
   }
@@ -56,38 +56,39 @@ interface SwitchProps extends VariantProps<typeof switchVariants> {
  * for accessibility. Supports both controlled and uncontrolled usage.
  */
 function Switch(props: SwitchProps) {
-  const [local, rest] = splitProps(props, [
+  const rest = omit(
+    props,
     "checked",
     "defaultChecked",
     "onCheckedChange",
     "disabled",
-    "class",
-  ]);
+    "class"
+  );
 
-  const isControlled = () => local.checked !== undefined;
+  const isControlled = () => props.checked !== undefined;
   const [internalChecked, setInternalChecked] = createSignal(
-    local.defaultChecked ?? false
+    props.defaultChecked ?? false
   );
 
   const isChecked = () =>
-    isControlled() ? (local.checked ?? false) : internalChecked();
+    isControlled() ? (props.checked ?? false) : internalChecked();
 
   function handleToggle() {
-    if (local.disabled) {
+    if (props.disabled) {
       return;
     }
     const next = !isChecked();
     if (!isControlled()) {
       setInternalChecked(next);
     }
-    local.onCheckedChange?.(next);
+    props.onCheckedChange?.(next);
   }
 
   return (
     <button
-      aria-checked={isChecked()}
-      class={cn(switchVariants({ checked: isChecked(), class: local.class }))}
-      disabled={local.disabled}
+      aria-checked={isChecked() ? "true" : "false"}
+      class={cn(switchVariants({ checked: isChecked(), class: props.class }))}
+      disabled={props.disabled}
       onClick={handleToggle}
       role="switch"
       type="button"

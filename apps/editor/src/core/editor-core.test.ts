@@ -1,12 +1,40 @@
 import type { CanonicalState } from "@glyphide/url-migration/types";
+import { flush } from "solid-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createBrowserUrlPersistenceAdapter } from "./adapters/url-persistence.ts";
 import { PYTHON_DEFAULT_BUFFER_CODE } from "./data/python-default-buffer-code.ts";
 import { QUICKJS_DEFAULT_BUFFER_CODE } from "./data/quickjs-default-buffer-code.ts";
-import { createEditorCore } from "./editor-core.ts";
+import { createEditorCore as baseCreateEditorCore } from "./editor-core.ts";
 import type { FileIoPort } from "./ports/file-io.ts";
 import type { PersistencePort } from "./ports/persistence.ts";
 import type { UrlPersistencePort } from "./ports/url-persistence.ts";
+
+function wrapWithFlush<T extends object>(target: T): T {
+  return new Proxy(target, {
+    get(t, prop, receiver) {
+      const val = Reflect.get(t, prop, receiver);
+      if (typeof val === "function") {
+        return (...args: unknown[]) => {
+          const res = val.apply(t, args);
+          flush();
+          return res;
+        };
+      }
+      if (
+        val !== null &&
+        typeof val === "object" &&
+        !(val instanceof Promise)
+      ) {
+        return wrapWithFlush(val);
+      }
+      return val;
+    },
+  });
+}
+
+function createEditorCore(deps: Parameters<typeof baseCreateEditorCore>[0]) {
+  return wrapWithFlush(baseCreateEditorCore(deps));
+}
 
 function createMockPersistence(): PersistencePort {
   return { get: vi.fn(), remove: vi.fn(), set: vi.fn() };

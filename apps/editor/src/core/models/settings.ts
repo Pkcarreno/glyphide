@@ -1,4 +1,4 @@
-import { createStore } from "solid-js/store";
+import { createStore } from "solid-js";
 import type { PersistencePort } from "../ports/persistence.ts";
 
 const SETTINGS_STORAGE_KEY = "settings";
@@ -61,7 +61,9 @@ export function createSettingsModel(
   const [settings, setSettings] = createStore<EditorSettings>(initial);
 
   function updateSettings(patch: Partial<EditorSettings>): void {
-    setSettings(patch);
+    setSettings((draft) => {
+      Object.assign(draft, patch);
+    });
     persistSettings(persistence, { ...settings, ...patch });
   }
 

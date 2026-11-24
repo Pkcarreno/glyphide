@@ -98,7 +98,7 @@ vi.mock("../../core/context", () => ({
   }),
 }));
 
-const TEST_PROJECT_REGEX = /TEST_PROJECT/;
+const TEST_PROJECT_REGEX = /TEST_PROJECT/u;
 
 describe("EditorPage", () => {
   beforeEach(() => {

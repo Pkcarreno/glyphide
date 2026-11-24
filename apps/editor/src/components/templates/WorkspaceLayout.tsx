@@ -1,4 +1,4 @@
-import type { JSX } from "solid-js";
+import type { JSX } from "@solidjs/web";
 import { createSignal } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { Resizer } from "../atoms/Resizer.tsx";
@@ -44,7 +44,7 @@ function WorkspaceLayout(props: WorkspaceLayoutProps) {
   return (
     <div
       class={cn(
-        "flex h-dvh w-screen flex-col overflow-hidden bg-background",
+        "bg-background flex h-dvh w-screen flex-col overflow-hidden",
         props.class
       )}
       style={{ "--editor-size": `${editorSize()}%` }}
@@ -61,7 +61,7 @@ function WorkspaceLayout(props: WorkspaceLayoutProps) {
           {/* Editor Wrapper */}
           <div
             class={cn(
-              "flex flex-col overflow-hidden border-outline-variant border-b transition-none md:border-b-0",
+              "border-outline-variant flex flex-col overflow-hidden border-b transition-none md:border-b-0",
               "flex-1 md:flex-none md:basis-(--editor-size)"
             )}
           >

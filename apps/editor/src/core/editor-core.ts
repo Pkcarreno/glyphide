@@ -1,4 +1,4 @@
-import { createRoot } from "solid-js";
+import { createRoot, flush, runWithOwner } from "solid-js";
 import type { EditorCommands } from "./commands.ts";
 import { createEditorCommands } from "./commands.ts";
 import type { EngineRegistry } from "./engine/registry.ts";
@@ -95,12 +95,15 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
       disposeRoot();
     }
 
-    if (session.isTrustRequired()) {
-      engine.setBlocked(true);
-      overlays.open("trust-required");
-    } else {
-      engine.initializeSelectedEngine();
-    }
+    runWithOwner(null, () => {
+      if (session.isTrustRequired()) {
+        engine.setBlocked(true);
+        overlays.open("trust-required");
+      } else {
+        engine.initializeSelectedEngine();
+      }
+      flush();
+    });
 
     return {
       commands,

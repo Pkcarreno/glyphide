@@ -1,5 +1,5 @@
-import type { ComponentProps, JSX, ValidComponent } from "solid-js";
-import { createSignal, Show, splitProps } from "solid-js";
+import type { ComponentProps, JSX, ValidComponent } from "@solidjs/web";
+import { createSignal, omit, Show } from "solid-js";
 import type { PopoverPosition } from "./Popover.tsx";
 import { Popover } from "./Popover.tsx";
 
@@ -47,7 +47,8 @@ export type TooltipProps<T extends ValidComponent = "div"> = {
 export function Tooltip<T extends ValidComponent = "div">(
   props: TooltipProps<T>
 ) {
-  const [local, rest] = splitProps(props, [
+  const rest = omit(
+    props,
     "as",
     "children",
     "class",
@@ -55,45 +56,45 @@ export function Tooltip<T extends ValidComponent = "div">(
     "meta",
     "shortcut",
     "position",
-    "offset",
-  ]);
+    "offset"
+  );
 
   const [isHovered, setIsHovered] = createSignal(false);
 
   return (
     <Popover.Root
       isOpen={isHovered()}
-      offset={local.offset}
-      position={local.position}
+      offset={props.offset}
+      position={props.position}
     >
       <Popover.Trigger
-        as={local.as}
-        class={local.class}
+        as={props.as}
+        class={props.class}
         onBlur={() => setIsHovered(false)}
         onFocus={() => setIsHovered(true)}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         {...(rest as unknown as ComponentProps<T>)}
       >
-        {local.children}
+        {props.children}
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Positioner>
           <Popover.Popup
-            class="w-max max-w-64 px-2 py-1 text-surface text-xs"
+            class="text-surface w-max max-w-64 px-2 py-1 text-xs"
             role="tooltip"
           >
             <div class="flex items-baseline justify-between gap-4">
-              <span class="text-on-surface text-xs">{local.text}</span>
-              <Show when={local.shortcut}>
-                <span class="whitespace-nowrap font-mono text-token-comment text-tooltip-shortcut">
-                  {local.shortcut}
+              <span class="text-on-surface text-xs">{props.text}</span>
+              <Show when={props.shortcut}>
+                <span class="text-token-comment text-tooltip-shortcut font-mono whitespace-nowrap">
+                  {props.shortcut}
                 </span>
               </Show>
             </div>
-            <Show when={local.meta}>
-              <span class="mt-1.5 block text-token-comment text-tooltip-meta">
-                {local.meta}
+            <Show when={props.meta}>
+              <span class="text-token-comment text-tooltip-meta mt-1.5 block">
+                {props.meta}
               </span>
             </Show>
           </Popover.Popup>

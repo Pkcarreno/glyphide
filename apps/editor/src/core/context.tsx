@@ -1,5 +1,5 @@
-import type { JSX } from "solid-js";
-import { createContext, onCleanup, onMount, useContext } from "solid-js";
+import type { JSX } from "@solidjs/web";
+import { createContext, onCleanup, onSettled, useContext } from "solid-js";
 import { createBrowserFileIoAdapter } from "./adapters/file-io.ts";
 import { createLocalStorageAdapter } from "./adapters/local-storage.ts";
 import { createBrowserUrlPersistenceAdapter } from "./adapters/url-persistence.ts";
@@ -7,7 +7,7 @@ import type { EditorCore } from "./editor-core.ts";
 import { createEditorCore } from "./editor-core.ts";
 import { parseKeyCombo } from "./shortcuts/registry.ts";
 
-const EditorContext = createContext<EditorCore>();
+const EditorContext = createContext<EditorCore | null>(null);
 
 /**
  * SolidJS provider that creates the `EditorCore` and makes it
@@ -22,7 +22,7 @@ export function EditorProvider(props: { children: JSX.Element }) {
     urlPersistence: createBrowserUrlPersistenceAdapter(),
   });
 
-  onMount(() => {
+  onSettled(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const combo = parseKeyCombo(e);
       const binding = core.shortcuts.matchShortcut(combo, core);
@@ -36,18 +36,14 @@ export function EditorProvider(props: { children: JSX.Element }) {
 
     window.addEventListener("keydown", handleKeyDown, true);
 
-    onCleanup(() => {
+    return () => {
       window.removeEventListener("keydown", handleKeyDown, true);
-    });
+    };
   });
 
   onCleanup(() => core.dispose());
 
-  return (
-    <EditorContext.Provider value={core}>
-      {props.children}
-    </EditorContext.Provider>
-  );
+  return <EditorContext value={core}>{props.children}</EditorContext>;
 }
 
 /**

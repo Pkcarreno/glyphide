@@ -217,6 +217,7 @@
 
 /* ---------- Text selection ---------- */
 
+/* biome-ignore lint/suspicious/useBaseline: ::selection is supported across all modern browsers */
 ::selection {
   background-color: var(--editor-selection-bg);
 }

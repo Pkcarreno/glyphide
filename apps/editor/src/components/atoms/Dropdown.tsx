@@ -6,25 +6,20 @@ import {
   type Placement,
   shift,
 } from "@floating-ui/dom";
+import type { ComponentProps, JSX, ValidComponent } from "@solidjs/web";
+import { dynamic, Portal } from "@solidjs/web";
 import Check from "lucide-solid/icons/check";
-import type {
-  Accessor,
-  ComponentProps,
-  JSX,
-  Setter,
-  ValidComponent,
-} from "solid-js";
+import type { Accessor, Setter } from "solid-js";
 import {
   createContext,
   createEffect,
   createSignal,
+  omit,
   onCleanup,
-  onMount,
+  onSettled,
   Show,
-  splitProps,
   useContext,
 } from "solid-js";
-import { Dynamic, Portal } from "solid-js/web";
 import { cn } from "../../helpers/cn.ts";
 
 /* ---------- Context ---------- */
@@ -77,10 +72,8 @@ interface DropdownRootProps {
  * Supports both controlled and uncontrolled modes.
  */
 function DropdownRoot(props: DropdownRootProps) {
-  const [local] = splitProps(props, ["isOpen", "onOpenChange", "children"]);
-
   const [internalIsOpen, setInternalIsOpen] = createSignal(false);
-  const isOpen = () => local.isOpen ?? internalIsOpen();
+  const isOpen = () => props.isOpen ?? internalIsOpen();
 
   const [activeIndex, setActiveIndex] = createSignal(-1);
   const [itemIds, setItemIds] = createSignal<string[]>([]);
@@ -90,10 +83,10 @@ function DropdownRoot(props: DropdownRootProps) {
   let cleanupAutoUpdate: (() => void) | undefined;
 
   const handleOpenStateChange = (nextOpen: boolean) => {
-    if (local.isOpen === undefined) {
+    if (props.isOpen === undefined) {
       setInternalIsOpen(nextOpen);
     }
-    local.onOpenChange?.(nextOpen);
+    props.onOpenChange?.(nextOpen);
 
     if (!nextOpen) {
       setActiveIndex(-1);
@@ -158,16 +151,19 @@ function DropdownRoot(props: DropdownRootProps) {
     }
   };
 
-  createEffect(() => {
-    if (isOpen()) {
-      // Wait for next frame so content is in DOM
-      requestAnimationFrame(() => {
-        bindAutoUpdate();
-      });
+  createEffect(
+    () => isOpen(),
+    (open) => {
+      if (open) {
+        // Wait for next frame so content is in DOM
+        requestAnimationFrame(() => {
+          bindAutoUpdate();
+        });
+      }
     }
-  });
+  );
 
-  onMount(() => {
+  onSettled(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (!isOpen()) {
         return;
@@ -183,9 +179,9 @@ function DropdownRoot(props: DropdownRootProps) {
       }
     };
     document.addEventListener("mousedown", handleOutsideClick);
-    onCleanup(() => {
+    return () => {
       document.removeEventListener("mousedown", handleOutsideClick);
-    });
+    };
   });
 
   onCleanup(() => {
@@ -193,7 +189,7 @@ function DropdownRoot(props: DropdownRootProps) {
   });
 
   return (
-    <DropdownContext.Provider
+    <DropdownContext
       value={{
         activeIndex,
         close,
@@ -209,8 +205,8 @@ function DropdownRoot(props: DropdownRootProps) {
         unregisterItem,
       }}
     >
-      {local.children}
-    </DropdownContext.Provider>
+      {props.children}
+    </DropdownContext>
   );
 }
 
@@ -230,7 +226,7 @@ type DropdownTriggerProps<T extends ValidComponent = "button"> = {
 function DropdownTrigger<T extends ValidComponent = "button">(
   props: DropdownTriggerProps<T>
 ) {
-  const [local, rest] = splitProps(props, ["as", "class", "children"]);
+  const rest = omit(props, "as", "class", "children");
   const ctx = useDropdown();
 
   // Extract ref and onClick from rest via type casting — these are handled
@@ -242,15 +238,16 @@ function DropdownTrigger<T extends ValidComponent = "button">(
     ...forwardProps
   } = rest as Record<string, unknown>;
 
+  const Comp = dynamic(() => props.as ?? "button");
+
   return (
-    <Dynamic
-      aria-expanded={ctx.isOpen()}
+    <Comp
+      aria-expanded={ctx.isOpen() ? "true" : "false"}
       aria-haspopup="true"
       class={cn(
-        "outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
-        local.class
+        "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 outline-none focus-visible:ring-3 aria-invalid:ring-3",
+        props.class
       )}
-      component={local.as ?? "button"}
       onClick={(e: Event) => {
         ctx.toggle();
         (onClickProp as ((e: Event) => void) | undefined)?.(e);
@@ -261,8 +258,8 @@ function DropdownTrigger<T extends ValidComponent = "button">(
       }}
       {...forwardProps}
     >
-      {local.children}
-    </Dynamic>
+      {props.children}
+    </Comp>
   );
 }
 
@@ -296,12 +293,7 @@ interface DropdownContentProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * Positioned by Floating UI relative to the trigger.
  */
 function DropdownContent(props: DropdownContentProps) {
-  const [local, rest] = splitProps(props, [
-    "class",
-    "children",
-    "offset",
-    "placement",
-  ]);
+  const rest = omit(props, "class", "children", "offset", "placement");
   const ctx = useDropdown();
   let contentRef: HTMLDivElement | undefined;
 
@@ -387,7 +379,7 @@ function DropdownContent(props: DropdownContentProps) {
   };
 
   // Focus content on open so keyboard events are captured
-  onMount(() => {
+  onSettled(() => {
     requestAnimationFrame(() => {
       contentRef?.focus();
     });
@@ -399,18 +391,18 @@ function DropdownContent(props: DropdownContentProps) {
         <div
           class={cn(
             "pointer-events-auto fixed z-50 w-max origin-top-left",
-            "overflow-y-auto overflow-x-hidden rounded-lg",
-            "bg-surface p-1 text-on-surface text-xs shadow-md ring-1 ring-on-surface/10",
+            "overflow-x-hidden overflow-y-auto rounded-lg",
+            "bg-surface text-on-surface ring-on-surface/10 p-1 text-xs shadow-md ring-1",
             "animate-[dropdown-in_100ms_ease-out]",
-            local.class
+            props.class
           )}
           onKeyDown={handleKeyDown}
           ref={handleRef}
           role="menu"
-          tabIndex={-1}
+          tabindex={-1}
           {...rest}
         >
-          {local.children}
+          {props.children}
         </div>
       </Portal>
     </Show>
@@ -429,16 +421,16 @@ interface DropdownGroupProps extends JSX.HTMLAttributes<HTMLFieldSetElement> {
  * Groups related menu items with an optional heading.
  */
 function DropdownGroup(props: DropdownGroupProps) {
-  const [local, rest] = splitProps(props, ["class", "children", "heading"]);
+  const rest = omit(props, "class", "children", "heading");
 
   return (
-    <fieldset aria-label={local.heading} class={cn(local.class)} {...rest}>
-      <Show when={local.heading}>
-        <div class="px-2 font-medium text-on-surface-variant text-xs">
-          {local.heading}
+    <fieldset aria-label={props.heading} class={cn(props.class)} {...rest}>
+      <Show when={props.heading}>
+        <div class="text-on-surface-variant px-2 text-xs font-medium">
+          {props.heading}
         </div>
       </Show>
-      {local.children}
+      {props.children}
     </fieldset>
   );
 }
@@ -465,28 +457,28 @@ type DropdownItemProps<T extends ValidComponent = "div"> = {
 function DropdownItem<T extends ValidComponent = "div">(
   props: DropdownItemProps<T>
 ) {
-  const [local, rest] = splitProps(props, [
+  const rest = omit(
+    props,
     "as",
     "class",
     "children",
     "isDisabled",
     "inset",
     "variant",
-    "onSelect",
-  ]);
+    "onSelect"
+  );
   const ctx = useDropdown();
   const itemId = `dropdown-item-${Math.random().toString(36).slice(2, 9)}`;
 
   let itemRef: HTMLElement | undefined;
 
-  onMount(() => {
+  onSettled(() => {
     if (itemRef) {
       ctx.registerItem(itemId);
     }
-  });
-
-  onCleanup(() => {
-    ctx.unregisterItem(itemId);
+    return () => {
+      ctx.unregisterItem(itemId);
+    };
   });
 
   const isActive = () => {
@@ -495,40 +487,41 @@ function DropdownItem<T extends ValidComponent = "div">(
   };
 
   const handleClick = () => {
-    if (local.isDisabled) {
+    if (props.isDisabled) {
       return;
     }
-    local.onSelect?.();
+    props.onSelect?.();
     ctx.close();
   };
 
+  const Comp = dynamic(() => props.as ?? "div");
+
   return (
-    <Dynamic
+    <Comp
       class={cn(
-        "relative flex min-h-7 cursor-pointer select-none items-center gap-1.5 rounded-sm px-2 py-1 text-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 relative flex min-h-7 cursor-pointer items-center gap-1.5 rounded-sm px-2 py-1 text-xs transition-colors outline-none select-none focus-visible:ring-3 aria-invalid:ring-3",
         "pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:py-2.5",
         "hover:bg-surface-variant hover:text-on-surface",
         "data-[active=true]:bg-surface-variant data-[active=true]:text-on-surface",
-        local.inset && "pl-7",
-        local.variant === "destructive" &&
+        props.inset && "pl-7",
+        props.variant === "destructive" &&
           "text-error hover:text-error data-[active=true]:text-error",
-        local.isDisabled && "pointer-events-none cursor-default opacity-50",
-        local.class
+        props.isDisabled && "pointer-events-none cursor-default opacity-50",
+        props.class
       )}
-      component={local.as ?? "div"}
-      data-active={isActive()}
-      data-disabled={local.isDisabled}
-      data-variant={local.variant}
+      data-active={isActive() ? "true" : undefined}
+      data-disabled={props.isDisabled}
+      data-variant={props.variant}
       onClick={handleClick}
       ref={(el: HTMLElement) => {
         itemRef = el;
       }}
       role="menuitem"
-      tabIndex={-1}
+      tabindex={-1}
       {...rest}
     >
-      {local.children}
-    </Dynamic>
+      {props.children}
+    </Comp>
   );
 }
 
@@ -548,27 +541,27 @@ interface DropdownCheckboxItemProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * Shows a check indicator when checked.
  */
 function DropdownCheckboxItem(props: DropdownCheckboxItemProps) {
-  const [local, rest] = splitProps(props, [
+  const rest = omit(
+    props,
     "class",
     "children",
     "isChecked",
     "isDisabled",
     "inset",
-    "onCheckedChange",
-  ]);
+    "onCheckedChange"
+  );
   const ctx = useDropdown();
   const itemId = `dropdown-checkbox-${Math.random().toString(36).slice(2, 9)}`;
 
   let itemRef: HTMLDivElement | undefined;
 
-  onMount(() => {
+  onSettled(() => {
     if (itemRef) {
       ctx.registerItem(itemId);
     }
-  });
-
-  onCleanup(() => {
-    ctx.unregisterItem(itemId);
+    return () => {
+      ctx.unregisterItem(itemId);
+    };
   });
 
   const isActive = () => {
@@ -577,54 +570,55 @@ function DropdownCheckboxItem(props: DropdownCheckboxItemProps) {
   };
 
   const handleClick = () => {
-    if (local.isDisabled) {
+    if (props.isDisabled) {
       return;
     }
-    local.onCheckedChange?.(!local.isChecked);
+    props.onCheckedChange?.(!props.isChecked);
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (local.isDisabled) {
+    if (props.isDisabled) {
       return;
     }
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      local.onCheckedChange?.(!local.isChecked);
+      props.onCheckedChange?.(!props.isChecked);
     }
   };
 
   return (
+    // biome-ignore lint/a11y/useFocusableInteractive: Solid 2 uses lowercase tabindex attribute
     <div
-      aria-checked={local.isChecked}
+      aria-checked={props.isChecked ? "true" : "false"}
       class={cn(
-        "relative flex cursor-pointer select-none items-center gap-1.5 rounded-sm py-1 pr-8 pl-1.5 text-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 relative flex cursor-pointer items-center gap-1.5 rounded-sm py-1 pr-8 pl-1.5 text-xs transition-colors outline-none select-none focus-visible:ring-3 aria-invalid:ring-3",
         "pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:py-2.5",
         "hover:bg-surface-variant hover:text-on-surface",
         "data-[active=true]:bg-surface-variant data-[active=true]:text-on-surface",
-        local.inset && "pl-7",
-        local.isDisabled && "pointer-events-none cursor-default opacity-50",
-        local.class
+        props.inset && "pl-7",
+        props.isDisabled && "pointer-events-none cursor-default opacity-50",
+        props.class
       )}
-      data-active={isActive()}
-      data-disabled={local.isDisabled}
+      data-active={isActive() ? "true" : undefined}
+      data-disabled={props.isDisabled}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       ref={(el) => {
         itemRef = el;
       }}
       role="menuitemcheckbox"
-      tabIndex={-1}
+      tabindex={-1}
       {...rest}
     >
       <span
         class="pointer-events-none absolute right-2 flex items-center justify-center"
         data-testid="dropdown-check-icon"
       >
-        <Show when={local.isChecked}>
+        <Show when={props.isChecked}>
           <Check class="h-4 w-4" />
         </Show>
       </span>
-      {local.children}
+      {props.children}
     </div>
   );
 }
@@ -652,27 +646,27 @@ type DropdownLinkProps<T extends ValidComponent = "a"> = {
 function DropdownLink<T extends ValidComponent = "a">(
   props: DropdownLinkProps<T>
 ) {
-  const [local, rest] = splitProps(props, [
+  const rest = omit(
+    props,
     "as",
     "class",
     "children",
     "isDisabled",
     "inset",
-    "onSelect",
-  ]);
+    "onSelect"
+  );
   const ctx = useDropdown();
   const itemId = `dropdown-link-${Math.random().toString(36).slice(2, 9)}`;
 
   let itemRef: HTMLElement | undefined;
 
-  onMount(() => {
+  onSettled(() => {
     if (itemRef) {
       ctx.registerItem(itemId);
     }
-  });
-
-  onCleanup(() => {
-    ctx.unregisterItem(itemId);
+    return () => {
+      ctx.unregisterItem(itemId);
+    };
   });
 
   const isActive = () => {
@@ -681,37 +675,38 @@ function DropdownLink<T extends ValidComponent = "a">(
   };
 
   const handleClick = () => {
-    if (local.isDisabled) {
+    if (props.isDisabled) {
       return;
     }
-    local.onSelect?.();
+    props.onSelect?.();
     ctx.close();
   };
 
+  const Comp = dynamic(() => props.as ?? "a");
+
   return (
-    <Dynamic
+    <Comp
       class={cn(
-        "relative flex min-h-7 cursor-pointer select-none items-center gap-1.5 rounded-sm px-2 py-1 text-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 relative flex min-h-7 cursor-pointer items-center gap-1.5 rounded-sm px-2 py-1 text-xs transition-colors outline-none select-none focus-visible:ring-3 aria-invalid:ring-3",
         "pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:py-2.5",
         "hover:bg-surface-variant hover:text-on-surface",
         "data-[active=true]:bg-surface-variant data-[active=true]:text-on-surface",
-        local.inset && "pl-7",
-        local.isDisabled && "pointer-events-none cursor-default opacity-50",
-        local.class
+        props.inset && "pl-7",
+        props.isDisabled && "pointer-events-none cursor-default opacity-50",
+        props.class
       )}
-      component={local.as ?? "a"}
-      data-active={isActive()}
-      data-disabled={local.isDisabled}
+      data-active={isActive() ? "true" : undefined}
+      data-disabled={props.isDisabled}
       onClick={handleClick}
       ref={(el: HTMLElement) => {
         itemRef = el;
       }}
       role="menuitem"
-      tabIndex={-1}
+      tabindex={-1}
       {...rest}
     >
-      {local.children}
-    </Dynamic>
+      {props.children}
+    </Comp>
   );
 }
 
@@ -729,15 +724,15 @@ interface DropdownCaptionProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * @public
  */
 function DropdownCaption(props: DropdownCaptionProps) {
-  const [local, rest] = splitProps(props, ["class", "children"]);
+  const rest = omit(props, "class", "children");
 
   return (
     <div
-      class={cn("px-2 py-1 text-on-surface-variant text-xs", local.class)}
+      class={cn("text-on-surface-variant px-2 py-1 text-xs", props.class)}
       role="presentation"
       {...rest}
     >
-      {local.children}
+      {props.children}
     </div>
   );
 }
@@ -753,18 +748,18 @@ interface DropdownLabelProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * Non-interactive section header with role="presentation".
  */
 function DropdownLabel(props: DropdownLabelProps) {
-  const [local, rest] = splitProps(props, ["class", "children"]);
+  const rest = omit(props, "class", "children");
 
   return (
     <div
       class={cn(
-        "px-2 py-1.5 font-medium text-on-surface-variant text-xs",
-        local.class
+        "text-on-surface-variant px-2 py-1.5 text-xs font-medium",
+        props.class
       )}
       role="presentation"
       {...rest}
     >
-      {local.children}
+      {props.children}
     </div>
   );
 }
@@ -779,12 +774,12 @@ interface DropdownSeparatorProps extends JSX.HTMLAttributes<HTMLHRElement> {
  * Visual divider between menu items with role="separator".
  */
 function DropdownSeparator(props: DropdownSeparatorProps) {
-  const [local, rest] = splitProps(props, ["class"]);
+  const rest = omit(props, "class");
 
   return (
     <hr
       aria-orientation="horizontal"
-      class={cn("-mx-1 my-1 h-px border-none bg-outline-variant", local.class)}
+      class={cn("bg-outline-variant -mx-1 my-1 h-px border-none", props.class)}
       {...rest}
     />
   );
@@ -801,17 +796,17 @@ interface DropdownShortcutProps extends JSX.HTMLAttributes<HTMLSpanElement> {
  * Displays keyboard shortcut hints, right-aligned with muted styling.
  */
 function DropdownShortcut(props: DropdownShortcutProps) {
-  const [local, rest] = splitProps(props, ["class", "children"]);
+  const rest = omit(props, "class", "children");
 
   return (
     <span
       class={cn(
-        "ml-auto text-on-surface-variant text-xs tracking-widest",
-        local.class
+        "text-on-surface-variant ml-auto text-xs tracking-widest",
+        props.class
       )}
       {...rest}
     >
-      {local.children}
+      {props.children}
     </span>
   );
 }

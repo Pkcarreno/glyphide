@@ -169,7 +169,7 @@ function Token(props: { token: unknown; isPreview?: boolean }) {
 
     case "error":
       return (
-        <span class="font-semibold text-log-error">
+        <span class="text-log-error font-semibold">
           {typedToken.name}: {typedToken.message}
         </span>
       );
@@ -238,7 +238,7 @@ function TokenArray(props: {
       <For each={elements}>
         {(element, index) => (
           <span class="flex items-baseline gap-2">
-            <span class="min-w-5 text-right text-on-surface-variant opacity-50">
+            <span class="text-on-surface-variant min-w-5 text-right opacity-50">
               {index()}:
             </span>
             <Token token={element} />

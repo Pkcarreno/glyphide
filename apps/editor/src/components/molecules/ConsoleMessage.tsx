@@ -1,6 +1,6 @@
+import type { JSX } from "@solidjs/web";
 import { cva, type VariantProps } from "class-variance-authority";
-import type { JSX } from "solid-js";
-import { splitProps } from "solid-js";
+import { omit } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
 const consoleMessageVariants = cva(
@@ -11,12 +11,12 @@ const consoleMessageVariants = cva(
     },
     variants: {
       type: {
-        debug: "border-transparent text-on-surface-variant opacity-80",
+        debug: "text-on-surface-variant border-transparent opacity-80",
         error: "border-error bg-error/10 text-error",
-        info: "border-transparent text-primary",
-        log: "border-transparent text-on-surface",
-        system: "border-transparent text-on-surface-variant italic",
-        table: "border-transparent text-on-surface",
+        info: "text-primary border-transparent",
+        log: "text-on-surface border-transparent",
+        system: "text-on-surface-variant border-transparent italic",
+        table: "text-on-surface border-transparent",
         warn: "border-log-warn bg-log-warn/10 text-log-warn",
       },
     },
@@ -44,19 +44,14 @@ interface ConsoleMessageProps
  * precedence over `message`.
  */
 function ConsoleMessage(props: ConsoleMessageProps) {
-  const [local, rest] = splitProps(props, [
-    "type",
-    "message",
-    "children",
-    "class",
-  ]);
+  const rest = omit(props, "type", "message", "children", "class");
 
   return (
     <div
-      class={cn(consoleMessageVariants({ type: local.type }), local.class)}
+      class={cn(consoleMessageVariants({ type: props.type }), props.class)}
       {...rest}
     >
-      {local.children ?? local.message}
+      {props.children ?? props.message}
     </div>
   );
 }

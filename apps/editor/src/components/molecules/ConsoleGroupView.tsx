@@ -21,7 +21,7 @@ function ConsoleGroupView(props: ConsoleGroupViewProps) {
   const isExpanded = () => !props.item.isCollapsed;
 
   const preview = (
-    <span class="inline-flex items-baseline gap-1.5 font-mono text-on-surface-variant text-sm">
+    <span class="text-on-surface-variant inline-flex items-baseline gap-1.5 font-mono text-sm">
       <Show
         fallback={<span class="italic opacity-50">&lt;no label&gt;</span>}
         when={hasLabel()}
@@ -32,10 +32,10 @@ function ConsoleGroupView(props: ConsoleGroupViewProps) {
   );
 
   return (
-    <div class="shrink-0 border-transparent border-l-2 px-2 py-0.5">
+    <div class="shrink-0 border-l-2 border-transparent px-2 py-0.5">
       <span class="inline-flex flex-col align-top">
         <button
-          class="-ml-1 inline-flex pointer-coarse:min-h-11 cursor-pointer items-center gap-1 rounded pointer-coarse:px-3 px-1 outline-none transition-colors hover:bg-surface-variant/50 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"
+          class="hover:bg-surface-variant/50 focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 -ml-1 inline-flex cursor-pointer items-center gap-1 rounded px-1 transition-colors outline-none focus-visible:ring-3 aria-invalid:ring-3 pointer-coarse:min-h-11 pointer-coarse:px-3"
           onClick={() => props.onToggle()}
           type="button"
         >

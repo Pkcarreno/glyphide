@@ -1,6 +1,6 @@
 import { Compartment, EditorState, type Extension } from "@codemirror/state";
 import { basicSetup, EditorView } from "codemirror";
-import { createEffect, onCleanup, onMount } from "solid-js";
+import { createEffect, createSignal, onSettled } from "solid-js";
 import { getEditorAppearance, glyphideSyntaxHighlight } from "./theme.ts";
 
 export interface CodeFieldProps {
@@ -34,6 +34,7 @@ export interface CodeFieldProps {
 export function CodeField(props: CodeFieldProps) {
   let containerRef: HTMLDivElement | undefined;
   let view: EditorView | undefined;
+  const [editorView, setEditorView] = createSignal<EditorView>();
   let isProgrammaticSync = false;
 
   const languageCompartment = new Compartment();
@@ -41,7 +42,7 @@ export function CodeField(props: CodeFieldProps) {
   const wordWrapCompartment = new Compartment();
   const readOnlyCompartment = new Compartment();
 
-  onMount(() => {
+  onSettled(() => {
     const updateListener = EditorView.updateListener.of((update) => {
       if (update.docChanged && !isProgrammaticSync && props.onValueChange) {
         props.onValueChange(update.state.doc.toString());
@@ -83,107 +84,120 @@ export function CodeField(props: CodeFieldProps) {
       ],
     });
 
-    view = new EditorView({ parent: containerRef, state });
-  });
+    const v = new EditorView({ parent: containerRef, state });
+    view = v;
+    setEditorView(v);
 
-  createEffect(() => {
-    const isDark = !!props.isDark;
-    if (view) {
-      view.dispatch({
-        effects: appearanceCompartment.reconfigure(getEditorAppearance(isDark)),
-      });
-    }
-  });
-
-  createEffect(() => {
-    const isWrap = !!props.isWordWrapEnabled;
-    if (view) {
-      view.dispatch({
-        effects: wordWrapCompartment.reconfigure(
-          isWrap ? EditorView.lineWrapping : []
-        ),
-      });
-    }
-  });
-
-  createEffect(() => {
-    const isReadOnly = !!props.isReadOnly;
-    if (view) {
-      view.dispatch({
-        effects: readOnlyCompartment.reconfigure(
-          isReadOnly
-            ? [EditorState.readOnly.of(true), EditorView.editable.of(false)]
-            : []
-        ),
-      });
-    }
-  });
-
-  createEffect(() => {
-    const lang = props.language;
-    if (!(view && lang)) {
-      return;
-    }
-
-    const loadLanguageEngine = async () => {
-      let languageExtension: Extension | undefined;
-      try {
-        if (lang === "javascript") {
-          const { javascript } = await import("@codemirror/lang-javascript");
-          languageExtension = javascript();
-        } else if (lang === "python") {
-          const { python } = await import("@codemirror/lang-python");
-          languageExtension = python();
-        }
-
-        if (languageExtension) {
-          view?.dispatch({
-            effects: languageCompartment.reconfigure(languageExtension),
-          });
-        } else {
-          view?.dispatch({
-            effects: languageCompartment.reconfigure([]),
-          });
-        }
-      } catch (error) {
-        console.error(`Error loading language engine for ${lang}:`, error);
-      }
-    };
-
-    loadLanguageEngine();
-  });
-
-  createEffect(() => {
-    const newValue = props.value;
-    if (view && newValue !== undefined) {
-      const currentValue = view.state.doc.toString();
-      if (newValue !== currentValue) {
-        isProgrammaticSync = true;
-        try {
-          view.dispatch({
-            changes: {
-              from: 0,
-              insert: newValue,
-              to: currentValue.length,
-            },
-          });
-        } finally {
-          isProgrammaticSync = false;
-        }
-      }
-    }
-  });
-
-  onCleanup(() => {
-    if (view) {
-      view.destroy();
+    return () => {
+      v.destroy();
       view = undefined;
-    }
+      setEditorView(undefined);
+    };
   });
+
+  createEffect(
+    () => !!props.isDark,
+    (isDark) => {
+      if (view) {
+        view.dispatch({
+          effects: appearanceCompartment.reconfigure(
+            getEditorAppearance(isDark)
+          ),
+        });
+      }
+    }
+  );
+
+  createEffect(
+    () => !!props.isWordWrapEnabled,
+    (isWrap) => {
+      if (view) {
+        view.dispatch({
+          effects: wordWrapCompartment.reconfigure(
+            isWrap ? EditorView.lineWrapping : []
+          ),
+        });
+      }
+    }
+  );
+
+  createEffect(
+    () => !!props.isReadOnly,
+    (isReadOnly) => {
+      if (view) {
+        view.dispatch({
+          effects: readOnlyCompartment.reconfigure(
+            isReadOnly
+              ? [EditorState.readOnly.of(true), EditorView.editable.of(false)]
+              : []
+          ),
+        });
+      }
+    }
+  );
+
+  createEffect(
+    () => ({ lang: props.language, v: editorView() }),
+    ({ lang, v }) => {
+      if (!(v && lang)) {
+        return;
+      }
+
+      const loadLanguageEngine = async () => {
+        let languageExtension: Extension | undefined;
+        try {
+          if (lang === "javascript") {
+            const { javascript } = await import("@codemirror/lang-javascript");
+            languageExtension = javascript();
+          } else if (lang === "python") {
+            const { python } = await import("@codemirror/lang-python");
+            languageExtension = python();
+          }
+
+          if (languageExtension) {
+            v.dispatch({
+              effects: languageCompartment.reconfigure(languageExtension),
+            });
+          } else {
+            v.dispatch({
+              effects: languageCompartment.reconfigure([]),
+            });
+          }
+        } catch (error) {
+          console.error(`Error loading language engine for ${lang}:`, error);
+        }
+      };
+
+      loadLanguageEngine();
+    }
+  );
+
+  createEffect(
+    () => props.value,
+    (newValue) => {
+      if (view && newValue !== undefined) {
+        const currentValue = view.state.doc.toString();
+        if (newValue !== currentValue) {
+          isProgrammaticSync = true;
+          try {
+            view.dispatch({
+              changes: {
+                from: 0,
+                insert: newValue,
+                to: currentValue.length,
+              },
+            });
+          } finally {
+            isProgrammaticSync = false;
+          }
+        }
+      }
+    }
+  );
 
   return (
     <div
-      class="h-full min-h-[300px] w-full overflow-hidden bg-editor-bg"
+      class="bg-editor-bg h-full min-h-[300px] w-full overflow-hidden"
       ref={(el) => {
         containerRef = el;
       }}
