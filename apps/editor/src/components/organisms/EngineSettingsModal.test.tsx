@@ -64,6 +64,7 @@ vi.mock("../../core/context.tsx", () => ({
       activeEngineId: () => "mock-engine",
       activeInitParams: () => ({ retries: 3, timeout: 5000 }),
       engine: currentEngineMemo,
+      executionState: () => 0,
       isBlocked: () => mockIsBlocked(),
       isRunning: () => mockIsRunning(),
       updateEngineConfig: updateEngineConfigMock,

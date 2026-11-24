@@ -171,9 +171,13 @@ function StatusBarEngineLanguage() {
 function StatusBarEngineStatusContent() {
   const core = useEditor();
   const isEnginePending = () => isPending(() => core.engine.engine());
+  const isRunPending = () =>
+    isPending(() => core.commands.runState()) ||
+    isPending(() => core.engine.executionState()) ||
+    core.engine.isRunning();
 
   const status = (): string => {
-    if (core.engine.isRunning()) {
+    if (isRunPending()) {
       return "running";
     }
     if (isEnginePending()) {
@@ -185,7 +189,7 @@ function StatusBarEngineStatusContent() {
   return (
     <TerminalStatusIndicator
       isDirty={core.engine.isDirty()}
-      isSpinning={core.engine.isRunning() || isEnginePending()}
+      isSpinning={isRunPending() || isEnginePending()}
       status={status()}
     />
   );

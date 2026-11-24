@@ -1,3 +1,4 @@
+import { flush, isPending } from "solid-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { EditorCommandsDeps } from "./commands.ts";
 import { createEditorCommands } from "./commands.ts";
@@ -28,7 +29,8 @@ describe("createEditorCommands", () => {
       dispose: vi.fn(),
       engine: vi.fn(() => null),
       executeCode: vi.fn().mockResolvedValue(undefined),
-      interruptExecution: vi.fn(),
+      executionState: vi.fn(() => 0),
+      interruptExecution: vi.fn().mockResolvedValue(undefined),
       isBlocked: vi.fn(() => false),
       isDirty: vi.fn(() => false),
       isRunning: vi.fn(() => false),
@@ -134,6 +136,29 @@ describe("createEditorCommands", () => {
 
       expect(mockEngine.executeCode).toHaveBeenCalled();
       expect(mockOverlays.open).not.toHaveBeenCalled();
+    });
+
+    it("holds runState inside the action transaction while executeCode is pending", async () => {
+      let resolveExecution!: () => void;
+      vi.mocked(mockEngine.executeCode).mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveExecution = resolve;
+          })
+      );
+      const commands = createEditorCommands(deps);
+
+      expect(isPending(() => commands.runState())).toBe(false);
+
+      const runPromise = commands.runCode();
+      flush();
+      expect(isPending(() => commands.runState())).toBe(true);
+
+      resolveExecution();
+      await runPromise;
+      flush();
+
+      expect(isPending(() => commands.runState())).toBe(false);
     });
   });
 

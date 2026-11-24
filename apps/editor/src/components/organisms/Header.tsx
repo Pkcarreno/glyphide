@@ -1,13 +1,14 @@
 import type { JSX } from "@solidjs/web";
 import ChevronDown from "lucide-solid/icons/chevron-down";
 import ExternalLink from "lucide-solid/icons/external-link";
+import LoaderCircle from "lucide-solid/icons/loader-circle";
 import Play from "lucide-solid/icons/play";
 import RefreshCw from "lucide-solid/icons/refresh-cw";
 import Settings from "lucide-solid/icons/settings";
 import Share2 from "lucide-solid/icons/share-2";
 import ShieldAlert from "lucide-solid/icons/shield-exclamation-point";
 import Square from "lucide-solid/icons/square";
-import { createSignal, omit, Show } from "solid-js";
+import { createSignal, isPending, omit, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { usePwaUpdate } from "../../core/pwa-registration.tsx";
 import { cn } from "../../helpers/cn.ts";
@@ -35,13 +36,10 @@ function Header(props: HeaderProps) {
   const core = useEditor();
   const pwa = usePwaUpdate();
 
-  function handleRunClick() {
-    if (core.engine.isRunning()) {
-      core.commands.interruptExecution();
-    } else {
-      core.commands.runCode();
-    }
-  }
+  const isRunPending = () =>
+    isPending(() => core.commands.runState()) ||
+    isPending(() => core.engine.executionState()) ||
+    core.engine.isRunning();
 
   function handleSettingsClick() {
     core.overlays.toggle("settings");
@@ -217,27 +215,37 @@ function Header(props: HeaderProps) {
             Share
           </ActionTooltip>
         </span>
-        <ActionTooltip
-          as={Button}
-          commandId={
-            core.engine.isRunning() ? "interrupt-execution" : "run-code"
-          }
-          onClick={handleRunClick}
-          position="bottom"
-          text={core.engine.isRunning() ? "Stop Execution" : "Run Code"}
-          variant={core.engine.isRunning() ? "outline" : "primary"}
-        >
-          <Show
-            fallback={
-              <>
-                <Icon class="mr-1" icon={Play} /> Run
-              </>
-            }
-            when={core.engine.isRunning()}
+        <div class="flex items-center gap-1">
+          <ActionTooltip
+            as={Button}
+            commandId="run-code"
+            disabled={isRunPending()}
+            onClick={() => core.commands.runCode()}
+            position="bottom"
+            text="Run Code"
+            variant="primary"
           >
-            <Icon class="mr-1" icon={Square} /> Stop
+            <Show
+              fallback={<Icon class="mr-1" icon={Play} />}
+              when={isRunPending()}
+            >
+              <Icon class="mr-1 animate-spin" icon={LoaderCircle} />
+            </Show>{" "}
+            Run
+          </ActionTooltip>
+          <Show when={isRunPending()}>
+            <ActionTooltip
+              as={Button}
+              commandId="interrupt-execution"
+              onClick={() => core.commands.interruptExecution()}
+              position="bottom"
+              text="Stop Execution"
+              variant="outline"
+            >
+              <Icon class="mr-1" icon={Square} /> Stop
+            </ActionTooltip>
           </Show>
-        </ActionTooltip>
+        </div>
       </div>
     </header>
   );
