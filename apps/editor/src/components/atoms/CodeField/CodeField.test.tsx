@@ -1,8 +1,83 @@
+import { language as cmLanguage } from "@codemirror/language";
+import type { Extension } from "@codemirror/state";
 import { render, screen, waitFor } from "@solidjs/testing-library";
 import { EditorView } from "codemirror";
-import { createSignal } from "solid-js";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { createSignal, flush } from "solid-js";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { CodeField } from "./CodeField.tsx";
+import * as languageModule from "./language.ts";
+
+vi.mock("./language.ts", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./language.ts")>();
+  return {
+    actualLoadLanguageExtension: actual.loadLanguageExtension,
+    loadLanguageExtension: vi.fn((requestedLanguage?: string) =>
+      actual.loadLanguageExtension(requestedLanguage)
+    ),
+  };
+});
+
+function getActualLoader() {
+  return (
+    languageModule as unknown as {
+      actualLoadLanguageExtension: typeof languageModule.loadLanguageExtension;
+    }
+  ).actualLoadLanguageExtension;
+}
+
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, reject, resolve };
+}
+
+function getEditorView(container: HTMLElement): EditorView {
+  const cmElement = container.querySelector(".cm-editor");
+  if (!cmElement) {
+    throw new Error("Expected .cm-editor element to be rendered");
+  }
+  const view = EditorView.findFromDOM(cmElement as HTMLElement);
+  if (!view) {
+    throw new Error("Expected CodeMirror EditorView instance");
+  }
+  return view;
+}
+
+async function flushAsyncImports() {
+  await Promise.resolve();
+  await Promise.resolve();
+  flush();
+}
+
+function mockLanguagePromises(
+  resolvers: Partial<Record<string, () => Promise<Extension>>>
+) {
+  vi.mocked(languageModule.loadLanguageExtension).mockImplementation(
+    (requestedLanguage?: string) => {
+      const resolver = requestedLanguage
+        ? resolvers[requestedLanguage]
+        : undefined;
+      return resolver ? resolver() : Promise.resolve([]);
+    }
+  );
+}
+
+async function withMutedConsoleError(
+  runTest: (errorSpy: ReturnType<typeof vi.spyOn>) => Promise<void>
+) {
+  const errorSpy = vi
+    .spyOn(console, "error")
+    .mockImplementation(() => undefined);
+  try {
+    await runTest(errorSpy);
+  } finally {
+    errorSpy.mockRestore();
+  }
+}
 
 beforeAll(() => {
   if (typeof window !== "undefined" && typeof window.Range !== "undefined") {
@@ -31,6 +106,15 @@ beforeAll(() => {
 });
 
 describe("CodeField", () => {
+  beforeEach(() => {
+    const mockLoader = vi.mocked(languageModule.loadLanguageExtension);
+    const actualLoader = getActualLoader();
+    mockLoader.mockReset();
+    mockLoader.mockImplementation((requestedLanguage?: string) =>
+      actualLoader(requestedLanguage)
+    );
+  });
+
   it("renders without crashing", () => {
     const { container } = render(() => <CodeField />);
     expect(container.querySelector(".cm-editor")).not.toBeNull();
@@ -123,5 +207,206 @@ describe("CodeField", () => {
     });
 
     expect(onValueChange).toHaveBeenCalledWith("hello world");
+  });
+
+  it("ignores stale language import that resolves after a newer language selection", async () => {
+    const actualLoader = getActualLoader();
+    const javascriptDeferred = createDeferred<Extension>();
+    const pythonDeferred = createDeferred<Extension>();
+
+    mockLanguagePromises({
+      javascript: () => javascriptDeferred.promise,
+      python: () => pythonDeferred.promise,
+    });
+
+    const [selectedLanguage, setSelectedLanguage] =
+      createSignal<string>("javascript");
+    const { container } = render(() => (
+      <CodeField language={selectedLanguage()} value="def run(): pass" />
+    ));
+    const view = getEditorView(container);
+
+    setSelectedLanguage("python");
+    flush();
+
+    pythonDeferred.resolve(await actualLoader("python"));
+    await waitFor(() => {
+      expect(view.state.facet(cmLanguage)?.name).toBe("python");
+    });
+
+    javascriptDeferred.resolve(await actualLoader("javascript"));
+    await flushAsyncImports();
+
+    expect(view.state.facet(cmLanguage)?.name).toBe("python");
+  });
+
+  it("switches languages dynamically and falls back to plaintext for unsupported languages", async () => {
+    const [selectedLanguage, setSelectedLanguage] = createSignal<
+      string | undefined
+    >("javascript");
+    const { container } = render(() => (
+      <CodeField language={selectedLanguage()} value="const x = 1;" />
+    ));
+    const view = getEditorView(container);
+
+    await waitFor(() => {
+      expect(view.state.facet(cmLanguage)?.name).toBe("javascript");
+    });
+
+    setSelectedLanguage("python");
+    flush();
+    await waitFor(() => {
+      expect(view.state.facet(cmLanguage)?.name).toBe("python");
+    });
+
+    setSelectedLanguage("plaintext");
+    flush();
+    await waitFor(() => {
+      expect(view.state.facet(cmLanguage)).toBeNull();
+    });
+
+    setSelectedLanguage("javascript");
+    flush();
+    await waitFor(() => {
+      expect(view.state.facet(cmLanguage)?.name).toBe("javascript");
+    });
+
+    setSelectedLanguage("unknown-language");
+    flush();
+    await waitFor(() => {
+      expect(view.state.facet(cmLanguage)).toBeNull();
+    });
+  });
+
+  it("handles rapid multi-switch chains and only applies the final language", async () => {
+    const actualLoader = getActualLoader();
+    const firstJavascriptDeferred = createDeferred<Extension>();
+    const secondPythonDeferred = createDeferred<Extension>();
+    const thirdJavascriptDeferred = createDeferred<Extension>();
+    let javascriptLoadCount = 0;
+
+    mockLanguagePromises({
+      javascript: () => {
+        javascriptLoadCount += 1;
+        return javascriptLoadCount === 1
+          ? firstJavascriptDeferred.promise
+          : thirdJavascriptDeferred.promise;
+      },
+      python: () => secondPythonDeferred.promise,
+    });
+
+    const [selectedLanguage, setSelectedLanguage] =
+      createSignal<string>("javascript");
+    const { container } = render(() => (
+      <CodeField language={selectedLanguage()} value="const x = 1;" />
+    ));
+    const view = getEditorView(container);
+
+    setSelectedLanguage("python");
+    flush();
+    setSelectedLanguage("javascript");
+    flush();
+
+    thirdJavascriptDeferred.resolve(await actualLoader("javascript"));
+    await waitFor(() => {
+      expect(view.state.facet(cmLanguage)?.name).toBe("javascript");
+    });
+
+    secondPythonDeferred.resolve(await actualLoader("python"));
+    firstJavascriptDeferred.resolve(await actualLoader("javascript"));
+    await flushAsyncImports();
+
+    expect(view.state.facet(cmLanguage)?.name).toBe("javascript");
+  });
+
+  it("falls back to plaintext and logs an error when active language import fails", async () => {
+    await withMutedConsoleError(async (errorSpy) => {
+      const [selectedLanguage, setSelectedLanguage] =
+        createSignal<string>("python");
+      const { container } = render(() => (
+        <CodeField language={selectedLanguage()} value="def run(): pass" />
+      ));
+      const view = getEditorView(container);
+
+      await waitFor(() => {
+        expect(view.state.facet(cmLanguage)?.name).toBe("python");
+      });
+
+      vi.mocked(languageModule.loadLanguageExtension).mockRejectedValueOnce(
+        new Error("Chunk load failed")
+      );
+
+      setSelectedLanguage("javascript");
+      flush();
+
+      await waitFor(() => {
+        expect(view.state.facet(cmLanguage)).toBeNull();
+      });
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        "Error loading language engine for javascript:",
+        expect.any(Error)
+      );
+    });
+  });
+
+  it("does not log or reconfigure when a superseded language import rejects", async () => {
+    const actualLoader = getActualLoader();
+    const javascriptDeferred = createDeferred<Extension>();
+    const pythonDeferred = createDeferred<Extension>();
+
+    await withMutedConsoleError(async (errorSpy) => {
+      mockLanguagePromises({
+        javascript: () => javascriptDeferred.promise,
+        python: () => pythonDeferred.promise,
+      });
+
+      const [selectedLanguage, setSelectedLanguage] =
+        createSignal<string>("javascript");
+      const { container } = render(() => (
+        <CodeField language={selectedLanguage()} value="def run(): pass" />
+      ));
+      const view = getEditorView(container);
+
+      setSelectedLanguage("python");
+      flush();
+
+      pythonDeferred.resolve(await actualLoader("python"));
+      await waitFor(() => {
+        expect(view.state.facet(cmLanguage)?.name).toBe("python");
+      });
+
+      javascriptDeferred.reject(new Error("Stale chunk error"));
+      await flushAsyncImports();
+
+      expect(view.state.facet(cmLanguage)?.name).toBe("python");
+      expect(errorSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  it("cancels in-flight language import on unmount without dispatching to destroyed view", async () => {
+    const actualLoader = getActualLoader();
+    const javascriptDeferred = createDeferred<Extension>();
+
+    await withMutedConsoleError(async (errorSpy) => {
+      mockLanguagePromises({
+        javascript: () => javascriptDeferred.promise,
+      });
+
+      const { container, unmount } = render(() => (
+        <CodeField language="javascript" value="const a = 1;" />
+      ));
+      const view = getEditorView(container);
+      const dispatchSpy = vi.spyOn(view, "dispatch");
+
+      unmount();
+      expect(dispatchSpy).not.toHaveBeenCalled();
+
+      javascriptDeferred.resolve(await actualLoader("javascript"));
+      await flushAsyncImports();
+
+      expect(dispatchSpy).not.toHaveBeenCalled();
+      expect(errorSpy).not.toHaveBeenCalled();
+    });
   });
 });
