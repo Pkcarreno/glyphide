@@ -1,37 +1,15 @@
 ---
 title: Create Explicit Component Variants
 impact: MEDIUM
-impactDescription: self-documenting code, no hidden conditionals
+impactDescription: produces self-documenting call sites with zero impossible states
 tags: composition, variants, architecture, solidjs
 ---
 
 ## Create Explicit Component Variants
 
-Instead of a single monolithic component controlled by a cluster of boolean flags, build explicit variant components. Each variant composes the exact parts it requires.
+Build dedicated variant components instead of a single configurable component overloaded with mode flags. Each variant pairs the exact provider and compound parts required for its use case, making call sites self-documenting and eliminating unreachable combinations.
 
-**Incorrect (one component, many modes via booleans):**
-
-```tsx
-// Ambiguous and difficult to reason about
-<Composer
-  isThread
-  isEditing={false}
-  channelId="abc"
-  showAttachments
-  showFormatting={false}
-/>
-```
-
-**Correct (explicit variant components):**
-
-```tsx
-// Immediately clear what each variant renders
-<ThreadComposer channelId="abc" />
-<EditMessageComposer messageId="xyz" />
-<ForwardMessageComposer messageId="123" />
-```
-
-**Implementation in SolidJS:**
+**Pattern (explicit variant components composing providers and compound parts):**
 
 ```tsx
 function ThreadComposer(props: { channelId: string }) {
@@ -47,7 +25,7 @@ function ThreadComposer(props: { channelId: string }) {
         </Composer.Footer>
       </Composer.Frame>
     </ThreadProvider>
-  )
+  );
 }
 
 function EditMessageComposer(props: { messageId: string }) {
@@ -63,7 +41,7 @@ function EditMessageComposer(props: { messageId: string }) {
         </Composer.Footer>
       </Composer.Frame>
     </EditMessageProvider>
-  )
+  );
 }
 
 function ForwardMessageComposer(props: { messageId: string }) {
@@ -74,12 +52,12 @@ function ForwardMessageComposer(props: { messageId: string }) {
         <Composer.Footer>
           <Composer.Formatting />
           <Composer.Emojis />
-          <Composer.Mentions />
+          <Composer.Submit />
         </Composer.Footer>
       </Composer.Frame>
     </ForwardMessageProvider>
-  )
+  );
 }
 ```
 
-Each variant is explicit about its state provider, rendered UI elements, and available actions. No impossible states or combinatorial boolean bugs.
+Each variant is immediately readable at its call site (`<ThreadComposer channelId="abc" />`, `<EditMessageComposer messageId="xyz" />`) and pairs only valid actions with its provider.

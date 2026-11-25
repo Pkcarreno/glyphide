@@ -1,149 +1,81 @@
 ---
 title: Define Generic Context Interfaces for Dependency Injection
-impact: HIGH
-impactDescription: enables dependency-injectable state across use-cases
+impact: MEDIUM
+impactDescription: enables swapping signal, store, and optimistic action providers under shared UI
 tags: composition, context, state, typescript, dependency-injection, solidjs
 ---
 
 ## Define Generic Context Interfaces for Dependency Injection
 
-Define a **generic interface** for your component context with three distinct parts:
-`state`, `actions`, and `meta`. This interface is a contract that any provider
-can implement—enabling the same UI components to work with completely different
-reactive state implementations.
+Define a generic contract for component context split into three parts: `state`, `actions`, and `meta`. Keep reactive primitives shaped as `Accessor<T>` (for signal/memo values) or `Store<T>` (plain property values tracked by proxy—never wrap store fields in functions), and expose `Ref<T>` callbacks in `meta`. Wire the contract with a default-less `createContext<T>()` so missing providers fail loudly with `ContextNotFoundError`.
 
-**Core principle:** Lift state, compose internals, make state dependency-injectable.
-
-**Incorrect (UI coupled to a specific hook or store):**
+**Pattern (generic `{ state, actions, meta }` contract):**
 
 ```tsx
-function ComposerInput() {
-  // Tightly coupled to a specific external hook/store
-  const { input, setInput } = useChannelComposerState()
-  return <input value={input()} onInput={(e) => setInput(e.currentTarget.value)} />
+import {
+  createContext,
+  useContext,
+  type Accessor,
+  type ParentProps,
+  type Ref,
+  type Store,
+} from 'solid-js';
+
+export interface Attachment {
+  id: string;
+  name: string;
 }
-```
-
-**Correct (generic interface enables dependency injection):**
-
-```tsx
-import { createContext, useContext, type Accessor, type ParentProps } from 'solid-js'
 
 export interface ComposerState {
-  input: Accessor<string>
-  attachments: Accessor<Attachment[]>
-  isSubmitting: Accessor<boolean>
+  input: Accessor<string>;
+  attachments: Store<Attachment[]>;
+  isSubmitting: Accessor<boolean>;
 }
 
 export interface ComposerActions {
-  setInput: (value: string) => void
-  submit: () => void
+  setInput: (value: string) => void;
+  addAttachment: (file: Attachment) => void;
+  submit: () => void;
 }
 
 export interface ComposerMeta {
-  inputRef?: (el: HTMLInputElement) => void
+  inputRef?: Ref<HTMLInputElement>;
 }
 
 export interface ComposerContextValue {
-  state: ComposerState
-  actions: ComposerActions
-  meta: ComposerMeta
+  state: ComposerState;
+  actions: ComposerActions;
+  meta: ComposerMeta;
 }
 
-const ComposerContext = createContext<ComposerContextValue | undefined>(undefined)
+const ComposerContext = createContext<ComposerContextValue>();
 
 export function useComposer() {
-  const ctx = useContext(ComposerContext)
-  if (!ctx) throw new Error('useComposer must be used within ComposerProvider')
-  return ctx
+  return useContext(ComposerContext);
+}
+
+export function ComposerProvider(props: ParentProps<{ value: ComposerContextValue }>) {
+  return <ComposerContext value={props.value}>{props.children}</ComposerContext>;
 }
 ```
 
-**UI components consume the interface, not the implementation:**
+**UI subcomponents depend only on the contract:**
 
 ```tsx
 function ComposerInput() {
-  const { state, actions, meta } = useComposer()
+  const { state, actions, meta } = useComposer();
 
   return (
     <input
       ref={meta.inputRef}
       value={state.input()}
+      disabled={state.isSubmitting()}
       onInput={(e) => actions.setInput(e.currentTarget.value)}
     />
-  )
+  );
 }
 ```
 
-**Different providers implement the exact same interface:**
+Any provider—ephemeral local signals, a draft-first store, a `createProjection` tree, or an optimistic generator `action`—can satisfy `ComposerContextValue` without changing a line of UI.
 
-```tsx
-// Provider A: Ephemeral local signals
-function ForwardMessageProvider(props: ParentProps) {
-  const [input, setInput] = createSignal('')
-  const [attachments, setAttachments] = createSignal<Attachment[]>([])
-  const [isSubmitting, setIsSubmitting] = createSignal(false)
-  const forwardMessage = useForwardMessage()
-
-  const value: ComposerContextValue = {
-    state: { input, attachments, isSubmitting },
-    actions: {
-      setInput,
-      submit: () => forwardMessage(input()),
-    },
-    meta: {},
-  }
-
-  return (
-    <ComposerContext.Provider value={value}>
-      {props.children}
-    </ComposerContext.Provider>
-  )
-}
-
-// Provider B: Global synced channel store
-function ChannelProvider(props: ParentProps<{ channelId: string }>) {
-  const channel = useGlobalChannel(props.channelId)
-
-  const value: ComposerContextValue = {
-    state: {
-      input: () => channel.state.input,
-      attachments: () => channel.state.attachments,
-      isSubmitting: () => channel.state.isSubmitting,
-    },
-    actions: {
-      setInput: (val) => channel.updateInput(val),
-      submit: () => channel.submit(),
-    },
-    meta: {},
-  }
-
-  return (
-    <ComposerContext.Provider value={value}>
-      {props.children}
-    </ComposerContext.Provider>
-  )
-}
-```
-
-**The same composed UI works with both:**
-
-```tsx
-// Works with ForwardMessageProvider (local signals)
-<ForwardMessageProvider>
-  <Composer.Frame>
-    <Composer.Input />
-    <Composer.Submit />
-  </Composer.Frame>
-</ForwardMessageProvider>
-
-// Works with ChannelProvider (global synced store)
-<ChannelProvider channelId="abc">
-  <Composer.Frame>
-    <Composer.Input />
-    <Composer.Submit />
-  </Composer.Frame>
-</ChannelProvider>
-```
-
-The UI is made of reusable bits you compose together. The state is dependency-injected by the provider. Swap the provider, keep the UI.
+References: [createContext](https://docs.solidjs.com/reference/solid-js/components-context/create-context) · [createStore](https://docs.solidjs.com/reference/solid-js/stores/create-store)

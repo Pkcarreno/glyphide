@@ -1,59 +1,65 @@
 ---
 title: Prefer Composing Children Over Render Props
 impact: MEDIUM
-impactDescription: cleaner composition and natural JSX ergonomics
-tags: composition, children, render-props, solidjs
+impactDescription: preserves natural JSX composition and clean ParentProps/FlowProps contracts
+tags: composition, children, render-props, typescript, solidjs
 ---
 
-## Prefer Children Over Render Props
+## Prefer Composing Children Over Render Props
 
-Use `children` for structural composition instead of `renderX` function props. Composing child elements is more readable, composes naturally with Solid's fine-grained reactivity, and eliminates cumbersome callback parameter signatures.
+Use `children` (`ParentProps` or `FlowProps`) for structural layout slots instead of `renderHeader` / `renderFooter` / `renderActions` callback props. Declarative child trees compose naturally with Solid's fine-grained reactivity, `<Loading>`, and `<Errored>` boundaries without callback indirection.
 
 **Incorrect (render props for static structural sections):**
 
 ```tsx
+import type { JSX } from '@solidjs/web';
+
 function Composer(props: {
-  renderHeader?: () => JSX.Element
-  renderFooter?: () => JSX.Element
-  renderActions?: () => JSX.Element
+  renderHeader?: () => JSX.Element;
+  renderFooter?: () => JSX.Element;
+  renderActions?: () => JSX.Element;
 }) {
   return (
     <form>
       {props.renderHeader?.()}
-      <Input />
+      <Composer.Input />
       {props.renderFooter ? props.renderFooter() : <DefaultFooter />}
       {props.renderActions?.()}
     </form>
-  )
+  );
 }
 ```
 
-**Correct (compound components with children):**
+**Correct (compound components accepting `ParentProps` / `FlowProps`):**
 
 ```tsx
-import type { ParentProps } from 'solid-js'
+import type { FlowProps, ParentProps } from 'solid-js';
+import type { JSX } from '@solidjs/web';
 
 function ComposerFrame(props: ParentProps) {
-  return <form>{props.children}</form>
+  return <form>{props.children}</form>;
 }
 
-function ComposerFooter(props: ParentProps) {
-  return <footer class="flex items-center gap-2">{props.children}</footer>
+function ComposerFooter(props: FlowProps<{}, JSX.Element>) {
+  return <footer class="flex items-center gap-2">{props.children}</footer>;
 }
 
-// Ergonomic, declarative JSX composition:
-return (
-  <Composer.Frame>
-    <CustomHeader />
-    <Composer.Input />
-    <Composer.Footer>
-      <Composer.Formatting />
-      <Composer.Emojis />
-      <SubmitButton />
-    </Composer.Footer>
-  </Composer.Frame>
-)
+// Declarative JSX composition at call sites:
+function CustomComposer() {
+  return (
+    <Composer.Frame>
+      <CustomHeader />
+      <Composer.Input />
+      <Composer.Footer>
+        <Composer.Formatting />
+        <Composer.Emojis />
+        <SubmitButton />
+      </Composer.Footer>
+    </Composer.Frame>
+  );
+}
 ```
 
-**When render props or `<For>` are appropriate:**
-In SolidJS, use render callbacks primarily when data iterators or virtualized lists need to supply item instances to child rows (e.g. `<For each={items()}>{(item) => <ItemCard item={item} />}</For>`). For structural layouts, always prefer `children`.
+Reserve render callbacks for data-providing control flow and boundaries (`<For>`, `<Repeat>`, `<Show>`, `<Match>`, and `<Errored fallback={(err, reset) => ...}>`) that pass item accessors, indexes, or error/reset arguments to children.
+
+Reference: [Component types](https://docs.solidjs.com/reference/solid-js/types/component-types)
