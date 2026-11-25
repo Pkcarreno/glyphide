@@ -17,10 +17,11 @@ interface SyncFetchResponse {
 }
 
 declare global {
+  // biome-ignore lint/style/useVarsOnTop: TypeScript requires var inside declare global
   var __micropython_fetch_sync: (reqStr: string) => string;
 }
 
-const NEWLINE_REGEX = /[\r\n]+/;
+const NEWLINE_REGEX = /[\r\n]+/u;
 
 let HostXMLHttpRequest: typeof XMLHttpRequest | undefined;
 let HostFetch: typeof fetch | undefined;
