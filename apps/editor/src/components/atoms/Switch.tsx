@@ -1,5 +1,6 @@
-import { cva, type VariantProps } from "class-variance-authority";
-import { createSignal, omit } from "solid-js";
+import type { VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
+import { createSignal, omit, untrack } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
 const switchVariants = cva(
@@ -67,7 +68,7 @@ function Switch(props: SwitchProps) {
 
   const isControlled = () => props.checked !== undefined;
   const [internalChecked, setInternalChecked] = createSignal(
-    props.defaultChecked ?? false
+    untrack(() => props.defaultChecked ?? false)
   );
 
   const isChecked = () =>

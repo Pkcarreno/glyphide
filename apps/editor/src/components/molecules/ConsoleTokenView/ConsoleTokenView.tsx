@@ -1,5 +1,5 @@
 import type { ConsoleToken } from "@glyphide/quickjs-engine/types";
-import { For, Show } from "solid-js";
+import { createMemo, For, Show } from "solid-js";
 import { ExpandableNode } from "../../atoms/ExpandableNode.tsx";
 
 /**
@@ -59,10 +59,32 @@ function isObjectToken(
   );
 }
 
-/** Renders a single ConsoleToken with type-appropriate styling. */
-function Token(props: { token: unknown; isPreview?: boolean }) {
-  const { token, isPreview } = props;
+function renderFunctionToken(
+  typedToken: Extract<ConsoleToken, { type: "function" }>
+) {
+  const source = typeof typedToken.source === "string" ? typedToken.source : "";
+  const isArrow = source.includes("=>") && !source.startsWith("function");
+  const isAsync = source.startsWith("async ");
+  const isGenerator = source.includes("function*");
 
+  let prefix = "ƒ";
+  if (isAsync) {
+    prefix = "async ƒ";
+  } else if (isGenerator) {
+    prefix = "ƒ*";
+  }
+
+  const name = typedToken.name || (isArrow ? "" : "(anonymous)");
+
+  return (
+    <span class="text-on-surface-variant">
+      <span class="mr-0.5 italic opacity-70">{prefix}</span>
+      {name}
+    </span>
+  );
+}
+
+function renderTokenContent(token: unknown, isPreview?: boolean) {
   if (
     !token ||
     typeof token !== "object" ||
@@ -102,34 +124,8 @@ function Token(props: { token: unknown; isPreview?: boolean }) {
         <span class="text-on-surface-variant italic opacity-70">undefined</span>
       );
 
-    case "function": {
-      const isArrow =
-        typeof typedToken.source === "string" &&
-        typedToken.source.includes("=>") &&
-        !typedToken.source.startsWith("function");
-      const isAsync =
-        typeof typedToken.source === "string" &&
-        typedToken.source.startsWith("async ");
-      const isGenerator =
-        typeof typedToken.source === "string" &&
-        typedToken.source.includes("function*");
-
-      let prefix = "ƒ";
-      if (isAsync) {
-        prefix = "async ƒ";
-      } else if (isGenerator) {
-        prefix = "ƒ*";
-      }
-
-      const name = typedToken.name || (isArrow ? "" : "(anonymous)");
-
-      return (
-        <span class="text-on-surface-variant">
-          <span class="mr-0.5 italic opacity-70">{prefix}</span>
-          {name}
-        </span>
-      );
-    }
+    case "function":
+      return renderFunctionToken(typedToken);
 
     case "symbol":
       return (
@@ -194,58 +190,66 @@ function Token(props: { token: unknown; isPreview?: boolean }) {
   }
 }
 
+/** Renders a single ConsoleToken with type-appropriate styling. */
+function Token(props: { token: unknown; isPreview?: boolean }) {
+  return <>{renderTokenContent(props.token, props.isPreview)}</>;
+}
+
 function TokenArray(props: {
   token: Extract<ConsoleToken, { type: "array" }>;
   isPreview?: boolean;
 }) {
-  const { token, isPreview } = props;
-  const elements = Array.isArray(token.elements) ? token.elements : [];
-  const length =
-    typeof token.length === "number" ? token.length : elements.length;
-  const preview = elements.slice(0, 5);
-  const hasMore = length > 5;
+  const elements = createMemo(() =>
+    Array.isArray(props.token.elements) ? props.token.elements : []
+  );
+  const length = createMemo(() =>
+    typeof props.token.length === "number"
+      ? props.token.length
+      : elements().length
+  );
+  const preview = createMemo(() => elements().slice(0, 5));
+  const hasMore = () => length() > 5;
 
-  const inlinePreview = (
+  const renderInlinePreview = () => (
     <span class="text-on-surface">
-      <span class="opacity-50">Array({length}) [</span>
-      <For each={preview}>
+      <span class="opacity-50">Array({length()}) [</span>
+      <For each={preview()}>
         {(element, index) => (
           <>
             <Token isPreview token={element} />
-            <Show when={index() < preview.length - 1 || hasMore}>
+            <Show when={index() < preview().length - 1 || hasMore()}>
               <span class="opacity-50">, </span>
             </Show>
           </>
         )}
       </For>
-      <Show when={hasMore}>
+      <Show when={hasMore()}>
         <Ellipsis />
       </Show>
       <span class="opacity-50">]</span>
     </span>
   );
 
-  if (isPreview) {
-    return inlinePreview;
-  }
-
-  if (length === 0) {
-    return <span class="text-on-surface opacity-50">Array(0) []</span>;
-  }
-
   return (
-    <ExpandableNode preview={inlinePreview} stateKey={token}>
-      <For each={elements}>
-        {(element, index) => (
-          <span class="flex items-baseline gap-2">
-            <span class="text-on-surface-variant min-w-5 text-right opacity-50">
-              {index()}:
-            </span>
-            <Token token={element} />
-          </span>
-        )}
-      </For>
-    </ExpandableNode>
+    <Show fallback={renderInlinePreview()} when={!props.isPreview}>
+      <Show
+        fallback={<span class="text-on-surface opacity-50">Array(0) []</span>}
+        when={length() > 0}
+      >
+        <ExpandableNode preview={renderInlinePreview()} stateKey={props.token}>
+          <For each={elements()}>
+            {(element, index) => (
+              <span class="flex items-baseline gap-2">
+                <span class="text-on-surface-variant min-w-5 text-right opacity-50">
+                  {index()}:
+                </span>
+                <Token token={element} />
+              </span>
+            )}
+          </For>
+        </ExpandableNode>
+      </Show>
+    </Show>
   );
 }
 
@@ -253,52 +257,52 @@ function TokenObject(props: {
   token: Extract<ConsoleToken, { type: "object" }>;
   isPreview?: boolean;
 }) {
-  const { token, isPreview } = props;
-  const { properties } = token;
-  const entries = Object.entries(properties).slice(0, 5);
-  const hasMore = Object.keys(properties).length > 5;
+  const propertyEntries = createMemo(() =>
+    Object.entries(props.token.properties)
+  );
+  const preview = createMemo(() => propertyEntries().slice(0, 5));
+  const hasMore = () => propertyEntries().length > 5;
 
-  const inlinePreview = (
+  const renderInlinePreview = () => (
     <span class="text-on-surface">
       <span class="opacity-50">{"{"}</span>
-      <For each={entries}>
+      <For each={preview()}>
         {([key, value], index) => (
           <>
             <span class="text-on-surface-variant opacity-80">{key}</span>
             <span class="opacity-50">: </span>
             <Token isPreview token={value} />
-            <Show when={index() < entries.length - 1 || hasMore}>
+            <Show when={index() < preview().length - 1 || hasMore()}>
               <span class="opacity-50">, </span>
             </Show>
           </>
         )}
       </For>
-      <Show when={hasMore}>
+      <Show when={hasMore()}>
         <Ellipsis />
       </Show>
       <span class="opacity-50">{"}"}</span>
     </span>
   );
 
-  if (isPreview) {
-    return inlinePreview;
-  }
-
-  if (Object.keys(properties).length === 0) {
-    return <span class="text-on-surface opacity-50">{"{}"}</span>;
-  }
-
   return (
-    <ExpandableNode preview={inlinePreview} stateKey={token}>
-      <For each={Object.entries(properties)}>
-        {([key, value]) => (
-          <span class="flex items-baseline gap-2">
-            <span class="text-on-surface-variant opacity-80">{key}:</span>
-            <Token token={value} />
-          </span>
-        )}
-      </For>
-    </ExpandableNode>
+    <Show fallback={renderInlinePreview()} when={!props.isPreview}>
+      <Show
+        fallback={<span class="text-on-surface opacity-50">{"{}"}</span>}
+        when={propertyEntries().length > 0}
+      >
+        <ExpandableNode preview={renderInlinePreview()} stateKey={props.token}>
+          <For each={propertyEntries()}>
+            {([key, value]) => (
+              <span class="flex items-baseline gap-2">
+                <span class="text-on-surface-variant opacity-80">{key}:</span>
+                <Token token={value} />
+              </span>
+            )}
+          </For>
+        </ExpandableNode>
+      </Show>
+    </Show>
   );
 }
 
@@ -306,18 +310,21 @@ function TokenMap(props: {
   token: Extract<ConsoleToken, { type: "map" }>;
   isPreview?: boolean;
 }) {
-  const { token, isPreview } = props;
-  const entries = Array.isArray(token.entries) ? token.entries : [];
-  const size = typeof token.size === "number" ? token.size : entries.length;
-  const preview = entries.slice(0, 5);
-  const hasMore = size > 5;
+  const entries = createMemo(() =>
+    Array.isArray(props.token.entries) ? props.token.entries : []
+  );
+  const size = createMemo(() =>
+    typeof props.token.size === "number" ? props.token.size : entries().length
+  );
+  const preview = createMemo(() => entries().slice(0, 5));
+  const hasMore = () => size() > 5;
 
-  const inlinePreview = (
+  const renderInlinePreview = () => (
     <span class="text-on-surface">
       <span class="opacity-50">
-        Map({size}) {"{"}
+        Map({size()}) {"{"}
       </span>
-      <For each={preview}>
+      <For each={preview()}>
         {(entry, index) => {
           const [key, value] = Array.isArray(entry)
             ? entry
@@ -327,45 +334,44 @@ function TokenMap(props: {
               <Token isPreview token={key} />
               <span class="opacity-50"> =&gt; </span>
               <Token isPreview token={value} />
-              <Show when={index() < preview.length - 1 || hasMore}>
+              <Show when={index() < preview().length - 1 || hasMore()}>
                 <span class="opacity-50">, </span>
               </Show>
             </>
           );
         }}
       </For>
-      <Show when={hasMore}>
+      <Show when={hasMore()}>
         <Ellipsis />
       </Show>
       <span class="opacity-50">{"}"}</span>
     </span>
   );
 
-  if (isPreview) {
-    return inlinePreview;
-  }
-
-  if (size === 0) {
-    return <span class="text-on-surface opacity-50">Map(0) {"{}"}</span>;
-  }
-
   return (
-    <ExpandableNode preview={inlinePreview} stateKey={token}>
-      <For each={entries}>
-        {(entry) => {
-          const [key, value] = Array.isArray(entry)
-            ? entry
-            : [entry, undefined];
-          return (
-            <span class="flex items-baseline gap-2">
-              <Token token={key} />
-              <span class="text-on-surface-variant opacity-50">=&gt;</span>
-              <Token token={value} />
-            </span>
-          );
-        }}
-      </For>
-    </ExpandableNode>
+    <Show fallback={renderInlinePreview()} when={!props.isPreview}>
+      <Show
+        fallback={<span class="text-on-surface opacity-50">Map(0) {"{}"}</span>}
+        when={size() > 0}
+      >
+        <ExpandableNode preview={renderInlinePreview()} stateKey={props.token}>
+          <For each={entries()}>
+            {(entry) => {
+              const [key, value] = Array.isArray(entry)
+                ? entry
+                : [entry, undefined];
+              return (
+                <span class="flex items-baseline gap-2">
+                  <Token token={key} />
+                  <span class="text-on-surface-variant opacity-50">=&gt;</span>
+                  <Token token={value} />
+                </span>
+              );
+            }}
+          </For>
+        </ExpandableNode>
+      </Show>
+    </Show>
   );
 }
 
@@ -373,52 +379,54 @@ function TokenSet(props: {
   token: Extract<ConsoleToken, { type: "set" }>;
   isPreview?: boolean;
 }) {
-  const { token, isPreview } = props;
-  const elements = Array.isArray(token.elements) ? token.elements : [];
-  const size = typeof token.size === "number" ? token.size : elements.length;
-  const preview = elements.slice(0, 5);
-  const hasMore = size > 5;
+  const elements = createMemo(() =>
+    Array.isArray(props.token.elements) ? props.token.elements : []
+  );
+  const size = createMemo(() =>
+    typeof props.token.size === "number" ? props.token.size : elements().length
+  );
+  const preview = createMemo(() => elements().slice(0, 5));
+  const hasMore = () => size() > 5;
 
-  const inlinePreview = (
+  const renderInlinePreview = () => (
     <span class="text-on-surface">
       <span class="opacity-50">
-        Set({size}) {"{"}
+        Set({size()}) {"{"}
       </span>
-      <For each={preview}>
+      <For each={preview()}>
         {(element, index) => (
           <>
             <Token isPreview token={element} />
-            <Show when={index() < preview.length - 1 || hasMore}>
+            <Show when={index() < preview().length - 1 || hasMore()}>
               <span class="opacity-50">, </span>
             </Show>
           </>
         )}
       </For>
-      <Show when={hasMore}>
+      <Show when={hasMore()}>
         <Ellipsis />
       </Show>
       <span class="opacity-50">{"}"}</span>
     </span>
   );
 
-  if (isPreview) {
-    return inlinePreview;
-  }
-
-  if (size === 0) {
-    return <span class="text-on-surface opacity-50">Set(0) {"{}"}</span>;
-  }
-
   return (
-    <ExpandableNode preview={inlinePreview} stateKey={token}>
-      <For each={elements}>
-        {(element) => (
-          <span class="flex items-baseline gap-2">
-            <Token token={element} />
-          </span>
-        )}
-      </For>
-    </ExpandableNode>
+    <Show fallback={renderInlinePreview()} when={!props.isPreview}>
+      <Show
+        fallback={<span class="text-on-surface opacity-50">Set(0) {"{}"}</span>}
+        when={size() > 0}
+      >
+        <ExpandableNode preview={renderInlinePreview()} stateKey={props.token}>
+          <For each={elements()}>
+            {(element) => (
+              <span class="flex items-baseline gap-2">
+                <Token token={element} />
+              </span>
+            )}
+          </For>
+        </ExpandableNode>
+      </Show>
+    </Show>
   );
 }
 

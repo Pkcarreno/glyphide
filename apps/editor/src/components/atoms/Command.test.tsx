@@ -77,4 +77,36 @@ describe("Command", () => {
     expect(item.className).toContain("px-2.5");
     expect(item.className).toContain("py-1.5");
   });
+
+  it("derives initial selection to first visible item and resets to first match when search changes", async () => {
+    const { getByPlaceholderText, getByRole, getByText } = render(() => (
+      <CommandRoot>
+        <CommandInput placeholder="Filter..." />
+        <CommandList>
+          <CommandEmpty>No results</CommandEmpty>
+          <CommandItem value="alpha">Alpha</CommandItem>
+          <CommandItem value="beta">Beta</CommandItem>
+        </CommandList>
+      </CommandRoot>
+    ));
+
+    const alpha = getByText("Alpha");
+    const beta = getByText("Beta");
+    expect(alpha.getAttribute("aria-selected")).toBe("true");
+    expect(beta.getAttribute("aria-selected")).toBe("false");
+
+    const root = getByRole("combobox");
+    fireEvent.keyDown(root, { key: "ArrowDown" });
+    await Promise.resolve();
+    expect(beta.getAttribute("aria-selected")).toBe("true");
+
+    const input = getByPlaceholderText("Filter...");
+    fireEvent.input(input, { target: { value: "bet" } });
+    await Promise.resolve();
+    expect(getByText("Beta").getAttribute("aria-selected")).toBe("true");
+
+    fireEvent.input(input, { target: { value: "" } });
+    await Promise.resolve();
+    expect(getByText("Alpha").getAttribute("aria-selected")).toBe("true");
+  });
 });

@@ -1,9 +1,9 @@
+import type { Placement } from "@floating-ui/dom";
 import {
   autoUpdate,
   computePosition,
   flip,
   offset as floatingOffset,
-  type Placement,
   shift,
 } from "@floating-ui/dom";
 import type { ComponentProps, JSX, ValidComponent } from "@solidjs/web";
@@ -226,18 +226,15 @@ type DropdownTriggerProps<T extends ValidComponent = "button"> = {
 function DropdownTrigger<T extends ValidComponent = "button">(
   props: DropdownTriggerProps<T>
 ) {
-  const rest = omit(props, "as", "class", "children");
+  const rest = omit(
+    props as DropdownTriggerProps<"button">,
+    "as",
+    "class",
+    "children",
+    "onClick",
+    "ref"
+  );
   const ctx = useDropdown();
-
-  // Extract ref and onClick from rest via type casting — these are handled
-  // explicitly to chain with Dropdown context and must not be spread,
-  // because spread overrides explicit JSX props.
-  const {
-    ref: refProp,
-    onClick: onClickProp,
-    ...forwardProps
-  } = rest as Record<string, unknown>;
-
   const Comp = dynamic(() => props.as ?? "button");
 
   return (
@@ -250,13 +247,16 @@ function DropdownTrigger<T extends ValidComponent = "button">(
       )}
       onClick={(e: Event) => {
         ctx.toggle();
-        (onClickProp as ((e: Event) => void) | undefined)?.(e);
+        const onClickProp = (props as Record<string, unknown>).onClick;
+        if (typeof onClickProp === "function") {
+          onClickProp(e);
+        }
       }}
-      ref={(el: HTMLElement) => {
-        ctx.setTriggerRef(el);
-        (refProp as ((el: HTMLElement) => void) | undefined)?.(el);
-      }}
-      {...forwardProps}
+      ref={[
+        (el: HTMLElement) => ctx.setTriggerRef(el),
+        (props as DropdownTriggerProps<"button">).ref,
+      ]}
+      {...rest}
     >
       {props.children}
     </Comp>

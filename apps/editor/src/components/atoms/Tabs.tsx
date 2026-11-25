@@ -5,6 +5,7 @@ import {
   createSignal,
   omit,
   onCleanup,
+  untrack,
   useContext,
 } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
@@ -63,7 +64,7 @@ interface TabsRootProps {
 function TabsRoot(props: TabsRootProps) {
   const isControlled = () => props.value !== undefined;
   const [internalValue, setInternalValue] = createSignal(
-    props.defaultValue ?? ""
+    untrack(() => props.defaultValue ?? "")
   );
   const activeValue = () =>
     isControlled() ? (props.value ?? "") : internalValue();

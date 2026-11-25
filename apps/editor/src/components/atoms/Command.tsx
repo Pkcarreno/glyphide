@@ -4,6 +4,7 @@ import type { Accessor, Setter } from "solid-js";
 import {
   createContext,
   createEffect,
+  createMemo,
   createSignal,
   omit,
   onSettled,
@@ -13,7 +14,8 @@ import {
 import { cn } from "../../helpers/cn.ts";
 import { Dialog, useDialog } from "../molecules/Dialog.tsx";
 import { Icon } from "./Icon.tsx";
-import { Input, type InputProps } from "./Input.tsx";
+import type { InputProps } from "./Input.tsx";
+import { Input } from "./Input.tsx";
 
 /* ---------- Context ---------- */
 
@@ -21,7 +23,7 @@ interface CommandContextValue {
   registerItem: (id: string, textValue: string) => void;
   search: Accessor<string>;
   selectedId: Accessor<string | null>;
-  setSearch: Setter<string>;
+  setSearch: (value: string) => void;
   setSelectedId: Setter<string | null>;
   unregisterItem: (id: string) => void;
   visibleItems: Accessor<Set<string>>;
@@ -53,10 +55,16 @@ interface CommandRootProps extends JSX.HTMLAttributes<HTMLDivElement> {
  */
 export function CommandRoot(props: CommandRootProps) {
   const rest = omit(props, "class", "children", "shouldFilter");
-  const [search, setSearch] = createSignal("");
-  const [selectedId, setSelectedId] = createSignal<string | null>(null);
+  const [search, setSearchSignal] = createSignal("");
+  const [rawSelectedId, setRawSelectedId] = createSignal<string | null>(null);
 
   const [items, setItems] = createSignal<Map<string, string>>(new Map());
+
+  const setSearch = (value: string) => {
+    setSearchSignal(value);
+    // Reset explicit selection on filter change so results start from the top match.
+    setRawSelectedId(null);
+  };
 
   const registerItem = (id: string, textValue: string) => {
     setItems((prev) => {
@@ -74,7 +82,7 @@ export function CommandRoot(props: CommandRootProps) {
     });
   };
 
-  const visibleItems = () => {
+  const visibleItems = createMemo(() => {
     const query = search().toLowerCase();
     const shouldFilter = props.shouldFilter !== false;
 
@@ -89,7 +97,16 @@ export function CommandRoot(props: CommandRootProps) {
       }
     }
     return visible;
-  };
+  });
+
+  const selectedId = createMemo<string | null>(() => {
+    const visible = Array.from(visibleItems());
+    if (visible.length === 0) {
+      return null;
+    }
+    const current = rawSelectedId();
+    return current && visible.includes(current) ? current : visible[0];
+  });
 
   const handleKeyDown = (e: KeyboardEvent) => {
     const visible = Array.from(visibleItems());
@@ -104,12 +121,12 @@ export function CommandRoot(props: CommandRootProps) {
       e.preventDefault();
       const nextIndex =
         currentIndex < visible.length - 1 ? currentIndex + 1 : 0;
-      setSelectedId(visible[nextIndex]);
+      setRawSelectedId(visible[nextIndex]);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       const nextIndex =
         currentIndex > 0 ? currentIndex - 1 : visible.length - 1;
-      setSelectedId(visible[nextIndex]);
+      setRawSelectedId(visible[nextIndex]);
     } else if (e.key === "Enter") {
       e.preventDefault();
       const selected = selectedId();
@@ -122,17 +139,6 @@ export function CommandRoot(props: CommandRootProps) {
     }
   };
 
-  createEffect(
-    () => ({ currentId: selectedId(), visible: Array.from(visibleItems()) }),
-    ({ currentId, visible }) => {
-      if (visible.length > 0 && !(currentId && visible.includes(currentId))) {
-        setSelectedId(visible[0]);
-      } else if (visible.length === 0) {
-        setSelectedId(null);
-      }
-    }
-  );
-
   return (
     <CommandContext
       value={{
@@ -140,7 +146,7 @@ export function CommandRoot(props: CommandRootProps) {
         search,
         selectedId,
         setSearch,
-        setSelectedId,
+        setSelectedId: setRawSelectedId,
         unregisterItem,
         visibleItems,
       }}
@@ -270,15 +276,15 @@ interface CommandItemProps extends JSX.HTMLAttributes<HTMLDivElement> {
 export function CommandItem(props: CommandItemProps) {
   const rest = omit(props, "class", "children", "value", "onSelect");
   const ctx = useCommand();
-  const id = props.value;
 
   onSettled(() => {
-    ctx.registerItem(id, props.value);
+    const id = props.value;
+    ctx.registerItem(id, id);
     return () => ctx.unregisterItem(id);
   });
 
-  const isVisible = () => ctx.visibleItems().has(id);
-  const isSelected = () => ctx.selectedId() === id;
+  const isVisible = () => ctx.visibleItems().has(props.value);
+  const isSelected = () => ctx.selectedId() === props.value;
 
   let ref: HTMLDivElement | undefined;
 
@@ -304,7 +310,7 @@ export function CommandItem(props: CommandItemProps) {
             : "text-on-surface-variant hover:bg-surface-variant/50 hover:text-on-surface",
           props.class
         )}
-        id={`command-item-${id}`}
+        id={`command-item-${props.value}`}
         onClick={() => {
           props.onSelect?.();
         }}
@@ -314,7 +320,7 @@ export function CommandItem(props: CommandItemProps) {
             props.onSelect?.();
           }
         }}
-        onMouseEnter={() => ctx.setSelectedId(id)}
+        onMouseEnter={() => ctx.setSelectedId(props.value)}
         ref={(el) => {
           ref = el;
         }}

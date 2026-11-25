@@ -8,10 +8,8 @@ import type { PersistencePort } from "../ports/persistence.ts";
 import type { UrlPersistencePort } from "../ports/url-persistence.ts";
 import { createEngineModel as baseCreateEngineModel } from "./engine.ts";
 import { createOutputModel } from "./output.ts";
-import {
-  createWorkspaceSession as baseCreateWorkspaceSession,
-  type WorkspaceSession,
-} from "./session.ts";
+import type { WorkspaceSession } from "./session.ts";
+import { createWorkspaceSession as baseCreateWorkspaceSession } from "./session.ts";
 import { createSettingsModel } from "./settings.ts";
 
 const MUTATING_METHODS = new Set([
@@ -24,7 +22,6 @@ const MUTATING_METHODS = new Set([
   "retryInit",
   "selectEngine",
   "selectEngineEntry",
-  "setBlocked",
   "setCode",
   "setCursorPosition",
   "setProjectName",
@@ -489,7 +486,7 @@ describe("EngineModel (Declarative Async Lifecycle)", () => {
     await model.retryInit();
 
     const recovered = await resolve(() => model.engine());
-    expect(recovered?.engineId).toBe("quickjs");
+    expect(recovered).toMatchObject({ engineId: "quickjs" });
     expect(model.activeCapabilities()?.id).toBe("test");
 
     model.dispose();
@@ -553,6 +550,12 @@ describe("EngineModel (Declarative Async Lifecycle)", () => {
     await waitForRunning();
 
     session.setCode("modified while running");
+    expect(model.isDirty()).toBe(true);
+
+    session.setCode("new code");
+    expect(model.isDirty()).toBe(false);
+
+    session.setCode("modified again");
     expect(model.isDirty()).toBe(true);
 
     await execPromise;
@@ -804,7 +807,7 @@ describe("EngineModel trust gate contract", () => {
     model.dispose();
   });
 
-  it("resolves to null on setBlocked(true) and initializes when unblocked", async () => {
+  it("resolves to null when session requires trust and initializes when trust is granted", async () => {
     const factorySpy = vi.spyOn(registry, "loadFactory");
     session.markTrustRequired();
     const model = createEngineModel({
@@ -818,7 +821,7 @@ describe("EngineModel trust gate contract", () => {
     expect(await resolve(() => model.engine())).toBeNull();
     expect(factorySpy).not.toHaveBeenCalled();
 
-    model.setBlocked(false);
+    session.grantTrust();
     expect(model.isBlocked()).toBe(false);
 
     const initialized = await resolve(() => model.engine());

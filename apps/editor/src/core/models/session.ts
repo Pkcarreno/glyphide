@@ -1,5 +1,5 @@
 import type { Accessor } from "solid-js";
-import { createSignal } from "solid-js";
+import { createSignal, untrack } from "solid-js";
 import type { EngineId, EngineRegistry } from "../engine/registry.ts";
 import type { UrlPersistencePort } from "../ports/url-persistence.ts";
 
@@ -182,7 +182,7 @@ export function createWorkspaceSession(
   if (hasSharedUrlCode) {
     startCode = initialCanonical?.code ?? "";
     startIsPristine = false;
-  } else if (deps.isDefaultCodeEnabled()) {
+  } else if (untrack(deps.isDefaultCodeEnabled)) {
     startCode = resolveDefaultCode(initialEngine.engineId, deps.engineRegistry);
     startIsPristine = startCode.length > 0;
   }

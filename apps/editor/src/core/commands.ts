@@ -150,7 +150,6 @@ export function createEditorCommands(deps: EditorCommandsDeps): EditorCommands {
 
   function grantTrust(): void {
     deps.session.grantTrust();
-    deps.engine.setBlocked(false);
     deps.overlays.close("trust-required");
   }
 
@@ -158,7 +157,6 @@ export function createEditorCommands(deps: EditorCommandsDeps): EditorCommands {
     deps.session.reset();
     deps.output.clearEntries();
     deps.overlays.close("trust-required");
-    deps.engine.setBlocked(false);
     deps.engine.retryInit();
   }
 
@@ -169,7 +167,6 @@ export function createEditorCommands(deps: EditorCommandsDeps): EditorCommands {
       language: payload.language,
       name: payload.name,
     });
-    deps.engine.setBlocked(true);
     deps.overlays.open("trust-required");
   }
 

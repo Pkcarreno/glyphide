@@ -34,9 +34,11 @@ export interface OverlayModel {
 }
 
 /** Creates an `OverlayModel` instance. */
-export function createOverlayModel(): OverlayModel {
+export function createOverlayModel(
+  initialOverlays: readonly OverlayId[] = []
+): OverlayModel {
   const [activeOverlays, setActiveOverlays] = createSignal<Set<OverlayId>>(
-    new Set()
+    new Set(initialOverlays)
   );
 
   function isOpen(overlayId: OverlayId): boolean {

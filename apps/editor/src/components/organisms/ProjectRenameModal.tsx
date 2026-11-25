@@ -1,4 +1,4 @@
-import { createEffect, createSignal, Show } from "solid-js";
+import { createSignal, onSettled, Show, untrack } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { Input } from "../atoms/Input.tsx";
 import { Dialog, useDialog } from "../molecules/Dialog.tsx";
@@ -17,25 +17,24 @@ function ProjectRenameOverlay() {
   );
 }
 
-function ProjectRenameContent() {
+function ProjectRenameForm() {
   const core = useEditor();
-  const { isOpen, close } = useDialog();
-  const [name, setName] = createSignal("");
+  const { close } = useDialog();
+  const [name, setName] = createSignal(
+    untrack(() => {
+      const currentName = core.session.projectName();
+      return currentName === "untitled_project" ? "" : currentName;
+    })
+  );
   let inputRef: HTMLInputElement | undefined;
 
-  createEffect(
-    () => ({ currentName: core.session.projectName(), open: isOpen() }),
-    ({ currentName, open }) => {
-      if (open) {
-        setName(currentName === "untitled_project" ? "" : currentName);
-        const timer = setTimeout(() => {
-          inputRef?.focus();
-          inputRef?.select();
-        }, 0);
-        return () => clearTimeout(timer);
-      }
-    }
-  );
+  onSettled(() => {
+    const timer = setTimeout(() => {
+      inputRef?.focus();
+      inputRef?.select();
+    }, 0);
+    return () => clearTimeout(timer);
+  });
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -49,27 +48,35 @@ function ProjectRenameContent() {
   };
 
   return (
-    <Show when={isOpen()}>
-      <div class="fixed inset-0 z-50 flex items-start justify-center px-4 pt-[15vh]">
-        <ProjectRenameOverlay />
-        <div
-          aria-modal="true"
-          class="border-outline-variant bg-surface relative z-50 flex w-full max-w-lg flex-col overflow-hidden rounded-xl border shadow-2xl"
-          role="dialog"
-        >
-          <Input
-            inputSize="lg"
-            onInput={(e) => setName(e.currentTarget.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Enter project name..."
-            ref={(el) => {
-              inputRef = el;
-            }}
-            value={name()}
-            variant="ghost"
-          />
-        </div>
+    <div class="fixed inset-0 z-50 flex items-start justify-center px-4 pt-[15vh]">
+      <ProjectRenameOverlay />
+      <div
+        aria-modal="true"
+        class="border-outline-variant bg-surface relative z-50 flex w-full max-w-lg flex-col overflow-hidden rounded-xl border shadow-2xl"
+        role="dialog"
+      >
+        <Input
+          inputSize="lg"
+          onInput={(e) => setName(e.currentTarget.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Enter project name..."
+          ref={(el) => {
+            inputRef = el;
+          }}
+          value={name()}
+          variant="ghost"
+        />
       </div>
+    </div>
+  );
+}
+
+function ProjectRenameContent() {
+  const { isOpen } = useDialog();
+
+  return (
+    <Show when={isOpen()}>
+      <ProjectRenameForm />
     </Show>
   );
 }
