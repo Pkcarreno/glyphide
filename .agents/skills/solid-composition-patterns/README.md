@@ -1,37 +1,43 @@
-# SolidJS Composition Patterns
+# Solid 2.0 Composition Patterns
 
-A structured guide for SolidJS composition patterns that scale. These patterns help avoid boolean prop proliferation by using compound components, lifting state into providers, and composing internals while strictly respecting Solid's fine-grained reactivity.
+A structured guide for Solid 2.0 component composition patterns that scale. These patterns eliminate boolean prop proliferation through compound components, isolate reactive state and optimistic mutations inside providers, coordinate async loading and error boundaries, and strictly honor Solid 2.0 fine-grained reactivity.
 
 ## Structure
 
-- `rules/` - Individual rule files (one per rule)
-  - `_sections.md` - Section metadata (titles, impacts, descriptions)
-  - `_template.md` - Template for creating new rules
-  - `solid-preserve-reactivity.md` - Fine-grained reactivity and prop handling invariants
-  - `architecture-avoid-boolean-props.md` - Avoiding combinatorial boolean flags
-  - `architecture-compound-components.md` - Compound component architecture with Solid context
-  - `state-context-interface.md` - Context interfaces for dependency injection
-  - `state-decouple-implementation.md` - Isolating state logic in providers
-  - `state-lift-state.md` - Lifting state without render penalties
-  - `patterns-explicit-variants.md` - Creating explicit variant components
-  - `patterns-children-over-render-props.md` - Composing children over render callbacks
-- `metadata.json` - Document metadata
-- **`AGENTS.md`** - Compiled reference for AI agents
-- **`SKILL.md`** - Skill entry point for agent orchestration
-- **`LICENSE`** - MIT License with dual attribution
+- `SKILL.md` — Skill entry point and context-pointer index
+- `rules/` — Individual rule files loaded on demand
+  - `_sections.md` — Section metadata (ordering, impact levels, descriptions)
+  - `_template.md` — Template for authoring rules
+  - **1. Solid 2.0 Reactivity & Primitives (`solid-`, CRITICAL)**
+    - `solid-props-and-children.md` — Proxy props, `omit`, `merge`, component prop types, and `children()`
+    - `solid-context-and-refs.md` — Direct `<Ctx value={...}>` providers, `null` optional contexts, and `ref` arrays / directive factories
+    - `solid-dynamic-and-lists.md` — `dynamic()`, `dynamicComponent()`, `<For keyed={...}>`, and `<Repeat>`
+  - **2. Component Architecture (`architecture-`, HIGH)**
+    - `architecture-avoid-boolean-props.md` — Avoiding combinatorial boolean flags
+    - `architecture-compound-components.md` — Compound component namespaces wired via Solid context
+  - **3. Async Composition & Boundaries (`async-`, HIGH)**
+    - `async-fetch-high-block-low.md` — Passing getters down and isolating waits/errors with `<Loading>`, `<Errored>`, and `<Reveal>`
+    - `async-holds-and-verdicts.md` — Graph holds, `isPending`, `latest`, and `createDeferred`
+  - **4. State & Mutation Injection (`state-`, MEDIUM)**
+    - `state-context-interface.md` — Generic `{ state, actions, meta }` context contracts
+    - `state-decouple-implementation.md` — Encapsulating signals, stores, projections, and optimistic `action`s in providers
+    - `state-lift-state.md` — Lifting state into provider boundaries without render penalties
+  - **5. Implementation Patterns (`patterns-`, MEDIUM)**
+    - `patterns-explicit-variants.md` — Explicit variant components
+    - `patterns-children-over-render-props.md` — Structural `children` composition over `renderX` props
+- `metadata.json` — Skill metadata
+- `LICENSE` — MIT License with dual attribution
 
 ## Core Principles
 
-1. **Preserve Fine-Grained Reactivity** — Never destructure `props`. Use `props.field` or `splitProps`. Wrap dynamic children in `children(() => props.children)`.
-2. **Composition over configuration** — Instead of boolean toggles, let consumers compose subcomponents.
-3. **Lift your state into providers** — Provide reactive signals/stores at the provider level; components do not re-render.
-4. **Compose your internals** — Subcomponents access context, avoiding prop drilling.
-5. **Explicit variants** — Create `ThreadComposer`, `EditComposer` instead of a monolithic `Composer` with multiple mode flags.
+1. **Preserve Proxy Reactivity** — Read `props.field`, forward rest props with `omit`, compose defaults with `merge`, and memoize dynamic `children` with `children()`.
+2. **Compose Over Configuration** — Expose compound subcomponents and explicit variants instead of boolean mode flags.
+3. **Fetch High, Block Low** — Pass async `createMemo` getters via props and place `<Loading>`, `<Errored>`, and `<Reveal>` where content actually suspends or fails.
+4. **Lift State & Mutations into Providers** — Isolate `createSignal`, draft-first `createStore`, `createProjection`, and `action` + `createOptimistic*` behind a `{ state, actions, meta }` context contract.
 
 ## Attribution & Lineage
 
-This skill is a direct fork and adaptation of [`composition-patterns`](https://github.com/vercel-labs/agent-skills/tree/main/skills/composition-patterns) by **Vercel Labs**.
+This skill was originally forked and adapted from [`composition-patterns`](https://github.com/vercel-labs/agent-skills/tree/main/skills/composition-patterns) by **Vercel Labs**, and rebuilt from scratch for **Solid 2.0**.
 
 - **Original Work**: Copyright (c) 2026 Vercel, Inc. (Licensed under MIT).
-- **SolidJS Adaptation**: Copyright (c) 2026 Pedro Carreño.
-- **Key Modifications**: Translated React hooks and virtual DOM assumptions into SolidJS fine-grained reactivity invariants (`splitProps`, `children()` helper, direct un-destructured proxy props, and signal/store context dependency injection).
+- **Solid 2.0 Adaptation**: Copyright (c) 2026 Pedro Carreño.

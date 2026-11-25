@@ -2,23 +2,23 @@
 title: Rule Title Here
 impact: MEDIUM
 impactDescription: brief description of impact
-tags: composition, components
+tags: solidjs, composition
 ---
 
 ## Rule Title Here
 
-Brief explanation of the rule and why it matters.
+Positive statement of the target Solid 2.0 pattern, why it matters, and when to apply it.
 
-**Incorrect:**
-
-```tsx
-// Bad code example
-```
-
-**Correct:**
+**Incorrect (optional — include only when contrasting a high-prior structural anti-pattern using valid Solid 2.0 syntax; never reference legacy Solid 1.x APIs):**
 
 ```tsx
-// Good code example
+// Minimal anti-pattern snippet (omit this section when positive examples suffice)
 ```
 
-Reference: [Link](https://example.com)
+**Correct / Pattern:**
+
+```tsx
+// Idiomatic Solid 2.0 composition example
+```
+
+Reference: [Docs Title](https://docs.solidjs.com/...)

@@ -1,85 +1,92 @@
 ---
 title: Lift State into Provider Components
 impact: MEDIUM
-impactDescription: allows sibling and parent access without visual coupling
-tags: composition, state, context, solidjs
+impactDescription: enables sibling and ancestor access without visual coupling or re-renders
+tags: composition, state, context, providers, solidjs
 ---
 
 ## Lift State into Provider Components
 
-Components that need shared state do not need to be visually nested inside each other—they only need to reside within the same provider boundary. In SolidJS, lifting state into a provider has **zero performance penalty** because components do not re-render; only the individual signals subscribed to inside DOM bindings re-evaluate.
+Components sharing state do not need to sit inside the same visual frame—they only need to live beneath the same provider boundary. In Solid 2.0, lifting state into a provider adds zero component re-render cost because components execute once and only fine-grained DOM/effect bindings re-run when read signals change.
 
-**Incorrect (syncing state upwards via effect listeners):**
+**Incorrect (syncing local child state upward with effects and callback props):**
 
 ```tsx
 function ForwardMessageDialog() {
-  const [input, setInput] = createSignal('')
+  const [previewText, setPreviewText] = createSignal('');
   return (
     <Dialog>
-      <ForwardMessageComposer onInputChange={setInput} />
-      <MessagePreview input={input()} />
+      <ForwardComposer onTextChange={setPreviewText} />
+      <MessagePreview text={previewText()} />
     </Dialog>
-  )
+  );
 }
 
-function ForwardMessageComposer(props: { onInputChange: (v: string) => void }) {
-  const [input, setInput] = createSignal('')
-  createEffect(() => {
-    props.onInputChange(input()) // Flaky sync effect 😬
-  })
-  ...
+function ForwardComposer(props: { onTextChange: (text: string) => void }) {
+  const [input, setInput] = createSignal('');
+  createEffect(input, (value) => {
+    props.onTextChange(value);
+  });
+  return <input value={input()} onInput={(e) => setInput(e.currentTarget.value)} />;
 }
 ```
 
-**Correct (state lifted into provider):**
+**Correct (state lifted into a provider shared across sibling regions):**
 
 ```tsx
-import { createSignal, type ParentProps } from 'solid-js'
+import { createSignal, createStore, type ParentProps } from 'solid-js';
 
 function ForwardMessageProvider(props: ParentProps) {
-  const [input, setInput] = createSignal('')
-  const forwardMessage = useForwardMessage()
+  const [input, setInput] = createSignal('');
+  const [attachments, setAttachments] = createStore<Attachment[]>([]);
+  const [isSubmitting, setIsSubmitting] = createSignal(false);
 
   const value: ComposerContextValue = {
-    state: { input },
+    state: { input, attachments, isSubmitting },
     actions: {
       setInput,
-      submit: () => forwardMessage(input()),
+      addAttachment: (file) => setAttachments((draft) => { draft.push(file); }),
+      submit: async () => {
+        setIsSubmitting(true);
+        await api.forwardMessage(input());
+        setIsSubmitting(false);
+      },
     },
     meta: {},
-  }
+  };
 
-  return (
-    <Composer.Provider value={value}>
-      {props.children}
-    </Composer.Provider>
-  )
+  return <Composer.Provider value={value}>{props.children}</Composer.Provider>;
 }
 
 function ForwardMessageDialog() {
   return (
     <ForwardMessageProvider>
       <Dialog>
-        <ForwardMessageComposer />
-        <MessagePreview /> {/* Custom component reading state directly */}
-        <DialogActions>
-          <CancelButton />
-          <ForwardButton /> {/* Custom button triggering submit directly */}
-        </DialogActions>
+        <Composer.Frame>
+          <Composer.Input />
+        </Composer.Frame>
+        <MessagePreview />
+        <DialogFooter>
+          <ForwardButton />
+        </DialogFooter>
       </Dialog>
     </ForwardMessageProvider>
-  )
-}
-
-function ForwardButton() {
-  const { actions } = useComposer()
-  return <button type="button" onClick={actions.submit}>Forward</button>
+  );
 }
 
 function MessagePreview() {
-  const { state } = useComposer()
-  return <div class="preview">{state.input()}</div>
+  const { state } = useComposer();
+  return <div class="preview">{state.input()}</div>;
+}
+
+function ForwardButton() {
+  const { actions, state } = useComposer();
+  return (
+    <button type="button" disabled={state.isSubmitting()} onClick={actions.submit}>
+      Forward
+    </button>
+  );
 }
 ```
 
-`ForwardButton` and `MessagePreview` live outside `Composer.Frame`, but because they reside within `ForwardMessageProvider`, they seamlessly read state and dispatch actions.
+`MessagePreview` and `ForwardButton` live outside `Composer.Frame` yet read reactive state and invoke actions directly from the enclosing provider.

@@ -1,74 +1,68 @@
 ---
 name: solid-composition-patterns
 description:
-  SolidJS component composition patterns that scale. Use when refactoring components with
-  boolean prop proliferation, building flexible component libraries, designing reusable APIs,
-  or implementing compound components with SolidJS reactivity invariants (splitProps, children()
-  helper, avoiding prop destructuring).
+  Solid 2.0 component composition patterns. Use when refactoring boolean-flag components,
+  building compound components or UI libraries, designing context state contracts, wiring
+  async boundaries (Loading, Errored, Reveal, isPending, latest), or preserving reactivity
+  with proxy props, omit/merge, children(), refs, For, and Repeat.
 license: MIT
 metadata:
   author: Pedro Carreño
   originalAuthor: Vercel Labs
   forkedFrom: https://github.com/vercel-labs/agent-skills/tree/main/skills/composition-patterns
-  version: '1.0.0'
+  version: '2.0.0'
 ---
 
-# SolidJS Composition Patterns
+# Solid 2.0 Composition Patterns
 
-Composition patterns for building flexible, maintainable SolidJS components. Avoid boolean prop proliferation by using compound components, lifting state into providers, and composing internals. These patterns ensure components remain ergonomic while strictly honoring Solid's fine-grained reactivity.
+Composition patterns for scalable Solid 2.0 components. Replace combinatorial boolean props with compound components, lift reactive state and transactional mutations into providers, isolate async waits behind boundaries, and preserve fine-grained proxy reactivity end-to-end.
 
 ## When to Apply
 
-Reference these guidelines when:
+Load matching rules from `rules/` when:
 
-- Refactoring components with multiple boolean flags
-- Building reusable UI component libraries (design systems)
-- Designing flexible compound component APIs (Root, Trigger, Content)
-- Reviewing component architecture for prop drilling or hidden conditional branching
-- Working with SolidJS context providers and dependency injection
+- Handling component `props`, `children`, `refs`, context, lists, or dynamic components
+- Refactoring boolean-flag components or building compound UI primitives
+- Placing `<Loading>`, `<Errored>`, `<Reveal>`, `isPending`, or `latest` across a component tree
+- Designing `{ state, actions, meta }` provider contracts with signals, stores, projections, or optimistic `action`s
 
 ## Rule Categories by Priority
 
-| Priority | Category                    | Impact   | Prefix          |
-| -------- | --------------------------- | -------- | --------------- |
-| 1        | SolidJS Reactivity & Props  | CRITICAL | `solid-`        |
-| 2        | Component Architecture      | HIGH     | `architecture-` |
-| 3        | State Management            | MEDIUM   | `state-`        |
-| 4        | Implementation Patterns     | MEDIUM   | `patterns-`     |
+| Priority | Category | Impact | Prefix |
+| --- | --- | --- | --- |
+| 1 | Solid 2.0 Reactivity & Primitives | CRITICAL | `solid-` |
+| 2 | Component Architecture | HIGH | `architecture-` |
+| 3 | Async Composition & Boundaries | HIGH | `async-` |
+| 4 | State & Mutation Injection | MEDIUM | `state-` |
+| 5 | Implementation Patterns | MEDIUM | `patterns-` |
 
-## Quick Reference
+## Rules Index
 
-### 1. SolidJS Reactivity & Props (CRITICAL)
+Read the rule files matching your task branch and apply every relevant invariant before finishing:
 
-- `solid-preserve-reactivity` - Never destructure `props`; use `props.propName` or `splitProps`. Wrap dynamic children with `children(() => props.children)`. Pass `ref` directly as a standard prop.
+### 1. Solid 2.0 Reactivity & Primitives (CRITICAL)
+
+- [rules/solid-props-and-children.md](rules/solid-props-and-children.md) — Read when accepting, forwarding, merging, or typing component props and `children` (`props.x`, `omit`, `merge`, `ParentProps`/`FlowProps`/`VoidProps`, `children()`).
+- [rules/solid-context-and-refs.md](rules/solid-context-and-refs.md) — Read when creating/consuming context (`<Ctx value={...}>`, `ContextNotFoundError`, `null` optional contexts) or composing DOM `ref` arrays and directive factories.
+- [rules/solid-dynamic-and-lists.md](rules/solid-dynamic-and-lists.md) — Read when rendering dynamic components/tags (`dynamic`, `dynamicComponent`) or lists (`<For keyed={...}>`, `<Repeat>`).
 
 ### 2. Component Architecture (HIGH)
 
-- `architecture-avoid-boolean-props` - Do not add boolean props to customize behavior; use composition.
-- `architecture-compound-components` - Structure complex components with shared context (`createContext`/`useContext`).
+- [rules/architecture-avoid-boolean-props.md](rules/architecture-avoid-boolean-props.md) — Read when a component accumulates mode or visibility boolean flags.
+- [rules/architecture-compound-components.md](rules/architecture-compound-components.md) — Read when structuring multi-part components (`Root`, `Frame`, `Input`, `Submit`) over shared context.
 
-### 3. State Management (MEDIUM)
+### 3. Async Composition & Boundaries (HIGH)
 
-- `state-decouple-implementation` - The provider is the only place that knows how state is managed (signals, stores, RPC).
-- `state-context-interface` - Define a generic interface (`state`, `actions`, `meta`) for dependency injection.
-- `state-lift-state` - Move state into provider components so sibling and parent components can access it.
+- [rules/async-fetch-high-block-low.md](rules/async-fetch-high-block-low.md) — Read when passing async `createMemo` data through component trees and placing `<Loading>`, `<Errored>`, and `<Reveal>`.
+- [rules/async-holds-and-verdicts.md](rules/async-holds-and-verdicts.md) — Read when surfacing pending UI states (`isPending`, `latest`, `createDeferred`) during held updates without unmounting settled content.
 
-### 4. Implementation Patterns (MEDIUM)
+### 4. State & Mutation Injection (MEDIUM)
 
-- `patterns-explicit-variants` - Create explicit variant components instead of boolean modes.
-- `patterns-children-over-render-props` - Use `children` for structural composition instead of `renderX` props.
+- [rules/state-context-interface.md](rules/state-context-interface.md) — Read when defining `{ state, actions, meta }` contracts for dependency-injected component state.
+- [rules/state-decouple-implementation.md](rules/state-decouple-implementation.md) — Read when isolating `createSignal`, `createStore`, `createProjection`, or `action` + `createOptimistic*` inside a provider.
+- [rules/state-lift-state.md](rules/state-lift-state.md) — Read when sibling or ancestor components outside a visual frame need shared state or actions.
 
-## How to Use
+### 5. Implementation Patterns (MEDIUM)
 
-Read individual rule files in `rules/` for detailed explanations and code examples:
-
-```
-rules/solid-preserve-reactivity.md
-rules/architecture-avoid-boolean-props.md
-rules/architecture-compound-components.md
-rules/state-context-interface.md
-```
-
-## Full Compiled Document
-
-For the complete guide with all rules expanded in one document: `AGENTS.md`
+- [rules/patterns-explicit-variants.md](rules/patterns-explicit-variants.md) — Read when defining dedicated variant components instead of multi-mode configurations.
+- [rules/patterns-children-over-render-props.md](rules/patterns-children-over-render-props.md) — Read when choosing `children` over `renderX` props for structural layout composition.
