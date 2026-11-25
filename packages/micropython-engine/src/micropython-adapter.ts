@@ -7,10 +7,8 @@ import type {
   JsonRpcMessage,
   JsonRpcOkResponse,
 } from "@glyphide/rpc-protocol/types";
-import {
-  loadMicroPython,
-  type MicroPythonInstance,
-} from "@micropython/micropython-webassembly-pyscript/micropython.mjs";
+import type { MicroPythonInstance } from "@micropython/micropython-webassembly-pyscript/micropython.mjs";
+import { loadMicroPython } from "@micropython/micropython-webassembly-pyscript/micropython.mjs";
 import wasmUrl from "@micropython/micropython-webassembly-pyscript/micropython.wasm?url";
 import {
   captureHostApis,
@@ -18,11 +16,11 @@ import {
   restoreHostApis,
 } from "./http-client.ts";
 import { OutputRateLimiter } from "./output-rate-limiter.ts";
-import {
-  defaultCapabilities,
-  type MicropythonEngineConfig,
-  type MicropythonOutputPayload,
+import type {
+  MicropythonEngineConfig,
+  MicropythonOutputPayload,
 } from "./types.ts";
+import { defaultCapabilities } from "./types.ts";
 
 const resolvedWasmUrl =
   typeof process !== "undefined" &&

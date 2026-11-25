@@ -20,11 +20,8 @@ import type {
 } from "@glyphide/rpc-protocol/types";
 import { MessageBus } from "./message-bus.ts";
 import { PromiseRegistry } from "./promise-registry.ts";
-import {
-  type EngineTransportFactory,
-  type RpcTransport,
-  toRpcTransport,
-} from "./transport.ts";
+import type { EngineTransportFactory, RpcTransport } from "./transport.ts";
+import { toRpcTransport } from "./transport.ts";
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 

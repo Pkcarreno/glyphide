@@ -1,7 +1,5 @@
-import {
-  createDirectTransport,
-  type EngineTransportFactory,
-} from "@glyphide/orchestrator/transport";
+import type { EngineTransportFactory } from "@glyphide/orchestrator/transport";
+import { createDirectTransport } from "@glyphide/orchestrator/transport";
 import { QuickJSEngineAdapter } from "@glyphide/quickjs-engine/adapter";
 import type { QuickJSOutputPayload } from "@glyphide/quickjs-engine/types";
 

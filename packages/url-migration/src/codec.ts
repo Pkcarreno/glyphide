@@ -4,7 +4,7 @@ import { deflateSync, inflateSync } from "fflate";
  * Reverses URL-safe base64 substitutions applied by {@link toUrlSafeBase64}.
  */
 function fromUrlSafeBase64(value: string): string {
-  return value.replace(/-/g, "+").replace(/_/g, "/");
+  return value.replace(/-/gu, "+").replace(/_/gu, "/");
 }
 
 /**
@@ -12,7 +12,7 @@ function fromUrlSafeBase64(value: string): string {
  * `+` → `-`, `/` → `_`, and stripping `=` padding.
  */
 function toUrlSafeBase64(value: string): string {
-  return value.replace(/\+/g, "-").replace(/\//g, "_").replace(/[=]/g, "");
+  return value.replace(/\+/gu, "-").replace(/\//gu, "_").replace(/[=]/gu, "");
 }
 
 /**

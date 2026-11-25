@@ -3,11 +3,10 @@ import type { ConsoleToken } from "@glyphide/quickjs-engine/types";
 import type { EngineInitParams } from "@glyphide/rpc-protocol/types";
 import { PYTHON_DEFAULT_BUFFER_CODE } from "../data/python-default-buffer-code.ts";
 import { QUICKJS_DEFAULT_BUFFER_CODE } from "../data/quickjs-default-buffer-code.ts";
+import type { ConsoleVariant, OutputFormatter } from "./output-formatter.ts";
 import {
-  type ConsoleVariant,
   defaultFormat,
   isConsoleTokenArray,
-  type OutputFormatter,
   typeToVariant,
 } from "./output-formatter.ts";
 

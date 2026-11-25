@@ -8,7 +8,8 @@ import {
   expect,
   it,
 } from "vitest";
-import { createTestServer, type TestServer } from "../shared/test-server.ts";
+import type { TestServer } from "../shared/test-server.ts";
+import { createTestServer } from "../shared/test-server.ts";
 import { createMicropythonWorker } from "./setup/micropython-worker-factory.ts";
 
 describe("Orchestrator + Micropython Fetch Integration", () => {
@@ -28,10 +29,6 @@ describe("Orchestrator + Micropython Fetch Integration", () => {
     }
   });
 
-  afterAll(async () => {
-    await server.stop();
-  });
-
   beforeEach(() => {
     outputs = [];
     orchestrator = new EngineOrchestrator({
@@ -48,6 +45,10 @@ describe("Orchestrator + Micropython Fetch Integration", () => {
 
   afterEach(() => {
     orchestrator.terminate();
+  });
+
+  afterAll(async () => {
+    await server.stop();
   });
 
   it("performs GET requests and parses JSON", async () => {

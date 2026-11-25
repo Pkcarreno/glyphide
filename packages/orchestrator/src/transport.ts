@@ -3,13 +3,16 @@
  * Decouples the orchestrator from browser DOM Worker APIs.
  */
 
-import type {
-  EngineOutputPayload,
-  JsonRpcFailResponse,
-  JsonRpcId,
-  JsonRpcMessage,
-  JsonRpcOkResponse,
-} from "@glyphide/rpc-protocol/types";
+import type { EngineOutputPayload } from "@glyphide/rpc-protocol/types";
+import type { DirectTransportAdapter } from "./direct-transport.ts";
+import { DirectTransport } from "./direct-transport.ts";
+import { WorkerTransport } from "./worker-transport.ts";
+
+export {
+  DirectTransport,
+  type DirectTransportAdapter,
+} from "./direct-transport.ts";
+export { WorkerTransport } from "./worker-transport.ts";
 
 /**
  * Event wrapper for incoming transport messages.
@@ -52,110 +55,6 @@ export interface RpcTransport {
 }
 
 /**
- * Adapter interface required to construct an in-process direct transport.
- *
- * @public
- */
-export interface DirectTransportAdapter {
-  dispose?: () => void;
-  handleMessage: (message: JsonRpcMessage) => void;
-  setup: (
-    sendResponse: (response: JsonRpcOkResponse | JsonRpcFailResponse) => void,
-    onNotification: (method: string, params?: unknown) => void,
-    sendRequest?: (method: string, id: JsonRpcId, params?: unknown) => void
-  ) => void;
-}
-
-/**
- * In-process direct transport connecting directly to an EngineAdapter.
- * Eliminates DOM Worker requirements and artificial timeout delays.
- *
- * @public
- */
-const scheduleTask = (callback: () => void): void => {
-  if (
-    "setImmediate" in globalThis &&
-    typeof (globalThis as { setImmediate?: unknown }).setImmediate ===
-      "function"
-  ) {
-    (
-      globalThis as unknown as { setImmediate: (fn: () => void) => void }
-    ).setImmediate(callback);
-    return;
-  }
-  setTimeout(callback, 0);
-};
-
-export class DirectTransport implements RpcTransport {
-  readonly #adapter: DirectTransportAdapter;
-  #onMessage: RpcTransportMessageHandler | null = null;
-  #isDisposed: boolean;
-
-  constructor(adapter: DirectTransportAdapter) {
-    this.#adapter = adapter;
-    this.#isDisposed = false;
-    this.#adapter.setup(
-      (response) => {
-        scheduleTask(() => {
-          if (!this.#isDisposed) {
-            this.#onMessage?.({ data: response });
-          }
-        });
-      },
-      (method, params) => {
-        scheduleTask(() => {
-          if (!this.#isDisposed) {
-            this.#onMessage?.({
-              data: {
-                jsonrpc: "2.0",
-                method,
-                params,
-              },
-            });
-          }
-        });
-      },
-      (method, id, params) => {
-        scheduleTask(() => {
-          if (!this.#isDisposed) {
-            this.#onMessage?.({
-              data: {
-                id,
-                jsonrpc: "2.0",
-                method,
-                params,
-              },
-            });
-          }
-        });
-      }
-    );
-  }
-
-  get onMessage(): RpcTransportMessageHandler | null {
-    return this.#onMessage;
-  }
-
-  set onMessage(handler: RpcTransportMessageHandler | null) {
-    this.#onMessage = handler;
-  }
-
-  postMessage(message: unknown): void {
-    queueMicrotask(() => {
-      if (!this.#isDisposed) {
-        this.#adapter.handleMessage(message as JsonRpcMessage);
-      }
-    });
-  }
-
-  terminate(): void {
-    this.#isDisposed = true;
-    this.#adapter.dispose?.();
-    this.#onMessage = null;
-  }
-}
-
-/**
  * Creates an in-process DirectTransport wrapping an EngineAdapter.
  *
  * @public
@@ -164,40 +63,6 @@ export function createDirectTransport(
   adapter: DirectTransportAdapter
 ): DirectTransport {
   return new DirectTransport(adapter);
-}
-
-/**
- * Worker transport adapter wrapping a browser DOM Worker instance.
- *
- * @public
- */
-export class WorkerTransport implements RpcTransport {
-  readonly #worker: Worker;
-  #onMessage: RpcTransportMessageHandler | null = null;
-
-  constructor(worker: Worker) {
-    this.#worker = worker;
-    this.#worker.onmessage = (event: MessageEvent) => {
-      this.#onMessage?.({ data: event.data });
-    };
-  }
-
-  get onMessage(): RpcTransportMessageHandler | null {
-    return this.#onMessage;
-  }
-
-  set onMessage(handler: RpcTransportMessageHandler | null) {
-    this.#onMessage = handler;
-  }
-
-  postMessage(message: unknown): void {
-    this.#worker.postMessage(message);
-  }
-
-  terminate(): void {
-    this.#worker.terminate();
-    this.#onMessage = null;
-  }
 }
 
 /**

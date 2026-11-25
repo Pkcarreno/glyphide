@@ -46,13 +46,14 @@ describe("v1 handler", () => {
   it("throws DECODE_FAILED on corrupted base64", () => {
     const url = new URL("https://glyphide.com/#code=!!!invalid!!!");
 
-    expect(() => handleV1(url)).toThrow(MigrationError);
+    let caught: unknown;
     try {
       handleV1(url);
     } catch (error) {
-      expect(error).toBeInstanceOf(MigrationError);
-      expect((error as MigrationError).code).toBe("DECODE_FAILED");
+      caught = error;
     }
+    expect(caught).toBeInstanceOf(MigrationError);
+    expect((caught as MigrationError).code).toBe("DECODE_FAILED");
   });
 
   it("defaults engine and language to quickjs/javascript", () => {
@@ -96,12 +97,14 @@ describe("v2 handler", () => {
   it("throws DECODE_FAILED on invalid base64 in `c`", () => {
     const url = new URL("https://glyphide.com/?c=!!!invalid!!!");
 
-    expect(() => handleV2(url)).toThrow(MigrationError);
+    let caught: unknown;
     try {
       handleV2(url);
     } catch (error) {
-      expect((error as MigrationError).code).toBe("DECODE_FAILED");
+      caught = error;
     }
+    expect(caught).toBeInstanceOf(MigrationError);
+    expect((caught as MigrationError).code).toBe("DECODE_FAILED");
   });
 
   it("defaults engine and language to quickjs/javascript", () => {
@@ -147,12 +150,14 @@ describe("v3 handler", () => {
       "https://glyphide.com/?code=not-valid-fflate&name=abc&engine=def"
     );
 
-    expect(() => handleV3(url)).toThrow(MigrationError);
+    let caught: unknown;
     try {
       handleV3(url);
     } catch (error) {
-      expect((error as MigrationError).code).toBe("DECOMPRESSION_FAILED");
+      caught = error;
     }
+    expect(caught).toBeInstanceOf(MigrationError);
+    expect((caught as MigrationError).code).toBe("DECOMPRESSION_FAILED");
   });
 
   it("preserves unknown engine strings verbatim", () => {
@@ -184,12 +189,14 @@ describe("detectVersion", () => {
 
   it("throws UNKNOWN_VERSION when no marker matches", () => {
     const url = new URL(FIXTURES.invalid.unknownVersion);
-    expect(() => detectVersion(url)).toThrow(MigrationError);
+    let caught: unknown;
     try {
       detectVersion(url);
     } catch (error) {
-      expect((error as MigrationError).code).toBe("UNKNOWN_VERSION");
+      caught = error;
     }
+    expect(caught).toBeInstanceOf(MigrationError);
+    expect((caught as MigrationError).code).toBe("UNKNOWN_VERSION");
   });
 
   it("prioritizes v1 over v3 when both are present", () => {

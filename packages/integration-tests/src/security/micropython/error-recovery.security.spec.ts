@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, it } from "vitest";
+import type { SecurityTestContext } from "../helpers/engine-factory.ts";
 import {
   createSecurityContext,
   disposeAll,
-  type SecurityTestContext,
 } from "../helpers/engine-factory.ts";
 import {
   expectSecureRejection,
@@ -34,6 +34,7 @@ describe("MicroPython: error recovery", () => {
     disposeAll(ctx);
   });
 
+  // biome-ignore lint/suspicious/useExpect: Uses expectSecureRejection assertion helper
   it(`${MP_RECOVERY_AFTER_GLOBALTHIS_ACCESS.id}: ${MP_RECOVERY_AFTER_GLOBALTHIS_ACCESS.title}`, async () => {
     const output = await ctx.runPoC(
       MP_RECOVERY_AFTER_GLOBALTHIS_ACCESS.poc,

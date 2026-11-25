@@ -4,22 +4,23 @@
 
 This report evaluates migrating the Glyphide codebase from SolidJS 1.9.19 to SolidJS 2.0.
 The assessment is based on official primary sources from the Solid 2.0 migration documentation:
+
 - [From Solid 1.x](https://docs.solidjs.com/migration/from-solid-1)
 - [Data Fetching from Solid 1](https://docs.solidjs.com/migration/data-fetching-from-solid-1)
 - [Async Reactivity](https://docs.solidjs.com/concepts/async-reactivity)
 
 ### Architectural Scope in Monorepo
 
-| Package / Application | Uses SolidJS? | Migration Impact |
-|---|---|---|
-| `apps/editor` | **Yes** (`solid-js`, `solid-js/store`, `solid-js/web`) | **Primary target**: 132 files, 63 test suites, 698 tests |
-| `packages/orchestrator` | No (Pure TS / WebWorker RPC runner) | Unaffected |
-| `packages/quickjs-engine` | No (Pure TS / WebAssembly QuickJS) | Unaffected |
-| `packages/micropython-engine` | No (Pure TS / WebAssembly MicroPython) | Unaffected |
-| `packages/rpc-protocol` | No (Pure JSON-RPC 2.0 contracts) | Unaffected |
-| `packages/mock-engine` | No (Headless test engine) | Unaffected |
-| `packages/url-migration` | No (State codec & compression) | Unaffected |
-| `packages/integration-tests` | No (Cross-package security runner) | Unaffected |
+| Package / Application         | Uses SolidJS?                                          | Migration Impact                                         |
+| ----------------------------- | ------------------------------------------------------ | -------------------------------------------------------- |
+| `apps/editor`                 | **Yes** (`solid-js`, `solid-js/store`, `solid-js/web`) | **Primary target**: 132 files, 63 test suites, 698 tests |
+| `packages/orchestrator`       | No (Pure TS / WebWorker RPC runner)                    | Unaffected                                               |
+| `packages/quickjs-engine`     | No (Pure TS / WebAssembly QuickJS)                     | Unaffected                                               |
+| `packages/micropython-engine` | No (Pure TS / WebAssembly MicroPython)                 | Unaffected                                               |
+| `packages/rpc-protocol`       | No (Pure JSON-RPC 2.0 contracts)                       | Unaffected                                               |
+| `packages/mock-engine`        | No (Headless test engine)                              | Unaffected                                               |
+| `packages/url-migration`      | No (State codec & compression)                         | Unaffected                                               |
+| `packages/integration-tests`  | No (Cross-package security runner)                     | Unaffected                                               |
 
 The migration boundary is strictly isolated to `apps/editor`.
 
@@ -37,12 +38,14 @@ Below are the items requiring the most refactoring effort, ordered from highest 
   In Solid 2, `omit` returns only the omitted keys proxy. The component reads its local properties directly from `props`.
 - **Current Pattern in Glyphide**:
   Almost every component in [src/components/atoms/](file:///home/pk/.t3/worktrees/glyphide/t3-37942db9-119b93e2b520ae68/apps/editor/src/components/atoms) and [src/components/molecules/](file:///home/pk/.t3/worktrees/glyphide/t3-37942db9-119b93e2b520ae68/apps/editor/src/components/molecules) uses:
+
   ```tsx
   // Solid 1 (85 occurrences across the codebase)
   const [local, rest] = splitProps(props, ["class", "variant", "size"]);
   return <button class={cn(buttonVariants({ variant: local.variant }), local.class)} {...rest} />;
   ```
 - **Migration Required**:
+
   ```tsx
   // Solid 2
   const rest = omit(props, "class", "variant", "size");
@@ -56,8 +59,8 @@ Below are the items requiring the most refactoring effort, ordered from highest 
   Solid 2 splits `createEffect` into two phases:
   1. **Compute Phase** (tracked): Reads reactive state, must remain pure and free of side-effects or state writes.
   2. **Effect Phase** (untracked): Receives the value from the compute phase, runs imperative side effects, and returns a cleanup function.
-  The `on(...)` helper is removed. Its tracking declaration moves directly into the compute phase.
-  Local `onCleanup(...)` inside the effect body is removed in favor of returning the cleanup function from the effect callback.
+     The `on(...)` helper is removed. Its tracking declaration moves directly into the compute phase.
+     Local `onCleanup(...)` inside the effect body is removed in favor of returning the cleanup function from the effect callback.
 - **Current Hotspots in Glyphide**:
   1. [CodeField.tsx:89-175](file:///home/pk/.t3/worktrees/glyphide/t3-37942db9-119b93e2b520ae68/apps/editor/src/components/atoms/CodeField/CodeField.tsx#L89-L175):
      Five effects controlling CodeMirror 6 compartments:
@@ -71,6 +74,7 @@ Below are the items requiring the most refactoring effort, ordered from highest 
   3. [engine.ts:106-117](file:///home/pk/.t3/worktrees/glyphide/t3-37942db9-119b93e2b520ae68/apps/editor/src/core/models/engine.ts#L106-L117):
      `createEffect(on(deps.session.code, () => { if (engineStatus() === "running") setIsDirty(true); }, { defer: true }))`.
 - **Migration Required**:
+
   ```ts
   // Solid 2
   createEffect(
@@ -89,6 +93,7 @@ Below are the items requiring the most refactoring effort, ordered from highest 
 - **The Change**:
   In Solid 1, signal writes take effect synchronously.
   In Solid 2, writes are staged and flushed on the next microtask. A read immediately following a setter returns the previous committed value:
+
   ```ts
   setCount(1);
   count(); // Returns 0 in Solid 2!
@@ -97,6 +102,7 @@ Below are the items requiring the most refactoring effort, ordered from highest 
   ```
 - **Impact on Glyphide**:
   - Domain models ([session.ts](file:///home/pk/.t3/worktrees/glyphide/t3-37942db9-119b93e2b520ae68/apps/editor/src/core/models/session.ts), [settings.ts](file:///home/pk/.t3/worktrees/glyphide/t3-37942db9-119b93e2b520ae68/apps/editor/src/core/models/settings.ts), [output.ts](file:///home/pk/.t3/worktrees/glyphide/t3-37942db9-119b93e2b520ae68/apps/editor/src/core/models/output.ts), [overlay.ts](file:///home/pk/.t3/worktrees/glyphide/t3-37942db9-119b93e2b520ae68/apps/editor/src/core/models/overlay.ts)) and commands ([commands.ts](file:///home/pk/.t3/worktrees/glyphide/t3-37942db9-119b93e2b520ae68/apps/editor/src/core/commands.ts)) are heavily tested with synchronous assertions in Vitest:
+
     ```ts
     // session.test.ts:132
     session.setCode("const x = 42;");
@@ -172,6 +178,7 @@ Solid 2 unifies async operations directly into the reactive graph (`createMemo(a
 - **Current Pain Point**:
   In [CodeField.tsx:122-154](file:///home/pk/.t3/worktrees/glyphide/t3-37942db9-119b93e2b520ae68/apps/editor/src/components/atoms/CodeField/CodeField.tsx#L122-L154), language modules (`@codemirror/lang-javascript`, `@codemirror/lang-python`) are imported via an uncoordinated `async` IIFE inside `createEffect`. Rapid engine switching creates race conditions where obsolete dynamic imports can resolve out of order.
 - **Solid 2 Solution**:
+
   ```ts
   const languageExtension = createMemo(async () => {
     const lang = props.language;
@@ -186,6 +193,7 @@ Solid 2 unifies async operations directly into the reactive graph (`createMemo(a
     return undefined;
   });
   ```
+
   Solid 2 automatically discards superseded results when `props.language` changes before the previous import finishes. No stale language extension ever touches CodeMirror.
 
 ### 3.3 Transactional Code Execution with `action()` and Optimistic UI
@@ -194,12 +202,14 @@ Solid 2 unifies async operations directly into the reactive graph (`createMemo(a
   In [commands.ts](file:///home/pk/.t3/worktrees/glyphide/t3-37942db9-119b93e2b520ae68/apps/editor/src/core/commands.ts) and [engine.ts](file:///home/pk/.t3/worktrees/glyphide/t3-37942db9-119b93e2b520ae68/apps/editor/src/core/models/engine.ts), code execution crosses an IPC boundary to a WebWorker. Managing run buttons, status bar braille animations, execution badges, and output clearing requires coordinating multiple signals across disparate models.
 - **Solid 2 Solution**:
   `action` provides generator-based transaction scopes:
+
   ```ts
   const runCodeAction = action(function* () {
     output.clearEntries();
     yield engine.executeCode();
   });
   ```
+
   - `isPending(runCodeAction)` natively drives the Run button spinner and status bar animation without manual boolean state tracking.
   - `createOptimistic` allows instant UI updates (e.g., status changes to "running") that automatically settle or revert if execution is interrupted or throws.
 
@@ -215,27 +225,33 @@ Solid 2 unifies async operations directly into the reactive graph (`createMemo(a
 ## 4. Migration Strategy & Recommendations
 
 ### Step 1: Upstream Ecosystem Verification (Prerequisite)
+
 Verify or establish compatibility for external packages:
+
 - Test `@solidjs/testing-library` Solid 2 beta/release.
 - Verify `lucide-solid` compatibility, or configure a temporary Vite alias:
   `resolve: { alias: { "solid-js/web": "@solidjs/web" } }`.
 
 ### Step 2: Mechanical Prop & API Refactoring
+
 - Replace 85 occurrences of `splitProps(props, [...keys])` with `omit(props, ...keys)`.
 - Replace 7 `<Context.Provider>` usages with `<Context>`.
 - Replace `<Dynamic component={...}>` with `dynamic(() => ...)`.
 - Replace `ErrorBoundary` with `Errored`.
 
 ### Step 3: Lifecycle and Effect Phase Separation
+
 - Replace 19 `onMount` calls with `onSettled`.
 - Split all 25 `createEffect` calls into explicit compute and effect functions.
 - Move CodeMirror compartment dispatch calls into the effect phase.
 
 ### Step 4: Staged Writes & Vitest Suite Adaptation
+
 - Add `flush()` imports and invocations in unit test suites where domain setters are tested synchronously.
 - Verify test passes across all 63 test suites in development mode to catch Solid 2 runtime diagnostics.
 
 ### Step 5: Adopt Async Primitives in Domain Workflows
+
 - Convert CodeMirror dynamic language imports to async `createMemo`.
 - Refactor engine initialization to leverage `createMemo(async () => ...)`, `Loading`, and `Errored`.
 - Refactor `runCode` to a Solid 2 `action`.

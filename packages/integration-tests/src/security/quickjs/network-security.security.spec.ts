@@ -6,12 +6,14 @@ import {
   describe,
   it,
 } from "vitest";
-import { createTestServer, type TestServer } from "../../shared/test-server.ts";
+import type { TestServer } from "../../shared/test-server.ts";
+import { createTestServer } from "../../shared/test-server.ts";
+import type { SecurityTestContext } from "../helpers/engine-factory.ts";
 import {
   createSecurityContext,
   disposeAll,
-  type SecurityTestContext,
 } from "../helpers/engine-factory.ts";
+import type { SecurityScenario } from "../helpers/security-test-utils.ts";
 import {
   expectSecureRejection,
   injectTarget,
@@ -22,7 +24,6 @@ import {
   QJS_NETWORK_FETCH_RFC1918,
   QJS_NETWORK_RESPONSE_BOMB,
   QJS_NETWORK_SENSITIVE_HEADERS,
-  type SecurityScenario,
 } from "../helpers/security-test-utils.ts";
 
 /**
@@ -53,10 +54,6 @@ describe("QuickJS: network security", () => {
     await server.start();
   });
 
-  afterAll(async () => {
-    await server.stop();
-  });
-
   beforeEach(async () => {
     ctx = await createSecurityContext("quickjs", {
       memoryLimit: 10 * 1024 * 1024,
@@ -68,6 +65,10 @@ describe("QuickJS: network security", () => {
     disposeAll(ctx);
   });
 
+  afterAll(async () => {
+    await server.stop();
+  });
+
   const localCases: SecurityScenario[] = [
     QJS_NETWORK_FETCH_LOCALHOST,
     QJS_NETWORK_FETCH_METADATA,
@@ -75,32 +76,30 @@ describe("QuickJS: network security", () => {
     QJS_NETWORK_FETCH_FILE,
   ];
 
-  for (const scenario of localCases) {
-    // SKIP: see header comment. The PoC is preserved so the scenario
-    // is documented in the audit.
-    // biome-ignore lint/suspicious/noSkippedTests: Intentional — WASM GC abort on in-flight fetch
-    it.skip(`${scenario.id}: ${scenario.title}`, async () => {
-      const output = await ctx.runPoC(
-        injectTarget(scenario.poc, server.url),
-        250
-      );
-      try {
-        expectSecureRejection(output, scenario);
-      } catch (err) {
-        if (isVulnerabilityObserved(output, scenario)) {
-          throw new Error(
-            `[${scenario.id}] VULNERABILITY CONFIRMED — observed: ` +
-              `"${scenario.vulnerableSubstring}" (engine did not block). ` +
-              `Output: ${output.slice(0, 400)}`,
-            { cause: err }
-          );
-        }
-        throw err;
+  // SKIP: see header comment. The PoC is preserved so the scenario
+  // is documented in the audit.
+  it.skip.each(localCases)("$id: $title", async (scenario) => {
+    const output = await ctx.runPoC(
+      injectTarget(scenario.poc, server.url),
+      250
+    );
+    try {
+      expectSecureRejection(output, scenario);
+    } catch (err) {
+      if (isVulnerabilityObserved(output, scenario)) {
+        throw new Error(
+          `[${scenario.id}] VULNERABILITY CONFIRMED — observed: ` +
+            `"${scenario.vulnerableSubstring}" (engine did not block). ` +
+            `Output: ${output.slice(0, 400)}`,
+          { cause: err }
+        );
       }
-    });
-  }
+      throw err;
+    }
+  });
 
   // biome-ignore lint/suspicious/noSkippedTests: Intentional — WASM GC abort on in-flight fetch
+  // biome-ignore lint/suspicious/useExpect: Uses expectSecureRejection assertion helper
   it.skip(`${QJS_NETWORK_SENSITIVE_HEADERS.id}: ${QJS_NETWORK_SENSITIVE_HEADERS.title}`, async () => {
     const poc: SecurityScenario = {
       ...QJS_NETWORK_SENSITIVE_HEADERS,
@@ -122,6 +121,7 @@ describe("QuickJS: network security", () => {
   });
 
   // biome-ignore lint/suspicious/noSkippedTests: Intentional — WASM GC abort on in-flight fetch
+  // biome-ignore lint/suspicious/useExpect: Uses expectSecureRejection assertion helper
   it.skip(`${QJS_NETWORK_RESPONSE_BOMB.id}: ${QJS_NETWORK_RESPONSE_BOMB.title}`, async () => {
     const poc: SecurityScenario = {
       ...QJS_NETWORK_RESPONSE_BOMB,

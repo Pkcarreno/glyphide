@@ -6,19 +6,20 @@ import {
   describe,
   it,
 } from "vitest";
-import { createTestServer, type TestServer } from "../../shared/test-server.ts";
+import type { TestServer } from "../../shared/test-server.ts";
+import { createTestServer } from "../../shared/test-server.ts";
+import type { SecurityTestContext } from "../helpers/engine-factory.ts";
 import {
   createSecurityContext,
   disposeAll,
-  type SecurityTestContext,
 } from "../helpers/engine-factory.ts";
+import type { SecurityScenario } from "../helpers/security-test-utils.ts";
 import {
   expectSecureRejection,
   injectTarget,
   isVulnerabilityObserved,
   MP_NETWORK_FETCH_LOCALHOST,
   MP_NETWORK_XHR_ARBITRARY_URL,
-  type SecurityScenario,
 } from "../helpers/security-test-utils.ts";
 
 /**
@@ -42,10 +43,6 @@ describe("MicroPython: network security", () => {
     await server.start();
   });
 
-  afterAll(async () => {
-    await server.stop();
-  });
-
   beforeEach(async () => {
     ctx = await createSecurityContext("micropython", {
       memoryLimit: 10 * 1024 * 1024,
@@ -57,6 +54,11 @@ describe("MicroPython: network security", () => {
     disposeAll(ctx);
   });
 
+  afterAll(async () => {
+    await server.stop();
+  });
+
+  // biome-ignore lint/suspicious/useExpect: Uses expectSecureRejection assertion helper
   it(`${MP_NETWORK_XHR_ARBITRARY_URL.id}: ${MP_NETWORK_XHR_ARBITRARY_URL.title}`, async () => {
     const output = await ctx.runPoC(MP_NETWORK_XHR_ARBITRARY_URL.poc, 50);
     try {
@@ -73,6 +75,7 @@ describe("MicroPython: network security", () => {
     }
   });
 
+  // biome-ignore lint/suspicious/useExpect: Uses expectSecureRejection assertion helper
   it(`${MP_NETWORK_FETCH_LOCALHOST.id}: ${MP_NETWORK_FETCH_LOCALHOST.title}`, async () => {
     // Inject the test server URL so the PoC targets a known endpoint.
     const poc: SecurityScenario = {

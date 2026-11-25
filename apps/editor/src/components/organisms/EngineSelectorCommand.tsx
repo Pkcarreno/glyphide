@@ -1,10 +1,8 @@
 import LoaderCircle from "lucide-solid/icons/loader-circle";
 import { Errored, For, isPending, Loading, latest, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
-import {
-  type EngineEntry,
-  getEngineEntries,
-} from "../../core/engine/registry.ts";
+import type { EngineEntry } from "../../core/engine/registry.ts";
+import { getEngineEntries } from "../../core/engine/registry.ts";
 import {
   CommandDialog,
   CommandEmpty,

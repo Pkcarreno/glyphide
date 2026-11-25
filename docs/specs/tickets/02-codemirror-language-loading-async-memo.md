@@ -4,6 +4,7 @@
 Replace the imperative, uncoordinated async IIFE inside `createEffect` in `CodeField.tsx` with a native Solid 2 async memo (`createMemo(async () => ...)`). This ensures rapid language switching discards superseded dynamic imports of `@codemirror/lang-javascript` and `@codemirror/lang-python` automatically, preventing race conditions or stale language extensions from attaching to CodeMirror compartments.
 
 **Blocked by:**
+
 - 01: Solid 2.0 Foundation Migration (#251)
 
 **Tracker Issue:** https://github.com/Pkcarreno/glyphide/issues/252

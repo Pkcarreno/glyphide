@@ -20,7 +20,8 @@
       "!!**/.vite",
       "!!**/pnpm-lock.yaml",
       "!!**/.atl",
-      "!!**/.agents"
+      "!!**/.agents",
+      "!!docs/security/audit-2026-07.md"
     ]
   },
   "overrides": [

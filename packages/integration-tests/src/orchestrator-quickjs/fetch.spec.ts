@@ -8,7 +8,8 @@ import {
   expect,
   it,
 } from "vitest";
-import { createTestServer, type TestServer } from "../shared/test-server.ts";
+import type { TestServer } from "../shared/test-server.ts";
+import { createTestServer } from "../shared/test-server.ts";
 import { createQuickJSWorker } from "./setup/quickjs-worker-factory.ts";
 
 describe("Orchestrator + QuickJS Fetch Integration", () => {
@@ -19,10 +20,6 @@ describe("Orchestrator + QuickJS Fetch Integration", () => {
   beforeAll(async () => {
     server = createTestServer();
     await server.start();
-  });
-
-  afterAll(async () => {
-    await server.stop();
   });
 
   beforeEach(() => {
@@ -41,6 +38,10 @@ describe("Orchestrator + QuickJS Fetch Integration", () => {
 
   afterEach(() => {
     orchestrator.terminate();
+  });
+
+  afterAll(async () => {
+    await server.stop();
   });
 
   it("performs GET requests and parses JSON", async () => {

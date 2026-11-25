@@ -9,8 +9,11 @@ import {
 } from "./http-client.ts";
 
 declare global {
+  // biome-ignore lint/style/useVarsOnTop: TypeScript requires var inside declare global
   var testOutput: boolean | string;
+  // biome-ignore lint/style/useVarsOnTop: TypeScript requires var inside declare global
   var testOutputRequests: boolean | string;
+  // biome-ignore lint/style/useVarsOnTop: TypeScript requires var inside declare global
   var testOutputUrllib: boolean | string;
 }
 
@@ -49,6 +52,7 @@ class MockXMLHttpRequest {
     }
   }
 
+  // biome-ignore lint/style/useThisInClassMethods: Required XMLHttpRequest instance method
   getAllResponseHeaders() {
     return "Content-Type: application/json\\r\\nServer: MockServer\\r\\n";
   }
