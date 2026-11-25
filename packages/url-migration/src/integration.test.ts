@@ -24,73 +24,79 @@ describe("detectVersion (public API)", () => {
 describe("migrateUrl", () => {
   it("migrates a v1 URL end-to-end", () => {
     const result = migrateUrl(FIXTURES.v1.simple);
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.state.code).toBe("console.log(1)");
-      expect(result.state.name).toBe("Hello");
-      expect(result.state.engine).toBe("quickjs");
-      expect(result.version).toBe("v1");
-    }
+    expect(result).toMatchObject({
+      ok: true,
+      state: {
+        code: "console.log(1)",
+        engine: "quickjs",
+        name: "Hello",
+      },
+      version: "v1",
+    });
   });
 
   it("migrates a v2 URL with code-only", () => {
     const result = migrateUrl(FIXTURES.v2.codeOnly);
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.state.code).toBe("console.log(1)");
-      expect(result.state.name).toBe("");
-      expect(result.version).toBe("v2");
-    }
+    expect(result).toMatchObject({
+      ok: true,
+      state: {
+        code: "console.log(1)",
+        name: "",
+      },
+      version: "v2",
+    });
   });
 
   it("migrates a v3 URL preserving the engine", () => {
     const result = migrateUrl(FIXTURES.v3.micropython);
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.state.engine).toBe("micropython");
-      expect(result.state.language).toBe("python");
-      expect(result.version).toBe("v3");
-    }
+    expect(result).toMatchObject({
+      ok: true,
+      state: {
+        engine: "micropython",
+        language: "python",
+      },
+      version: "v3",
+    });
   });
 
   it("returns EMPTY_INPUT for empty string", () => {
     const result = migrateUrl(FIXTURES.invalid.empty);
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error.code).toBe("EMPTY_INPUT");
-    }
+    expect(result).toMatchObject({
+      error: { code: "EMPTY_INPUT" },
+      ok: false,
+    });
   });
 
   it("returns EMPTY_INPUT for whitespace-only input", () => {
     const result = migrateUrl(FIXTURES.invalid.whitespace);
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error.code).toBe("EMPTY_INPUT");
-    }
+    expect(result).toMatchObject({
+      error: { code: "EMPTY_INPUT" },
+      ok: false,
+    });
   });
 
   it("returns INVALID_URL for non-URL strings", () => {
     const result = migrateUrl(FIXTURES.invalid.notAUrl);
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error.code).toBe("INVALID_URL");
-    }
+    expect(result).toMatchObject({
+      error: { code: "INVALID_URL" },
+      ok: false,
+    });
   });
 
   it("returns UNKNOWN_VERSION for URLs without recognized markers", () => {
     const result = migrateUrl(FIXTURES.invalid.unknownVersion);
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error.code).toBe("UNKNOWN_VERSION");
-    }
+    expect(result).toMatchObject({
+      error: { code: "UNKNOWN_VERSION" },
+      ok: false,
+    });
   });
 
   it("returns DECODE_FAILED for corrupted v1 base64", () => {
     const result = migrateUrl("https://glyphide.com/#code=!!!invalid!!!");
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error.code).toBe("DECODE_FAILED");
-    }
+    expect(result).toMatchObject({
+      error: { code: "DECODE_FAILED" },
+      ok: false,
+    });
   });
 });
 

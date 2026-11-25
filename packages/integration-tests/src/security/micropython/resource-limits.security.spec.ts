@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { SecurityTestContext } from "../helpers/engine-factory.ts";
 import {
   createSecurityContext,
   disposeAll,
-  type SecurityTestContext,
 } from "../helpers/engine-factory.ts";
 import {
   expectSecureRejection,
@@ -67,6 +67,9 @@ describe("MicroPython: resource limits", () => {
 
   it(`${MP_RESOURCE_MEMORY_BOMB_LIST.id}: ${MP_RESOURCE_MEMORY_BOMB_LIST.title}`, async () => {
     const output = await runWithTimeout(MP_RESOURCE_MEMORY_BOMB_LIST.poc, 50);
+    // Worker may have been force-terminated; any non-vulnerable
+    // outcome is acceptable here (already protected by outer timeout).
+    expect(output).toBeDefined();
     try {
       expectSecureRejection(output, MP_RESOURCE_MEMORY_BOMB_LIST);
     } catch (err) {
@@ -77,9 +80,6 @@ describe("MicroPython: resource limits", () => {
           { cause: err }
         );
       }
-      // Worker may have been force-terminated; any non-vulnerable
-      // outcome is acceptable here (already protected by outer timeout).
-      expect(output).toBeDefined();
     }
   });
 
@@ -92,6 +92,7 @@ describe("MicroPython: resource limits", () => {
   // biome-ignore lint/suspicious/noSkippedTests: Intentional — WASM blocks event loop, timeout cannot fire
   it.skip(`${MP_RESOURCE_MEMORY_BOMB_DICT.id}: ${MP_RESOURCE_MEMORY_BOMB_DICT.title} [WASM-BLOCKING]`, async () => {
     const output = await runWithTimeout(MP_RESOURCE_MEMORY_BOMB_DICT.poc, 50);
+    expect(output).toBeDefined();
     try {
       expectSecureRejection(output, MP_RESOURCE_MEMORY_BOMB_DICT);
     } catch (err) {
@@ -102,7 +103,6 @@ describe("MicroPython: resource limits", () => {
           { cause: err }
         );
       }
-      expect(output).toBeDefined();
     }
   });
 

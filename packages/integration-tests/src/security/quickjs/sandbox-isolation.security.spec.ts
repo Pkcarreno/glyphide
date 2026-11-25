@@ -44,7 +44,6 @@ describe("QuickJS: sandbox isolation", () => {
     QJS_SANDBOX_CONSTRUCTOR_ESCAPE,
   ];
 
-  // biome-ignore lint/suspicious/useExpect: Uses expectSecureRejection assertion helper
   it.each(cases)("$id: $title", async (scenario) => {
     const output = await ctx.runPoC(scenario.poc, 50);
     try {

@@ -51,7 +51,6 @@ describe("MicroPython: sandbox isolation", () => {
     MP_SANDBOX_GLOBALTHIS_XHR,
   ];
 
-  // biome-ignore lint/suspicious/useExpect: Uses expectSecureRejection assertion helper
   it.each(cases)("$id: $title", async (scenario) => {
     const output = await ctx.runPoC(scenario.poc, 50);
 

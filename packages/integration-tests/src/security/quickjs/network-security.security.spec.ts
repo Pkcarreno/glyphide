@@ -78,8 +78,6 @@ describe("QuickJS: network security", () => {
 
   // SKIP: see header comment. The PoC is preserved so the scenario
   // is documented in the audit.
-  // biome-ignore lint/suspicious/noSkippedTests: Intentional — WASM GC abort on in-flight fetch
-  // biome-ignore lint/suspicious/useExpect: Uses expectSecureRejection assertion helper
   it.skip.each(localCases)("$id: $title", async (scenario) => {
     const output = await ctx.runPoC(
       injectTarget(scenario.poc, server.url),
