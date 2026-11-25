@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { SecurityTestContext } from "../helpers/engine-factory.ts";
 import {
   createSecurityContext,
   disposeAll,
-  type SecurityTestContext,
 } from "../helpers/engine-factory.ts";
 import {
   expectSecureRejection,
@@ -36,6 +36,7 @@ describe("QuickJS: error recovery", () => {
     disposeAll(ctx);
   });
 
+  // biome-ignore lint/suspicious/useExpect: Uses expectSecureRejection assertion helper
   it(`${QJS_RECOVERY_AFTER_BLOCKED_FETCH.id}: ${QJS_RECOVERY_AFTER_BLOCKED_FETCH.title}`, async () => {
     const output = await ctx.runPoC(QJS_RECOVERY_AFTER_BLOCKED_FETCH.poc, 200);
     try {
@@ -85,4 +86,4 @@ describe("QuickJS: error recovery", () => {
   });
 });
 
-const RECOVERY_RE = /intentional|throw|error/;
+const RECOVERY_RE = /intentional|throw|error/u;

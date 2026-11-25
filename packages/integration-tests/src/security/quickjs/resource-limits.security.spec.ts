@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { SecurityTestContext } from "../helpers/engine-factory.ts";
 import {
   createSecurityContext,
   disposeAll,
-  type SecurityTestContext,
 } from "../helpers/engine-factory.ts";
 import {
   expectSecureRejection,
@@ -13,8 +13,8 @@ import {
   QJS_RESOURCE_NESTED_EVAL,
 } from "../helpers/security-test-utils.ts";
 
-const TIMEOUT_ERROR_RE = /timeout|invalid|reject/i;
-const MEMORY_ERROR_RE = /memory|limit|invalid|reject/i;
+const TIMEOUT_ERROR_RE = /timeout|invalid|reject/iu;
+const MEMORY_ERROR_RE = /memory|limit|invalid|reject/iu;
 
 /**
  * QuickJS resource-limit probes.
@@ -138,6 +138,7 @@ describe("QuickJS: resource limits", () => {
     expect(initFailed).toBe(true);
   });
 
+  // biome-ignore lint/suspicious/useExpect: Uses expectSecureRejection assertion helper
   it(`${QJS_RESOURCE_DYNAMIC_IMPORT.id}: ${QJS_RESOURCE_DYNAMIC_IMPORT.title}`, async () => {
     const output = await ctx.runPoC(QJS_RESOURCE_DYNAMIC_IMPORT.poc, 300);
     try {
@@ -154,6 +155,7 @@ describe("QuickJS: resource limits", () => {
     }
   });
 
+  // biome-ignore lint/suspicious/useExpect: Uses expectSecureRejection assertion helper
   it(`${QJS_RESOURCE_NESTED_EVAL.id}: ${QJS_RESOURCE_NESTED_EVAL.title}`, async () => {
     const output = await ctx.runPoC(QJS_RESOURCE_NESTED_EVAL.poc, 50);
     try {

@@ -1,16 +1,16 @@
 import { afterEach, beforeEach, describe, it } from "vitest";
+import type { SecurityTestContext } from "../helpers/engine-factory.ts";
 import {
   createSecurityContext,
   disposeAll,
-  type SecurityTestContext,
 } from "../helpers/engine-factory.ts";
+import type { SecurityScenario } from "../helpers/security-test-utils.ts";
 import {
   expectSecureRejection,
   QJS_SANDBOX_CONSTRUCTOR_ESCAPE,
   QJS_SANDBOX_GLOBALTHIS_INDEXEDDB,
   QJS_SANDBOX_GLOBALTHIS_WORKER,
   QJS_SANDBOX_PROTOTYPE_POLLUTION,
-  type SecurityScenario,
 } from "../helpers/security-test-utils.ts";
 
 /**
@@ -44,22 +44,21 @@ describe("QuickJS: sandbox isolation", () => {
     QJS_SANDBOX_CONSTRUCTOR_ESCAPE,
   ];
 
-  for (const scenario of cases) {
-    it(`${scenario.id}: ${scenario.title}`, async () => {
-      const output = await ctx.runPoC(scenario.poc, 50);
-      try {
-        expectSecureRejection(output, scenario);
-      } catch (err) {
-        if (output.includes(scenario.vulnerableSubstring)) {
-          throw new Error(
-            `[${scenario.id}] VULNERABILITY CONFIRMED — observed: ` +
-              `"${scenario.vulnerableSubstring}". ` +
-              `Hardening required. Output: ${output.slice(0, 400)}`,
-            { cause: err }
-          );
-        }
-        throw err;
+  // biome-ignore lint/suspicious/useExpect: Uses expectSecureRejection assertion helper
+  it.each(cases)("$id: $title", async (scenario) => {
+    const output = await ctx.runPoC(scenario.poc, 50);
+    try {
+      expectSecureRejection(output, scenario);
+    } catch (err) {
+      if (output.includes(scenario.vulnerableSubstring)) {
+        throw new Error(
+          `[${scenario.id}] VULNERABILITY CONFIRMED — observed: ` +
+            `"${scenario.vulnerableSubstring}". ` +
+            `Hardening required. Output: ${output.slice(0, 400)}`,
+          { cause: err }
+        );
       }
-    });
-  }
+      throw err;
+    }
+  });
 });
