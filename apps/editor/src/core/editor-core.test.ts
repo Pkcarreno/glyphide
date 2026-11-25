@@ -406,7 +406,6 @@ describe("EditorCore", () => {
       expect(core.engine.isBlocked()).toBe(true);
 
       const selectSpy = vi.spyOn(core.engine, "selectEngineEntry");
-      const setBlockedSpy = vi.spyOn(core.engine, "setBlocked");
       const closeSpy = vi.spyOn(core.overlays, "close");
 
       core.commands.grantTrust();
@@ -416,7 +415,6 @@ describe("EditorCore", () => {
 
       expect(core.session.isTrustRequired()).toBe(false);
       expect(core.engine.isBlocked()).toBe(false);
-      expect(setBlockedSpy).toHaveBeenCalledWith(false);
       expect(closeSpy).toHaveBeenCalledWith("trust-required");
       // Selection already happened during file load or startup; no re-select.
       expect(selectSpy).not.toHaveBeenCalled();
@@ -574,7 +572,6 @@ describe("EditorCore", () => {
 
       it("blocks the engine when loading a file from disk", () => {
         const { core } = createCoreWithFileIo();
-        const setBlockedSpy = vi.spyOn(core.engine, "setBlocked");
 
         core.commands.loadFile({
           content: "console.log(1)",
@@ -583,7 +580,6 @@ describe("EditorCore", () => {
           name: "script.js",
         });
 
-        expect(setBlockedSpy).toHaveBeenCalledWith(true);
         expect(core.engine.isBlocked()).toBe(true);
       });
 
@@ -606,7 +602,6 @@ describe("EditorCore", () => {
 
       it("blocks the engine so the status reflects the gate", () => {
         const { core } = createCoreWithFileIo();
-        const setBlockedSpy = vi.spyOn(core.engine, "setBlocked");
 
         core.commands.loadFile({
           content: "console.log(1)",
@@ -615,7 +610,7 @@ describe("EditorCore", () => {
           name: "script.js",
         });
 
-        expect(setBlockedSpy).toHaveBeenCalledWith(true);
+        expect(core.engine.isBlocked()).toBe(true);
       });
 
       it("download after load produces correct filename without double extension", async () => {
@@ -919,7 +914,6 @@ describe("EditorCore", () => {
         urlPersistence: createMockUrlStateWithCode(null),
       });
       const loadFileSpy = vi.spyOn(core.session, "loadFile");
-      const setBlockedSpy = vi.spyOn(core.engine, "setBlocked");
 
       core.commands.loadFile({
         content: "evil()",
@@ -934,8 +928,6 @@ describe("EditorCore", () => {
         language: "plaintext",
         name: "evil.js",
       });
-      // THE FIX: untrusted file-loaded code blocks engine initialization.
-      expect(setBlockedSpy).toHaveBeenCalledWith(true);
       expect(core.engine.isBlocked()).toBe(true);
     });
 

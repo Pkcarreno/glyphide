@@ -1,9 +1,9 @@
+import type { Placement } from "@floating-ui/dom";
 import {
   autoUpdate,
   computePosition,
   flip,
   offset as floatingOffset,
-  type Placement,
   shift,
 } from "@floating-ui/dom";
 import type { ComponentProps, JSX, ValidComponent } from "@solidjs/web";
@@ -230,7 +230,14 @@ export type PopoverTriggerProps<T extends ValidComponent = "button"> = {
 export function PopoverTrigger<T extends ValidComponent = "button">(
   props: PopoverTriggerProps<T>
 ) {
-  const rest = omit(props, "as", "class", "children");
+  const rest = omit(
+    props as PopoverTriggerProps<"button">,
+    "as",
+    "class",
+    "children",
+    "onClick",
+    "ref"
+  );
   const ctx = usePopover();
   const Comp = dynamic(() => props.as ?? "button");
 
@@ -242,12 +249,15 @@ export function PopoverTrigger<T extends ValidComponent = "button">(
       )}
       onClick={(e: Event) => {
         ctx.toggle();
-        const onClickProp = (rest as Record<string, unknown>).onClick;
+        const onClickProp = (props as Record<string, unknown>).onClick;
         if (typeof onClickProp === "function") {
           onClickProp(e);
         }
       }}
-      ref={(el: HTMLElement) => ctx.setTriggerRef(el)}
+      ref={[
+        (el: HTMLElement) => ctx.setTriggerRef(el),
+        (props as PopoverTriggerProps<"button">).ref,
+      ]}
       {...rest}
     >
       {props.children}

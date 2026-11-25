@@ -1,7 +1,14 @@
 import type { ComponentProps, JSX, ValidComponent } from "@solidjs/web";
 import { dynamic } from "@solidjs/web";
 import type { Accessor } from "solid-js";
-import { createContext, createSignal, omit, Show, useContext } from "solid-js";
+import {
+  createContext,
+  createSignal,
+  omit,
+  Show,
+  untrack,
+  useContext,
+} from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { ActionTooltip } from "./ActionTooltip.tsx";
 
@@ -42,7 +49,7 @@ interface DialogProps {
 function Dialog(props: DialogProps) {
   const isControlled = () => props.isOpen !== undefined;
   const [internalOpen, setInternalOpen] = createSignal(
-    props.defaultOpen ?? false
+    untrack(() => props.defaultOpen ?? false)
   );
 
   const isOpen = () =>

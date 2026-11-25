@@ -7,7 +7,8 @@ import type { NotificationModel } from "./models/notifications.ts";
 import type { OutputModel } from "./models/output.ts";
 import type { OverlayModel } from "./models/overlay.ts";
 import type { WorkspaceSession } from "./models/session.ts";
-import { DEFAULT_SETTINGS, type SettingsModel } from "./models/settings.ts";
+import type { SettingsModel } from "./models/settings.ts";
+import { DEFAULT_SETTINGS } from "./models/settings.ts";
 import type { FileIoPort } from "./ports/file-io.ts";
 
 describe("createEditorCommands", () => {
@@ -36,7 +37,6 @@ describe("createEditorCommands", () => {
       isRunning: vi.fn(() => false),
       retryInit: vi.fn().mockResolvedValue(undefined),
       selectEngineEntry: vi.fn(),
-      setBlocked: vi.fn(),
       updateEngineConfig: vi.fn(),
     } as unknown as EngineModel;
 
@@ -229,13 +229,12 @@ describe("createEditorCommands", () => {
   });
 
   describe("grantTrust", () => {
-    it("grants trust, unblocks engine, and closes overlay", () => {
+    it("grants trust and closes overlay", () => {
       const commands = createEditorCommands(deps);
 
       commands.grantTrust();
 
       expect(mockSession.grantTrust).toHaveBeenCalled();
-      expect(mockEngine.setBlocked).toHaveBeenCalledWith(false);
       expect(mockOverlays.close).toHaveBeenCalledWith("trust-required");
     });
   });
@@ -249,13 +248,12 @@ describe("createEditorCommands", () => {
       expect(mockSession.reset).toHaveBeenCalled();
       expect(mockOutput.clearEntries).toHaveBeenCalled();
       expect(mockOverlays.close).toHaveBeenCalledWith("trust-required");
-      expect(mockEngine.setBlocked).toHaveBeenCalledWith(false);
       expect(mockEngine.retryInit).toHaveBeenCalled();
     });
   });
 
   describe("loadFile", () => {
-    it("loads file into session, blocks engine, and opens trust overlay", () => {
+    it("loads file into session and opens trust overlay", () => {
       const commands = createEditorCommands(deps);
 
       commands.loadFile({
@@ -271,7 +269,6 @@ describe("createEditorCommands", () => {
         language: "python",
         name: "test.py",
       });
-      expect(mockEngine.setBlocked).toHaveBeenCalledWith(true);
       expect(mockOverlays.open).toHaveBeenCalledWith("trust-required");
     });
   });

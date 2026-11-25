@@ -1,13 +1,14 @@
 import type { EngineInitParams } from "@glyphide/rpc-protocol/types";
 import X from "lucide-solid/icons/x";
 import {
-  createEffect,
+  createMemo,
   createStore,
   Errored,
   For,
   isPending,
   Loading,
   Show,
+  untrack,
 } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { Button } from "../atoms/Button.tsx";
@@ -32,30 +33,55 @@ interface EngineSettingsFormProps {
 function EngineSettingsForm(props: EngineSettingsFormProps) {
   const core = useEditor();
 
-  const engineDef = () =>
-    core.engineRegistry.getDefinition(core.engine.activeEngineId());
-
-  // Local state to store intermediate edits before applying
-  const [localPatch, setLocalPatch] = createStore<Record<string, unknown>>({});
-
-  createEffect(
-    () => ({
-      def: engineDef(),
-      params: props.initialParams ?? engineDef().defaultInitParams,
-    }),
-    ({ def, params }) => {
-      setLocalPatch((draft) => {
-        for (const desc of def.paramDescriptors) {
-          if (params && desc.key in params) {
-            draft[desc.key] = params[desc.key as keyof typeof params];
-          }
-        }
-      });
-    }
+  const engineId = () => core.engine.activeEngineId();
+  const engineDef = () => core.engineRegistry.getDefinition(engineId());
+  const baseParams = createMemo(
+    () =>
+      (props.initialParams ?? engineDef().defaultInitParams) as Record<
+        string,
+        unknown
+      >
   );
 
+  // Store only unsaved user overrides keyed by engineId so baseParams stays reactive.
+  const [localEdits, setLocalEdits] = createStore<{
+    engineId: string;
+    values: Record<string, unknown>;
+  }>({
+    engineId: untrack(engineId),
+    values: {},
+  });
+
+  const getParamValue = (key: string): unknown => {
+    if (localEdits.engineId === engineId() && key in localEdits.values) {
+      return localEdits.values[key];
+    }
+    return baseParams()[key];
+  };
+
+  const setParamEdit = (key: string, value: unknown) => {
+    const activeId = engineId();
+    setLocalEdits((draft) => {
+      if (draft.engineId !== activeId) {
+        draft.engineId = activeId;
+        draft.values = {};
+      }
+      draft.values[key] = value;
+    });
+  };
+
   const handleApply = () => {
-    core.engine.updateEngineConfig({ ...localPatch });
+    const patch: Record<string, unknown> = {};
+    for (const desc of engineDef().paramDescriptors) {
+      const value = getParamValue(desc.key);
+      if (value !== undefined) {
+        patch[desc.key] = value;
+      }
+    }
+    core.engine.updateEngineConfig(patch);
+    setLocalEdits((draft) => {
+      draft.values = {};
+    });
     core.overlays.close("engine-settings");
   };
 
@@ -90,16 +116,15 @@ function EngineSettingsForm(props: EngineSettingsFormProps) {
                       const num = Number(val);
                       const parsed =
                         !Number.isNaN(num) && val.trim() !== "" ? num : val;
-                      setLocalPatch((draft) => {
-                        draft[desc.key] = desc.toModel
-                          ? desc.toModel(parsed)
-                          : parsed;
-                      });
+                      setParamEdit(
+                        desc.key,
+                        desc.toModel ? desc.toModel(parsed) : parsed
+                      );
                     }}
                     value={String(
                       desc.toView
-                        ? desc.toView(localPatch[desc.key] ?? "")
-                        : (localPatch[desc.key] ?? "")
+                        ? desc.toView(getParamValue(desc.key) ?? "")
+                        : (getParamValue(desc.key) ?? "")
                     )}
                   />
                 }
@@ -109,14 +134,15 @@ function EngineSettingsForm(props: EngineSettingsFormProps) {
                   {...(desc.inputProps ?? {})}
                   disabled={!(desc.isEditable && props.isReady)}
                   onValueChange={(val) => {
-                    setLocalPatch((draft) => {
-                      draft[desc.key] = desc.toModel ? desc.toModel(val) : val;
-                    });
+                    setParamEdit(
+                      desc.key,
+                      desc.toModel ? desc.toModel(val) : val
+                    );
                   }}
                   value={Number(
                     desc.toView
-                      ? desc.toView(localPatch[desc.key] ?? 0)
-                      : (localPatch[desc.key] ?? 0)
+                      ? desc.toView(getParamValue(desc.key) ?? 0)
+                      : (getParamValue(desc.key) ?? 0)
                   )}
                 />
               </Show>

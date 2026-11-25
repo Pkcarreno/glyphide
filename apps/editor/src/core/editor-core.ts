@@ -1,4 +1,4 @@
-import { createRoot, flush, runWithOwner } from "solid-js";
+import { createRoot, untrack } from "solid-js";
 import type { EditorCommands } from "./commands.ts";
 import { createEditorCommands } from "./commands.ts";
 import type { EngineRegistry } from "./engine/registry.ts";
@@ -68,7 +68,10 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
       urlPersistence: deps.urlPersistence,
     });
     const output = createOutputModel();
-    const overlays = createOverlayModel();
+    const initialTrustRequired = untrack(session.isTrustRequired);
+    const overlays = createOverlayModel(
+      initialTrustRequired ? ["trust-required"] : []
+    );
     const notifications = createNotificationModel();
     const engine = createEngineModel({
       output,
@@ -93,14 +96,6 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
       notifications.dispose();
       disposeRoot();
     }
-
-    runWithOwner(null, () => {
-      if (session.isTrustRequired()) {
-        engine.setBlocked(true);
-        overlays.open("trust-required");
-      }
-      flush();
-    });
 
     return {
       commands,

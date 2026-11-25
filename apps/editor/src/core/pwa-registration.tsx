@@ -1,12 +1,7 @@
 // biome-ignore lint/correctness/noUnresolvedImports: virtual module provided by vite-plugin-pwa at build time
 import { useRegisterSW } from "virtual:pwa-register/solid";
 import type { JSX } from "@solidjs/web";
-import {
-  createContext,
-  createEffect,
-  createSignal,
-  useContext,
-} from "solid-js";
+import { createContext, createMemo, useContext } from "solid-js";
 
 /**
  * Controller interface providing PWA update state and actions to the UI.
@@ -35,22 +30,13 @@ const PwaContext = createContext<PwaUpdateController>(DEFAULT_PWA_CONTROLLER);
  * @public
  */
 export function PwaProvider(props: { children: JSX.Element }) {
-  const [updateAvailable, setUpdateAvailable] = createSignal(false);
   const {
     needRefresh: [needRefresh],
     updateServiceWorker,
   } = useRegisterSW({ immediate: true });
 
-  let notifiedUpdate = false;
-
-  createEffect(
-    () => needRefresh(),
-    (isReady) => {
-      if (isReady && !notifiedUpdate) {
-        notifiedUpdate = true;
-        setUpdateAvailable(true);
-      }
-    }
+  const updateAvailable = createMemo<boolean>((prev) =>
+    Boolean(prev || needRefresh())
   );
 
   function applyUpdate(): void {

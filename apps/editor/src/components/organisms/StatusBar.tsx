@@ -78,16 +78,17 @@ function StatusBarButton(props: StatusBarButtonProps) {
     "children"
   );
 
-  const buttonClass = cn(
-    "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 flex h-full items-center gap-1 rounded-md px-1 outline-none focus-visible:ring-3 aria-invalid:ring-3",
-    "hover:bg-surface-variant hover:text-on-surface cursor-pointer transition-colors",
-    props.class
-  );
+  const buttonClass = () =>
+    cn(
+      "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 flex h-full items-center gap-1 rounded-md px-1 outline-none focus-visible:ring-3 aria-invalid:ring-3",
+      "hover:bg-surface-variant hover:text-on-surface cursor-pointer transition-colors",
+      props.class
+    );
 
   return (
     <Show
       fallback={
-        <button class={buttonClass} {...rest}>
+        <button class={buttonClass()} {...rest}>
           {props.children}
         </button>
       }
@@ -95,7 +96,7 @@ function StatusBarButton(props: StatusBarButtonProps) {
     >
       <ActionTooltip
         as="button"
-        class={buttonClass}
+        class={buttonClass()}
         commandId={props.commandId}
         meta={props.tooltipDescription}
         position="top"

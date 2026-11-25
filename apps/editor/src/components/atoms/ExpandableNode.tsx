@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web";
 import ChevronRight from "lucide-solid/icons/chevron-right";
-import { createSignal, Show } from "solid-js";
+import { createSignal, Show, untrack } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { Icon } from "./Icon.tsx";
 
@@ -40,11 +40,13 @@ let nextExpandableContentId = 1;
  * `console.groupCollapsed` sets it to `false`, `console.group` to `true`.
  */
 function ExpandableNode(props: ExpandableNodeProps) {
-  const initial = props.stateKey
-    ? (globalExpandedState.get(props.stateKey) ??
-      props.defaultExpanded ??
-      false)
-    : (props.defaultExpanded ?? false);
+  const initial = untrack(() =>
+    props.stateKey
+      ? (globalExpandedState.get(props.stateKey) ??
+        props.defaultExpanded ??
+        false)
+      : (props.defaultExpanded ?? false)
+  );
 
   const [isExpanded, setIsExpanded] = createSignal(initial);
 
@@ -56,20 +58,20 @@ function ExpandableNode(props: ExpandableNodeProps) {
     }
   };
 
-  let contentId: string;
-  if (props.stateKey) {
-    if (!idForStateKey.has(props.stateKey)) {
-      idForStateKey.set(
-        props.stateKey,
-        `expandable-content-${Math.random().toString(36).slice(2, 9)}`
-      );
+  const contentId = untrack(() => {
+    if (props.stateKey) {
+      if (!idForStateKey.has(props.stateKey)) {
+        idForStateKey.set(
+          props.stateKey,
+          `expandable-content-${Math.random().toString(36).slice(2, 9)}`
+        );
+      }
+      return idForStateKey.get(props.stateKey) ?? "";
     }
-    contentId = idForStateKey.get(props.stateKey) ?? "";
-  } else {
     const instanceAutoId = nextExpandableContentId;
     nextExpandableContentId += 1;
-    contentId = `expandable-content-${instanceAutoId}`;
-  }
+    return `expandable-content-${instanceAutoId}`;
+  });
 
   return (
     <span class={cn("inline-flex flex-col align-top", props.class)}>

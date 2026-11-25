@@ -1,5 +1,6 @@
 import { render } from "@solidjs/testing-library";
 import type { LucideProps } from "lucide-solid";
+import { createSignal, flush } from "solid-js";
 import { describe, expect, it } from "vitest";
 import { Icon } from "./Icon.tsx";
 
@@ -53,5 +54,25 @@ describe("Icon", () => {
     const svg = getByTestId("mock-icon");
     expect(svg.getAttribute("class")).toContain("text-primary");
     expect(svg.getAttribute("class")).toContain("shrink-0");
+  });
+
+  it("reactively updates when the icon prop changes", () => {
+    function SecondIcon(props: LucideProps) {
+      return <svg class={props.class} data-testid="second-icon" />;
+    }
+
+    const [useSecond, setUseSecond] = createSignal(false);
+    const { getByTestId, queryByTestId } = render(() => (
+      <Icon icon={useSecond() ? SecondIcon : MockIcon} />
+    ));
+
+    expect(getByTestId("mock-icon")).toBeTruthy();
+    expect(queryByTestId("second-icon")).toBeNull();
+
+    setUseSecond(true);
+    flush();
+
+    expect(queryByTestId("mock-icon")).toBeNull();
+    expect(getByTestId("second-icon")).toBeTruthy();
   });
 });

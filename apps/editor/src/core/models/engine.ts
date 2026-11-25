@@ -95,8 +95,6 @@ export interface EngineModel {
   retryInit: () => Promise<void>;
   /** Selects an engine entry in the workspace session. */
   selectEngineEntry: (entry: EngineEntry) => void;
-  /** Blocks or unblocks engine initialization (used when trust is required). */
-  setBlocked: (isBlocked: boolean) => void;
   /** Updates the engine config and re-initializes declaratively. */
   updateEngineConfig: (patch: Record<string, unknown>) => Promise<void>;
 }
@@ -135,11 +133,17 @@ function raceWithAbort<T>(
 /** Creates an `EngineModel` wired to the given dependencies. */
 export function createEngineModel(deps: EngineModelDeps): EngineModel {
   return createRoot((disposeRoot) => {
-    const [isDirty, setIsDirty] = createSignal<boolean>(false);
     const [executionState, setExecutionState] = createSignal<number>(0);
     const [isRunning, setIsRunning] = createOptimistic<boolean>(false);
-    const [isBlocked, setIsBlocked] = createSignal<boolean>(
-      deps.session.isTrustRequired()
+    const [executedCode, setExecutedCode] = createOptimistic<string | null>(
+      null
+    );
+    const isBlocked: Accessor<boolean> = deps.session.isTrustRequired;
+    const isDirty = createMemo(
+      () =>
+        isRunning() &&
+        executedCode() !== null &&
+        deps.session.code() !== executedCode()
     );
     const [configOverrides, setConfigOverrides] =
       createSignal<EngineConfigOverride | null>(null);
@@ -264,12 +268,12 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
       error: () => undefined,
     });
 
-    // Track code edits while execution is running to set isDirty automatically.
+    // Abort any active execution when the trust gate locks.
     createEffect(
-      () => ({ code: deps.session.code(), running: isRunning() }),
-      ({ code, running }, prev) => {
-        if (prev !== undefined && running && code !== prev.code) {
-          setIsDirty(true);
+      () => isBlocked(),
+      (blocked) => {
+        if (blocked) {
+          activeExecutionAbort?.abort();
         }
       }
     );
@@ -363,7 +367,7 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
 
       setExecutionState((state) => state + 1);
       setIsRunning(true);
-      setIsDirty(false);
+      setExecutedCode(code);
 
       try {
         yield* runInEngine(code, abortController.signal);
@@ -375,7 +379,6 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
         if (activeExecutionAbort === abortController) {
           activeExecutionAbort = null;
         }
-        setIsDirty(false);
       }
     });
 
@@ -399,13 +402,6 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
       }
     }
 
-    function setBlocked(blocked: boolean): void {
-      if (blocked) {
-        activeExecutionAbort?.abort();
-      }
-      setIsBlocked(blocked);
-    }
-
     function dispose(): void {
       activeExecutionAbort?.abort();
       disposeRoot();
@@ -426,7 +422,6 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
       isRunning,
       retryInit,
       selectEngineEntry,
-      setBlocked,
       updateEngineConfig,
     };
   });
