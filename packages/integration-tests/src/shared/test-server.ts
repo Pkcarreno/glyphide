@@ -1,4 +1,5 @@
-import { type ChildProcess, spawn } from "node:child_process";
+import type { ChildProcess } from "node:child_process";
+import { spawn } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -13,7 +14,7 @@ export interface TestServer {
   url: string;
 }
 
-const portRegex = /(\d+)/;
+const portRegex = /(?<port>\d+)/u;
 
 /**
  * Creates a new TestServer instance.
@@ -41,8 +42,9 @@ export function createTestServer(): TestServer {
         cp.stdout?.on("data", (data: string | Buffer) => {
           output += data.toString();
           const match = output.match(portRegex);
-          if (match && port === 0) {
-            port = Number.parseInt(match[1], 10);
+          const matchedPort = match?.groups?.port;
+          if (matchedPort && port === 0) {
+            port = Number.parseInt(matchedPort, 10);
             resolve();
           }
         });

@@ -260,7 +260,7 @@ const SCENARIOS: Record<string, ScenarioMetadata> = {
 };
 
 /** Regex that extracts a scenario ID from a test name. */
-const ID_RE = /(R-SEC-(?:MP|QJS|ORC)-\d{2})/;
+const ID_RE = /(?<id>R-SEC-(?:MP|QJS|ORC)-\d{2})/u;
 
 /** In-process collection of failed scenarios for the running test run. */
 interface CollectedFinding {
@@ -307,7 +307,7 @@ export default class SecurityReporter implements Reporter {
     this.#totalFailed += 1;
 
     const match = testCase.name.match(ID_RE);
-    const id = match?.[1] ?? "R-SEC-UNKNOWN";
+    const id = match?.groups?.id ?? "R-SEC-UNKNOWN";
     const known = SCENARIOS[id];
     const scenario: ScenarioMetadata = known ?? {
       engine: "orchestrator",
@@ -329,6 +329,7 @@ export default class SecurityReporter implements Reporter {
     });
   }
 
+  // biome-ignore lint/style/useThisInClassMethods: Required Vitest Reporter hook signature
   onTestModuleEnd(_module: TestModule): void {
     // No-op — findings are already collected per case.
   }
