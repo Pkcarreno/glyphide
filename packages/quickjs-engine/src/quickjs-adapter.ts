@@ -7,20 +7,20 @@ import type {
   JsonRpcMessage,
   JsonRpcOkResponse,
 } from "@glyphide/rpc-protocol/types";
-import {
-  getQuickJS,
-  type QuickJSContext,
-  type QuickJSHandle,
-  type QuickJSRuntime,
+import type {
+  QuickJSContext,
+  QuickJSHandle,
+  QuickJSRuntime,
 } from "quickjs-emscripten";
+import { getQuickJS } from "quickjs-emscripten";
 import { consoleAstSource } from "./console-ast-builder.ts";
 import { OutputRateLimiter } from "./output-rate-limiter.ts";
-import {
-  type ConsoleToken,
-  defaultCapabilities,
-  type QuickJSEngineConfig,
-  type QuickJSOutputPayload,
+import type {
+  ConsoleToken,
+  QuickJSEngineConfig,
+  QuickJSOutputPayload,
 } from "./types.ts";
+import { defaultCapabilities } from "./types.ts";
 
 type NotificationHandler = (method: string, params?: object) => void;
 type ResponseSender = (

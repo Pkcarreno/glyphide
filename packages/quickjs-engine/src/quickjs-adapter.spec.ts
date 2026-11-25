@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { QuickJSEngineAdapter } from "./quickjs-adapter.ts";
 import type { ConsoleToken } from "./types.ts";
 
-const INTERRUPTED_REGEX = /interrupted/i;
+const INTERRUPTED_REGEX = /interrupted/iu;
 
 interface CapturedResponse {
   error?: { code: number; message: string };
@@ -20,7 +20,7 @@ interface CapturedNotification {
   params?: { type?: string; data?: unknown };
 }
 
-const TIME_LOG_REGEX = /^foo: \d+ ms$/;
+const TIME_LOG_REGEX = /^foo: \d+ ms$/u;
 
 describe("QuickJSEngineAdapter", () => {
   let adapter: QuickJSEngineAdapter;

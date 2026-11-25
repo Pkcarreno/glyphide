@@ -19,7 +19,7 @@ updates:
     # tsdown 0.23.2 depende de rolldown-plugin-dts 0.29 (beta) que requiere typescript/async (TS 7.1+)
     ignore:
       - dependency-name: "tsdown"
-        versions: ["0.23.2"]
+        versions: [ "0.23.2" ]
 
   - package-ecosystem: "github-actions"
     directory: "/"

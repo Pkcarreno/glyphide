@@ -1,9 +1,7 @@
 import { MicropythonEngineAdapter } from "@glyphide/micropython-engine/adapter";
 import type { MicropythonOutputPayload } from "@glyphide/micropython-engine/types";
-import {
-  createDirectTransport,
-  type EngineTransportFactory,
-} from "@glyphide/orchestrator/transport";
+import type { EngineTransportFactory } from "@glyphide/orchestrator/transport";
+import { createDirectTransport } from "@glyphide/orchestrator/transport";
 
 /**
  * Creates an in-process direct transport connected to MicropythonEngineAdapter.

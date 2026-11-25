@@ -4,19 +4,15 @@ import { createMemo, createSignal, Errored, omit, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type {
   ConsoleVariant,
+  OutputFormatter,
   RenderedOutput,
 } from "../../core/engine/output-formatter.ts";
-import {
-  defaultFormat,
-  type OutputFormatter,
-} from "../../core/engine/output-formatter.ts";
+import { defaultFormat } from "../../core/engine/output-formatter.ts";
 
 import type { OutputEntry } from "../../core/models/output.ts";
 import { cn } from "../../helpers/cn.ts";
-import {
-  type FlatConsoleItem,
-  flattenConsoleEntries,
-} from "../../helpers/console-hierarchy.ts";
+import type { FlatConsoleItem } from "../../helpers/console-hierarchy.ts";
+import { flattenConsoleEntries } from "../../helpers/console-hierarchy.ts";
 import { formatCompactCount } from "../../helpers/format-compact-count.ts";
 import { ConsoleTableView } from "../atoms/ConsoleTableView.tsx";
 import { Icon } from "../atoms/Icon.tsx";

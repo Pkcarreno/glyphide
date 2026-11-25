@@ -4,6 +4,7 @@
 Transform WebAssembly engine initialization (QuickJS and MicroPython) and worker lifecycle management in `engine.ts` into a declarative async computation. Replace manual status state machines (`idle` / `initializing` / `ready` / `error`) with held updates, binding UI spinners directly to `isPending(engine)`, providing `<Loading>` fallbacks, and handling worker/WASM failures through `<Errored>` boundaries with native `refresh(engine)` retries.
 
 **Blocked by:**
+
 - 01: Solid 2.0 Foundation Migration (#251)
 
 **Tracker Issue:** https://github.com/Pkcarreno/glyphide/issues/253

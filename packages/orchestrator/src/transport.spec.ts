@@ -5,11 +5,10 @@ import type {
 import { describe, expect, it, vi } from "vitest";
 import { MessageBus } from "./message-bus.ts";
 import { PromiseRegistry } from "./promise-registry.ts";
+import type { DirectTransportAdapter, RpcTransport } from "./transport.ts";
 import {
   createDirectTransport,
   createWorkerTransport,
-  type DirectTransportAdapter,
-  type RpcTransport,
   toRpcTransport,
 } from "./transport.ts";
 

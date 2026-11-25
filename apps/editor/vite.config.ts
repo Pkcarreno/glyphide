@@ -1,7 +1,8 @@
 import { createRequire } from "node:module";
 import solid from "@solidjs/vite-plugin";
 import tailwindcss from "@tailwindcss/vite";
-import { defineConfig, type Plugin } from "vite";
+import type { Plugin } from "vite";
+import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 const require = createRequire(import.meta.url);

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { decodePayload, encodePayload } from "./codec.ts";
 
-const URL_UNSAFE_CHARS = /[+/=]/;
+const URL_UNSAFE_CHARS = /[+/=]/u;
 
 describe("codec", () => {
   it("encodes and decodes a string successfully", () => {

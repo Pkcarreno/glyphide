@@ -1,5 +1,6 @@
 import type { JSX } from "@solidjs/web";
-import { cva, type VariantProps } from "class-variance-authority";
+import type { VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
 import X from "lucide-solid/icons/x";
 import { createMemo, createSignal, Show } from "solid-js";
 import { cn } from "../../helpers/cn.ts";

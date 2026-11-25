@@ -16,7 +16,8 @@ import type {
   JsonRpcRequest,
   JsonRpcResponse,
 } from "@glyphide/rpc-protocol/types";
-import { type RpcTransport, toRpcTransport } from "./transport.ts";
+import type { RpcTransport } from "./transport.ts";
+import { toRpcTransport } from "./transport.ts";
 
 /**
  * Handler callback for routed incoming JSON-RPC messages.

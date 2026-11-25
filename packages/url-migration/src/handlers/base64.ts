@@ -3,7 +3,7 @@
  * plus optional `=` padding. Used by `isValidBase64Url` and shared across
  * handlers for performance.
  */
-const BASE64URL_PATTERN = /^[A-Za-z0-9_-]+={0,2}$/;
+const BASE64URL_PATTERN = /^[A-Za-z0-9_-]+={0,2}$/u;
 
 /**
  * Returns true when the value is a well-formed base64url string (or empty).

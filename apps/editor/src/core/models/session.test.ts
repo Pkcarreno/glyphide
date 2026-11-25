@@ -1,16 +1,11 @@
 import type { CanonicalState } from "@glyphide/url-migration/types";
 import { flush } from "solid-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  createEngineRegistry,
-  type EngineRegistry,
-} from "../engine/registry.ts";
+import type { EngineRegistry } from "../engine/registry.ts";
+import { createEngineRegistry } from "../engine/registry.ts";
 import type { UrlPersistencePort } from "../ports/url-persistence.ts";
-import {
-  createWorkspaceSession as baseCreateWorkspaceSession,
-  type WorkspaceSession,
-  type WorkspaceSessionDeps,
-} from "./session.ts";
+import type { WorkspaceSession, WorkspaceSessionDeps } from "./session.ts";
+import { createWorkspaceSession as baseCreateWorkspaceSession } from "./session.ts";
 
 function createWorkspaceSession(deps: WorkspaceSessionDeps): WorkspaceSession {
   const session = baseCreateWorkspaceSession(deps);

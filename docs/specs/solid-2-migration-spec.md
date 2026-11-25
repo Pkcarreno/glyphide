@@ -58,10 +58,12 @@ Intermediate WIP commits will bypass pre-commit validation using `LEFTHOOK=0` un
 ## Implementation Decisions
 
 ### 1. Architectural Boundaries & Monorepo Isolation
+
 - The migration is 100% confined to `apps/editor`. Packages in `packages/*` (`orchestrator`, `quickjs-engine`, `micropython-engine`, `rpc-protocol`, `mock-engine`, `url-migration`, `integration-tests`) remain completely untouched.
 - Development will occur on a clean feature branch: `refactor/solid-2-migration`.
 
 ### 2. Dependency & Tooling Upgrade (Commit 1)
+
 - `apps/editor/package.json`:
   - `solid-js`: `^2.0.3`
   - `@solidjs/web`: `^2.0.3`
@@ -73,6 +75,7 @@ Intermediate WIP commits will bypass pre-commit validation using `LEFTHOOK=0` un
   - Register `resolve.alias: { "solid-js/web": "@solidjs/web" }` to allow `lucide-solid` (which still targets Solid 1 paths internally) to resolve seamlessly.
 
 ### 3. Component Prop Contracts & Control Flow (Commit 2)
+
 - Replace all 85 occurrences of `splitProps(props, [...keys])` with `omit(props, ...keys)`.
 - Rest props are forwarded via `{...rest}` where `rest = omit(props, "class", "variant", ...)`.
 - Component reads use `props.<key>` directly rather than `local.<key>`.
@@ -85,6 +88,7 @@ Intermediate WIP commits will bypass pre-commit validation using `LEFTHOOK=0` un
 - Replace `<Dynamic component={source} {...rest} />` with `const Comp = dynamic(() => source)` and `<Comp {...rest} />` in `PopoverTrigger`, `DropdownTrigger`, `DropdownItem`, `DropdownRadioItem`, and `DialogTitle`.
 
 ### 4. Reactivity & Two-Phase Effects (Commit 3)
+
 - Split all 25 `createEffect` occurrences into:
   - Phase 1 (Compute): Tracked, pure, returns values needed by the effect.
   - Phase 2 (Effect): Untracked, runs side effects (DOM, timers, CodeMirror), returns cleanup function.
@@ -93,11 +97,13 @@ Intermediate WIP commits will bypass pre-commit validation using `LEFTHOOK=0` un
 - Move cleanup logic from effect-local `onCleanup(...)` to the return callback of the effect phase.
 
 ### 5. Stores, Control Flow & Error Boundaries (Commit 4)
+
 - Convert store mutations in `SettingsModel` and `EngineSettingsModal` to draft setters (`setSettings((draft) => { ... })`).
 - Delete all 8 `batch(...)` calls in `session.ts` and `output.ts`.
 - Replace `<ErrorBoundary fallback={(err) => ...}>` in `ConsolePane.tsx` with `<Errored fallback={(err) => ...}>`, reading the error accessor as `err()`.
 
 ### 6. Test Suite Adaptation for Staged Writes (Commit 5)
+
 - Domain models will remain purely reactive without artificial internal synchronous caching mirrors.
 - Unit tests for domain models (`session.test.ts`, `settings.test.ts`, `output.test.ts`, `overlay.test.ts`, `commands.test.ts`, `editor-core.test.ts`) will import `flush` from `solid-js` and call `flush()` after calling mutating methods before evaluating getter assertions.
 - Intermediate commits 1 to 4 will use `LEFTHOOK=0 git commit -m "..."`. Commit 5 will pass standard Lefthook verification with all 698 tests green, clean typecheck, and passing linter.

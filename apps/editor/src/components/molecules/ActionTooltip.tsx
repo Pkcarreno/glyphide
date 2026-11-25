@@ -2,10 +2,8 @@ import type { ValidComponent } from "@solidjs/web";
 import { omit } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type { CommandId } from "../../core/shortcuts/registry.ts";
-import {
-  Tooltip as TooltipAtom,
-  type TooltipProps as TooltipAtomProps,
-} from "../atoms/Tooltip.tsx";
+import type { TooltipProps as TooltipAtomProps } from "../atoms/Tooltip.tsx";
+import { Tooltip as TooltipAtom } from "../atoms/Tooltip.tsx";
 
 /**
  * Props for the ActionTooltip component.

@@ -4,6 +4,7 @@
 Model code execution (`runCode` in `commands.ts` and `engine.ts`) as a generator-based Solid 2 `action(function* () { ... })` across the WebWorker IPC boundary. Bind the Run button and status bar braille animations to `isPending(runCodeAction)`, and implement optimistic UI state updates (`createOptimistic`) for execution status and run counts.
 
 **Blocked by:**
+
 - 01: Solid 2.0 Foundation Migration (#251)
 - 03: Declarative WASM Engine Lifecycle with Loading and Errored Boundaries (#253)
 
