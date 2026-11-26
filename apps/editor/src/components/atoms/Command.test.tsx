@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from "@solidjs/testing-library";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   CommandEmpty,
   CommandInput,
@@ -7,6 +7,8 @@ import {
   CommandList,
   CommandRoot,
 } from "./Command.tsx";
+
+afterEach(() => cleanup());
 
 describe("Command", () => {
   it("renders and filters items correctly", async () => {
@@ -108,5 +110,97 @@ describe("Command", () => {
     fireEvent.input(input, { target: { value: "" } });
     await Promise.resolve();
     expect(getByText("Alpha").getAttribute("aria-selected")).toBe("true");
+  });
+
+  it("chains onInput and composes ref on CommandInput without breaking auto-focus", async () => {
+    const callerOnInput = vi.fn();
+    let callerInputRef: HTMLInputElement | undefined;
+
+    render(() => (
+      <CommandRoot>
+        <CommandInput
+          onInput={callerOnInput}
+          placeholder="Search..."
+          ref={(el) => {
+            callerInputRef = el;
+          }}
+        />
+        <CommandList>
+          <CommandItem value="apple">Apple</CommandItem>
+          <CommandItem value="banana">Banana</CommandItem>
+        </CommandList>
+      </CommandRoot>
+    ));
+
+    const input = screen.getByPlaceholderText("Search...");
+    expect(callerInputRef).toBe(input);
+
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(document.activeElement).toBe(input);
+
+    fireEvent.input(input, { target: { value: "ban" } });
+    await Promise.resolve();
+
+    expect(callerOnInput).toHaveBeenCalledOnce();
+    expect(screen.queryByText("Apple")).toBeNull();
+    expect(screen.getByText("Banana")).toBeTruthy();
+  });
+
+  it("chains handlers and composes ref on CommandItem and CommandRoot", async () => {
+    const onRootKeyDown = vi.fn();
+    const onSelect = vi.fn();
+    const onItemClick = vi.fn();
+    const onItemKeyDown = vi.fn();
+    const onItemMouseEnter = vi.fn();
+    let rootEl: HTMLDivElement | undefined;
+    let itemEl: HTMLDivElement | undefined;
+
+    const { getByRole, getByText } = render(() => (
+      <CommandRoot
+        onKeyDown={onRootKeyDown}
+        ref={(el) => {
+          rootEl = el;
+        }}
+      >
+        <CommandList>
+          <CommandItem value="alpha">Alpha</CommandItem>
+          <CommandItem
+            onClick={onItemClick}
+            onKeyDown={onItemKeyDown}
+            onMouseEnter={onItemMouseEnter}
+            onSelect={onSelect}
+            ref={(el) => {
+              itemEl = el;
+            }}
+            value="beta"
+          >
+            Beta
+          </CommandItem>
+        </CommandList>
+      </CommandRoot>
+    ));
+
+    const root = getByRole("combobox");
+    const beta = getByText("Beta");
+    expect(rootEl).toBe(root);
+    expect(itemEl).toBe(beta);
+
+    fireEvent.keyDown(root, { key: "ArrowDown" });
+    await Promise.resolve();
+    expect(onRootKeyDown).toHaveBeenCalledOnce();
+    expect(beta.getAttribute("aria-selected")).toBe("true");
+
+    fireEvent.mouseEnter(beta);
+    await Promise.resolve();
+    expect(onItemMouseEnter).toHaveBeenCalledOnce();
+    expect(beta.getAttribute("aria-selected")).toBe("true");
+
+    fireEvent.keyDown(beta, { key: " " });
+    expect(onItemKeyDown).toHaveBeenCalledOnce();
+    expect(onSelect).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(beta);
+    expect(onItemClick).toHaveBeenCalledOnce();
+    expect(onSelect).toHaveBeenCalledTimes(2);
   });
 });

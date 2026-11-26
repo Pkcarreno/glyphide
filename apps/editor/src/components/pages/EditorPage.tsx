@@ -16,22 +16,12 @@ function EditorPage() {
   const core = useEditor();
 
   createEffect(
-    () => core.settings.settings.theme,
-    (theme) => {
-      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-      const updateTheme = () => {
-        const isDark =
-          theme === "dark" || (theme === "system" && mediaQuery.matches);
-        document.documentElement.classList.toggle("dark", isDark);
-      };
-
-      updateTheme();
-
-      if (theme === "system") {
-        mediaQuery.addEventListener("change", updateTheme);
-        return () => mediaQuery.removeEventListener("change", updateTheme);
-      }
+    () => core.settings.resolvedTheme(),
+    (resolvedTheme) => {
+      document.documentElement.classList.toggle(
+        "dark",
+        resolvedTheme === "dark"
+      );
     }
   );
 

@@ -12,6 +12,7 @@ import {
   useContext,
 } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
+import { composeEventHandlers } from "../../helpers/compose-event-handlers.ts";
 import { Dialog, useDialog } from "../molecules/Dialog.tsx";
 import { Icon } from "./Icon.tsx";
 import type { InputProps } from "./Input.tsx";
@@ -54,7 +55,14 @@ interface CommandRootProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * @public
  */
 export function CommandRoot(props: CommandRootProps) {
-  const rest = omit(props, "class", "children", "shouldFilter");
+  const rest = omit(
+    props,
+    "class",
+    "children",
+    "shouldFilter",
+    "onKeyDown",
+    "ref"
+  );
   const [search, setSearchSignal] = createSignal("");
   const [rawSelectedId, setRawSelectedId] = createSignal<string | null>(null);
 
@@ -159,7 +167,8 @@ export function CommandRoot(props: CommandRootProps) {
           "bg-surface ring-on-surface/10 flex flex-col overflow-hidden rounded-xl shadow-md ring-1",
           props.class
         )}
-        onKeyDown={handleKeyDown}
+        onKeyDown={composeEventHandlers(handleKeyDown, props.onKeyDown)}
+        ref={props.ref}
         role="combobox"
         tabindex={-1}
         {...rest}
@@ -178,7 +187,14 @@ export interface CommandInputProps extends InputProps {}
  * Input field for filtering the command menu items.
  */
 export function CommandInput(props: CommandInputProps) {
-  const rest = omit(props, "class", "wrapperClass", "placeholder");
+  const rest = omit(
+    props,
+    "class",
+    "wrapperClass",
+    "placeholder",
+    "onInput",
+    "ref"
+  );
   const ctx = useCommand();
   let inputRef: HTMLInputElement | undefined;
 
@@ -193,11 +209,17 @@ export function CommandInput(props: CommandInputProps) {
     <Input
       class={props.class}
       inputSize="lg"
-      onInput={(e) => ctx.setSearch(e.currentTarget.value)}
+      onInput={composeEventHandlers(
+        (e) => ctx.setSearch(e.currentTarget.value),
+        props.onInput
+      )}
       placeholder={props.placeholder ?? "Search..."}
-      ref={(el) => {
-        inputRef = el;
-      }}
+      ref={[
+        (el: HTMLInputElement) => {
+          inputRef = el;
+        },
+        props.ref,
+      ]}
       startIcon={<Icon icon={SearchIcon} size={16} />}
       value={ctx.search()}
       variant="bottomBorder"
@@ -274,7 +296,17 @@ interface CommandItemProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * A selectable item in the command menu.
  */
 export function CommandItem(props: CommandItemProps) {
-  const rest = omit(props, "class", "children", "value", "onSelect");
+  const rest = omit(
+    props,
+    "class",
+    "children",
+    "value",
+    "onSelect",
+    "onClick",
+    "onKeyDown",
+    "onMouseEnter",
+    "ref"
+  );
   const ctx = useCommand();
 
   onSettled(() => {
@@ -286,13 +318,13 @@ export function CommandItem(props: CommandItemProps) {
   const isVisible = () => ctx.visibleItems().has(props.value);
   const isSelected = () => ctx.selectedId() === props.value;
 
-  let ref: HTMLDivElement | undefined;
+  let itemRef: HTMLDivElement | undefined;
 
   createEffect(
     () => isSelected(),
     (selected) => {
-      if (selected && ref && typeof ref.scrollIntoView === "function") {
-        ref.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      if (selected && itemRef && typeof itemRef.scrollIntoView === "function") {
+        itemRef.scrollIntoView({ behavior: "smooth", block: "nearest" });
       }
     }
   );
@@ -311,19 +343,25 @@ export function CommandItem(props: CommandItemProps) {
           props.class
         )}
         id={`command-item-${props.value}`}
-        onClick={() => {
+        onClick={composeEventHandlers(() => {
           props.onSelect?.();
-        }}
-        onKeyDown={(e) => {
+        }, props.onClick)}
+        onKeyDown={composeEventHandlers((e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             props.onSelect?.();
           }
-        }}
-        onMouseEnter={() => ctx.setSelectedId(props.value)}
-        ref={(el) => {
-          ref = el;
-        }}
+        }, props.onKeyDown)}
+        onMouseEnter={composeEventHandlers(
+          () => ctx.setSelectedId(props.value),
+          props.onMouseEnter
+        )}
+        ref={[
+          (el: HTMLDivElement) => {
+            itemRef = el;
+          },
+          props.ref,
+        ]}
         role="option"
         tabindex={0}
         {...rest}

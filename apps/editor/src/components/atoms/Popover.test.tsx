@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Popover } from "./Popover.tsx";
 
 afterEach(() => cleanup());
@@ -64,5 +64,54 @@ describe("Popover", () => {
     expect(popup.className).toContain("ring-on-surface/10");
     expect(popup.className).toContain("text-xs");
     expect(popup.className).toContain("p-2.5");
+  });
+
+  it("composes trigger and positioner refs and chains trigger onClick without breaking outside-click dismissal", async () => {
+    const callerClick = vi.fn();
+    let triggerEl: HTMLButtonElement | undefined;
+    let positionerEl: HTMLDivElement | undefined;
+
+    render(() => (
+      <Popover.Root>
+        <Popover.Trigger
+          onClick={callerClick}
+          ref={(el) => {
+            triggerEl = el;
+          }}
+        >
+          Open
+        </Popover.Trigger>
+        <Popover.Portal>
+          <Popover.Positioner
+            data-testid="positioner"
+            ref={(el) => {
+              positionerEl = el;
+            }}
+          >
+            <Popover.Popup>Popup Body</Popover.Popup>
+          </Popover.Positioner>
+        </Popover.Portal>
+      </Popover.Root>
+    ));
+
+    const trigger = screen.getByText("Open");
+    expect(triggerEl).toBe(trigger);
+
+    fireEvent.click(trigger);
+    await Promise.resolve();
+
+    expect(callerClick).toHaveBeenCalledOnce();
+    const positioner = screen.getByTestId("positioner");
+    expect(positionerEl).toBe(positioner);
+
+    // Clicking inside positioner keeps popover open (proves internal positionerRef is intact)
+    fireEvent.mouseDown(positioner);
+    await Promise.resolve();
+    expect(screen.queryByText("Popup Body")).not.toBeNull();
+
+    // Clicking outside closes popover (proves both internal triggerRef and positionerRef are intact)
+    fireEvent.mouseDown(document.body);
+    await Promise.resolve();
+    expect(screen.queryByText("Popup Body")).toBeNull();
   });
 });

@@ -79,6 +79,7 @@ vi.mock("./core/context", () => ({
       setProjectName: vi.fn(),
     },
     settings: {
+      resolvedTheme: () => "light",
       settings: {
         bufferFontSize: 15,
         bufferLineHeight: 1.3,

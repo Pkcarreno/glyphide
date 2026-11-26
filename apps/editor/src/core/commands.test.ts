@@ -98,7 +98,9 @@ describe("createEditorCommands", () => {
     } as unknown as WorkspaceSession;
 
     mockSettings = {
+      dispose: vi.fn(),
       resetSetting: vi.fn(),
+      resolvedTheme: vi.fn(() => "light" as const),
       settings: {
         ...DEFAULT_SETTINGS,
         autoRunDelay: 300,

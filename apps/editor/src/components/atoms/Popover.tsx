@@ -20,6 +20,7 @@ import {
   useContext,
 } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
+import { composeEventHandlers } from "../../helpers/compose-event-handlers.ts";
 
 /* ---------- Types ---------- */
 
@@ -247,13 +248,10 @@ export function PopoverTrigger<T extends ValidComponent = "button">(
         "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 outline-none focus-visible:ring-3 aria-invalid:ring-3",
         props.class
       )}
-      onClick={(e: Event) => {
-        ctx.toggle();
-        const onClickProp = (props as Record<string, unknown>).onClick;
-        if (typeof onClickProp === "function") {
-          onClickProp(e);
-        }
-      }}
+      onClick={composeEventHandlers(
+        ctx.toggle,
+        (props as PopoverTriggerProps<"button">).onClick
+      )}
       ref={[
         (el: HTMLElement) => ctx.setTriggerRef(el),
         (props as PopoverTriggerProps<"button">).ref,
@@ -315,13 +313,13 @@ export interface PopoverPositionerProps
  * @public
  */
 export function PopoverPositioner(props: PopoverPositionerProps) {
-  const rest = omit(props, "class", "children");
+  const rest = omit(props, "class", "children", "ref");
   const ctx = usePopover();
 
   return (
     <div
       class={cn("pointer-events-auto fixed z-50 w-max", props.class)}
-      ref={ctx.setPositionerRef}
+      ref={[ctx.setPositionerRef, props.ref]}
       style={{
         left: `${ctx.coords().left}px`,
         opacity: ctx.isPositioned() ? 1 : 0,
