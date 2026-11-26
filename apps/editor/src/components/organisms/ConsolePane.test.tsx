@@ -251,6 +251,30 @@ describe("ConsolePane", () => {
     expect(container.textContent).toContain("Child inside group");
   });
 
+  it("resets group toggle state when Clear is clicked", () => {
+    setEntries([
+      {
+        data: [{ type: "string", value: "Reset Group" }],
+        id: "30",
+        type: "group",
+      },
+      { data: "Child inside reset group", id: "31", type: "log" },
+    ]);
+    const { container, getByText } = render(() => <ConsolePane />);
+
+    const groupButton = getByText("Reset Group").closest("button");
+    if (!groupButton) {
+      throw new Error("Expected group toggle button");
+    }
+
+    fireEvent.click(groupButton);
+    expect(container.textContent).not.toContain("Child inside reset group");
+
+    fireEvent.click(getByText("Clear"));
+    expect(clearEntriesMock).toHaveBeenCalledTimes(1);
+    expect(container.textContent).toContain("Child inside reset group");
+  });
+
   it("protects message render items with an error boundary falling back to raw string rendering", () => {
     // Suppress console.error in test runner for expected error boundary test
     const consoleErrorSpy = vi
