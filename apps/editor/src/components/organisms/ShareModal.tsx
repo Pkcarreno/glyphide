@@ -1,5 +1,5 @@
 import X from "lucide-solid/icons/x";
-import { createSignal, createUniqueId, omit } from "solid-js";
+import { createSignal, createUniqueId, omit, onCleanup } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { cn } from "../../helpers/cn.ts";
 import { Button } from "../atoms/Button.tsx";
@@ -18,13 +18,50 @@ interface ShareModalProps {
   class?: string;
 }
 
+const COPY_INDICATOR_DURATION_MS = 2000;
+
+function createCopyFeedback(getText: () => string) {
+  const [hasCopied, setHasCopied] = createSignal(false);
+  let timerId: ReturnType<typeof setTimeout> | undefined;
+  let isDisposed = false;
+
+  const clearTimer = () => {
+    if (timerId !== undefined) {
+      clearTimeout(timerId);
+      timerId = undefined;
+    }
+  };
+
+  onCleanup(() => {
+    isDisposed = true;
+    clearTimer();
+  });
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(getText());
+    } catch {
+      return;
+    }
+    if (isDisposed) {
+      return;
+    }
+    clearTimer();
+    setHasCopied(true);
+    timerId = setTimeout(() => {
+      timerId = undefined;
+      setHasCopied(false);
+    }, COPY_INDICATOR_DURATION_MS);
+  };
+
+  return { copy, hasCopied };
+}
+
 export function ShareModal(props: ShareModalProps) {
   const rest = omit(props, "class");
   const core = useEditor();
 
   const [isNameIncluded, setIsNameIncluded] = createSignal(true);
-  const [hasCopiedLink, setHasCopiedLink] = createSignal(false);
-  const [hasCopiedIframe, setHasCopiedIframe] = createSignal(false);
 
   const isUrlShareable = () => core.session.isUrlShareable();
 
@@ -39,17 +76,8 @@ export function ShareModal(props: ShareModalProps) {
   const buildIframeCode = () =>
     `<iframe src="${buildShareUrl()}" width="100%" height="500px" style="border:0; border-radius: 8px; overflow: hidden;" title="Glyphide"></iframe>`;
 
-  const handleCopyLink = async () => {
-    await navigator.clipboard.writeText(buildShareUrl());
-    setHasCopiedLink(true);
-    setTimeout(() => setHasCopiedLink(false), 2000);
-  };
-
-  const handleCopyIframe = async () => {
-    await navigator.clipboard.writeText(buildIframeCode());
-    setHasCopiedIframe(true);
-    setTimeout(() => setHasCopiedIframe(false), 2000);
-  };
+  const linkFeedback = createCopyFeedback(buildShareUrl);
+  const iframeFeedback = createCopyFeedback(buildIframeCode);
 
   const handleDownload = () => {
     core.commands.downloadBufferToFile();
@@ -108,20 +136,20 @@ export function ShareModal(props: ShareModalProps) {
             <Button
               class="flex-1"
               disabled={!isUrlShareable()}
-              onClick={handleCopyLink}
+              onClick={linkFeedback.copy}
               size="lg"
               variant="primary"
             >
-              {hasCopiedLink() ? "Copied!" : "Copy Link"}
+              {linkFeedback.hasCopied() ? "Copied!" : "Copy Link"}
             </Button>
             <Button
               class="flex-1"
               disabled={!isUrlShareable()}
-              onClick={handleCopyIframe}
+              onClick={iframeFeedback.copy}
               size="lg"
               variant="outline"
             >
-              {hasCopiedIframe() ? "Copied!" : "Copy iframe"}
+              {iframeFeedback.hasCopied() ? "Copied!" : "Copy iframe"}
             </Button>
             <Button
               class="flex-1"

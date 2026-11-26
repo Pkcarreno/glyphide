@@ -39,6 +39,7 @@ describe("ShareModal", () => {
 
   afterEach(() => {
     cleanup();
+    vi.useRealTimers();
   });
 
   it("when core.overlays is false, dialog is not in the DOM", () => {
@@ -92,5 +93,90 @@ describe("ShareModal", () => {
     const { getByText } = render(() => <ShareModal />);
     fireEvent.click(getByText("Download as file"));
     expect(mockDownloadBufferToFile).toHaveBeenCalled();
+  });
+
+  it.each([{ buttonLabel: "Copy Link" }, { buttonLabel: "Copy iframe" }])(
+    "clears pending $buttonLabel indicator timer on unmount",
+    async ({ buttonLabel }) => {
+      vi.useFakeTimers();
+      setMockIsOpen(true);
+      const { getByText, unmount } = render(() => <ShareModal />);
+
+      fireEvent.click(getByText(buttonLabel));
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(getByText("Copied!")).toBeTruthy();
+      expect(vi.getTimerCount()).toBe(1);
+
+      unmount();
+
+      expect(vi.getTimerCount()).toBe(0);
+    }
+  );
+
+  it.each([{ buttonLabel: "Copy Link" }, { buttonLabel: "Copy iframe" }])(
+    "resets $buttonLabel indicator timer on repeated clicks",
+    async ({ buttonLabel }) => {
+      vi.useFakeTimers();
+      setMockIsOpen(true);
+      const { getByRole } = render(() => <ShareModal />);
+
+      const button = getByRole("button", { name: buttonLabel });
+      fireEvent.click(button);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(button.textContent).toBe("Copied!");
+
+      await vi.advanceTimersByTimeAsync(1500);
+      expect(button.textContent).toBe("Copied!");
+
+      fireEvent.click(button);
+      await vi.advanceTimersByTimeAsync(0);
+
+      await vi.advanceTimersByTimeAsync(1000);
+      expect(button.textContent).toBe("Copied!");
+
+      await vi.advanceTimersByTimeAsync(1000);
+      expect(button.textContent).toBe(buttonLabel);
+    }
+  );
+
+  it.each([{ buttonLabel: "Copy Link" }, { buttonLabel: "Copy iframe" }])(
+    "handles $buttonLabel clipboard rejection without throwing unhandled errors",
+    async ({ buttonLabel }) => {
+      vi.useFakeTimers();
+      vi.mocked(navigator.clipboard.writeText).mockRejectedValueOnce(
+        new Error("Clipboard permission denied")
+      );
+      setMockIsOpen(true);
+      const { getByRole } = render(() => <ShareModal />);
+
+      const button = getByRole("button", { name: buttonLabel });
+      fireEvent.click(button);
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(button.textContent).toBe(buttonLabel);
+      expect(vi.getTimerCount()).toBe(0);
+    }
+  );
+
+  it("does not schedule indicator timer when unmounted before clipboard write resolves", async () => {
+    vi.useFakeTimers();
+    let resolveWrite!: () => void;
+    vi.mocked(navigator.clipboard.writeText).mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveWrite = resolve;
+        })
+    );
+    setMockIsOpen(true);
+    const { getByRole, unmount } = render(() => <ShareModal />);
+
+    fireEvent.click(getByRole("button", { name: "Copy Link" }));
+    unmount();
+
+    resolveWrite();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(vi.getTimerCount()).toBe(0);
   });
 });

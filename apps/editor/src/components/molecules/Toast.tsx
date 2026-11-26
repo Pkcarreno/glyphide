@@ -2,7 +2,14 @@ import CircleCheckIcon from "lucide-solid/icons/circle-check";
 import CircleXIcon from "lucide-solid/icons/circle-x";
 import TriangleAlertIcon from "lucide-solid/icons/triangle-exclamation-point";
 import XIcon from "lucide-solid/icons/x";
-import { createSignal, Match, onSettled, Show, Switch } from "solid-js";
+import {
+  createSignal,
+  Match,
+  onCleanup,
+  onSettled,
+  Show,
+  Switch,
+} from "solid-js";
 import type { NotificationItem } from "../../core/models/notifications.ts";
 import { cn } from "../../helpers/cn.ts";
 import { Button } from "../atoms/Button.tsx";
@@ -23,6 +30,7 @@ interface ToastProps {
 export function Toast(props: ToastProps) {
   const [isClosing, setIsClosing] = createSignal(false);
   const [isMounted, setIsMounted] = createSignal(false);
+  let closeTimer: ReturnType<typeof setTimeout> | undefined;
 
   onSettled(() => {
     const timer = setTimeout(() => {
@@ -31,9 +39,20 @@ export function Toast(props: ToastProps) {
     return () => clearTimeout(timer);
   });
 
+  onCleanup(() => {
+    if (closeTimer !== undefined) {
+      clearTimeout(closeTimer);
+      closeTimer = undefined;
+    }
+  });
+
   function handleClose() {
+    if (closeTimer !== undefined) {
+      return;
+    }
     setIsClosing(true);
-    setTimeout(() => {
+    closeTimer = setTimeout(() => {
+      closeTimer = undefined;
       props.onClose(props.notification.id);
     }, 300);
   }
