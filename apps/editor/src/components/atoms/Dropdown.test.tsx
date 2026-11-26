@@ -1,9 +1,31 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
 import type { JSX } from "@solidjs/web";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { createSignal, flush } from "solid-js";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Dropdown } from "./Dropdown.tsx";
 
-afterEach(() => cleanup());
+const { computePositionSpy } = vi.hoisted(() => ({
+  computePositionSpy: vi.fn(),
+}));
+
+vi.mock("@floating-ui/dom", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@floating-ui/dom")>();
+  computePositionSpy.mockImplementation(actual.computePosition);
+  return {
+    ...actual,
+    computePosition: computePositionSpy,
+  };
+});
+
+beforeEach(() => {
+  computePositionSpy.mockClear();
+});
+
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+});
 
 describe("Dropdown", () => {
   describe("Open/Close", () => {
@@ -831,6 +853,242 @@ describe("Dropdown", () => {
 
       expect(parentClick).toHaveBeenCalledTimes(1);
       expect(screen.getByText("Item 1")).not.toBeNull();
+    });
+
+    it("forwards ref and chains handlers across Content, Item, CheckboxItem, and Link", async () => {
+      const triggerClick = vi.fn();
+      const contentKeyDown = vi.fn();
+      const itemSelect = vi.fn();
+      const itemClick = vi.fn();
+      const checkboxChange = vi.fn();
+      const checkboxClick = vi.fn();
+      const checkboxKeyDown = vi.fn();
+      const linkSelect = vi.fn();
+      const linkClick = vi.fn();
+
+      let triggerEl: HTMLButtonElement | undefined;
+      let contentEl: HTMLDivElement | undefined;
+      let itemEl: HTMLDivElement | undefined;
+      let checkboxEl: HTMLDivElement | undefined;
+      let linkEl: HTMLAnchorElement | undefined;
+
+      render(() => (
+        <Dropdown.Root>
+          <Dropdown.Trigger
+            onClick={triggerClick}
+            ref={(el) => {
+              triggerEl = el;
+            }}
+          >
+            Menu
+          </Dropdown.Trigger>
+          <Dropdown.Portal>
+            <Dropdown.Content
+              onKeyDown={contentKeyDown}
+              ref={(el) => {
+                contentEl = el;
+              }}
+            >
+              <Dropdown.Item
+                onClick={itemClick}
+                onSelect={itemSelect}
+                ref={(el) => {
+                  itemEl = el;
+                }}
+              >
+                Action Item
+              </Dropdown.Item>
+              <Dropdown.CheckboxItem
+                isChecked={false}
+                onCheckedChange={checkboxChange}
+                onClick={checkboxClick}
+                onKeyDown={checkboxKeyDown}
+                ref={(el) => {
+                  checkboxEl = el;
+                }}
+              >
+                Check Item
+              </Dropdown.CheckboxItem>
+              <Dropdown.Link
+                href="/docs"
+                onClick={linkClick}
+                onSelect={linkSelect}
+                ref={(el) => {
+                  linkEl = el;
+                }}
+              >
+                Docs Link
+              </Dropdown.Link>
+            </Dropdown.Content>
+          </Dropdown.Portal>
+        </Dropdown.Root>
+      ));
+
+      const trigger = screen.getByText("Menu");
+      expect(triggerEl).toBe(trigger);
+
+      fireEvent.click(trigger);
+      await Promise.resolve();
+      expect(triggerClick).toHaveBeenCalledTimes(1);
+
+      const content = screen.getByRole("menu");
+      const item = screen.getByText("Action Item");
+      const checkbox = screen.getByText("Check Item");
+      const link = screen.getByText("Docs Link");
+
+      expect(contentEl).toBe(content);
+      expect(itemEl).toBe(item);
+      expect(checkboxEl).toBe(checkbox);
+      expect(linkEl).toBe(link);
+
+      // CheckboxItem chains both onKeyDown and onClick alongside onCheckedChange
+      fireEvent.keyDown(checkbox, { key: "Enter" });
+      expect(checkboxKeyDown).toHaveBeenCalledTimes(1);
+      expect(checkboxChange).toHaveBeenCalledWith(true);
+      expect(contentKeyDown).toHaveBeenCalledTimes(1);
+
+      fireEvent.click(checkbox);
+      expect(checkboxClick).toHaveBeenCalledTimes(1);
+      expect(checkboxChange).toHaveBeenCalledTimes(2);
+
+      // Content onKeyDown chains without breaking keyboard navigation
+      fireEvent.keyDown(content, { key: "ArrowDown" });
+      await Promise.resolve();
+      expect(contentKeyDown).toHaveBeenCalledTimes(2);
+      expect(item.getAttribute("data-active")).toBe("true");
+
+      // Outside click still works (proves internal triggerRef and contentRef remain wired)
+      fireEvent.mouseDown(content);
+      await Promise.resolve();
+      expect(screen.queryByRole("menu")).not.toBeNull();
+
+      // Item chains onClick and still invokes onSelect and closes menu
+      fireEvent.click(item);
+      await Promise.resolve();
+      expect(itemClick).toHaveBeenCalledTimes(1);
+      expect(itemSelect).toHaveBeenCalledTimes(1);
+      expect(screen.queryByRole("menu")).toBeNull();
+
+      // Re-open to verify Link chains onClick and closes menu
+      fireEvent.click(trigger);
+      await Promise.resolve();
+
+      fireEvent.click(screen.getByText("Docs Link"));
+      await Promise.resolve();
+      expect(linkClick).toHaveBeenCalledTimes(1);
+      expect(linkSelect).toHaveBeenCalledTimes(1);
+      expect(screen.queryByRole("menu")).toBeNull();
+    });
+  });
+
+  describe("Positioning", () => {
+    it("passes default offset (4) and placement ('bottom-start') to computePosition", async () => {
+      vi.useFakeTimers();
+
+      render(() => (
+        <Dropdown.Root>
+          <Dropdown.Trigger>Menu</Dropdown.Trigger>
+          <Dropdown.Portal>
+            <Dropdown.Content>
+              <Dropdown.Item>Item 1</Dropdown.Item>
+            </Dropdown.Content>
+          </Dropdown.Portal>
+        </Dropdown.Root>
+      ));
+
+      fireEvent.click(screen.getByText("Menu"));
+      await vi.advanceTimersByTimeAsync(20);
+
+      expect(computePositionSpy).toHaveBeenCalled();
+      const lastOptions = computePositionSpy.mock.lastCall?.[2] as {
+        middleware: { name: string; options?: unknown }[];
+        placement: string;
+      };
+      expect(lastOptions.placement).toBe("bottom-start");
+      expect(lastOptions.middleware).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: "offset", options: 4 }),
+        ])
+      );
+    });
+
+    it("passes custom offset and placement props from Dropdown.Root to computePosition and updates reactively", async () => {
+      vi.useFakeTimers();
+      const [offset, setOffset] = createSignal(12);
+      const [placement, setPlacement] = createSignal<"top-end" | "right-start">(
+        "top-end"
+      );
+
+      render(() => (
+        <Dropdown.Root offset={offset()} placement={placement()}>
+          <Dropdown.Trigger>Menu</Dropdown.Trigger>
+          <Dropdown.Portal>
+            <Dropdown.Content>
+              <Dropdown.Item>Item 1</Dropdown.Item>
+            </Dropdown.Content>
+          </Dropdown.Portal>
+        </Dropdown.Root>
+      ));
+
+      fireEvent.click(screen.getByText("Menu"));
+      await vi.advanceTimersByTimeAsync(20);
+
+      expect(computePositionSpy).toHaveBeenCalled();
+      const initialOptions = computePositionSpy.mock.lastCall?.[2] as {
+        middleware: { name: string; options?: unknown }[];
+        placement: string;
+      };
+      expect(initialOptions.placement).toBe("top-end");
+      expect(initialOptions.middleware).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: "offset", options: 12 }),
+        ])
+      );
+
+      computePositionSpy.mockClear();
+      setOffset(20);
+      setPlacement("right-start");
+      flush();
+      await vi.advanceTimersByTimeAsync(20);
+
+      expect(computePositionSpy).toHaveBeenCalled();
+      const updatedOptions = computePositionSpy.mock.lastCall?.[2] as {
+        middleware: { name: string; options?: unknown }[];
+        placement: string;
+      };
+      expect(updatedOptions.placement).toBe("right-start");
+      expect(updatedOptions.middleware).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: "offset", options: 20 }),
+        ])
+      );
+    });
+  });
+
+  describe("Lifecycle Cleanup", () => {
+    it("cancels pending focus requestAnimationFrame when Dropdown.Content unmounts", async () => {
+      vi.useFakeTimers();
+      const cancelSpy = vi.spyOn(globalThis, "cancelAnimationFrame");
+
+      const { unmount } = render(() => (
+        <Dropdown.Root isOpen={true}>
+          <Dropdown.Trigger>Menu</Dropdown.Trigger>
+          <Dropdown.Portal>
+            <Dropdown.Content>
+              <Dropdown.Item>Item 1</Dropdown.Item>
+            </Dropdown.Content>
+          </Dropdown.Portal>
+        </Dropdown.Root>
+      ));
+
+      const content = screen.getByRole("menu");
+      const focusSpy = vi.spyOn(content, "focus");
+
+      unmount();
+
+      expect(cancelSpy).toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(50);
+      expect(focusSpy).not.toHaveBeenCalled();
     });
   });
 });
