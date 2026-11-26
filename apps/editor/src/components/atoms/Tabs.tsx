@@ -2,6 +2,7 @@ import type { JSX } from "@solidjs/web";
 import type { Accessor } from "solid-js";
 import {
   createContext,
+  createEffect,
   createSignal,
   omit,
   onCleanup,
@@ -9,6 +10,7 @@ import {
   useContext,
 } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
+import { composeEventHandlers } from "../../helpers/compose-event-handlers.ts";
 
 /* ---------- Context ---------- */
 
@@ -23,6 +25,7 @@ interface TabsContextValue {
   orientation: Accessor<TabsOrientation>;
   registerTrigger: (value: string, el: HTMLElement) => void;
   selectValue: (value: string) => void;
+  setDisabled: (value: string, isDisabled: boolean) => void;
   unregisterTrigger: (value: string) => void;
 }
 
@@ -131,6 +134,9 @@ function TabsRoot(props: TabsRootProps) {
 
   const setDisabled = (value: string, isDisabled: boolean) => {
     setDisabledMap((prev) => {
+      if (Boolean(prev.get(value)) === isDisabled) {
+        return prev;
+      }
       const next = new Map(prev);
       if (isDisabled) {
         next.set(value, true);
@@ -155,14 +161,9 @@ function TabsRoot(props: TabsRootProps) {
     orientation: () => props.orientation ?? "horizontal",
     registerTrigger,
     selectValue,
+    setDisabled,
     unregisterTrigger,
   };
-
-  // Expose setDisabled on the context via closure so Trigger can report it.
-  // We avoid exposing it on the public context shape by attaching it on the
-  // TabsRoot-level closure variable, but Trigger imports it via a setter
-  // helper below.
-  setDisabledRef = setDisabled;
 
   return (
     <TabsContext value={context}>
@@ -170,11 +171,6 @@ function TabsRoot(props: TabsRootProps) {
     </TabsContext>
   );
 }
-
-// Module-level ref so Trigger can report disabled state without polluting
-// the context shape. Only one Tabs.Root is rendered at a time in practice,
-// so this is safe within a single render tree.
-let setDisabledRef: ((value: string, isDisabled: boolean) => void) | undefined;
 
 /* ---------- List ---------- */
 
@@ -280,8 +276,17 @@ interface TabsTriggerProps extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
  * Applies ARIA, roving tabindex, registers with context, and renders visual states.
  */
 function TabsTrigger(props: TabsTriggerProps) {
-  const rest = omit(props, "class", "children", "value", "disabled");
+  const rest = omit(
+    props,
+    "class",
+    "children",
+    "value",
+    "disabled",
+    "ref",
+    "onClick"
+  );
   const ctx = useTabs();
+  const initialValue = untrack(() => props.value);
 
   const triggerId = () => ctx.generateId(props.value, "trigger");
   const panelId = () => ctx.generateId(props.value, "panel");
@@ -295,8 +300,22 @@ function TabsTrigger(props: TabsTriggerProps) {
     ctx.selectValue(props.value);
   };
 
+  const localRef = (node: HTMLButtonElement) => {
+    ctx.registerTrigger(initialValue, node);
+  };
+
+  createEffect(
+    () => [props.value, Boolean(props.disabled)] as const,
+    ([tabValue, isDisabled]) => {
+      ctx.setDisabled(tabValue, isDisabled);
+      return () => {
+        ctx.setDisabled(tabValue, false);
+      };
+    }
+  );
+
   onCleanup(() => {
-    ctx.unregisterTrigger(props.value);
+    ctx.unregisterTrigger(initialValue);
   });
 
   return (
@@ -315,11 +334,8 @@ function TabsTrigger(props: TabsTriggerProps) {
       data-tab-value={props.value}
       disabled={props.disabled}
       id={triggerId()}
-      onClick={handleClick}
-      ref={(node) => {
-        ctx.registerTrigger(props.value, node);
-        setDisabledRef?.(props.value, !!props.disabled);
-      }}
+      onClick={composeEventHandlers(handleClick, props.onClick)}
+      ref={[localRef, props.ref]}
       role="tab"
       tabindex={isActive() ? 0 : -1}
       type="button"
