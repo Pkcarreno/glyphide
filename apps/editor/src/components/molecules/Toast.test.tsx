@@ -84,4 +84,37 @@ describe("Toast", () => {
     vi.advanceTimersByTime(300);
     expect(mockOnClose).toHaveBeenCalledWith("test-id");
   });
+
+  it("clears close timer on unmount without firing onClose", () => {
+    const mockOnClose = vi.fn();
+    vi.useFakeTimers();
+
+    const { getByRole, unmount } = render(() => (
+      <Toast notification={baseNotification} onClose={mockOnClose} />
+    ));
+
+    fireEvent.click(getByRole("button", { name: "Close" }));
+    unmount();
+
+    expect(vi.getTimerCount()).toBe(0);
+    vi.advanceTimersByTime(300);
+    expect(mockOnClose).not.toHaveBeenCalled();
+  });
+
+  it("fires onClose only once on repeated close clicks", () => {
+    const mockOnClose = vi.fn();
+    vi.useFakeTimers();
+
+    const { getByRole } = render(() => (
+      <Toast notification={baseNotification} onClose={mockOnClose} />
+    ));
+
+    const closeButton = getByRole("button", { name: "Close" });
+    fireEvent.click(closeButton);
+    fireEvent.click(closeButton);
+
+    vi.advanceTimersByTime(300);
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+    expect(mockOnClose).toHaveBeenCalledWith("test-id");
+  });
 });
