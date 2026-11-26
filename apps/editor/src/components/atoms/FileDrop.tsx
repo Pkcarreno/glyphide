@@ -80,15 +80,15 @@ export function FileDrop(props: FileDropProps) {
   // Plain closure counter — never read in JSX, only used to suppress
   // false `dragleave` events that bubble from child elements.
   let dragCounter = 0;
-  const inputRef = { current: null as HTMLInputElement | null };
+  let inputRef: HTMLInputElement | undefined;
 
   function clickInput(): void {
-    inputRef.current?.click();
+    inputRef?.click();
   }
 
   function clearInput(): void {
-    if (inputRef.current) {
-      inputRef.current.value = "";
+    if (inputRef) {
+      inputRef.value = "";
     }
   }
 
@@ -247,7 +247,7 @@ export function FileDrop(props: FileDropProps) {
           class="sr-only"
           onChange={handleInputChange}
           ref={(el) => {
-            inputRef.current = el;
+            inputRef = el;
           }}
           style={{ display: "none" }}
           tabindex={-1}

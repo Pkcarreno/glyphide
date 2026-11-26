@@ -13,6 +13,7 @@ import {
 } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { composeEventHandlers } from "../../helpers/compose-event-handlers.ts";
+import { createAutoFocus } from "../../helpers/create-auto-focus.ts";
 import { Dialog, useDialog } from "../molecules/Dialog.tsx";
 import { Icon } from "./Icon.tsx";
 import type { InputProps } from "./Input.tsx";
@@ -196,14 +197,6 @@ export function CommandInput(props: CommandInputProps) {
     "ref"
   );
   const ctx = useCommand();
-  let inputRef: HTMLInputElement | undefined;
-
-  onSettled(() => {
-    const timer = setTimeout(() => {
-      inputRef?.focus();
-    }, 0);
-    return () => clearTimeout(timer);
-  });
 
   return (
     <Input
@@ -214,12 +207,7 @@ export function CommandInput(props: CommandInputProps) {
         props.onInput
       )}
       placeholder={props.placeholder ?? "Search..."}
-      ref={[
-        (el: HTMLInputElement) => {
-          inputRef = el;
-        },
-        props.ref,
-      ]}
+      ref={[createAutoFocus<HTMLInputElement>(), props.ref]}
       startIcon={<Icon icon={SearchIcon} size={16} />}
       value={ctx.search()}
       variant="bottomBorder"

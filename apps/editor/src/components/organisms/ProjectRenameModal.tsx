@@ -1,5 +1,6 @@
-import { createSignal, onSettled, Show, untrack } from "solid-js";
+import { createSignal, Show, untrack } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
+import { createAutoFocus } from "../../helpers/create-auto-focus.ts";
 import { Input } from "../atoms/Input.tsx";
 import { Dialog, useDialog } from "../molecules/Dialog.tsx";
 
@@ -26,15 +27,6 @@ function ProjectRenameForm() {
       return currentName === "untitled_project" ? "" : currentName;
     })
   );
-  let inputRef: HTMLInputElement | undefined;
-
-  onSettled(() => {
-    const timer = setTimeout(() => {
-      inputRef?.focus();
-      inputRef?.select();
-    }, 0);
-    return () => clearTimeout(timer);
-  });
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -60,9 +52,7 @@ function ProjectRenameForm() {
           onInput={(e) => setName(e.currentTarget.value)}
           onKeyDown={handleKeyDown}
           placeholder="Enter project name..."
-          ref={(el) => {
-            inputRef = el;
-          }}
+          ref={[createAutoFocus<HTMLInputElement>({ select: true })]}
           value={name()}
           variant="ghost"
         />
