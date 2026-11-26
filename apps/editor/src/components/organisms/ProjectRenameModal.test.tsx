@@ -32,6 +32,8 @@ describe("ProjectRenameModal", () => {
 
   afterEach(() => {
     cleanup();
+    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it("when core.overlays is false, dialog is not in the DOM", () => {
@@ -70,5 +72,23 @@ describe("ProjectRenameModal", () => {
 
     expect(mockSetProjectName).not.toHaveBeenCalled();
     expect(mockClose).toHaveBeenCalledWith("project-rename");
+  });
+
+  it("focuses and selects the project name input when opened", () => {
+    vi.useFakeTimers();
+    setMockIsOpen(true);
+
+    const { getByPlaceholderText } = render(() => <ProjectRenameModal />);
+    const input = getByPlaceholderText(
+      "Enter project name..."
+    ) as HTMLInputElement;
+    const selectSpy = vi.spyOn(input, "select");
+
+    vi.runAllTimers();
+
+    expect(document.activeElement).toBe(input);
+    expect(selectSpy).toHaveBeenCalledOnce();
+    expect(input.selectionStart).toBe(0);
+    expect(input.selectionEnd).toBe("TestProject".length);
   });
 });
