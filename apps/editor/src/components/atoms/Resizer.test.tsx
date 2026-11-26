@@ -102,4 +102,97 @@ describe("Resizer", () => {
     );
     expect(onResizeEnd).toHaveBeenCalledOnce();
   });
+
+  it("chains caller pointer handlers and forwards ref without breaking resize behavior", () => {
+    const onResizeDelta = vi.fn();
+    const onResizeEnd = vi.fn();
+    const callerPointerDown = vi.fn();
+    const callerPointerMove = vi.fn();
+    const callerPointerUp = vi.fn();
+    const callerPointerCancel = vi.fn();
+    let resizerEl: HTMLHRElement | undefined;
+
+    const { getByRole } = render(() => (
+      <Resizer
+        onPointerCancel={callerPointerCancel}
+        onPointerDown={callerPointerDown}
+        onPointerMove={callerPointerMove}
+        onPointerUp={callerPointerUp}
+        onResizeDelta={onResizeDelta}
+        onResizeEnd={onResizeEnd}
+        ref={(el) => {
+          resizerEl = el;
+        }}
+      />
+    ));
+
+    const sep = getByRole("separator");
+    expect(resizerEl).toBe(sep);
+
+    sep.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true, pointerId: 1 })
+    );
+    expect(callerPointerDown).toHaveBeenCalledOnce();
+    expect(document.body.style.cursor).toBe("col-resize");
+    expect(document.body.style.userSelect).toBe("none");
+
+    sep.dispatchEvent(
+      new PointerEvent("pointermove", {
+        bubbles: true,
+        movementX: 25,
+        pointerId: 1,
+      })
+    );
+    expect(callerPointerMove).toHaveBeenCalledOnce();
+    expect(onResizeDelta).toHaveBeenCalledWith(25);
+
+    sep.dispatchEvent(
+      new PointerEvent("pointerup", { bubbles: true, pointerId: 1 })
+    );
+    expect(callerPointerUp).toHaveBeenCalledOnce();
+    expect(onResizeEnd).toHaveBeenCalledTimes(1);
+    expect(document.body.style.cursor).toBe("");
+    expect(document.body.style.userSelect).toBe("");
+
+    sep.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true, pointerId: 2 })
+    );
+    sep.dispatchEvent(
+      new PointerEvent("pointercancel", { bubbles: true, pointerId: 2 })
+    );
+    expect(callerPointerCancel).toHaveBeenCalledOnce();
+    expect(onResizeEnd).toHaveBeenCalledTimes(2);
+    expect(document.body.style.cursor).toBe("");
+    expect(document.body.style.userSelect).toBe("");
+  });
+
+  it("restores document.body cursor and userSelect on unmount if unmounted mid-drag", () => {
+    document.body.style.cursor = "pointer";
+    document.body.style.userSelect = "text";
+
+    const { getByRole, unmount } = render(() => <Resizer />);
+    const sep = getByRole("separator");
+
+    sep.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true, pointerId: 1 })
+    );
+    expect(document.body.style.cursor).toBe("col-resize");
+    expect(document.body.style.userSelect).toBe("none");
+
+    unmount();
+
+    expect(document.body.style.cursor).toBe("pointer");
+    expect(document.body.style.userSelect).toBe("text");
+  });
+
+  it("does not overwrite document.body styles on unmount when not dragging", () => {
+    document.body.style.cursor = "wait";
+    document.body.style.userSelect = "all";
+
+    const { unmount } = render(() => <Resizer />);
+    unmount();
+
+    expect(document.body.style.cursor).toBe("wait");
+    expect(document.body.style.userSelect).toBe("all");
+  });
 });

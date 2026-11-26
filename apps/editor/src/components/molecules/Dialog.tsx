@@ -10,6 +10,7 @@ import {
   useContext,
 } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
+import { composeEventHandlers } from "../../helpers/compose-event-handlers.ts";
 import { ActionTooltip } from "./ActionTooltip.tsx";
 
 /* ---------- Context ---------- */
@@ -84,7 +85,7 @@ interface DialogTriggerProps extends JSX.HTMLAttributes<HTMLButtonElement> {
 
 /** Button that opens the dialog. */
 function DialogTrigger(props: DialogTriggerProps) {
-  const rest = omit(props, "class", "children");
+  const rest = omit(props, "class", "children", "onClick", "ref");
   const { open } = useDialog();
 
   return (
@@ -93,7 +94,8 @@ function DialogTrigger(props: DialogTriggerProps) {
         "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 outline-none focus-visible:ring-3 aria-invalid:ring-3",
         props.class
       )}
-      onClick={open}
+      onClick={composeEventHandlers(open, props.onClick)}
+      ref={props.ref}
       type="button"
       {...rest}
     >
@@ -111,19 +113,8 @@ interface DialogOverlayProps extends JSX.HTMLAttributes<HTMLButtonElement> {
 
 /** Backdrop overlay that closes the dialog on click. */
 function DialogOverlay(props: DialogOverlayProps) {
-  const rest = omit(props, "class", "preventBackdropClose");
+  const rest = omit(props, "class", "preventBackdropClose", "onClick", "ref");
   const { close } = useDialog();
-
-  function handleClick(e: MouseEvent) {
-    if (!props.preventBackdropClose) {
-      close();
-    }
-    if (typeof rest.onClick === "function") {
-      rest.onClick(
-        e as unknown as Parameters<NonNullable<typeof rest.onClick>>[0]
-      );
-    }
-  }
 
   return (
     // biome-ignore lint/a11y/noAriaHiddenOnFocusable: Backdrop overlay button is intentionally hidden from assistive tech
@@ -133,7 +124,12 @@ function DialogOverlay(props: DialogOverlayProps) {
         "fixed inset-0 z-50 m-0 cursor-default border-none bg-transparent p-0",
         props.class
       )}
-      onClick={handleClick}
+      onClick={composeEventHandlers(() => {
+        if (!props.preventBackdropClose) {
+          close();
+        }
+      }, props.onClick)}
+      ref={props.ref}
       tabindex={-1}
       type="button"
       {...rest}
@@ -253,7 +249,7 @@ interface DialogCloseProps extends JSX.HTMLAttributes<HTMLButtonElement> {
 
 /** Button that closes the dialog. */
 function DialogClose(props: DialogCloseProps) {
-  const rest = omit(props, "class", "children");
+  const rest = omit(props, "class", "children", "onClick", "ref");
   const { close } = useDialog();
 
   return (
@@ -265,8 +261,9 @@ function DialogClose(props: DialogCloseProps) {
         props.class
       )}
       commandId="close-all-overlays"
-      onClick={close}
+      onClick={composeEventHandlers(close, props.onClick)}
       position="bottom"
+      ref={props.ref}
       text="Close"
       type="button"
       {...rest}

@@ -6,6 +6,7 @@ import {
   DialogClose,
   DialogContent,
   DialogHeader,
+  DialogOverlay,
   DialogTitle,
   DialogTrigger,
 } from "./Dialog.tsx";
@@ -176,6 +177,77 @@ describe("Dialog", () => {
       overlay.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     }
     expect(handler).toHaveBeenCalledWith(false);
+  });
+
+  it("chains caller onClick and forwards ref on DialogTrigger", () => {
+    const callerClick = vi.fn();
+    let triggerEl: HTMLButtonElement | undefined;
+    const { getByTestId, queryByRole } = render(() => (
+      <Dialog>
+        <DialogTrigger
+          data-testid="trigger"
+          onClick={callerClick}
+          ref={(el) => {
+            triggerEl = el;
+          }}
+        >
+          Open
+        </DialogTrigger>
+        <DialogContent>Content</DialogContent>
+      </Dialog>
+    ));
+
+    expect(triggerEl).toBe(getByTestId("trigger"));
+    getByTestId("trigger").click();
+    expect(callerClick).toHaveBeenCalledOnce();
+    expect(queryByRole("dialog")).not.toBeNull();
+  });
+
+  it("chains caller onClick and forwards ref on DialogClose", () => {
+    const callerClick = vi.fn();
+    let closeEl: HTMLButtonElement | undefined;
+    const { getByTestId, queryByRole } = render(() => (
+      <Dialog defaultOpen>
+        <DialogContent>
+          <DialogClose
+            data-testid="close-btn"
+            onClick={callerClick}
+            ref={(el) => {
+              closeEl = el;
+            }}
+          >
+            Close
+          </DialogClose>
+        </DialogContent>
+      </Dialog>
+    ));
+
+    expect(closeEl).toBe(getByTestId("close-btn"));
+    getByTestId("close-btn").click();
+    expect(callerClick).toHaveBeenCalledOnce();
+    expect(queryByRole("dialog")).toBeNull();
+  });
+
+  it("chains caller onClick and forwards ref on DialogOverlay", () => {
+    const callerClick = vi.fn();
+    let overlayEl: HTMLButtonElement | undefined;
+    const onOpenChange = vi.fn();
+    const { getByTestId } = render(() => (
+      <Dialog defaultOpen onOpenChange={onOpenChange}>
+        <DialogOverlay
+          data-testid="overlay"
+          onClick={callerClick}
+          ref={(el) => {
+            overlayEl = el;
+          }}
+        />
+      </Dialog>
+    ));
+
+    expect(overlayEl).toBe(getByTestId("overlay"));
+    getByTestId("overlay").click();
+    expect(callerClick).toHaveBeenCalledOnce();
+    expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 });
 
