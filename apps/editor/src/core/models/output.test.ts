@@ -1,6 +1,6 @@
 import { waitFor } from "@solidjs/testing-library";
-import { flush } from "solid-js";
-import { describe, expect, it } from "vitest";
+import { createEffect, createRoot, flush } from "solid-js";
+import { describe, expect, it, vi } from "vitest";
 import { createOutputModel, DEFAULT_MAX_OUTPUT_ENTRIES } from "./output.ts";
 
 describe("OutputModel", () => {
@@ -145,5 +145,60 @@ describe("OutputModel", () => {
       expect(model.stats().bufferDropped).toBe(15);
       expect(model.stats().totalDropped).toBe(15);
     });
+  });
+
+  it("updates entries and stats together in one reactive flush when trimming", async () => {
+    const model = createOutputModel(3);
+    const snapshots: Array<{ count: number; bufferDropped: number }> = [];
+
+    const stop = createRoot((dispose) => {
+      createEffect(
+        () => ({
+          bufferDropped: model.stats().bufferDropped,
+          count: model.entries().length,
+        }),
+        (snapshot) => {
+          snapshots.push(snapshot);
+        }
+      );
+      return dispose;
+    });
+    flush();
+    snapshots.length = 0;
+
+    for (let i = 0; i < 5; i += 1) {
+      model.appendEntry("log", `msg-${i}`);
+    }
+
+    await waitFor(() => {
+      expect(snapshots).toEqual([{ bufferDropped: 2, count: 3 }]);
+    });
+
+    stop();
+  });
+
+  it("cancels pending animation frame and clears queued entries on dispose", () => {
+    vi.useFakeTimers();
+    const cancelSpy = vi.spyOn(globalThis, "cancelAnimationFrame");
+
+    try {
+      const model = createOutputModel();
+      model.appendEntry("log", "pending-entry");
+      expect(model.entries()).toEqual([]);
+
+      model.dispose();
+      expect(cancelSpy).toHaveBeenCalledTimes(1);
+
+      vi.advanceTimersByTime(50);
+      flush();
+      expect(model.entries()).toEqual([]);
+
+      // Disposing again without a pending frame is a safe no-op.
+      model.dispose();
+      expect(cancelSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      cancelSpy.mockRestore();
+      vi.useRealTimers();
+    }
   });
 });

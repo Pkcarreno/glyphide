@@ -56,6 +56,7 @@ describe("createEditorCommands", () => {
     mockOutput = {
       appendEntry: vi.fn(),
       clearEntries: vi.fn(),
+      dispose: vi.fn(),
       entries: vi.fn(() => []),
       reportWorkerDropped: vi.fn(),
       stats: vi.fn(() => ({
