@@ -1,6 +1,7 @@
 import type { JSX } from "@solidjs/web";
-import { omit } from "solid-js";
+import { omit, onCleanup } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
+import { composeEventHandlers } from "../../helpers/compose-event-handlers.ts";
 
 interface ResizerProps extends JSX.HTMLAttributes<HTMLHRElement> {
   class?: string;
@@ -16,12 +17,36 @@ interface ResizerProps extends JSX.HTMLAttributes<HTMLHRElement> {
  * horizontal drag deltas.
  */
 function Resizer(props: ResizerProps) {
-  const rest = omit(props, "onResizeDelta", "onResizeEnd", "class");
+  const rest = omit(
+    props,
+    "onResizeDelta",
+    "onResizeEnd",
+    "class",
+    "ref",
+    "onPointerDown",
+    "onPointerMove",
+    "onPointerUp",
+    "onPointerCancel"
+  );
+
+  let isDragging = false;
+  let previousCursor = "";
+  let previousUserSelect = "";
+
+  function restoreBodyStyles() {
+    document.body.style.cursor = previousCursor;
+    document.body.style.userSelect = previousUserSelect;
+  }
 
   function handlePointerDown(e: PointerEvent) {
     e.preventDefault();
     const el = e.currentTarget as HTMLHRElement;
     el.setPointerCapture(e.pointerId);
+    if (!isDragging) {
+      previousCursor = document.body.style.cursor;
+      previousUserSelect = document.body.style.userSelect;
+      isDragging = true;
+    }
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
   }
@@ -39,10 +64,19 @@ function Resizer(props: ResizerProps) {
       el.releasePointerCapture(e.pointerId);
     }
 
-    document.body.style.cursor = "";
-    document.body.style.userSelect = "";
+    if (isDragging) {
+      isDragging = false;
+      restoreBodyStyles();
+    }
     props.onResizeEnd?.();
   }
+
+  onCleanup(() => {
+    if (isDragging) {
+      isDragging = false;
+      restoreBodyStyles();
+    }
+  });
 
   return (
     <hr
@@ -54,10 +88,20 @@ function Resizer(props: ResizerProps) {
         "bg-outline-variant hover:bg-primary active:bg-primary transition-colors delay-75",
         props.class
       )}
-      onPointerCancel={handlePointerUp}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
+      onPointerCancel={composeEventHandlers(
+        handlePointerUp,
+        props.onPointerCancel
+      )}
+      onPointerDown={composeEventHandlers(
+        handlePointerDown,
+        props.onPointerDown
+      )}
+      onPointerMove={composeEventHandlers(
+        handlePointerMove,
+        props.onPointerMove
+      )}
+      onPointerUp={composeEventHandlers(handlePointerUp, props.onPointerUp)}
+      ref={props.ref}
       tabindex={0}
       {...rest}
     />
