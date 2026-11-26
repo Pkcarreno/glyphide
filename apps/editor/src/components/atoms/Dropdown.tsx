@@ -21,6 +21,7 @@ import {
   useContext,
 } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
+import { composeEventHandlers } from "../../helpers/compose-event-handlers.ts";
 
 /* ---------- Context ---------- */
 
@@ -63,8 +64,12 @@ interface DropdownRootProps {
   children: JSX.Element;
   /** Controlled open state */
   isOpen?: boolean;
+  /** Distance from the trigger element in pixels. Default: 4 */
+  offset?: number;
   /** Callback when open state changes */
   onOpenChange?: (isOpen: boolean) => void;
+  /** Where the dropdown appears relative to the trigger. Default: "bottom-start" */
+  placement?: Placement;
 }
 
 /**
@@ -72,6 +77,9 @@ interface DropdownRootProps {
  * Supports both controlled and uncontrolled modes.
  */
 function DropdownRoot(props: DropdownRootProps) {
+  const offset = () => props.offset ?? 4;
+  const placement = () => props.placement ?? "bottom-start";
+
   const [internalIsOpen, setInternalIsOpen] = createSignal(false);
   const isOpen = () => props.isOpen ?? internalIsOpen();
 
@@ -81,6 +89,14 @@ function DropdownRoot(props: DropdownRootProps) {
   let triggerEl: HTMLElement | undefined;
   let contentEl: HTMLElement | undefined;
   let cleanupAutoUpdate: (() => void) | undefined;
+  let positionFrameId: number | undefined;
+
+  const cancelPositionFrame = () => {
+    if (positionFrameId !== undefined) {
+      cancelAnimationFrame(positionFrameId);
+      positionFrameId = undefined;
+    }
+  };
 
   const handleOpenStateChange = (nextOpen: boolean) => {
     if (props.isOpen === undefined) {
@@ -90,6 +106,7 @@ function DropdownRoot(props: DropdownRootProps) {
 
     if (!nextOpen) {
       setActiveIndex(-1);
+      cancelPositionFrame();
       cleanupAutoUpdate?.();
       cleanupAutoUpdate = undefined;
     }
@@ -125,8 +142,8 @@ function DropdownRoot(props: DropdownRootProps) {
     }
 
     computePosition(triggerEl, contentEl, {
-      middleware: [floatingOffset(4), flip(), shift({ padding: 8 })],
-      placement: "bottom-start",
+      middleware: [floatingOffset(offset()), flip(), shift({ padding: 8 })],
+      placement: placement(),
     })
       .then(({ x, y }) => {
         if (contentEl) {
@@ -152,11 +169,17 @@ function DropdownRoot(props: DropdownRootProps) {
   };
 
   createEffect(
-    () => isOpen(),
-    (open) => {
+    () => ({
+      offset: offset(),
+      open: isOpen(),
+      placement: placement(),
+    }),
+    ({ open }) => {
+      cancelPositionFrame();
       if (open) {
         // Wait for next frame so content is in DOM
-        requestAnimationFrame(() => {
+        positionFrameId = requestAnimationFrame(() => {
+          positionFrameId = undefined;
           bindAutoUpdate();
         });
       }
@@ -185,6 +208,7 @@ function DropdownRoot(props: DropdownRootProps) {
   });
 
   onCleanup(() => {
+    cancelPositionFrame();
     cleanupAutoUpdate?.();
   });
 
@@ -245,13 +269,10 @@ function DropdownTrigger<T extends ValidComponent = "button">(
         "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 outline-none focus-visible:ring-3 aria-invalid:ring-3",
         props.class
       )}
-      onClick={(e: Event) => {
-        ctx.toggle();
-        const onClickProp = (props as Record<string, unknown>).onClick;
-        if (typeof onClickProp === "function") {
-          onClickProp(e);
-        }
-      }}
+      onClick={composeEventHandlers(
+        ctx.toggle,
+        (props as DropdownTriggerProps<"button">).onClick
+      )}
       ref={[
         (el: HTMLElement) => ctx.setTriggerRef(el),
         (props as DropdownTriggerProps<"button">).ref,
@@ -284,8 +305,6 @@ function DropdownPortal(props: DropdownPortalProps) {
 interface DropdownContentProps extends JSX.HTMLAttributes<HTMLDivElement> {
   children?: JSX.Element;
   class?: string;
-  offset?: number;
-  placement?: Placement;
 }
 
 /**
@@ -293,7 +312,7 @@ interface DropdownContentProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * Positioned by Floating UI relative to the trigger.
  */
 function DropdownContent(props: DropdownContentProps) {
-  const rest = omit(props, "class", "children", "offset", "placement");
+  const rest = omit(props, "class", "children", "onKeyDown", "ref");
   const ctx = useDropdown();
   let contentRef: HTMLDivElement | undefined;
 
@@ -380,9 +399,12 @@ function DropdownContent(props: DropdownContentProps) {
 
   // Focus content on open so keyboard events are captured
   onSettled(() => {
-    requestAnimationFrame(() => {
+    const frameId = requestAnimationFrame(() => {
       contentRef?.focus();
     });
+    return () => {
+      cancelAnimationFrame(frameId);
+    };
   });
 
   return (
@@ -396,8 +418,8 @@ function DropdownContent(props: DropdownContentProps) {
             "animate-[dropdown-in_100ms_ease-out]",
             props.class
           )}
-          onKeyDown={handleKeyDown}
-          ref={handleRef}
+          onKeyDown={composeEventHandlers(handleKeyDown, props.onKeyDown)}
+          ref={[handleRef, props.ref]}
           role="menu"
           tabindex={-1}
           {...rest}
@@ -458,14 +480,16 @@ function DropdownItem<T extends ValidComponent = "div">(
   props: DropdownItemProps<T>
 ) {
   const rest = omit(
-    props,
+    props as DropdownItemProps<"div">,
     "as",
     "class",
     "children",
     "isDisabled",
     "inset",
     "variant",
-    "onSelect"
+    "onSelect",
+    "onClick",
+    "ref"
   );
   const ctx = useDropdown();
   const itemId = `dropdown-item-${Math.random().toString(36).slice(2, 9)}`;
@@ -512,10 +536,16 @@ function DropdownItem<T extends ValidComponent = "div">(
       data-active={isActive() ? "true" : undefined}
       data-disabled={props.isDisabled}
       data-variant={props.variant}
-      onClick={handleClick}
-      ref={(el: HTMLElement) => {
-        itemRef = el;
-      }}
+      onClick={composeEventHandlers(
+        handleClick,
+        (props as DropdownItemProps<"div">).onClick
+      )}
+      ref={[
+        (el: HTMLElement) => {
+          itemRef = el;
+        },
+        (props as DropdownItemProps<"div">).ref,
+      ]}
       role="menuitem"
       tabindex={-1}
       {...rest}
@@ -548,7 +578,10 @@ function DropdownCheckboxItem(props: DropdownCheckboxItemProps) {
     "isChecked",
     "isDisabled",
     "inset",
-    "onCheckedChange"
+    "onCheckedChange",
+    "onClick",
+    "onKeyDown",
+    "ref"
   );
   const ctx = useDropdown();
   const itemId = `dropdown-checkbox-${Math.random().toString(36).slice(2, 9)}`;
@@ -601,11 +634,14 @@ function DropdownCheckboxItem(props: DropdownCheckboxItemProps) {
       )}
       data-active={isActive() ? "true" : undefined}
       data-disabled={props.isDisabled}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      ref={(el) => {
-        itemRef = el;
-      }}
+      onClick={composeEventHandlers(handleClick, props.onClick)}
+      onKeyDown={composeEventHandlers(handleKeyDown, props.onKeyDown)}
+      ref={[
+        (el: HTMLDivElement) => {
+          itemRef = el;
+        },
+        props.ref,
+      ]}
       role="menuitemcheckbox"
       tabindex={-1}
       {...rest}
@@ -647,13 +683,15 @@ function DropdownLink<T extends ValidComponent = "a">(
   props: DropdownLinkProps<T>
 ) {
   const rest = omit(
-    props,
+    props as DropdownLinkProps<"a">,
     "as",
     "class",
     "children",
     "isDisabled",
     "inset",
-    "onSelect"
+    "onSelect",
+    "onClick",
+    "ref"
   );
   const ctx = useDropdown();
   const itemId = `dropdown-link-${Math.random().toString(36).slice(2, 9)}`;
@@ -697,10 +735,16 @@ function DropdownLink<T extends ValidComponent = "a">(
       )}
       data-active={isActive() ? "true" : undefined}
       data-disabled={props.isDisabled}
-      onClick={handleClick}
-      ref={(el: HTMLElement) => {
-        itemRef = el;
-      }}
+      onClick={composeEventHandlers(
+        handleClick,
+        (props as DropdownLinkProps<"a">).onClick
+      )}
+      ref={[
+        (el: HTMLElement) => {
+          itemRef = el;
+        },
+        (props as DropdownLinkProps<"a">).ref,
+      ]}
       role="menuitem"
       tabindex={-1}
       {...rest}
