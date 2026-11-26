@@ -1,5 +1,15 @@
 import type { JSX } from "@solidjs/web";
-import { createMemo, createSignal, For, onSettled } from "solid-js";
+import type { Accessor } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  onSettled,
+  untrack,
+} from "solid-js";
+
+type ItemKey<T> = T | string | number;
 
 /**
  * Configuration props for the VirtualList component.
@@ -14,6 +24,8 @@ import { createMemo, createSignal, For, onSettled } from "solid-js";
 interface VirtualListProps<T> {
   /** CSS classes for the scroll container */
   class?: string;
+  /** Optional key resolver for stable item identity across reference changes */
+  getKey?: (item: T) => string | number;
   /** Estimated height for unmeasured items */
   itemHeight?: number;
   /** The full array of items */
@@ -21,14 +33,14 @@ interface VirtualListProps<T> {
   /** Number of items to render outside the visible window */
   overscan?: number;
   /** Render callback for each item */
-  renderItem: (item: T, index: number) => JSX.Element;
+  renderItem: (item: T, index: Accessor<number>) => JSX.Element;
 }
 
 interface VirtualRowProps<T> {
   children: JSX.Element;
-  elementToItemMap: WeakMap<Element, T>;
-  item: T;
-  itemHeights: Map<T, number>;
+  elementToKeyMap: WeakMap<Element, ItemKey<T>>;
+  itemHeights: Map<ItemKey<T>, number>;
+  itemKey: ItemKey<T>;
   observer?: ResizeObserver;
   offset: number;
 }
@@ -38,24 +50,32 @@ function VirtualRow<T>(props: VirtualRowProps<T>) {
 
   onSettled(() => {
     if (element) {
-      if (props.observer) {
-        props.observer.observe(element);
-      }
-      props.elementToItemMap.set(element, props.item);
+      props.elementToKeyMap.set(element, props.itemKey);
       const height = element.offsetHeight;
-      if (height > 0 && props.itemHeights.get(props.item) !== height) {
-        props.itemHeights.set(props.item, height);
+      if (height > 0 && props.itemHeights.get(props.itemKey) !== height) {
+        props.itemHeights.set(props.itemKey, height);
       }
     }
     return () => {
       if (element) {
-        if (props.observer) {
-          props.observer.unobserve(element);
-        }
-        props.elementToItemMap.delete(element);
+        props.elementToKeyMap.delete(element);
       }
     };
   });
+
+  createEffect(
+    () => props.observer,
+    (observer) => {
+      const observedElement = element;
+      if (!(observedElement && observer)) {
+        return;
+      }
+      observer.observe(observedElement);
+      return () => {
+        observer.unobserve(observedElement);
+      };
+    }
+  );
 
   return (
     <div
@@ -83,26 +103,46 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
 
   // Mutable map for ultra-fast, reference-stable height caching.
   // We use a version signal to tell Solid when it needs to recalculate layout.
-  const itemHeights = new Map<T, number>();
+  const itemHeights = new Map<ItemKey<T>, number>();
   const [itemHeightsVersion, setItemHeightsVersion] = createSignal(0);
 
   const defaultItemHeight = () => props.itemHeight ?? 24;
+  const resolveKey = (item: T): ItemKey<T> =>
+    props.getKey ? props.getKey(item) : item;
 
   const computedLayout = createMemo(() => {
     itemHeightsVersion(); // Recompute when item heights change
     const { items } = props;
 
+    if (items.length === 0) {
+      itemHeights.clear();
+    }
+
     const defaultSize = defaultItemHeight();
     const itemVerticalOffsets = new Float64Array(items.length);
+    const activeKeys =
+      itemHeights.size > 0 && items.length > 0
+        ? new Set<ItemKey<T>>()
+        : undefined;
     let totalScrollHeight = 0;
 
     for (let i = 0; i < items.length; i += 1) {
       itemVerticalOffsets[i] = totalScrollHeight;
-      const cachedHeight = itemHeights.get(items[i]);
+      const key = resolveKey(items[i]);
+      activeKeys?.add(key);
+      const cachedHeight = itemHeights.get(key);
       totalScrollHeight +=
         cachedHeight !== undefined && cachedHeight > 0
           ? cachedHeight
           : defaultSize;
+    }
+
+    if (activeKeys) {
+      for (const cachedKey of itemHeights.keys()) {
+        if (!activeKeys.has(cachedKey)) {
+          itemHeights.delete(cachedKey);
+        }
+      }
     }
 
     return { itemVerticalOffsets, totalScrollHeight };
@@ -155,8 +195,9 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
     };
   });
 
-  const elementToItemMap = new WeakMap<Element, T>();
-  let itemHeightObserver: ResizeObserver | undefined;
+  const elementToKeyMap = new WeakMap<Element, ItemKey<T>>();
+  const [itemHeightObserver, setItemHeightObserver] =
+    createSignal<ResizeObserver>();
 
   onSettled(() => {
     if (!scrollContainerElement) {
@@ -164,15 +205,15 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
     }
 
     // ResizeObserver tracks dynamic changes in item heights
-    itemHeightObserver = new ResizeObserver((entries) => {
+    const observer = new ResizeObserver((entries) => {
       let hasHeightChanged = false;
       for (const entry of entries) {
-        const item = elementToItemMap.get(entry.target);
-        if (item !== undefined) {
+        const key = elementToKeyMap.get(entry.target);
+        if (key !== undefined) {
           const height =
             entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
-          if (itemHeights.get(item) !== height) {
-            itemHeights.set(item, height);
+          if (itemHeights.get(key) !== height) {
+            itemHeights.set(key, height);
             hasHeightChanged = true;
           }
         }
@@ -181,6 +222,7 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
         setItemHeightsVersion((version) => version + 1);
       }
     });
+    setItemHeightObserver(observer);
 
     const handleScroll = () => {
       if (scrollContainerElement) {
@@ -208,7 +250,7 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
     return () => {
       scrollContainerElement?.removeEventListener("scroll", handleScroll);
       containerResizeObserver.disconnect();
-      itemHeightObserver?.disconnect();
+      observer.disconnect();
     };
   });
 
@@ -229,22 +271,24 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
         class="relative w-full"
         style={{ height: `${computedLayout().totalScrollHeight}px` }}
       >
-        <For each={visibleItems()}>
+        <For each={visibleItems()} keyed={resolveKey}>
           {(item, reactiveVisibleIndex) => {
             const absoluteItemIndex = () =>
               visibleRange().start + reactiveVisibleIndex();
+            // Read once on mount so object replacement with the same key preserves row state.
+            const initialItem = untrack(item);
 
             return (
               <VirtualRow
-                elementToItemMap={elementToItemMap}
-                item={item}
+                elementToKeyMap={elementToKeyMap}
                 itemHeights={itemHeights}
-                observer={itemHeightObserver}
+                itemKey={resolveKey(initialItem)}
+                observer={itemHeightObserver()}
                 offset={
-                  computedLayout().itemVerticalOffsets[absoluteItemIndex()]
+                  computedLayout().itemVerticalOffsets[absoluteItemIndex()] ?? 0
                 }
               >
-                {props.renderItem(item, absoluteItemIndex())}
+                {props.renderItem(initialItem, absoluteItemIndex)}
               </VirtualRow>
             );
           }}

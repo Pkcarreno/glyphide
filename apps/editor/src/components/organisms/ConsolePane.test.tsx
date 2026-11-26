@@ -201,6 +201,56 @@ describe("ConsolePane", () => {
     expect(container.textContent).not.toContain("Inside collapsed");
   });
 
+  it("preserves group and sibling row DOM nodes and expansion state when toggling a group", () => {
+    setEntries([
+      {
+        data: [{ type: "string", value: "Toggle Group" }],
+        id: "20",
+        type: "group",
+      },
+      { data: "Child inside group", id: "21", type: "log" },
+      { data: undefined, id: "22", type: "groupEnd" },
+      {
+        data: [
+          {
+            className: "Object",
+            properties: { answer: { type: "number", value: 42 } },
+            type: "object",
+          },
+        ],
+        id: "23",
+        type: "log",
+      },
+    ]);
+    const { container, getByText } = render(() => <ConsolePane />);
+
+    const groupButton = getByText("Toggle Group").closest("button");
+    const objectExpander = container
+      .querySelector('[data-expanded="false"]')
+      ?.closest("button") as HTMLButtonElement | undefined;
+    if (!(groupButton && objectExpander)) {
+      throw new Error("Expected group toggle and object expander buttons");
+    }
+
+    fireEvent.click(objectExpander);
+    expect(container.textContent).toContain("answer:");
+    expect(container.textContent).toContain("Child inside group");
+
+    const siblingRowBefore = objectExpander.closest(".w-full")?.parentElement;
+
+    fireEvent.click(groupButton);
+    expect(container.textContent).not.toContain("Child inside group");
+    expect(getByText("Toggle Group").closest("button")).toBe(groupButton);
+    expect(
+      container.querySelector('[data-expanded="true"]')?.closest(".w-full")
+        ?.parentElement
+    ).toBe(siblingRowBefore);
+    expect(container.textContent).toContain("answer:");
+
+    fireEvent.click(groupButton);
+    expect(container.textContent).toContain("Child inside group");
+  });
+
   it("protects message render items with an error boundary falling back to raw string rendering", () => {
     // Suppress console.error in test runner for expected error boundary test
     const consoleErrorSpy = vi
