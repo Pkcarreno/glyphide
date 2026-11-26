@@ -1,7 +1,9 @@
-import { createStore } from "solid-js";
+import type { Accessor } from "solid-js";
+import { createMemo, createSignal, createStore } from "solid-js";
 import type { PersistencePort } from "../ports/persistence.ts";
 
 const SETTINGS_STORAGE_KEY = "settings";
+const DARK_COLOR_SCHEME_QUERY = "(prefers-color-scheme: dark)";
 
 /**
  * Supported theme preferences.
@@ -45,8 +47,12 @@ export const DEFAULT_SETTINGS: EditorSettings = {
  * writes back on every update. Views pull from this reactively.
  */
 export interface SettingsModel {
+  /** Unregisters system theme listeners on disposal. */
+  dispose: () => void;
   /** Resets a specific setting to its default value. */
   resetSetting: <K extends keyof EditorSettings>(key: K) => void;
+  /** Effective color theme after resolving the "system" preference. */
+  resolvedTheme: Accessor<"light" | "dark">;
   /** Reactive store — read any property reactively. */
   settings: EditorSettings;
   /** Applies a partial patch and persists the result. */
@@ -60,6 +66,30 @@ export function createSettingsModel(
   const initial = loadSettings(persistence);
   const [settings, setSettings] = createStore<EditorSettings>(initial);
 
+  const mediaQuery =
+    typeof window !== "undefined" && typeof window.matchMedia === "function"
+      ? window.matchMedia(DARK_COLOR_SCHEME_QUERY)
+      : null;
+
+  const [isSystemDark, setIsSystemDark] = createSignal(
+    mediaQuery?.matches ?? false
+  );
+
+  function handleMediaChange(event: MediaQueryListEvent): void {
+    setIsSystemDark(event.matches);
+  }
+
+  if (mediaQuery && typeof mediaQuery.addEventListener === "function") {
+    mediaQuery.addEventListener("change", handleMediaChange);
+  }
+
+  const resolvedTheme = createMemo<"light" | "dark">(() => {
+    if (settings.theme === "dark" || settings.theme === "light") {
+      return settings.theme;
+    }
+    return isSystemDark() ? "dark" : "light";
+  });
+
   function updateSettings(patch: Partial<EditorSettings>): void {
     setSettings((draft) => {
       Object.assign(draft, patch);
@@ -71,7 +101,13 @@ export function createSettingsModel(
     updateSettings({ [key]: DEFAULT_SETTINGS[key] } as Partial<EditorSettings>);
   }
 
-  return { resetSetting, settings, updateSettings };
+  function dispose(): void {
+    if (mediaQuery && typeof mediaQuery.removeEventListener === "function") {
+      mediaQuery.removeEventListener("change", handleMediaChange);
+    }
+  }
+
+  return { dispose, resetSetting, resolvedTheme, settings, updateSettings };
 }
 
 function loadSettings(persistence: PersistencePort): EditorSettings {

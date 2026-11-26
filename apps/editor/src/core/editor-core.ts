@@ -94,6 +94,7 @@ export function createEditorCore(deps: EditorCoreDeps): EditorCore {
       commands.dispose();
       engine.dispose();
       notifications.dispose();
+      settings.dispose();
       disposeRoot();
     }
 

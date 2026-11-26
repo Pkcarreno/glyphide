@@ -1,11 +1,23 @@
-import { render } from "@solidjs/testing-library";
-import { createSignal } from "solid-js";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { cleanup, render } from "@solidjs/testing-library";
+import { EditorView } from "codemirror";
+import { createSignal, flush } from "solid-js";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { EditorPane } from "./EditorPane.tsx";
 
 const updateBufferMock = vi.fn();
 const setCursorPositionMock = vi.fn();
 const [mockIsTrustRequired, setMockIsTrustRequired] = createSignal(false);
+const [mockResolvedTheme, setMockResolvedTheme] = createSignal<
+  "light" | "dark"
+>("light");
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
@@ -16,7 +28,10 @@ vi.mock("../../core/context", () => ({
       isTrustRequired: () => mockIsTrustRequired(),
       setCursorPosition: setCursorPositionMock,
     },
-    settings: { settings: { isWordWrapEnabled: false, theme: "system" } },
+    settings: {
+      resolvedTheme: () => mockResolvedTheme(),
+      settings: { isWordWrapEnabled: false, theme: "system" },
+    },
   }),
 }));
 
@@ -46,6 +61,15 @@ beforeAll(() => {
 });
 
 describe("EditorPane", () => {
+  beforeEach(() => {
+    setMockIsTrustRequired(false);
+    setMockResolvedTheme("light");
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
   it("when rendered, displays the CodeField editor", () => {
     const { container } = render(() => <EditorPane />);
     expect(container.querySelector(".cm-editor")).not.toBeNull();
@@ -75,5 +99,23 @@ describe("EditorPane", () => {
     expect(editor).not.toBeNull();
     const content = editor?.querySelector(".cm-content");
     expect(content?.getAttribute("contenteditable")).toBe("true");
+  });
+
+  it("updates CodeField dark theme when resolvedTheme changes", () => {
+    const { container } = render(() => <EditorPane />);
+    const cmElement = container.querySelector(".cm-editor");
+    expect(cmElement).not.toBeNull();
+    const view = EditorView.findFromDOM(cmElement as HTMLElement);
+    expect(view).not.toBeNull();
+
+    expect(view?.state.facet(EditorView.darkTheme)).toBe(false);
+
+    setMockResolvedTheme("dark");
+    flush();
+    expect(view?.state.facet(EditorView.darkTheme)).toBe(true);
+
+    setMockResolvedTheme("light");
+    flush();
+    expect(view?.state.facet(EditorView.darkTheme)).toBe(false);
   });
 });
