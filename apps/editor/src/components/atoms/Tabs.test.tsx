@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
+import { createSignal, flush, Show } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Tabs } from "./Tabs.tsx";
 
@@ -292,6 +293,64 @@ describe("Tabs", () => {
       expect(triggerB.classList.contains("cursor-not-allowed")).toBe(true);
       expect(triggerB.hasAttribute("disabled")).toBe(true);
     });
+
+    it("updates keyboard navigation and click selection when disabled toggles reactively", () => {
+      const [isDisabled, setIsDisabled] = createSignal(false);
+
+      render(() => (
+        <Tabs.Root defaultValue="a">
+          <Tabs.List>
+            <Tabs.Trigger value="a">Tab A</Tabs.Trigger>
+            <Tabs.Trigger disabled={isDisabled()} value="b">
+              Tab B
+            </Tabs.Trigger>
+            <Tabs.Trigger value="c">Tab C</Tabs.Trigger>
+          </Tabs.List>
+          <Tabs.Content value="a">Content A</Tabs.Content>
+          <Tabs.Content value="b">Content B</Tabs.Content>
+          <Tabs.Content value="c">Content C</Tabs.Content>
+        </Tabs.Root>
+      ));
+
+      const triggerA = screen.getByRole("tab", { name: "Tab A" });
+      const triggerB = screen.getByRole("tab", { name: "Tab B" });
+      const triggerC = screen.getByRole("tab", { name: "Tab C" });
+
+      // Initially enabled: ArrowRight visits "b".
+      triggerA.focus();
+      pressKey(triggerA, "ArrowRight");
+      expect(document.activeElement).toBe(triggerB);
+      expect(triggerB.getAttribute("aria-selected")).toBe("true");
+
+      // Move back to "a", then disable "b" reactively.
+      pressKey(triggerB, "ArrowLeft");
+      expect(triggerA.getAttribute("aria-selected")).toBe("true");
+
+      setIsDisabled(true);
+      flush();
+
+      // ArrowRight skips "b" and lands on "c"; clicking "b" does not select it.
+      pressKey(triggerA, "ArrowRight");
+      expect(document.activeElement).toBe(triggerC);
+      expect(triggerC.getAttribute("aria-selected")).toBe("true");
+
+      fireEvent.click(triggerB);
+      expect(triggerC.getAttribute("aria-selected")).toBe("true");
+      expect(triggerB.getAttribute("aria-selected")).toBe("false");
+
+      // Re-enable "b" reactively: ArrowLeft from "c" visits "b", and clicking "b" selects it.
+      setIsDisabled(false);
+      flush();
+
+      pressKey(triggerC, "ArrowLeft");
+      expect(document.activeElement).toBe(triggerB);
+      expect(triggerB.getAttribute("aria-selected")).toBe("true");
+
+      fireEvent.click(triggerA);
+      expect(triggerA.getAttribute("aria-selected")).toBe("true");
+      fireEvent.click(triggerB);
+      expect(triggerB.getAttribute("aria-selected")).toBe("true");
+    });
   });
 
   describe("ARIA Roles and Attributes", () => {
@@ -440,6 +499,157 @@ describe("Tabs", () => {
 
       // Inactive trigger has muted text color
       expect(triggerB.classList.contains("text-on-surface-variant")).toBe(true);
+    });
+  });
+
+  describe("Instance Isolation", () => {
+    it("maintains independent disabled trigger state across concurrent Tabs.Root trees", () => {
+      const [showFirstDisabled, setShowFirstDisabled] = createSignal(false);
+
+      render(() => (
+        <div>
+          <Tabs.Root defaultValue="a">
+            <Tabs.List>
+              <Tabs.Trigger value="a">First A</Tabs.Trigger>
+              <Show when={showFirstDisabled()}>
+                <Tabs.Trigger disabled value="b">
+                  First B
+                </Tabs.Trigger>
+              </Show>
+              <Tabs.Trigger value="c">First C</Tabs.Trigger>
+            </Tabs.List>
+            <Tabs.Content value="a">First Content A</Tabs.Content>
+            <Tabs.Content value="b">First Content B</Tabs.Content>
+            <Tabs.Content value="c">First Content C</Tabs.Content>
+          </Tabs.Root>
+
+          <Tabs.Root defaultValue="a">
+            <Tabs.List>
+              <Tabs.Trigger value="a">Second A</Tabs.Trigger>
+              <Tabs.Trigger value="b">Second B</Tabs.Trigger>
+              <Tabs.Trigger value="c">Second C</Tabs.Trigger>
+            </Tabs.List>
+            <Tabs.Content value="a">Second Content A</Tabs.Content>
+            <Tabs.Content value="b">Second Content B</Tabs.Content>
+            <Tabs.Content value="c">Second Content C</Tabs.Content>
+          </Tabs.Root>
+        </div>
+      ));
+
+      // Mount Tree 1's disabled "b" trigger AFTER Tree 2 has already mounted.
+      setShowFirstDisabled(true);
+      flush();
+
+      const firstA = screen.getByRole("tab", { name: "First A" });
+      const firstC = screen.getByRole("tab", { name: "First C" });
+      const secondA = screen.getByRole("tab", { name: "Second A" });
+      const secondB = screen.getByRole("tab", { name: "Second B" });
+
+      // Tree 1's disabled "b" must be skipped in Tree 1.
+      firstA.focus();
+      pressKey(firstA, "ArrowRight");
+      expect(document.activeElement).toBe(firstC);
+      expect(firstC.getAttribute("aria-selected")).toBe("true");
+
+      // Tree 2's enabled "b" must remain navigable and unaffected by Tree 1.
+      secondA.focus();
+      pressKey(secondA, "ArrowRight");
+      expect(document.activeElement).toBe(secondB);
+      expect(secondB.getAttribute("aria-selected")).toBe("true");
+    });
+  });
+
+  describe("Trigger Composition and Cleanup", () => {
+    it("composes caller ref without breaking internal trigger registration", () => {
+      let capturedRef: HTMLButtonElement | undefined;
+
+      render(() => (
+        <Tabs.Root defaultValue="a">
+          <Tabs.List>
+            <Tabs.Trigger value="a">Tab A</Tabs.Trigger>
+            <Tabs.Trigger
+              ref={(el) => {
+                capturedRef = el;
+              }}
+              value="b"
+            >
+              Tab B
+            </Tabs.Trigger>
+            <Tabs.Trigger value="c">Tab C</Tabs.Trigger>
+          </Tabs.List>
+          <Tabs.Content value="a">Content A</Tabs.Content>
+          <Tabs.Content value="b">Content B</Tabs.Content>
+          <Tabs.Content value="c">Content C</Tabs.Content>
+        </Tabs.Root>
+      ));
+
+      const triggerA = screen.getByRole("tab", { name: "Tab A" });
+      const triggerB = screen.getByRole("tab", { name: "Tab B" });
+
+      expect(capturedRef).toBe(triggerB);
+
+      triggerA.focus();
+      pressKey(triggerA, "ArrowRight");
+      expect(document.activeElement).toBe(triggerB);
+      expect(triggerB.getAttribute("aria-selected")).toBe("true");
+    });
+
+    it("composes caller onClick without breaking tab selection", () => {
+      const onClick = vi.fn();
+
+      render(() => (
+        <Tabs.Root defaultValue="a">
+          <Tabs.List>
+            <Tabs.Trigger value="a">Tab A</Tabs.Trigger>
+            <Tabs.Trigger onClick={onClick} value="b">
+              Tab B
+            </Tabs.Trigger>
+          </Tabs.List>
+          <Tabs.Content value="a">Content A</Tabs.Content>
+          <Tabs.Content value="b">Content B</Tabs.Content>
+        </Tabs.Root>
+      ));
+
+      const triggerB = screen.getByRole("tab", { name: "Tab B" });
+      fireEvent.click(triggerB);
+
+      expect(onClick).toHaveBeenCalledTimes(1);
+      expect(triggerB.getAttribute("aria-selected")).toBe("true");
+    });
+
+    it("unregisters its original value on cleanup even if value changes", () => {
+      const [isMounted, setIsMounted] = createSignal(true);
+      const [dynamicValue, setDynamicValue] = createSignal("b");
+
+      render(() => (
+        <Tabs.Root defaultValue="a">
+          <Tabs.List>
+            <Tabs.Trigger value="a">Tab A</Tabs.Trigger>
+            <Show when={isMounted()}>
+              <Tabs.Trigger value={dynamicValue()}>Tab B</Tabs.Trigger>
+            </Show>
+            <Tabs.Trigger value="c">Tab C</Tabs.Trigger>
+          </Tabs.List>
+          <Tabs.Content value="a">Content A</Tabs.Content>
+          <Tabs.Content value="b">Content B</Tabs.Content>
+          <Tabs.Content value="c">Content C</Tabs.Content>
+        </Tabs.Root>
+      ));
+
+      setDynamicValue("d");
+      flush();
+
+      setIsMounted(false);
+      flush();
+
+      const triggerA = screen.getByRole("tab", { name: "Tab A" });
+      const triggerC = screen.getByRole("tab", { name: "Tab C" });
+
+      triggerA.focus();
+      pressKey(triggerA, "ArrowRight");
+
+      expect(document.activeElement).toBe(triggerC);
+      expect(triggerC.getAttribute("aria-selected")).toBe("true");
     });
   });
 });
