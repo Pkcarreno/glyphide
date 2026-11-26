@@ -1,19 +1,15 @@
 import type { JSX } from "@solidjs/web";
 import Trash from "lucide-solid/icons/trash";
 import type { Accessor } from "solid-js";
-import { createMemo, createSignal, Errored, omit, Show } from "solid-js";
+import { Errored, omit, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type {
   ConsoleVariant,
-  OutputFormatter,
   RenderedOutput,
 } from "../../core/engine/output-formatter.ts";
-import { defaultFormat } from "../../core/engine/output-formatter.ts";
-
-import type { OutputEntry } from "../../core/models/output.ts";
 import { cn } from "../../helpers/cn.ts";
 import type { FlatConsoleItem } from "../../helpers/console-hierarchy.ts";
-import { flattenConsoleEntries } from "../../helpers/console-hierarchy.ts";
+import { createConsoleProjection } from "../../helpers/console-projection.ts";
 import { formatCompactCount } from "../../helpers/format-compact-count.ts";
 import { ConsoleTableView } from "../atoms/ConsoleTableView.tsx";
 import { Icon } from "../atoms/Icon.tsx";
@@ -87,119 +83,21 @@ function ConsolePane(props: ConsolePaneProps) {
   const rest = omit(props, "class");
   const core = useEditor();
 
-  const [toggledGroups, setToggledGroups] = createSignal<Set<number>>(
-    new Set(),
-    { equals: false }
-  );
+  const projection = createConsoleProjection({
+    entries: core.output.entries,
+    formatter: () => {
+      try {
+        return core.engineRegistry.getDefinition(core.engine.activeEngineId())
+          .outputFormatter;
+      } catch {
+        // Fallback to default formatter when active engine is unavailable
+      }
+    },
+  });
 
   function handleClear() {
     core.output.clearEntries();
-    setToggledGroups(new Set<number>());
-  }
-
-  function getFormatter(): OutputFormatter | undefined {
-    try {
-      const engineDefinition = core.engineRegistry.getDefinition(
-        core.engine.activeEngineId()
-      );
-      return engineDefinition.outputFormatter;
-    } catch {
-      // Fallback
-    }
-  }
-
-  function formatEntry(entry: OutputEntry) {
-    const isBypassEntry =
-      entry.type === "system" ||
-      (entry.type === "error" && typeof entry.data === "string");
-
-    if (isBypassEntry) {
-      return defaultFormat(entry);
-    }
-
-    const formatter = getFormatter();
-    return formatter ? formatter.format(entry) : defaultFormat(entry);
-  }
-
-  // Referential Stability Cache for Formatted Entries
-  let cachedFormatted: { entry: OutputEntry; rendered: RenderedOutput }[] = [];
-
-  // Incremental Cache for Flat Items
-  const cachedVisibleItems: FlatConsoleItem[] = [];
-  const cachedGroupStack: { id: number; hidden: boolean }[] = [];
-  let lastProcessedEntriesCount = 0;
-
-  // Track versions to force full O(N) recalculation only when groups are toggled
-  let lastToggledVersion = 0;
-  const [toggledVersion, setToggledVersion] = createSignal(0);
-
-  const formattedEntries = createMemo(() => {
-    const current = core.output.entries();
-
-    const isTruncated =
-      cachedFormatted.length > 0 &&
-      current.length > 0 &&
-      cachedFormatted[0].entry.id !== current[0].id;
-
-    if (current.length < cachedFormatted.length || isTruncated) {
-      cachedFormatted = isTruncated
-        ? []
-        : cachedFormatted.slice(0, current.length);
-      // If output was cleared/truncated, invalidate the incremental cache
-      lastProcessedEntriesCount = 0;
-      cachedVisibleItems.length = 0;
-      cachedGroupStack.length = 0;
-    }
-
-    for (let i = cachedFormatted.length; i < current.length; i += 1) {
-      cachedFormatted.push({
-        entry: current[i],
-        rendered: formatEntry(current[i]),
-      });
-    }
-
-    return [...cachedFormatted];
-  });
-
-  const visibleItems = createMemo(() => {
-    const entries = formattedEntries();
-    const currentToggledVersion = toggledVersion();
-    const toggled = toggledGroups();
-
-    let startIndex = lastProcessedEntriesCount;
-
-    // If the user toggled a group, we must recalculate visibility from the start
-    if (currentToggledVersion !== lastToggledVersion) {
-      startIndex = 0;
-      lastToggledVersion = currentToggledVersion;
-    }
-
-    flattenConsoleEntries(
-      entries,
-      (id, startsCollapsed) => {
-        const isToggled = toggled.has(id);
-        return startsCollapsed ? !isToggled : isToggled;
-      },
-      startIndex,
-      cachedVisibleItems,
-      cachedGroupStack
-    );
-
-    lastProcessedEntriesCount = entries.length;
-
-    // Return a shallow copy so the memo output reference changes, triggering VirtualList
-    return [...cachedVisibleItems];
-  });
-
-  function toggleGroup(id: number) {
-    const next = new Set<number>(toggledGroups());
-    if (next.has(id)) {
-      next.delete(id);
-    } else {
-      next.add(id);
-    }
-    setToggledGroups(next);
-    setToggledVersion((v) => v + 1); // Triggers full recalculation
+    projection.reset();
   }
 
   function renderFlatNode(
@@ -207,7 +105,7 @@ function ConsolePane(props: ConsolePaneProps) {
     index: Accessor<number>
   ): JSX.Element {
     // Resolve the latest item reactively so preserved keyed rows reflect updated collapse or depth state.
-    const currentItem = () => visibleItems()[index()] ?? item;
+    const currentItem = () => projection.visibleItems()[index()] ?? item;
     const depthStyle = () => ({
       "padding-left": `${currentItem().depth * 22}px`,
     });
@@ -217,7 +115,7 @@ function ConsolePane(props: ConsolePaneProps) {
         <div class="w-full" style={depthStyle()}>
           <ConsoleGroupView
             item={currentItem()}
-            onToggle={() => toggleGroup(currentItem().id)}
+            onToggle={() => projection.toggleGroup(currentItem().id)}
           />
         </div>
       );
@@ -288,7 +186,7 @@ function ConsolePane(props: ConsolePaneProps) {
           class="h-full w-full"
           getKey={(item) => item.entry.id}
           itemHeight={24}
-          items={visibleItems()}
+          items={projection.visibleItems()}
           renderItem={(item, index) => renderFlatNode(item, index)}
         />
       </div>
