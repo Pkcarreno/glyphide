@@ -677,6 +677,87 @@ describe("EngineModel (Declarative Async Lifecycle)", () => {
 
     model.dispose();
   });
+
+  it("emits initialization and reconfiguration system messages outside engine memo evaluation", async () => {
+    const appendSpy = vi.spyOn(output, "appendEntry");
+    const model = createEngineModel({
+      output,
+      registry,
+      session,
+      settings,
+    });
+
+    // Memo evaluation during model creation must stay pure (no synchronous appendEntry).
+    expect(appendSpy).not.toHaveBeenCalled();
+
+    flush();
+    expect(appendSpy).toHaveBeenCalledWith("system", "Initializing engine…");
+
+    await resolve(() => model.engine());
+    await waitFor(() => {
+      const systemMessages = output
+        .entries()
+        .filter((entry) => entry.type === "system")
+        .map((entry) => entry.data);
+      expect(systemMessages).toEqual(["Initializing engine…", "Engine ready."]);
+    });
+
+    await model.updateEngineConfig({ timeout: 5000 });
+    await resolve(() => model.engine());
+
+    await model.updateEngineConfig({ timeout: 8000 });
+    await resolve(() => model.engine());
+
+    await waitFor(() => {
+      const configLogs = output
+        .entries()
+        .filter(
+          (entry) =>
+            entry.type === "system" &&
+            entry.data === "Applying new configuration…"
+        );
+      expect(configLogs).toHaveLength(2);
+    });
+
+    await model.retryInit();
+    await resolve(() => model.engine());
+
+    await waitFor(() => {
+      const configLogs = output
+        .entries()
+        .filter(
+          (entry) =>
+            entry.type === "system" &&
+            entry.data === "Applying new configuration…"
+        );
+      expect(configLogs).toHaveLength(3);
+    });
+
+    model.dispose();
+  });
+
+  it("does not emit initialization log while blocked by trust gate until trust is granted", async () => {
+    const appendSpy = vi.spyOn(output, "appendEntry");
+    session.markTrustRequired();
+
+    const model = createEngineModel({
+      output,
+      registry,
+      session,
+      settings,
+    });
+    flush();
+
+    expect(appendSpy).not.toHaveBeenCalled();
+
+    session.grantTrust();
+    flush();
+
+    expect(appendSpy).toHaveBeenCalledWith("system", "Initializing engine…");
+    await resolve(() => model.engine());
+
+    model.dispose();
+  });
 });
 
 describe("EngineModel URL conditional persistence (delegated to WorkspaceSession)", () => {

@@ -147,6 +147,7 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
     );
     const [configOverrides, setConfigOverrides] =
       createSignal<EngineConfigOverride | null>(null);
+    const [initAttempt, setInitAttempt] = createSignal<number>(0);
     let activeExecutionAbort: AbortController | null = null;
 
     function handleOutput(payload: EngineOutputPayload): void {
@@ -180,8 +181,6 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
           return null;
         }
 
-        deps.output.appendEntry("system", "Engine ready.");
-
         return {
           capabilities: {
             id: result.id,
@@ -200,24 +199,35 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
         if (isCancelled()) {
           return null;
         }
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
-        deps.output.appendEntry(
-          "error",
-          `Engine initialization failed: ${errorMessage}`
-        );
         throw error;
       }
     }
 
+    const engineInitInput = createMemo(() => {
+      if (isBlocked()) {
+        return null;
+      }
+
+      const selectedEngineId = deps.session.activeEngineId();
+      const selectedLanguage = deps.session.activeLanguage();
+      const overrides = configOverrides();
+      const hasMatchingOverrides =
+        overrides !== null &&
+        overrides.engineId === selectedEngineId &&
+        overrides.language === selectedLanguage;
+
+      return {
+        hasMatchingOverrides,
+        overridePatch: hasMatchingOverrides ? overrides.patch : undefined,
+        selectedEngineId,
+        selectedLanguage,
+      };
+    });
+
     const engine = createMemo<InitializedEngine | null>(
       (): InitializedEngine | null | Promise<InitializedEngine | null> => {
-        const selectedEngineId = deps.session.activeEngineId();
-        const selectedLanguage = deps.session.activeLanguage();
-        const blocked = isBlocked();
-        const overrides = configOverrides();
-
-        if (blocked) {
+        const input = engineInitInput();
+        if (!input) {
           return null;
         }
 
@@ -230,28 +240,16 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
           localOrchestrator = null;
         });
 
-        const engineDef = deps.registry.getDefinition(selectedEngineId);
-        const hasMatchingOverrides =
-          overrides !== null &&
-          overrides.engineId === selectedEngineId &&
-          overrides.language === selectedLanguage;
-
+        const engineDef = deps.registry.getDefinition(input.selectedEngineId);
         const params: EngineInitParams = {
-          language: selectedLanguage,
+          language: input.selectedLanguage,
           ...engineDef.defaultInitParams,
-          ...(hasMatchingOverrides ? overrides.patch : {}),
+          ...input.overridePatch,
         };
 
-        deps.output.appendEntry(
-          "system",
-          hasMatchingOverrides
-            ? "Applying new configuration…"
-            : "Initializing engine…"
-        );
-
         return initializeWorker(
-          selectedEngineId,
-          selectedLanguage,
+          input.selectedEngineId,
+          input.selectedLanguage,
           params,
           () => cancelled,
           (orc) => {
@@ -261,11 +259,42 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
       }
     );
 
+    createEffect(
+      () => {
+        initAttempt();
+        const input = engineInitInput();
+        return input
+          ? { hasMatchingOverrides: input.hasMatchingOverrides }
+          : null;
+      },
+      (status) => {
+        if (!status) {
+          return;
+        }
+        deps.output.appendEntry(
+          "system",
+          status.hasMatchingOverrides
+            ? "Applying new configuration…"
+            : "Initializing engine…"
+        );
+      }
+    );
+
     // Keep the async engine memo observed across its lifetime so workers stay alive
-    // even when no UI subscriber is mounted, while letting <Errored> catch failures.
+    // even when no UI subscriber is mounted, while reporting ready/failed status
+    // after initialization start logs and letting <Errored> catch failures.
     createEffect(() => engine(), {
-      effect: () => undefined,
-      error: () => undefined,
+      effect: (resolvedEngine) => {
+        if (resolvedEngine) {
+          deps.output.appendEntry("system", "Engine ready.");
+        }
+      },
+      error: (error) => {
+        deps.output.appendEntry(
+          "error",
+          `Engine initialization failed: ${formatErrorMessage(error)}`
+        );
+      },
     });
 
     // Abort any active execution when the trust gate locks.
@@ -310,6 +339,7 @@ export function createEngineModel(deps: EngineModelDeps): EngineModel {
         return;
       }
       affects(engine);
+      setInitAttempt((attempt) => attempt + 1);
       try {
         await refresh(engine);
       } catch {

@@ -156,10 +156,12 @@ describe("EditorCore", () => {
     });
 
     const disposeEngineSpy = vi.spyOn(core.engine, "dispose");
+    const disposeOutputSpy = vi.spyOn(core.output, "dispose");
     const disposeNotificationsSpy = vi.spyOn(core.notifications, "dispose");
     core.dispose();
 
     expect(disposeEngineSpy).toHaveBeenCalled();
+    expect(disposeOutputSpy).toHaveBeenCalled();
     expect(disposeNotificationsSpy).toHaveBeenCalled();
   });
 
