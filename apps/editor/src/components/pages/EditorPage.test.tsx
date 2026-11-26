@@ -1,12 +1,17 @@
-import { render } from "@solidjs/testing-library";
-import { createSignal } from "solid-js";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render } from "@solidjs/testing-library";
+import { createSignal, flush } from "solid-js";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import EditorPage from "./EditorPage.tsx";
 
 vi.spyOn(console, "info").mockImplementation(() => undefined);
 
 vi.mock("../atoms/CodeField/CodeField.tsx", () => ({
-  CodeField: () => <div data-testid="code-field-stub" />,
+  CodeField: (props: { isDark?: boolean }) => (
+    <div
+      data-dark={String(Boolean(props.isDark))}
+      data-testid="code-field-stub"
+    />
+  ),
 }));
 
 const toggleOverlayMock = vi.fn((id: string) => {
@@ -17,6 +22,9 @@ const toggleOverlayMock = vi.fn((id: string) => {
 const openOverlayMock = vi.fn();
 const closeOverlayMock = vi.fn();
 const [mockIsOpen, setMockIsOpen] = createSignal(false);
+const [mockResolvedTheme, setMockResolvedTheme] = createSignal<
+  "light" | "dark"
+>("light");
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
@@ -95,6 +103,7 @@ vi.mock("../../core/context", () => ({
       setProjectName: vi.fn(),
     },
     settings: {
+      resolvedTheme: () => mockResolvedTheme(),
       settings: {
         bufferFontSize: 15,
         bufferLineHeight: 1.3,
@@ -119,6 +128,13 @@ describe("EditorPage", () => {
     openOverlayMock.mockClear();
     closeOverlayMock.mockClear();
     setMockIsOpen(false);
+    setMockResolvedTheme("light");
+    document.documentElement.classList.remove("dark");
+  });
+
+  afterEach(() => {
+    cleanup();
+    document.documentElement.classList.remove("dark");
   });
 
   it("when rendered, displays the full application layout", () => {
@@ -128,5 +144,30 @@ describe("EditorPage", () => {
     expect(getByText("Output")).toBeTruthy();
     expect(getByText("ready")).toBeTruthy();
     expect(getByRole("main")).toBeTruthy();
+  });
+
+  it("syncs document root dark class and CodeField isDark prop when resolvedTheme changes", () => {
+    const { getByTestId } = render(() => <EditorPage />);
+
+    expect(document.documentElement.classList.contains("dark")).toBe(false);
+    expect(getByTestId("code-field-stub").getAttribute("data-dark")).toBe(
+      "false"
+    );
+
+    setMockResolvedTheme("dark");
+    flush();
+
+    expect(document.documentElement.classList.contains("dark")).toBe(true);
+    expect(getByTestId("code-field-stub").getAttribute("data-dark")).toBe(
+      "true"
+    );
+
+    setMockResolvedTheme("light");
+    flush();
+
+    expect(document.documentElement.classList.contains("dark")).toBe(false);
+    expect(getByTestId("code-field-stub").getAttribute("data-dark")).toBe(
+      "false"
+    );
   });
 });

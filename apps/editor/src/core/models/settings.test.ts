@@ -1,5 +1,5 @@
 import { flush } from "solid-js";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { PersistencePort } from "../ports/persistence.ts";
 import { createSettingsModel } from "./settings.ts";
 
@@ -14,7 +14,66 @@ function createMockPersistence(
   };
 }
 
+function createMockMatchMedia(initialMatches: boolean) {
+  let matches = initialMatches;
+  const listeners = new Set<(event: MediaQueryListEvent) => void>();
+
+  const addEventListener = vi.fn(
+    (type: string, listener: EventListenerOrEventListenerObject) => {
+      if (type === "change" && typeof listener === "function") {
+        listeners.add(listener as (event: MediaQueryListEvent) => void);
+      }
+    }
+  );
+
+  const removeEventListener = vi.fn(
+    (type: string, listener: EventListenerOrEventListenerObject) => {
+      if (type === "change" && typeof listener === "function") {
+        listeners.delete(listener as (event: MediaQueryListEvent) => void);
+      }
+    }
+  );
+
+  const mediaQueryList = {
+    addEventListener,
+    get matches() {
+      return matches;
+    },
+    media: "(prefers-color-scheme: dark)",
+    removeEventListener,
+  } as unknown as MediaQueryList;
+
+  return {
+    addEventListener,
+    dispatchChange(nextMatches: boolean) {
+      matches = nextMatches;
+      const event = { matches: nextMatches } as MediaQueryListEvent;
+      for (const listener of listeners) {
+        listener(event);
+      }
+    },
+    listenerCount: () => listeners.size,
+    matchMedia: vi.fn(() => mediaQueryList),
+    removeEventListener,
+  };
+}
+
+const originalMatchMedia = window.matchMedia;
+
+function setWindowMatchMedia(
+  value: ((query: string) => MediaQueryList) | undefined
+): void {
+  Object.defineProperty(window, "matchMedia", {
+    configurable: true,
+    value,
+    writable: true,
+  });
+}
+
 describe("SettingsModel", () => {
+  afterEach(() => {
+    setWindowMatchMedia(originalMatchMedia);
+  });
   it("initializes with default settings if persistence is empty", () => {
     const persistence = createMockPersistence();
     const model = createSettingsModel(persistence);
@@ -89,5 +148,103 @@ describe("SettingsModel", () => {
     const raw = persistence.get("settings");
     const saved = JSON.parse(raw ?? "{}");
     expect(saved.theme).toBe("system");
+  });
+
+  it("resolves explicit light and dark themes regardless of system preference", () => {
+    const mockMedia = createMockMatchMedia(true);
+    setWindowMatchMedia(mockMedia.matchMedia);
+
+    const model = createSettingsModel(
+      createMockPersistence({ settings: JSON.stringify({ theme: "light" }) })
+    );
+    expect(model.resolvedTheme()).toBe("light");
+
+    model.updateSettings({ theme: "dark" });
+    flush();
+    expect(model.resolvedTheme()).toBe("dark");
+
+    mockMedia.dispatchChange(false);
+    flush();
+    expect(model.resolvedTheme()).toBe("dark");
+
+    model.dispose();
+  });
+
+  it("resolves system theme from matchMedia and updates on change events", () => {
+    const mockMedia = createMockMatchMedia(false);
+    setWindowMatchMedia(mockMedia.matchMedia);
+
+    const model = createSettingsModel(createMockPersistence());
+    expect(model.resolvedTheme()).toBe("light");
+
+    mockMedia.dispatchChange(true);
+    flush();
+    expect(model.resolvedTheme()).toBe("dark");
+
+    mockMedia.dispatchChange(false);
+    flush();
+    expect(model.resolvedTheme()).toBe("light");
+
+    model.dispose();
+  });
+
+  it("updates resolvedTheme when switching between explicit and system themes", () => {
+    const mockMedia = createMockMatchMedia(true);
+    setWindowMatchMedia(mockMedia.matchMedia);
+
+    const model = createSettingsModel(
+      createMockPersistence({ settings: JSON.stringify({ theme: "light" }) })
+    );
+    expect(model.resolvedTheme()).toBe("light");
+
+    model.updateSettings({ theme: "system" });
+    flush();
+    expect(model.resolvedTheme()).toBe("dark");
+
+    mockMedia.dispatchChange(false);
+    flush();
+    expect(model.resolvedTheme()).toBe("light");
+
+    model.dispose();
+  });
+
+  it("defaults resolvedTheme to light when window.matchMedia is unavailable", () => {
+    setWindowMatchMedia(undefined);
+
+    const model = createSettingsModel(createMockPersistence());
+    expect(model.resolvedTheme()).toBe("light");
+
+    model.updateSettings({ theme: "dark" });
+    flush();
+    expect(model.resolvedTheme()).toBe("dark");
+
+    model.resetSetting("theme");
+    flush();
+    expect(model.resolvedTheme()).toBe("light");
+
+    expect(() => model.dispose()).not.toThrow();
+  });
+
+  it("removes the matchMedia change listener on dispose", () => {
+    const mockMedia = createMockMatchMedia(false);
+    setWindowMatchMedia(mockMedia.matchMedia);
+
+    const model = createSettingsModel(createMockPersistence());
+    expect(mockMedia.listenerCount()).toBe(1);
+    expect(mockMedia.addEventListener).toHaveBeenCalledWith(
+      "change",
+      expect.any(Function)
+    );
+
+    model.dispose();
+    expect(mockMedia.listenerCount()).toBe(0);
+    expect(mockMedia.removeEventListener).toHaveBeenCalledWith(
+      "change",
+      expect.any(Function)
+    );
+
+    mockMedia.dispatchChange(true);
+    flush();
+    expect(model.resolvedTheme()).toBe("light");
   });
 });

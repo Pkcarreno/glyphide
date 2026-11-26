@@ -34,24 +34,13 @@ function EditorPane(props: EditorPaneProps) {
     );
   }
 
-  const isDark = () => {
-    const { theme } = core.settings.settings;
-    if (theme === "dark") {
-      return true;
-    }
-    if (theme === "light") {
-      return false;
-    }
-    return window.matchMedia("(prefers-color-scheme: dark)").matches;
-  };
-
   return (
     <section
       class={cn("flex h-full flex-1 flex-col overflow-hidden", props.class)}
       {...rest}
     >
       <CodeField
-        isDark={isDark()}
+        isDark={core.settings.resolvedTheme() === "dark"}
         isReadOnly={core.session.isTrustRequired()}
         isWordWrapEnabled={core.settings.settings.isWordWrapEnabled}
         language={core.engine.activeLanguage()}

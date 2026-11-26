@@ -157,10 +157,69 @@ describe("EditorCore", () => {
 
     const disposeEngineSpy = vi.spyOn(core.engine, "dispose");
     const disposeNotificationsSpy = vi.spyOn(core.notifications, "dispose");
+    const disposeSettingsSpy = vi.spyOn(core.settings, "dispose");
     core.dispose();
 
     expect(disposeEngineSpy).toHaveBeenCalled();
     expect(disposeNotificationsSpy).toHaveBeenCalled();
+    expect(disposeSettingsSpy).toHaveBeenCalled();
+  });
+
+  it("unregisters the matchMedia change listener on dispose", () => {
+    const listeners = new Set<(event: MediaQueryListEvent) => void>();
+    const addEventListener = vi.fn(
+      (type: string, listener: EventListenerOrEventListenerObject) => {
+        if (type === "change" && typeof listener === "function") {
+          listeners.add(listener as (event: MediaQueryListEvent) => void);
+        }
+      }
+    );
+    const removeEventListener = vi.fn(
+      (type: string, listener: EventListenerOrEventListenerObject) => {
+        if (type === "change" && typeof listener === "function") {
+          listeners.delete(listener as (event: MediaQueryListEvent) => void);
+        }
+      }
+    );
+    const originalMatchMedia = window.matchMedia;
+    Object.defineProperty(window, "matchMedia", {
+      configurable: true,
+      value: vi.fn(() => ({
+        addEventListener,
+        matches: false,
+        media: "(prefers-color-scheme: dark)",
+        removeEventListener,
+      })),
+      writable: true,
+    });
+
+    try {
+      const core = createEditorCore({
+        fileIo: createMockFileIoDeps(),
+        persistence: createMockPersistence(),
+        urlPersistence: createMockUrlPersistence(),
+      });
+
+      expect(addEventListener).toHaveBeenCalledWith(
+        "change",
+        expect.any(Function)
+      );
+      expect(listeners.size).toBe(1);
+
+      core.dispose();
+
+      expect(removeEventListener).toHaveBeenCalledWith(
+        "change",
+        expect.any(Function)
+      );
+      expect(listeners.size).toBe(0);
+    } finally {
+      Object.defineProperty(window, "matchMedia", {
+        configurable: true,
+        value: originalMatchMedia,
+        writable: true,
+      });
+    }
   });
 
   describe("Auto-run logic", () => {
