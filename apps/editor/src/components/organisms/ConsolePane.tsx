@@ -1,5 +1,6 @@
 import type { JSX } from "@solidjs/web";
 import Trash from "lucide-solid/icons/trash";
+import type { Accessor } from "solid-js";
 import { createMemo, createSignal, Errored, omit, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type {
@@ -201,15 +202,23 @@ function ConsolePane(props: ConsolePaneProps) {
     setToggledVersion((v) => v + 1); // Triggers full recalculation
   }
 
-  function renderFlatNode(item: FlatConsoleItem): JSX.Element {
-    const depthStyle = {
-      "padding-left": `${item.depth * 22}px`,
-    };
+  function renderFlatNode(
+    item: FlatConsoleItem,
+    index: Accessor<number>
+  ): JSX.Element {
+    // Resolve the latest item reactively so preserved keyed rows reflect updated collapse or depth state.
+    const currentItem = () => visibleItems()[index()] ?? item;
+    const depthStyle = () => ({
+      "padding-left": `${currentItem().depth * 22}px`,
+    });
 
     if (item.isGroup) {
       return (
-        <div class="w-full" style={depthStyle}>
-          <ConsoleGroupView item={item} onToggle={() => toggleGroup(item.id)} />
+        <div class="w-full" style={depthStyle()}>
+          <ConsoleGroupView
+            item={currentItem()}
+            onToggle={() => toggleGroup(currentItem().id)}
+          />
         </div>
       );
     }
@@ -218,7 +227,7 @@ function ConsolePane(props: ConsolePaneProps) {
     const variant = rendered.variant as MessageVariant;
 
     return (
-      <div class="w-full" style={depthStyle}>
+      <div class="w-full" style={depthStyle()}>
         <Errored
           fallback={(err) => (
             <ConsoleMessage
@@ -277,9 +286,10 @@ function ConsolePane(props: ConsolePaneProps) {
       <div class="relative flex flex-1 flex-col overflow-hidden py-2">
         <VirtualList
           class="h-full w-full"
+          getKey={(item) => item.entry.id}
           itemHeight={24}
           items={visibleItems()}
-          renderItem={(item) => renderFlatNode(item)}
+          renderItem={(item, index) => renderFlatNode(item, index)}
         />
       </div>
     </section>
