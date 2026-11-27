@@ -61,12 +61,23 @@ function EditorPage(_props: VoidProps) {
 
   return (
     <>
-      <WorkspaceLayout
-        consolePane={<ConsolePane />}
-        editorPane={<EditorPane />}
-        header={<Header />}
-        statusBar={<StatusBar />}
-      />
+      <WorkspaceLayout.Root>
+        <WorkspaceLayout.Header>
+          <Header />
+        </WorkspaceLayout.Header>
+        <WorkspaceLayout.Main>
+          <WorkspaceLayout.Editor>
+            <EditorPane />
+          </WorkspaceLayout.Editor>
+          <WorkspaceLayout.Resizer />
+          <WorkspaceLayout.Console>
+            <ConsolePane />
+          </WorkspaceLayout.Console>
+        </WorkspaceLayout.Main>
+        <WorkspaceLayout.StatusBar>
+          <StatusBar />
+        </WorkspaceLayout.StatusBar>
+      </WorkspaceLayout.Root>
       <FloatingLayer />
     </>
   );
