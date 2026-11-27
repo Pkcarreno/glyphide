@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
-import { resetErrorHalt } from "solid-js";
+import { createSignal, flush, resetErrorHalt } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Popover, usePopover } from "./Popover.tsx";
 
@@ -137,5 +137,36 @@ describe("Popover", () => {
     expect((caught as Error).message).toContain(
       "has no provider above this read"
     );
+  });
+
+  it("resets isPositioned when controlled isOpen changes to false", async () => {
+    const [isOpen, setIsOpen] = createSignal(true);
+    let capturedCtx!: ReturnType<typeof usePopover>;
+
+    function Probe() {
+      capturedCtx = usePopover();
+      return null;
+    }
+
+    render(() => (
+      <Popover.Root isOpen={isOpen()}>
+        <Probe />
+        <Popover.Trigger>Open</Popover.Trigger>
+        <Popover.Portal>
+          <Popover.Positioner>
+            <Popover.Popup>Body</Popover.Popup>
+          </Popover.Positioner>
+        </Popover.Portal>
+      </Popover.Root>
+    ));
+
+    flush();
+    await vi.waitFor(() => {
+      expect(capturedCtx.isPositioned()).toBe(true);
+    });
+
+    setIsOpen(false);
+    flush();
+    expect(capturedCtx.isPositioned()).toBe(false);
   });
 });

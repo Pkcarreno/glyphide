@@ -1,13 +1,7 @@
 import type { Placement } from "@floating-ui/dom";
-import {
-  autoUpdate,
-  computePosition,
-  flip,
-  offset as floatingOffset,
-  shift,
-} from "@floating-ui/dom";
 import type { ComponentProps, JSX, ValidComponent } from "@solidjs/web";
 import { dynamic, Portal } from "@solidjs/web";
+import { cva } from "class-variance-authority";
 import Check from "lucide-solid/icons/check";
 import type {
   Accessor,
@@ -18,18 +12,17 @@ import type {
 } from "solid-js";
 import {
   createContext,
-  createEffect,
   createSignal,
   createUniqueId,
   merge,
   omit,
-  onCleanup,
   onSettled,
   Show,
   useContext,
 } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { composeEventHandlers } from "../../helpers/compose-event-handlers.ts";
+import { createFloatingAnchor } from "../../helpers/create-floating-anchor.ts";
 
 /* ---------- Context ---------- */
 
@@ -37,6 +30,7 @@ interface DropdownContextValue {
   activeIndex: Accessor<number>;
   close: () => void;
   contentRef: Accessor<HTMLElement | undefined>;
+  coords: Accessor<{ left: number; top: number }>;
   isOpen: Accessor<boolean>;
   itemIds: Accessor<string[]>;
   registerItem: (id: string) => void;
@@ -94,18 +88,6 @@ function DropdownRoot(rawProps: FlowProps<DropdownRootProps>) {
   const [activeIndex, setActiveIndex] = createSignal(-1);
   const [itemIds, setItemIds] = createSignal<string[]>([]);
 
-  let triggerEl: HTMLElement | undefined;
-  let contentEl: HTMLElement | undefined;
-  let cleanupAutoUpdate: (() => void) | undefined;
-  let positionFrameId: number | undefined;
-
-  const cancelPositionFrame = () => {
-    if (positionFrameId !== undefined) {
-      cancelAnimationFrame(positionFrameId);
-      positionFrameId = undefined;
-    }
-  };
-
   const handleOpenStateChange = (nextOpen: boolean) => {
     if (props.isOpen === undefined) {
       setInternalIsOpen(nextOpen);
@@ -114,9 +96,6 @@ function DropdownRoot(rawProps: FlowProps<DropdownRootProps>) {
 
     if (!nextOpen) {
       setActiveIndex(-1);
-      cancelPositionFrame();
-      cleanupAutoUpdate?.();
-      cleanupAutoUpdate = undefined;
     }
   };
 
@@ -136,88 +115,11 @@ function DropdownRoot(rawProps: FlowProps<DropdownRootProps>) {
     setItemIds((prev) => prev.filter((itemId) => itemId !== id));
   };
 
-  const setTriggerRef = (el: HTMLElement) => {
-    triggerEl = el;
-  };
-
-  const setContentRef = (el: HTMLElement) => {
-    contentEl = el;
-  };
-
-  const updatePosition = () => {
-    if (!(triggerEl && contentEl)) {
-      return;
-    }
-
-    computePosition(triggerEl, contentEl, {
-      middleware: [floatingOffset(offset()), flip(), shift({ padding: 8 })],
-      placement: placement(),
-    })
-      .then(({ x, y }) => {
-        if (contentEl) {
-          contentEl.style.top = `${Math.round(y)}px`;
-          contentEl.style.left = `${Math.round(x)}px`;
-        }
-      })
-      .catch(() => {
-        // Ignore positioning errors in JSDOM environments
-      });
-  };
-
-  const bindAutoUpdate = () => {
-    if (triggerEl && contentEl && isOpen()) {
-      cleanupAutoUpdate?.();
-      try {
-        cleanupAutoUpdate = autoUpdate(triggerEl, contentEl, updatePosition);
-      } catch {
-        updatePosition();
-        cleanupAutoUpdate = () => undefined;
-      }
-    }
-  };
-
-  createEffect(
-    () => ({
-      offset: offset(),
-      open: isOpen(),
-      placement: placement(),
-    }),
-    ({ open }) => {
-      cancelPositionFrame();
-      if (open) {
-        // Wait for next frame so content is in DOM
-        positionFrameId = requestAnimationFrame(() => {
-          positionFrameId = undefined;
-          bindAutoUpdate();
-        });
-      }
-    }
-  );
-
-  onSettled(() => {
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (!isOpen()) {
-        return;
-      }
-      const target = e.target as Node;
-      if (
-        triggerEl &&
-        contentEl &&
-        !triggerEl.contains(target) &&
-        !contentEl.contains(target)
-      ) {
-        close();
-      }
-    };
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-    };
-  });
-
-  onCleanup(() => {
-    cancelPositionFrame();
-    cleanupAutoUpdate?.();
+  const anchor = createFloatingAnchor({
+    isOpen,
+    offset,
+    onOutsideClick: close,
+    placement,
   });
 
   return (
@@ -225,15 +127,16 @@ function DropdownRoot(rawProps: FlowProps<DropdownRootProps>) {
       value={{
         activeIndex,
         close,
-        contentRef: () => contentEl,
+        contentRef: anchor.floatingEl,
+        coords: anchor.coords,
         isOpen,
         itemIds,
         registerItem,
         setActiveIndex,
-        setContentRef,
-        setTriggerRef,
+        setContentRef: anchor.setFloatingRef,
+        setTriggerRef: anchor.setTriggerRef,
         toggle,
-        triggerRef: () => triggerEl,
+        triggerRef: anchor.triggerEl,
         unregisterItem,
       }}
     >
@@ -426,6 +329,10 @@ function DropdownContent(props: ParentProps<DropdownContentProps>) {
           onKeyDown={composeEventHandlers(handleKeyDown, props.onKeyDown)}
           ref={[handleRef, props.ref]}
           role="menu"
+          style={{
+            left: `${ctx.coords().left}px`,
+            top: `${ctx.coords().top}px`,
+          }}
           tabindex={-1}
           {...rest}
         >
@@ -459,6 +366,154 @@ function DropdownGroup(props: ParentProps<DropdownGroupProps>) {
       </Show>
       {props.children}
     </fieldset>
+  );
+}
+
+/* ---------- Shared Menu Item ---------- */
+
+const dropdownMenuItemVariants = cva(
+  [
+    "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 relative flex cursor-pointer items-center gap-1.5 rounded-sm py-1 text-xs transition-colors outline-none select-none focus-visible:ring-3 aria-invalid:ring-3",
+    "pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:py-2.5",
+    "hover:bg-surface-variant hover:text-on-surface",
+    "data-[active=true]:bg-surface-variant data-[active=true]:text-on-surface",
+  ],
+  {
+    defaultVariants: {
+      inset: false,
+      isDisabled: false,
+      layout: "standard",
+      variant: "default",
+    },
+    variants: {
+      layout: {
+        checkbox: "pr-8 pl-1.5",
+        standard: "min-h-7 px-2",
+      },
+      inset: {
+        false: "",
+        true: "pl-7",
+      },
+      variant: {
+        default: "",
+        destructive:
+          "text-error hover:text-error data-[active=true]:text-error",
+      },
+      isDisabled: {
+        false: "",
+        true: "pointer-events-none cursor-default opacity-50",
+      },
+    },
+  }
+);
+
+type DropdownMenuItemBaseProps<T extends ValidComponent = "div"> = ParentProps<
+  {
+    as?: ValidComponent;
+    class?: string;
+    idPrefix: string;
+    inset?: boolean;
+    isDisabled?: boolean;
+    layout?: "standard" | "checkbox";
+    onActivate?: () => void;
+    role: "menuitem" | "menuitemcheckbox";
+    variant?: "default" | "destructive";
+  } & Omit<
+    ComponentProps<T>,
+    | "as"
+    | "children"
+    | "class"
+    | "idPrefix"
+    | "inset"
+    | "isDisabled"
+    | "layout"
+    | "onActivate"
+    | "role"
+    | "variant"
+  >
+>;
+
+function DropdownMenuItemBase<T extends ValidComponent = "div">(
+  rawProps: DropdownMenuItemBaseProps<T>
+) {
+  const props = merge(
+    {
+      inset: false,
+      isDisabled: false,
+      layout: "standard" as const,
+      variant: "default" as const,
+    },
+    rawProps as DropdownMenuItemBaseProps<"div">
+  );
+  const rest = omit(
+    props,
+    "as",
+    "children",
+    "class",
+    "idPrefix",
+    "inset",
+    "isDisabled",
+    "layout",
+    "onActivate",
+    "onClick",
+    "ref",
+    "role",
+    "variant"
+  );
+  const ctx = useDropdown();
+  const itemId = `${props.idPrefix}-${createUniqueId()}`;
+
+  let itemRef: HTMLElement | undefined;
+
+  onSettled(() => {
+    if (itemRef) {
+      ctx.registerItem(itemId);
+    }
+    return () => {
+      ctx.unregisterItem(itemId);
+    };
+  });
+
+  const isActive = () => {
+    const items = ctx.itemIds();
+    return items.indexOf(itemId) === ctx.activeIndex();
+  };
+
+  const handleClick = () => {
+    if (props.isDisabled) {
+      return;
+    }
+    props.onActivate?.();
+  };
+
+  const Comp = dynamic(() => rawProps.as ?? "div");
+
+  return (
+    <Comp
+      class={cn(
+        dropdownMenuItemVariants({
+          inset: props.inset,
+          isDisabled: props.isDisabled,
+          layout: props.layout,
+          variant: props.variant,
+        }),
+        props.class
+      )}
+      data-active={isActive() ? "true" : undefined}
+      data-disabled={props.isDisabled ? "true" : undefined}
+      onClick={composeEventHandlers(handleClick, props.onClick)}
+      ref={[
+        (el: HTMLElement) => {
+          itemRef = el;
+        },
+        props.ref,
+      ]}
+      role={props.role}
+      tabindex={-1}
+      {...rest}
+    >
+      {props.children}
+    </Comp>
   );
 }
 
@@ -508,66 +563,31 @@ function DropdownItem<T extends ValidComponent = "div">(
     "variant",
     "onSelect",
     "onClick",
-    "ref"
+    "ref",
+    "role"
   );
   const ctx = useDropdown();
-  const itemId = `dropdown-item-${createUniqueId()}`;
-
-  let itemRef: HTMLElement | undefined;
-
-  onSettled(() => {
-    if (itemRef) {
-      ctx.registerItem(itemId);
-    }
-    return () => {
-      ctx.unregisterItem(itemId);
-    };
-  });
-
-  const isActive = () => {
-    const items = ctx.itemIds();
-    return items.indexOf(itemId) === ctx.activeIndex();
-  };
-
-  const handleClick = () => {
-    if (props.isDisabled) {
-      return;
-    }
-    props.onSelect?.();
-    ctx.close();
-  };
-
-  const Comp = dynamic(() => rawProps.as ?? "div");
 
   return (
-    <Comp
-      class={cn(
-        "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 relative flex min-h-7 cursor-pointer items-center gap-1.5 rounded-sm px-2 py-1 text-xs transition-colors outline-none select-none focus-visible:ring-3 aria-invalid:ring-3",
-        "pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:py-2.5",
-        "hover:bg-surface-variant hover:text-on-surface",
-        "data-[active=true]:bg-surface-variant data-[active=true]:text-on-surface",
-        props.inset && "pl-7",
-        props.variant === "destructive" &&
-          "text-error hover:text-error data-[active=true]:text-error",
-        props.isDisabled && "pointer-events-none cursor-default opacity-50",
-        props.class
-      )}
-      data-active={isActive() ? "true" : undefined}
-      data-disabled={props.isDisabled}
+    <DropdownMenuItemBase<"div">
+      as={rawProps.as ?? "div"}
+      class={props.class}
       data-variant={props.variant}
-      onClick={composeEventHandlers(handleClick, props.onClick)}
-      ref={[
-        (el: HTMLElement) => {
-          itemRef = el;
-        },
-        props.ref,
-      ]}
+      idPrefix="dropdown-item"
+      inset={props.inset}
+      isDisabled={props.isDisabled}
+      onActivate={() => {
+        props.onSelect?.();
+        ctx.close();
+      }}
+      onClick={props.onClick}
+      ref={props.ref}
       role="menuitem"
-      tabindex={-1}
+      variant={props.variant}
       {...rest}
     >
       {props.children}
-    </Comp>
+    </DropdownMenuItemBase>
   );
 }
 
@@ -607,31 +627,11 @@ function DropdownCheckboxItem(
     "onCheckedChange",
     "onClick",
     "onKeyDown",
-    "ref"
+    "ref",
+    "role"
   );
-  const ctx = useDropdown();
-  const itemId = `dropdown-checkbox-${createUniqueId()}`;
 
-  let itemRef: HTMLDivElement | undefined;
-
-  onSettled(() => {
-    if (itemRef) {
-      ctx.registerItem(itemId);
-    }
-    return () => {
-      ctx.unregisterItem(itemId);
-    };
-  });
-
-  const isActive = () => {
-    const items = ctx.itemIds();
-    return items.indexOf(itemId) === ctx.activeIndex();
-  };
-
-  const handleClick = () => {
-    if (props.isDisabled) {
-      return;
-    }
+  const toggleChecked = () => {
     props.onCheckedChange?.(!props.isChecked);
   };
 
@@ -641,35 +641,24 @@ function DropdownCheckboxItem(
     }
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      props.onCheckedChange?.(!props.isChecked);
+      toggleChecked();
     }
   };
 
   return (
-    // biome-ignore lint/a11y/useFocusableInteractive: Solid 2 uses lowercase tabindex attribute
-    <div
+    <DropdownMenuItemBase
       aria-checked={props.isChecked ? "true" : "false"}
-      class={cn(
-        "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 relative flex cursor-pointer items-center gap-1.5 rounded-sm py-1 pr-8 pl-1.5 text-xs transition-colors outline-none select-none focus-visible:ring-3 aria-invalid:ring-3",
-        "pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:py-2.5",
-        "hover:bg-surface-variant hover:text-on-surface",
-        "data-[active=true]:bg-surface-variant data-[active=true]:text-on-surface",
-        props.inset && "pl-7",
-        props.isDisabled && "pointer-events-none cursor-default opacity-50",
-        props.class
-      )}
-      data-active={isActive() ? "true" : undefined}
-      data-disabled={props.isDisabled}
-      onClick={composeEventHandlers(handleClick, props.onClick)}
+      as="div"
+      class={props.class}
+      idPrefix="dropdown-checkbox"
+      inset={props.inset}
+      isDisabled={props.isDisabled}
+      layout="checkbox"
+      onActivate={toggleChecked}
+      onClick={props.onClick}
       onKeyDown={composeEventHandlers(handleKeyDown, props.onKeyDown)}
-      ref={[
-        (el: HTMLDivElement) => {
-          itemRef = el;
-        },
-        props.ref,
-      ]}
+      ref={props.ref}
       role="menuitemcheckbox"
-      tabindex={-1}
       {...rest}
     >
       <span
@@ -681,7 +670,7 @@ function DropdownCheckboxItem(
         </Show>
       </span>
       {props.children}
-    </div>
+    </DropdownMenuItemBase>
   );
 }
 
@@ -725,63 +714,29 @@ function DropdownLink<T extends ValidComponent = "a">(
     "inset",
     "onSelect",
     "onClick",
-    "ref"
+    "ref",
+    "role"
   );
   const ctx = useDropdown();
-  const itemId = `dropdown-link-${createUniqueId()}`;
-
-  let itemRef: HTMLElement | undefined;
-
-  onSettled(() => {
-    if (itemRef) {
-      ctx.registerItem(itemId);
-    }
-    return () => {
-      ctx.unregisterItem(itemId);
-    };
-  });
-
-  const isActive = () => {
-    const items = ctx.itemIds();
-    return items.indexOf(itemId) === ctx.activeIndex();
-  };
-
-  const handleClick = () => {
-    if (props.isDisabled) {
-      return;
-    }
-    props.onSelect?.();
-    ctx.close();
-  };
-
-  const Comp = dynamic(() => rawProps.as ?? "a");
 
   return (
-    <Comp
-      class={cn(
-        "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 relative flex min-h-7 cursor-pointer items-center gap-1.5 rounded-sm px-2 py-1 text-xs transition-colors outline-none select-none focus-visible:ring-3 aria-invalid:ring-3",
-        "pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:py-2.5",
-        "hover:bg-surface-variant hover:text-on-surface",
-        "data-[active=true]:bg-surface-variant data-[active=true]:text-on-surface",
-        props.inset && "pl-7",
-        props.isDisabled && "pointer-events-none cursor-default opacity-50",
-        props.class
-      )}
-      data-active={isActive() ? "true" : undefined}
-      data-disabled={props.isDisabled}
-      onClick={composeEventHandlers(handleClick, props.onClick)}
-      ref={[
-        (el: HTMLElement) => {
-          itemRef = el;
-        },
-        props.ref,
-      ]}
+    <DropdownMenuItemBase<"a">
+      as={rawProps.as ?? "a"}
+      class={props.class}
+      idPrefix="dropdown-link"
+      inset={props.inset}
+      isDisabled={props.isDisabled}
+      onActivate={() => {
+        props.onSelect?.();
+        ctx.close();
+      }}
+      onClick={props.onClick}
+      ref={props.ref}
       role="menuitem"
-      tabindex={-1}
       {...rest}
     >
       {props.children}
-    </Comp>
+    </DropdownMenuItemBase>
   );
 }
 

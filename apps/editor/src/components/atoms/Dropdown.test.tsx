@@ -1114,4 +1114,48 @@ describe("Dropdown", () => {
       );
     });
   });
+
+  describe("Disabled state", () => {
+    it("prevents Item and CheckboxItem activation when isDisabled is true", async () => {
+      const handleSelect = vi.fn();
+      const handleCheckedChange = vi.fn();
+
+      render(() => (
+        <Dropdown.Root>
+          <Dropdown.Trigger>Menu</Dropdown.Trigger>
+          <Dropdown.Portal>
+            <Dropdown.Content>
+              <Dropdown.Item isDisabled onSelect={handleSelect}>
+                Disabled Item
+              </Dropdown.Item>
+              <Dropdown.CheckboxItem
+                isChecked={false}
+                isDisabled
+                onCheckedChange={handleCheckedChange}
+              >
+                Disabled Checkbox
+              </Dropdown.CheckboxItem>
+            </Dropdown.Content>
+          </Dropdown.Portal>
+        </Dropdown.Root>
+      ));
+
+      fireEvent.click(screen.getByText("Menu"));
+      await Promise.resolve();
+
+      const item = screen.getByText("Disabled Item");
+      const checkbox = screen.getByText("Disabled Checkbox");
+      expect(item.getAttribute("data-disabled")).toBe("true");
+      expect(checkbox.getAttribute("data-disabled")).toBe("true");
+
+      fireEvent.click(item);
+      fireEvent.click(checkbox);
+      fireEvent.keyDown(checkbox, { key: "Enter" });
+      await Promise.resolve();
+
+      expect(handleSelect).not.toHaveBeenCalled();
+      expect(handleCheckedChange).not.toHaveBeenCalled();
+      expect(screen.queryByRole("menu")).not.toBeNull();
+    });
+  });
 });
