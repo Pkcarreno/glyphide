@@ -4,12 +4,7 @@ import { omit } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { cn } from "../../helpers/cn.ts";
 import { Button } from "../atoms/Button.tsx";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "../molecules/Dialog.tsx";
+import { Dialog } from "../atoms/Dialog.tsx";
 
 interface TrustRequiredModalProps
   extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "children"> {
@@ -33,18 +28,18 @@ export function TrustRequiredModal(props: VoidProps<TrustRequiredModalProps>) {
   };
 
   return (
-    <Dialog
+    <Dialog.Root
       isOpen={core.overlays.isOpen("trust-required")}
       onOpenChange={handleOpenChange}
     >
-      <DialogContent
+      <Dialog.Content
         class={cn("w-full max-w-md overflow-hidden p-0", props.class)}
         preventBackdropClose
         {...rest}
       >
-        <DialogHeader>
-          <DialogTitle>Trust Required</DialogTitle>
-        </DialogHeader>
+        <Dialog.Header>
+          <Dialog.Title>Trust Required</Dialog.Title>
+        </Dialog.Header>
 
         <div class="bg-surface flex flex-col gap-4 px-5 py-6">
           <p class="text-on-surface-variant text-sm leading-relaxed">
@@ -77,7 +72,7 @@ export function TrustRequiredModal(props: VoidProps<TrustRequiredModalProps>) {
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </Dialog.Content>
+    </Dialog.Root>
   );
 }

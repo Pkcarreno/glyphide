@@ -4,15 +4,9 @@ import { createSignal, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type { FileReadResult } from "../../core/ports/file-io.ts";
 import { Button } from "../atoms/Button.tsx";
+import { Dialog } from "../atoms/Dialog.tsx";
 import { FileDrop } from "../atoms/FileDrop.tsx";
 import { Icon } from "../atoms/Icon.tsx";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "../molecules/Dialog.tsx";
 
 function formatAllowedExtensions(extensions: readonly string[]): string {
   if (extensions.length === 0) {
@@ -126,17 +120,17 @@ export function LoadFileModal(_props: VoidProps) {
   }
 
   return (
-    <Dialog
+    <Dialog.Root
       isOpen={core.overlays.isOpen("load-file")}
       onOpenChange={handleOpenChange}
     >
-      <DialogContent class="w-full max-w-md overflow-hidden p-0">
-        <DialogHeader>
-          <DialogTitle>Load Project from File</DialogTitle>
-          <DialogClose aria-label="Close load file dialog">
+      <Dialog.Content class="w-full max-w-md overflow-hidden p-0">
+        <Dialog.Header>
+          <Dialog.Title>Load Project from File</Dialog.Title>
+          <Dialog.Close aria-label="Close load file dialog">
             <Icon icon={X} size={16} />
-          </DialogClose>
-        </DialogHeader>
+          </Dialog.Close>
+        </Dialog.Header>
 
         <div class="bg-surface flex flex-col gap-5 px-5 py-6">
           <FileDrop
@@ -185,7 +179,7 @@ export function LoadFileModal(_props: VoidProps) {
             </Button>
           </Show>
         </div>
-      </DialogContent>
-    </Dialog>
+      </Dialog.Content>
+    </Dialog.Root>
   );
 }

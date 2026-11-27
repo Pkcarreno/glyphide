@@ -1,40 +1,27 @@
 import { cleanup, render } from "@solidjs/testing-library";
-import { createSignal, flush, resetErrorHalt } from "solid-js";
+import type { JSX } from "@solidjs/web";
+import type { ParentProps } from "solid-js";
+import { createSignal, flush, omit, resetErrorHalt } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogHeader,
-  DialogOverlay,
-  DialogTitle,
-  DialogTrigger,
-  useDialog,
-} from "./Dialog.tsx";
+import { Dialog, useDialog } from "./Dialog.tsx";
 
 afterEach(() => {
   cleanup();
   resetErrorHalt();
 });
 
-vi.mock("../../core/context", () => ({
-  useEditor: () => ({
-    shortcuts: { bindings: [], getBinding: () => undefined },
-  }),
-}));
-
 function renderDialog(defaultOpen = false) {
   return render(() => (
-    <Dialog defaultOpen={defaultOpen}>
-      <DialogTrigger data-testid="trigger">Open</DialogTrigger>
-      <DialogContent data-testid="content">
-        <DialogHeader>
-          <DialogTitle>Title</DialogTitle>
-          <DialogClose data-testid="close-btn">X</DialogClose>
-        </DialogHeader>
+    <Dialog.Root defaultOpen={defaultOpen}>
+      <Dialog.Trigger data-testid="trigger">Open</Dialog.Trigger>
+      <Dialog.Content data-testid="content">
+        <Dialog.Header>
+          <Dialog.Title>Title</Dialog.Title>
+          <Dialog.Close data-testid="close-btn">X</Dialog.Close>
+        </Dialog.Header>
         <p>Body content</p>
-      </DialogContent>
-    </Dialog>
+      </Dialog.Content>
+    </Dialog.Root>
   ));
 }
 
@@ -71,10 +58,10 @@ describe("Dialog", () => {
   it("when onOpenChange is provided, fires on open", () => {
     const handler = vi.fn();
     const { getByTestId } = render(() => (
-      <Dialog onOpenChange={handler}>
-        <DialogTrigger data-testid="trigger">Open</DialogTrigger>
-        <DialogContent>Content</DialogContent>
-      </Dialog>
+      <Dialog.Root onOpenChange={handler}>
+        <Dialog.Trigger data-testid="trigger">Open</Dialog.Trigger>
+        <Dialog.Content>Content</Dialog.Content>
+      </Dialog.Root>
     ));
     getByTestId("trigger").click();
     expect(handler).toHaveBeenCalledWith(true);
@@ -83,12 +70,12 @@ describe("Dialog", () => {
   it("when onOpenChange is provided, fires on close", () => {
     const handler = vi.fn();
     const { getByTestId } = render(() => (
-      <Dialog defaultOpen onOpenChange={handler}>
-        <DialogTrigger>Open</DialogTrigger>
-        <DialogContent>
-          <DialogClose data-testid="close-btn">X</DialogClose>
-        </DialogContent>
-      </Dialog>
+      <Dialog.Root defaultOpen onOpenChange={handler}>
+        <Dialog.Trigger>Open</Dialog.Trigger>
+        <Dialog.Content>
+          <Dialog.Close data-testid="close-btn">X</Dialog.Close>
+        </Dialog.Content>
+      </Dialog.Root>
     ));
     getByTestId("close-btn").click();
     expect(handler).toHaveBeenCalledWith(false);
@@ -97,10 +84,10 @@ describe("Dialog", () => {
   it("when used as controlled, reflects external state", () => {
     const [isOpen, setIsOpen] = createSignal(false);
     const { queryByRole } = render(() => (
-      <Dialog isOpen={isOpen()} onOpenChange={setIsOpen}>
-        <DialogTrigger data-testid="trigger">Open</DialogTrigger>
-        <DialogContent>Controlled</DialogContent>
-      </Dialog>
+      <Dialog.Root isOpen={isOpen()} onOpenChange={setIsOpen}>
+        <Dialog.Trigger data-testid="trigger">Open</Dialog.Trigger>
+        <Dialog.Content>Controlled</Dialog.Content>
+      </Dialog.Root>
     ));
     expect(queryByRole("dialog")).toBeNull();
     setIsOpen(true);
@@ -113,9 +100,9 @@ describe("Dialog", () => {
 
   it("when dialog content has custom class, merges it", () => {
     const { getByRole } = render(() => (
-      <Dialog defaultOpen>
-        <DialogContent class="max-w-lg">Styled</DialogContent>
-      </Dialog>
+      <Dialog.Root defaultOpen>
+        <Dialog.Content class="max-w-lg">Styled</Dialog.Content>
+      </Dialog.Root>
     ));
     const dialog = getByRole("dialog");
     expect(dialog.className).toContain("max-w-lg");
@@ -124,9 +111,9 @@ describe("Dialog", () => {
 
   it("when dialog content is open, uses shadow-md and ring-1 instead of border", () => {
     const { getByRole } = render(() => (
-      <Dialog defaultOpen>
-        <DialogContent>Content</DialogContent>
-      </Dialog>
+      <Dialog.Root defaultOpen>
+        <Dialog.Content>Content</Dialog.Content>
+      </Dialog.Root>
     ));
     const dialog = getByRole("dialog");
     expect(dialog.className).toContain("shadow-md");
@@ -135,11 +122,32 @@ describe("Dialog", () => {
     expect(dialog.className).toContain("p-4");
   });
 
+  it("centers dialog content by default and supports align='top'", () => {
+    const [align, setAlign] = createSignal<"center" | "top">("center");
+    const { getByRole } = render(() => (
+      <Dialog.Root defaultOpen>
+        <Dialog.Content align={align()}>Aligned</Dialog.Content>
+      </Dialog.Root>
+    ));
+
+    const getWrapper = () => getByRole("dialog").parentElement as HTMLElement;
+    expect(getWrapper().className).toContain("items-center");
+    expect(getWrapper().className).toContain("p-4");
+    expect(getWrapper().className).not.toContain("pt-[15vh]");
+
+    setAlign("top");
+    flush();
+
+    expect(getWrapper().className).toContain("items-start");
+    expect(getWrapper().className).toContain("pt-[15vh]");
+    expect(getWrapper().className).not.toContain("items-center");
+  });
+
   it("when dialog is open, overlay has bg-transparent and no backdrop-blur", () => {
     const { container } = render(() => (
-      <Dialog defaultOpen>
-        <DialogContent>Content</DialogContent>
-      </Dialog>
+      <Dialog.Root defaultOpen>
+        <Dialog.Content>Content</Dialog.Content>
+      </Dialog.Root>
     ));
     const overlay = container.querySelector(
       '[aria-hidden="true"]'
@@ -152,30 +160,28 @@ describe("Dialog", () => {
   it("when preventBackdropClose is true, clicking backdrop does not close dialog", () => {
     const handler = vi.fn();
     const { container } = render(() => (
-      <Dialog defaultOpen onOpenChange={handler}>
-        <DialogContent preventBackdropClose>
+      <Dialog.Root defaultOpen onOpenChange={handler}>
+        <Dialog.Content preventBackdropClose>
           <p>Cannot dismiss via backdrop</p>
-        </DialogContent>
-      </Dialog>
+        </Dialog.Content>
+      </Dialog.Root>
     ));
-    // Find the backdrop overlay button
     const overlay = container.querySelector('[aria-hidden="true"]');
     expect(overlay).not.toBeNull();
     if (overlay) {
       overlay.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     }
-    // onOpenChange should NOT have been called with false (dialog should NOT close)
     expect(handler).not.toHaveBeenCalledWith(false);
   });
 
   it("when preventBackdropClose is not set, clicking backdrop closes dialog", () => {
     const handler = vi.fn();
     const { container } = render(() => (
-      <Dialog defaultOpen onOpenChange={handler}>
-        <DialogContent>
+      <Dialog.Root defaultOpen onOpenChange={handler}>
+        <Dialog.Content>
           <p>Can dismiss via backdrop</p>
-        </DialogContent>
-      </Dialog>
+        </Dialog.Content>
+      </Dialog.Root>
     ));
     const overlay = container.querySelector('[aria-hidden="true"]');
     expect(overlay).not.toBeNull();
@@ -185,12 +191,12 @@ describe("Dialog", () => {
     expect(handler).toHaveBeenCalledWith(false);
   });
 
-  it("chains caller onClick and forwards ref on DialogTrigger", () => {
+  it("chains caller onClick and forwards ref on Dialog.Trigger", () => {
     const callerClick = vi.fn();
     let triggerEl: HTMLButtonElement | undefined;
     const { getByTestId, queryByRole } = render(() => (
-      <Dialog>
-        <DialogTrigger
+      <Dialog.Root>
+        <Dialog.Trigger
           data-testid="trigger"
           onClick={callerClick}
           ref={(el) => {
@@ -198,9 +204,9 @@ describe("Dialog", () => {
           }}
         >
           Open
-        </DialogTrigger>
-        <DialogContent>Content</DialogContent>
-      </Dialog>
+        </Dialog.Trigger>
+        <Dialog.Content>Content</Dialog.Content>
+      </Dialog.Root>
     ));
 
     expect(triggerEl).toBe(getByTestId("trigger"));
@@ -209,13 +215,13 @@ describe("Dialog", () => {
     expect(queryByRole("dialog")).not.toBeNull();
   });
 
-  it("chains caller onClick and forwards ref on DialogClose", () => {
+  it("chains caller onClick and forwards ref on Dialog.Close", () => {
     const callerClick = vi.fn();
     let closeEl: HTMLButtonElement | undefined;
     const { getByTestId, queryByRole } = render(() => (
-      <Dialog defaultOpen>
-        <DialogContent>
-          <DialogClose
+      <Dialog.Root defaultOpen>
+        <Dialog.Content>
+          <Dialog.Close
             data-testid="close-btn"
             onClick={callerClick}
             ref={(el) => {
@@ -223,31 +229,71 @@ describe("Dialog", () => {
             }}
           >
             Close
-          </DialogClose>
-        </DialogContent>
-      </Dialog>
+          </Dialog.Close>
+        </Dialog.Content>
+      </Dialog.Root>
     ));
 
     expect(closeEl).toBe(getByTestId("close-btn"));
+    expect(closeEl?.tagName).toBe("BUTTON");
+    expect(closeEl?.getAttribute("type")).toBe("button");
     getByTestId("close-btn").click();
     expect(callerClick).toHaveBeenCalledOnce();
     expect(queryByRole("dialog")).toBeNull();
   });
 
-  it("chains caller onClick and forwards ref on DialogOverlay", () => {
+  it("Dialog.Close supports polymorphic as prop with intrinsic tags and custom components", () => {
+    function CustomClose(
+      props: ParentProps<JSX.HTMLAttributes<HTMLButtonElement>>
+    ) {
+      const rest = omit(props, "children");
+      return (
+        <button data-custom="true" type="button" {...rest}>
+          {props.children}
+        </button>
+      );
+    }
+
+    const { getByTestId, queryByRole } = render(() => (
+      <Dialog.Root defaultOpen>
+        <Dialog.Content>
+          <Dialog.Close as="a" data-testid="close-link" href="#closed">
+            Cancel link
+          </Dialog.Close>
+          <Dialog.Close as={CustomClose} data-testid="close-custom">
+            Custom close
+          </Dialog.Close>
+        </Dialog.Content>
+      </Dialog.Root>
+    ));
+
+    const link = getByTestId("close-link");
+    expect(link.tagName).toBe("A");
+    expect(link.getAttribute("type")).toBeNull();
+    expect(link.getAttribute("href")).toBe("#closed");
+
+    const custom = getByTestId("close-custom");
+    expect(custom.tagName).toBe("BUTTON");
+    expect(custom.getAttribute("data-custom")).toBe("true");
+
+    custom.click();
+    expect(queryByRole("dialog")).toBeNull();
+  });
+
+  it("chains caller onClick and forwards ref on Dialog.Overlay", () => {
     const callerClick = vi.fn();
     let overlayEl: HTMLButtonElement | undefined;
     const onOpenChange = vi.fn();
     const { getByTestId } = render(() => (
-      <Dialog defaultOpen onOpenChange={onOpenChange}>
-        <DialogOverlay
+      <Dialog.Root defaultOpen onOpenChange={onOpenChange}>
+        <Dialog.Overlay
           data-testid="overlay"
           onClick={callerClick}
           ref={(el) => {
             overlayEl = el;
           }}
         />
-      </Dialog>
+      </Dialog.Root>
     ));
 
     expect(overlayEl).toBe(getByTestId("overlay"));
@@ -260,11 +306,11 @@ describe("Dialog", () => {
     const handler = vi.fn();
     const [preventBackdropClose, setPreventBackdropClose] = createSignal(true);
     const { container } = render(() => (
-      <Dialog defaultOpen onOpenChange={handler}>
-        <DialogContent preventBackdropClose={preventBackdropClose()}>
+      <Dialog.Root defaultOpen onOpenChange={handler}>
+        <Dialog.Content preventBackdropClose={preventBackdropClose()}>
           <p>Reactive backdrop</p>
-        </DialogContent>
-      </Dialog>
+        </Dialog.Content>
+      </Dialog.Root>
     ));
 
     const overlay = container.querySelector('[aria-hidden="true"]');
@@ -280,16 +326,16 @@ describe("Dialog", () => {
   });
 });
 
-describe("DialogTitle", () => {
+describe("Dialog.Title", () => {
   it("when rendered with default settings, renders an h2 element with the title text", () => {
     const { getByRole } = render(() => (
-      <Dialog defaultOpen>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Default Title</DialogTitle>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <Dialog.Root defaultOpen>
+        <Dialog.Content>
+          <Dialog.Header>
+            <Dialog.Title>Default Title</Dialog.Title>
+          </Dialog.Header>
+        </Dialog.Content>
+      </Dialog.Root>
     ));
     const heading = getByRole("heading", { level: 2 });
     expect(heading.textContent).toBe("Default Title");
@@ -297,13 +343,13 @@ describe("DialogTitle", () => {
 
   it("when as prop is h3, renders an h3 element with the title text", () => {
     const { getByRole } = render(() => (
-      <Dialog defaultOpen>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle as="h3">Sub Title</DialogTitle>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <Dialog.Root defaultOpen>
+        <Dialog.Content>
+          <Dialog.Header>
+            <Dialog.Title as="h3">Sub Title</Dialog.Title>
+          </Dialog.Header>
+        </Dialog.Content>
+      </Dialog.Root>
     ));
     const heading = getByRole("heading", { level: 3 });
     expect(heading.textContent).toBe("Sub Title");
@@ -311,13 +357,13 @@ describe("DialogTitle", () => {
 
   it("when rendered, applies default typography classes (font-semibold, text-on-surface, text-sm, tracking-wide)", () => {
     const { getByRole } = render(() => (
-      <Dialog defaultOpen>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Title</DialogTitle>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <Dialog.Root defaultOpen>
+        <Dialog.Content>
+          <Dialog.Header>
+            <Dialog.Title>Title</Dialog.Title>
+          </Dialog.Header>
+        </Dialog.Content>
+      </Dialog.Root>
     ));
     const heading = getByRole("heading", { level: 2 });
     expect(heading.className).toContain("font-semibold");
@@ -328,13 +374,13 @@ describe("DialogTitle", () => {
 
   it("when class prop is provided, merges it with the default classes", () => {
     const { getByRole } = render(() => (
-      <Dialog defaultOpen>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle class="mb-2">Title</DialogTitle>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <Dialog.Root defaultOpen>
+        <Dialog.Content>
+          <Dialog.Header>
+            <Dialog.Title class="mb-2">Title</Dialog.Title>
+          </Dialog.Header>
+        </Dialog.Content>
+      </Dialog.Root>
     ));
     const heading = getByRole("heading", { level: 2 });
     expect(heading.className).toContain("font-semibold");
@@ -343,28 +389,28 @@ describe("DialogTitle", () => {
 
   it("when as prop is an invalid heading value, still renders without throwing", () => {
     const { queryByText } = render(() => (
-      <Dialog defaultOpen>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle as="div">Div Title</DialogTitle>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <Dialog.Root defaultOpen>
+        <Dialog.Content>
+          <Dialog.Header>
+            <Dialog.Title as="div">Div Title</Dialog.Title>
+          </Dialog.Header>
+        </Dialog.Content>
+      </Dialog.Root>
     ));
     expect(queryByText("Div Title")).toBeTruthy();
   });
 
   it("when children include JSX elements, renders them inside the heading", () => {
     const { getByRole } = render(() => (
-      <Dialog defaultOpen>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
+      <Dialog.Root defaultOpen>
+        <Dialog.Content>
+          <Dialog.Header>
+            <Dialog.Title>
               <span>Icon</span> Title
-            </DialogTitle>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+            </Dialog.Title>
+          </Dialog.Header>
+        </Dialog.Content>
+      </Dialog.Root>
     ));
     const heading = getByRole("heading", { level: 2 });
     expect(heading.textContent).toBe("Icon Title");
@@ -374,13 +420,13 @@ describe("DialogTitle", () => {
   it("reactively updates heading tag when as prop changes", () => {
     const [tag, setTag] = createSignal<"h2" | "h3">("h2");
     const { getByRole, queryByRole } = render(() => (
-      <Dialog defaultOpen>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle as={tag()}>Dynamic Title</DialogTitle>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <Dialog.Root defaultOpen>
+        <Dialog.Content>
+          <Dialog.Header>
+            <Dialog.Title as={tag()}>Dynamic Title</Dialog.Title>
+          </Dialog.Header>
+        </Dialog.Content>
+      </Dialog.Root>
     ));
 
     expect(getByRole("heading", { level: 2 }).textContent).toBe(
@@ -398,18 +444,17 @@ describe("DialogTitle", () => {
   });
 });
 
-describe("DialogHeader default classes", () => {
+describe("Dialog.Header default classes", () => {
   it("when rendered without overrides, includes px-5 py-4 bg-surface border-b border-outline-variant", () => {
     const { getByRole } = render(() => (
-      <Dialog defaultOpen>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Title</DialogTitle>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <Dialog.Root defaultOpen>
+        <Dialog.Content>
+          <Dialog.Header>
+            <Dialog.Title>Title</Dialog.Title>
+          </Dialog.Header>
+        </Dialog.Content>
+      </Dialog.Root>
     ));
-    // DialogHeader is the parent of the heading
     const heading = getByRole("heading", { level: 2 });
     const header = heading.parentElement as HTMLElement;
     expect(header.className).toContain("px-5");
@@ -421,24 +466,23 @@ describe("DialogHeader default classes", () => {
 
   it("when consumer class overrides padding, the consumer value wins via cn merge", () => {
     const { getByRole } = render(() => (
-      <Dialog defaultOpen>
-        <DialogContent>
-          <DialogHeader class="px-3">
-            <DialogTitle>Title</DialogTitle>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <Dialog.Root defaultOpen>
+        <Dialog.Content>
+          <Dialog.Header class="px-3">
+            <Dialog.Title>Title</Dialog.Title>
+          </Dialog.Header>
+        </Dialog.Content>
+      </Dialog.Root>
     ));
     const heading = getByRole("heading", { level: 2 });
     const header = heading.parentElement as HTMLElement;
     expect(header.className).toContain("px-3");
-    // py-4 should remain because consumer only overrode px
     expect(header.className).toContain("py-4");
   });
 });
 
 describe("Dialog context contract", () => {
-  it("throws native ContextNotFoundError when useDialog is called outside Dialog", () => {
+  it("throws native ContextNotFoundError when useDialog is called outside Dialog.Root", () => {
     function OrphanConsumer() {
       useDialog();
       return null;

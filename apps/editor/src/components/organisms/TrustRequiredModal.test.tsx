@@ -78,7 +78,7 @@ describe("TrustRequiredModal", () => {
     const { container, getByRole } = render(() => <TrustRequiredModal />);
     expect(getByRole("dialog")).toBeTruthy();
 
-    // Find the backdrop overlay (aria-hidden button rendered by DialogOverlay)
+    // Find the backdrop overlay (aria-hidden button rendered by Dialog.Overlay)
     const overlay = container.querySelector('[aria-hidden="true"]');
     expect(overlay).not.toBeNull();
     if (overlay) {

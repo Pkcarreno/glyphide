@@ -5,12 +5,12 @@ import { createUniqueId, For, merge, omit, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { DEFAULT_SETTINGS } from "../../core/models/settings.ts";
 import { cn } from "../../helpers/cn.ts";
+import { Dialog } from "../atoms/Dialog.tsx";
 import { Icon } from "../atoms/Icon.tsx";
 import { Select } from "../atoms/Select.tsx";
 import { StepperInput } from "../atoms/StepperInput.tsx";
 import { Switch } from "../atoms/Switch.tsx";
 import { Tabs } from "../atoms/Tabs.tsx";
-import { Dialog, DialogClose, DialogContent } from "../molecules/Dialog.tsx";
 
 /* ---------- Internal Composables ---------- */
 
@@ -159,23 +159,23 @@ function SettingsModal(props: VoidProps<SettingsModalProps>) {
   };
 
   return (
-    <Dialog
+    <Dialog.Root
       isOpen={core.overlays.isOpen("settings")}
       onOpenChange={handleOpenChange}
     >
-      <DialogContent
+      <Dialog.Content
         class={cn(
           "relative flex h-[80vh] w-full max-w-3xl flex-col overflow-hidden p-0 md:flex-row",
           props.class
         )}
         {...rest}
       >
-        <DialogClose
+        <Dialog.Close
           aria-label="Close settings"
           class="absolute top-3 right-3 z-10"
         >
           <Icon icon={X} size={16} />
-        </DialogClose>
+        </Dialog.Close>
 
         <Tabs.Root
           class="flex h-full w-full flex-col overflow-hidden md:flex-row"
@@ -397,8 +397,8 @@ function SettingsModal(props: VoidProps<SettingsModalProps>) {
             </div>
           </div>
         </Tabs.Root>
-      </DialogContent>
-    </Dialog>
+      </Dialog.Content>
+    </Dialog.Root>
   );
 }
 

@@ -13,15 +13,9 @@ import {
 } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { Button } from "../atoms/Button.tsx";
+import { Dialog } from "../atoms/Dialog.tsx";
 import { Icon } from "../atoms/Icon.tsx";
 import { StepperInput } from "../atoms/StepperInput.tsx";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "../molecules/Dialog.tsx";
 
 /* ---------- Internal Components ---------- */
 
@@ -228,17 +222,17 @@ function EngineSettingsModal(_props: VoidProps) {
   };
 
   return (
-    <Dialog
+    <Dialog.Root
       isOpen={core.overlays.isOpen("engine-settings")}
       onOpenChange={handleOpenChange}
     >
-      <DialogContent class="max-w-xs p-0">
-        <DialogHeader>
-          <DialogTitle>Engine Settings</DialogTitle>
-          <DialogClose aria-label="Close engine settings">
+      <Dialog.Content class="max-w-xs p-0">
+        <Dialog.Header>
+          <Dialog.Title>Engine Settings</Dialog.Title>
+          <Dialog.Close aria-label="Close engine settings">
             <Icon icon={X} size={16} />
-          </DialogClose>
-        </DialogHeader>
+          </Dialog.Close>
+        </Dialog.Header>
         <Errored
           fallback={
             <EngineSettingsForm
@@ -258,8 +252,8 @@ function EngineSettingsModal(_props: VoidProps) {
             <EngineSettingsContent />
           </Loading>
         </Errored>
-      </DialogContent>
-    </Dialog>
+      </Dialog.Content>
+    </Dialog.Root>
   );
 }
 

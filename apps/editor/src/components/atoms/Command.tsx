@@ -23,7 +23,7 @@ import { cn } from "../../helpers/cn.ts";
 import { composeEventHandlers } from "../../helpers/compose-event-handlers.ts";
 import { createAutoFocus } from "../../helpers/create-auto-focus.ts";
 import { hasResolvedChildren } from "../../helpers/has-resolved-children.ts";
-import { Dialog, useDialog } from "../molecules/Dialog.tsx";
+import { Dialog, useDialog } from "./Dialog.tsx";
 import { Icon } from "./Icon.tsx";
 import type { InputProps } from "./Input.tsx";
 import { Input } from "./Input.tsx";
@@ -424,10 +424,10 @@ export function CommandDialog(
   }>
 ) {
   return (
-    <Dialog isOpen={props.isOpen} onOpenChange={props.onOpenChange}>
+    <Dialog.Root isOpen={props.isOpen} onOpenChange={props.onOpenChange}>
       <CommandDialogContent class={props.class}>
         {props.children}
       </CommandDialogContent>
-    </Dialog>
+    </Dialog.Root>
   );
 }

@@ -2,8 +2,8 @@ import type { VoidProps } from "solid-js";
 import { createSignal, Show, untrack } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { createAutoFocus } from "../../helpers/create-auto-focus.ts";
+import { Dialog, useDialog } from "../atoms/Dialog.tsx";
 import { Input } from "../atoms/Input.tsx";
-import { Dialog, useDialog } from "../molecules/Dialog.tsx";
 
 function ProjectRenameOverlay(_props: VoidProps) {
   const { close } = useDialog();
@@ -87,11 +87,11 @@ export function ProjectRenameModal(_props: VoidProps) {
   };
 
   return (
-    <Dialog
+    <Dialog.Root
       isOpen={core.overlays.isOpen("project-rename")}
       onOpenChange={handleOpenChange}
     >
       <ProjectRenameContent />
-    </Dialog>
+    </Dialog.Root>
   );
 }
