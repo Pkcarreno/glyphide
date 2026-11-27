@@ -33,16 +33,12 @@ const TabsContext = createContext<TabsContextValue>();
 
 /**
  * Retrieves the Tabs context.
- * Throws if used outside a Tabs.Root.
+ * Throws `ContextNotFoundError` if used outside `<Tabs.Root>`.
  *
  * @public
  */
 export function useTabs(): TabsContextValue {
-  const ctx = useContext(TabsContext);
-  if (!ctx) {
-    throw new Error("Tabs compound components must be used within <Tabs.Root>");
-  }
-  return ctx;
+  return useContext(TabsContext);
 }
 
 /* ---------- Root ---------- */

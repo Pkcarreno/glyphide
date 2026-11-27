@@ -1,6 +1,6 @@
-import { render } from "@solidjs/testing-library";
-import { createSignal, flush } from "solid-js";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, render } from "@solidjs/testing-library";
+import { createSignal, flush, resetErrorHalt } from "solid-js";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   Dialog,
   DialogClose,
@@ -9,7 +9,13 @@ import {
   DialogOverlay,
   DialogTitle,
   DialogTrigger,
+  useDialog,
 } from "./Dialog.tsx";
+
+afterEach(() => {
+  cleanup();
+  resetErrorHalt();
+});
 
 vi.mock("../../core/context", () => ({
   useEditor: () => ({
@@ -379,5 +385,27 @@ describe("DialogHeader default classes", () => {
     expect(header.className).toContain("px-3");
     // py-4 should remain because consumer only overrode px
     expect(header.className).toContain("py-4");
+  });
+});
+
+describe("Dialog context contract", () => {
+  it("throws native ContextNotFoundError when useDialog is called outside Dialog", () => {
+    function OrphanConsumer() {
+      useDialog();
+      return null;
+    }
+
+    let caught: unknown;
+    try {
+      render(() => <OrphanConsumer />);
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(caught).toBeInstanceOf(Error);
+    expect((caught as Error).constructor.name).toBe("ContextNotFoundError");
+    expect((caught as Error).message).toContain(
+      "has no provider above this read"
+    );
   });
 });

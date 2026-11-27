@@ -1,10 +1,11 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
-import { createSignal, flush, Show } from "solid-js";
+import { createSignal, flush, resetErrorHalt, Show } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Tabs } from "./Tabs.tsx";
+import { Tabs, useTabs } from "./Tabs.tsx";
 
 afterEach(() => {
   cleanup();
+  resetErrorHalt();
 });
 
 /** Helper: dispatch a KeyboardEvent with the given key on the element. */
@@ -650,6 +651,28 @@ describe("Tabs", () => {
 
       expect(document.activeElement).toBe(triggerC);
       expect(triggerC.getAttribute("aria-selected")).toBe("true");
+    });
+  });
+
+  describe("Context contract", () => {
+    it("throws native ContextNotFoundError when useTabs is called outside Tabs.Root", () => {
+      function OrphanConsumer() {
+        useTabs();
+        return null;
+      }
+
+      let caught: unknown;
+      try {
+        render(() => <OrphanConsumer />);
+      } catch (error) {
+        caught = error;
+      }
+
+      expect(caught).toBeInstanceOf(Error);
+      expect((caught as Error).constructor.name).toBe("ContextNotFoundError");
+      expect((caught as Error).message).toContain(
+        "has no provider above this read"
+      );
     });
   });
 });

@@ -7,7 +7,7 @@ import type { EditorCore } from "./editor-core.ts";
 import { createEditorCore } from "./editor-core.ts";
 import { parseKeyCombo } from "./shortcuts/registry.ts";
 
-const EditorContext = createContext<EditorCore | null>(null);
+const EditorContext = createContext<EditorCore>();
 
 /**
  * SolidJS provider that creates the `EditorCore` and makes it
@@ -48,12 +48,8 @@ export function EditorProvider(props: { children: JSX.Element }) {
 
 /**
  * Retrieves the `EditorCore` from the nearest `EditorProvider`.
- * Must be called within a component tree wrapped by `EditorProvider`.
+ * Throws `ContextNotFoundError` when called outside `<EditorProvider>`.
  */
 export function useEditor(): EditorCore {
-  const context = useContext(EditorContext);
-  if (!context) {
-    throw new Error("useEditor must be called within an <EditorProvider>.");
-  }
-  return context;
+  return useContext(EditorContext);
 }

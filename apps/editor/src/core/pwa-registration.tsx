@@ -22,7 +22,7 @@ const DEFAULT_PWA_CONTROLLER: PwaUpdateController = {
   updateAvailable: () => false,
 };
 
-const PwaContext = createContext<PwaUpdateController>(DEFAULT_PWA_CONTROLLER);
+const PwaContext = createContext<PwaUpdateController | null>(null);
 
 /**
  * Provider component that bridges the PWA service worker lifecycle into a SolidJS context.
@@ -58,14 +58,5 @@ export function PwaProvider(props: { children: JSX.Element }) {
  * @public
  */
 export function usePwaUpdate(): PwaUpdateController {
-  return useContext(PwaContext);
-}
-
-/**
- * Backward compatibility alias for PwaProvider or legacy mounting.
- *
- * @public
- */
-export function PwaRegistration() {
-  return null;
+  return useContext(PwaContext) ?? DEFAULT_PWA_CONTROLLER;
 }

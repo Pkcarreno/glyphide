@@ -1,6 +1,7 @@
 import { cleanup, render, waitFor } from "@solidjs/testing-library";
 import { createSignal } from "solid-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import * as pwaRegistrationModule from "./pwa-registration.tsx";
 import { PwaProvider, usePwaUpdate } from "./pwa-registration.tsx";
 
 const updateServiceWorkerMock = vi.fn();
@@ -52,6 +53,10 @@ describe("PwaProvider & usePwaUpdate", () => {
 
     expect(host?.isUpdateAvailable()).toBe(false);
     expect(() => host?.applyUpdate()).not.toThrow();
+  });
+
+  it("does not export legacy PwaRegistration", () => {
+    expect("PwaRegistration" in pwaRegistrationModule).toBe(false);
   });
 
   it("mounts PwaProvider and renders children", () => {
