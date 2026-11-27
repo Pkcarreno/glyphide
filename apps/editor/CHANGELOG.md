@@ -1,5 +1,47 @@
 # Changelog
 
+## [3.2.0](https://github.com/Pkcarreno/glyphide/compare/@glyphide/editor-v3.1.3...@glyphide/editor-v3.2.0) (2026-11-27)
+
+
+### Features
+
+* **editor:** declarative WASM engine lifecycle with Loading and Errored boundaries ([#253](https://github.com/Pkcarreno/glyphide/issues/253)) ([a286e4a](https://github.com/Pkcarreno/glyphide/commit/a286e4a29f5082660c9fe5ea5e31e579c4e4a57b))
+* **editor:** declarative WASM engine lifecycle with Loading and Errored boundaries ([#253](https://github.com/Pkcarreno/glyphide/issues/253)) ([70dd595](https://github.com/Pkcarreno/glyphide/commit/70dd595f6c2403c445eba25d7c7e0bdce2a1c7bb))
+* **editor:** load CodeMirror languages with async memo ([#252](https://github.com/Pkcarreno/glyphide/issues/252)) ([0268d82](https://github.com/Pkcarreno/glyphide/commit/0268d82137c0087207e57015a110e6d9e5c4a03e))
+* **editor:** load CodeMirror languages with async memo ([#252](https://github.com/Pkcarreno/glyphide/issues/252)) ([a36ef23](https://github.com/Pkcarreno/glyphide/commit/a36ef23bf7a27b9805667b2ada3db2bcb2c6603a))
+* **editor:** transactional code execution workflow with action and optimistic UI ([#254](https://github.com/Pkcarreno/glyphide/issues/254)) ([d83767a](https://github.com/Pkcarreno/glyphide/commit/d83767a783d522a262973ecc5886937ab82dc975))
+* **editor:** transactional code execution workflow with action and optimistic UI ([#254](https://github.com/Pkcarreno/glyphide/issues/254)) ([6557dcb](https://github.com/Pkcarreno/glyphide/commit/6557dcb6d24bcbd1de5b82c51690a59f52f81551))
+
+
+### Bug Fixes
+
+* **deps:** bump the all group across 1 directory with 11 updates ([9d94f2a](https://github.com/Pkcarreno/glyphide/commit/9d94f2a37b64b5aed1851ac3a84b972874281586))
+* **deps:** bump the all group across 1 directory with 11 updates ([418c176](https://github.com/Pkcarreno/glyphide/commit/418c176fc07891cd88cfc9c84f86827621132e3c))
+* **deps:** bump the all group across 1 directory with 13 updates ([466b07d](https://github.com/Pkcarreno/glyphide/commit/466b07d3ea0afe2bbfb3857c9063952cec0e330b))
+* **deps:** bump the all group across 1 directory with 13 updates ([3192bd5](https://github.com/Pkcarreno/glyphide/commit/3192bd59496e3dde66a86f9c00f50b533be074a6))
+* **deps:** bump the all group across 1 directory with 7 updates ([7c0f21f](https://github.com/Pkcarreno/glyphide/commit/7c0f21fb062a4475041be9a006889363628ccd39))
+* **deps:** bump the all group across 1 directory with 7 updates ([8b8cb59](https://github.com/Pkcarreno/glyphide/commit/8b8cb5953e2fc5c6e3ffd3430d9467d0ca685a1b))
+* **deps:** bump the all group with 7 updates ([93ecac0](https://github.com/Pkcarreno/glyphide/commit/93ecac043bbbc208805a3576cf74c372f2bf68d3))
+* **deps:** bump the all group with 7 updates ([e7abc6a](https://github.com/Pkcarreno/glyphide/commit/e7abc6abbd7c476c6ffb733d5973d467a8c855d7))
+* **editor:** add keyed rows, reactive index, and cache pruning to VirtualList ([#291](https://github.com/Pkcarreno/glyphide/issues/291)) ([8ed3fd1](https://github.com/Pkcarreno/glyphide/commit/8ed3fd111da66e0924f7f062f1977639390a1ab6))
+* **editor:** clean up timers on unmount in ShareModal and Toast ([#292](https://github.com/Pkcarreno/glyphide/issues/292)) ([39c0f36](https://github.com/Pkcarreno/glyphide/commit/39c0f36e9efc0a6df507f677a5dc3a85e69361b5)), closes [#269](https://github.com/Pkcarreno/glyphide/issues/269)
+* **editor:** isolate Tabs disabled state per instance and track reactively ([#293](https://github.com/Pkcarreno/glyphide/issues/293)) ([916122c](https://github.com/Pkcarreno/glyphide/commit/916122c105f463ed6ecdc647831dbc52c609708e))
+* **editor:** move offset and placement to Dropdown.Root and clean up rAF/refs ([#295](https://github.com/Pkcarreno/glyphide/issues/295)) ([24b8433](https://github.com/Pkcarreno/glyphide/commit/24b843374d6fcb66a51724903e316bd51ff0fc74))
+* **editor:** sync CodeField with reactive resolvedTheme in SettingsModel ([70ee5c3](https://github.com/Pkcarreno/glyphide/commit/70ee5c3bbe3cd62ed41b90847d006cb63e782d49))
+* **editor:** sync CodeField with reactive resolvedTheme in SettingsModel ([667066b](https://github.com/Pkcarreno/glyphide/commit/667066bbedbe1b9a20d4d4197f8667651175eef1))
+* **editor:** update lucide icon imports to match renamed icons ([93c0958](https://github.com/Pkcarreno/glyphide/commit/93c09587fc7150a0475b4edd34e4b92f080ec565))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @glyphide/micropython-engine bumped to 0.2.4
+    * @glyphide/orchestrator bumped to 1.0.6
+    * @glyphide/quickjs-engine bumped to 0.2.4
+    * @glyphide/rpc-protocol bumped to 1.1.4
+    * @glyphide/url-migration bumped to 1.0.6
+
 ## [3.1.3](https://github.com/Pkcarreno/glyphide/compare/@glyphide/editor-v3.1.2...@glyphide/editor-v3.1.3) (2026-10-20)
 
 ### Bug Fixes

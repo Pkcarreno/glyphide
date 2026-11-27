@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.2.4](https://github.com/Pkcarreno/glyphide/compare/@glyphide/quickjs-engine-v0.2.3...@glyphide/quickjs-engine-v0.2.4) (2026-11-27)
+
+
+### Bug Fixes
+
+* **deps:** bump the all group across 1 directory with 13 updates ([466b07d](https://github.com/Pkcarreno/glyphide/commit/466b07d3ea0afe2bbfb3857c9063952cec0e330b))
+* **deps:** bump the all group across 1 directory with 13 updates ([3192bd5](https://github.com/Pkcarreno/glyphide/commit/3192bd59496e3dde66a86f9c00f50b533be074a6))
+* **deps:** bump the all group across 1 directory with 7 updates ([7c0f21f](https://github.com/Pkcarreno/glyphide/commit/7c0f21fb062a4475041be9a006889363628ccd39))
+* **deps:** bump the all group across 1 directory with 7 updates ([8b8cb59](https://github.com/Pkcarreno/glyphide/commit/8b8cb5953e2fc5c6e3ffd3430d9467d0ca685a1b))
+* **deps:** bump the all group with 7 updates ([93ecac0](https://github.com/Pkcarreno/glyphide/commit/93ecac043bbbc208805a3576cf74c372f2bf68d3))
+* **deps:** bump the all group with 7 updates ([e7abc6a](https://github.com/Pkcarreno/glyphide/commit/e7abc6abbd7c476c6ffb733d5973d467a8c855d7))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @glyphide/rpc-protocol bumped to 1.1.4
+  * devDependencies
+    * @glyphide/orchestrator bumped to 1.0.6
+  * peerDependencies
+    * @glyphide/orchestrator bumped to 1.0.6
+
 ## [0.2.3](https://github.com/Pkcarreno/glyphide/compare/@glyphide/quickjs-engine-v0.2.2...@glyphide/quickjs-engine-v0.2.3) (2026-10-20)
 
 ### Bug Fixes
