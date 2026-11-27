@@ -1,5 +1,6 @@
 import ChevronDown from "lucide-solid/icons/chevron-down";
 import ChevronRight from "lucide-solid/icons/chevron-right";
+import type { VoidProps } from "solid-js";
 import { Show } from "solid-js";
 import type { FlatConsoleItem } from "../../helpers/console-hierarchy.ts";
 import { Icon } from "../atoms/Icon.tsx";
@@ -15,7 +16,7 @@ interface ConsoleGroupViewProps {
  * Since the tree is flattened for the VirtualList, this component no longer
  * manages or renders its own children. It only triggers the toggle event.
  */
-function ConsoleGroupView(props: ConsoleGroupViewProps) {
+function ConsoleGroupView(props: VoidProps<ConsoleGroupViewProps>) {
   const hasLabel = () =>
     props.item.groupLabel ? props.item.groupLabel.length > 0 : false;
   const isExpanded = () => !props.item.isCollapsed;

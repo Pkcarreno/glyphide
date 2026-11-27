@@ -1,4 +1,5 @@
 import X from "lucide-solid/icons/x";
+import type { VoidProps } from "solid-js";
 import { createSignal, createUniqueId, omit, onCleanup, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { cn } from "../../helpers/cn.ts";
@@ -57,7 +58,7 @@ function createCopyFeedback(getText: () => string) {
   return { copy, hasCopied };
 }
 
-export function ShareModal(props: ShareModalProps) {
+export function ShareModal(props: VoidProps<ShareModalProps>) {
   const rest = omit(props, "class");
   const core = useEditor();
 

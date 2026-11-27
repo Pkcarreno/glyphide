@@ -1,4 +1,5 @@
 import X from "lucide-solid/icons/x";
+import type { VoidProps } from "solid-js";
 import { createSignal, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type { FileReadResult } from "../../core/ports/file-io.ts";
@@ -31,7 +32,7 @@ function formatAllowedExtensions(extensions: readonly string[]): string {
  * unsupported extensions as an inline error dynamically based on registered engines.
  * @public
  */
-export function LoadFileModal() {
+export function LoadFileModal(_props: VoidProps) {
   const core = useEditor();
   const [error, setError] = createSignal<string | null>(null);
   const [pendingFile, setPendingFile] = createSignal<FileReadResult | null>(

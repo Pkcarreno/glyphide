@@ -1,5 +1,6 @@
 import type { EngineInitParams } from "@glyphide/rpc-protocol/types";
 import X from "lucide-solid/icons/x";
+import type { VoidProps } from "solid-js";
 import {
   createMemo,
   createStore,
@@ -30,7 +31,7 @@ interface EngineSettingsFormProps {
   statusMessage: string;
 }
 
-function EngineSettingsForm(props: EngineSettingsFormProps) {
+function EngineSettingsForm(props: VoidProps<EngineSettingsFormProps>) {
   const core = useEditor();
 
   const engineId = () => core.engine.activeEngineId();
@@ -168,7 +169,7 @@ function EngineSettingsForm(props: EngineSettingsFormProps) {
   );
 }
 
-function EngineSettingsContent() {
+function EngineSettingsContent(_props: VoidProps) {
   const core = useEditor();
   const isEnginePending = () => isPending(() => core.engine.engine());
 
@@ -215,7 +216,7 @@ function EngineSettingsContent() {
  * for the currently active execution engine based on its paramDescriptors.
  * Uses Dialog compound component for consistent modal behavior.
  */
-function EngineSettingsModal() {
+function EngineSettingsModal(_props: VoidProps) {
   const core = useEditor();
 
   const handleOpenChange = (isOpen: boolean) => {

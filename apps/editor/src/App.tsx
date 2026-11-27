@@ -1,6 +1,7 @@
+import type { VoidProps } from "solid-js";
 import EditorPage from "./components/pages/EditorPage.tsx";
 
-function App() {
+function App(_props: VoidProps) {
   return <EditorPage />;
 }
 

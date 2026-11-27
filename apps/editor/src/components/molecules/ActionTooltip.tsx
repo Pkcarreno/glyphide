@@ -1,4 +1,5 @@
 import type { ValidComponent } from "@solidjs/web";
+import type { FlowProps } from "solid-js";
 import { omit } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type { CommandId } from "../../core/shortcuts/registry.ts";
@@ -8,15 +9,14 @@ import { Tooltip as TooltipAtom } from "../atoms/Tooltip.tsx";
 /**
  * Props for the ActionTooltip component.
  */
-export type ActionTooltipProps<T extends ValidComponent = "div"> = Omit<
-  TooltipAtomProps<T>,
-  "shortcut"
-> & {
-  /** Command ID to automatically resolve the keyboard shortcut from the registry. */
-  commandId?: CommandId;
-  /** Optional manual shortcut string. Overrides the action's shortcut if provided. */
-  shortcut?: string;
-};
+export type ActionTooltipProps<T extends ValidComponent = "div"> = FlowProps<
+  Omit<TooltipAtomProps<T>, "shortcut" | "children"> & {
+    /** Command ID to automatically resolve the keyboard shortcut from the registry. */
+    commandId?: CommandId;
+    /** Optional manual shortcut string. Overrides the action's shortcut if provided. */
+    shortcut?: string;
+  }
+>;
 
 /**
  * Smart ActionTooltip molecule that connects the UI Tooltip atom to the

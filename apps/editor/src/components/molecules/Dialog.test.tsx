@@ -255,6 +255,29 @@ describe("Dialog", () => {
     expect(callerClick).toHaveBeenCalledOnce();
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
+
+  it("reactively tracks preventBackdropClose changes", () => {
+    const handler = vi.fn();
+    const [preventBackdropClose, setPreventBackdropClose] = createSignal(true);
+    const { container } = render(() => (
+      <Dialog defaultOpen onOpenChange={handler}>
+        <DialogContent preventBackdropClose={preventBackdropClose()}>
+          <p>Reactive backdrop</p>
+        </DialogContent>
+      </Dialog>
+    ));
+
+    const overlay = container.querySelector('[aria-hidden="true"]');
+    expect(overlay).not.toBeNull();
+    overlay?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(handler).not.toHaveBeenCalled();
+
+    setPreventBackdropClose(false);
+    flush();
+
+    overlay?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(handler).toHaveBeenCalledWith(false);
+  });
 });
 
 describe("DialogTitle", () => {
@@ -346,6 +369,32 @@ describe("DialogTitle", () => {
     const heading = getByRole("heading", { level: 2 });
     expect(heading.textContent).toBe("Icon Title");
     expect(heading.querySelector("span")).not.toBeNull();
+  });
+
+  it("reactively updates heading tag when as prop changes", () => {
+    const [tag, setTag] = createSignal<"h2" | "h3">("h2");
+    const { getByRole, queryByRole } = render(() => (
+      <Dialog defaultOpen>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle as={tag()}>Dynamic Title</DialogTitle>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    ));
+
+    expect(getByRole("heading", { level: 2 }).textContent).toBe(
+      "Dynamic Title"
+    );
+    expect(queryByRole("heading", { level: 3 })).toBeNull();
+
+    setTag("h3");
+    flush();
+
+    expect(queryByRole("heading", { level: 2 })).toBeNull();
+    expect(getByRole("heading", { level: 3 }).textContent).toBe(
+      "Dynamic Title"
+    );
   });
 });
 

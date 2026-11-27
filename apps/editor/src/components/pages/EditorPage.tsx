@@ -1,3 +1,4 @@
+import type { VoidProps } from "solid-js";
 import { createEffect } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { ConsolePane } from "../organisms/ConsolePane.tsx";
@@ -12,7 +13,7 @@ import { WorkspaceLayout } from "../templates/WorkspaceLayout.tsx";
  * Manages the top-level application state (settings modal, execution status)
  * and injects it into the WorkspaceLayout and Organisms.
  */
-function EditorPage() {
+function EditorPage(_props: VoidProps) {
   const core = useEditor();
 
   createEffect(

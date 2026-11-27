@@ -1,9 +1,10 @@
 import type { ComponentProps, JSX, ValidComponent } from "@solidjs/web";
 import { dynamic } from "@solidjs/web";
-import type { Accessor } from "solid-js";
+import type { Accessor, FlowProps, ParentProps, VoidProps } from "solid-js";
 import {
   createContext,
   createSignal,
+  merge,
   omit,
   Show,
   untrack,
@@ -30,7 +31,6 @@ function useDialog(): DialogContextValue {
 /* ---------- Root ---------- */
 
 interface DialogProps {
-  children: JSX.Element;
   /** Default open state for uncontrolled usage. */
   defaultOpen?: boolean;
   /** Controlled open state. */
@@ -43,14 +43,15 @@ interface DialogProps {
  * Dialog root that manages open/close state and provides
  * context to compound children (Trigger, Overlay, Content, Header).
  */
-function Dialog(props: DialogProps) {
+function Dialog(rawProps: FlowProps<DialogProps>) {
+  const props = merge({ defaultOpen: false }, rawProps);
   const isControlled = () => props.isOpen !== undefined;
   const [internalOpen, setInternalOpen] = createSignal(
-    untrack(() => props.defaultOpen ?? false)
+    untrack(() => props.defaultOpen)
   );
 
   const isOpen = () =>
-    isControlled() ? (props.isOpen ?? false) : internalOpen();
+    isControlled() ? Boolean(props.isOpen) : internalOpen();
 
   function open() {
     if (!isControlled()) {
@@ -75,12 +76,13 @@ function Dialog(props: DialogProps) {
 
 /* ---------- Trigger ---------- */
 
-interface DialogTriggerProps extends JSX.HTMLAttributes<HTMLButtonElement> {
+interface DialogTriggerProps
+  extends Omit<JSX.HTMLAttributes<HTMLButtonElement>, "children"> {
   class?: string;
 }
 
 /** Button that opens the dialog. */
-function DialogTrigger(props: DialogTriggerProps) {
+function DialogTrigger(props: ParentProps<DialogTriggerProps>) {
   const rest = omit(props, "class", "children", "onClick", "ref");
   const { open } = useDialog();
 
@@ -102,13 +104,15 @@ function DialogTrigger(props: DialogTriggerProps) {
 
 /* ---------- Overlay ---------- */
 
-interface DialogOverlayProps extends JSX.HTMLAttributes<HTMLButtonElement> {
+interface DialogOverlayProps
+  extends Omit<JSX.HTMLAttributes<HTMLButtonElement>, "children"> {
   class?: string;
   preventBackdropClose?: boolean;
 }
 
 /** Backdrop overlay that closes the dialog on click. */
-function DialogOverlay(props: DialogOverlayProps) {
+function DialogOverlay(rawProps: VoidProps<DialogOverlayProps>) {
+  const props = merge({ preventBackdropClose: false }, rawProps);
   const rest = omit(props, "class", "preventBackdropClose", "onClick", "ref");
   const { close } = useDialog();
 
@@ -135,14 +139,16 @@ function DialogOverlay(props: DialogOverlayProps) {
 
 /* ---------- Content ---------- */
 
-interface DialogContentProps extends JSX.HTMLAttributes<HTMLDivElement> {
+interface DialogContentProps
+  extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "children"> {
   class?: string;
   /** When true, clicking the backdrop does NOT close the dialog. */
   preventBackdropClose?: boolean;
 }
 
 /** The visible dialog panel. Shown only when open. */
-function DialogContent(props: DialogContentProps) {
+function DialogContent(rawProps: ParentProps<DialogContentProps>) {
+  const props = merge({ preventBackdropClose: false }, rawProps);
   const rest = omit(props, "class", "children", "preventBackdropClose");
   const { isOpen } = useDialog();
 
@@ -172,12 +178,13 @@ function DialogContent(props: DialogContentProps) {
 
 /* ---------- Header ---------- */
 
-interface DialogHeaderProps extends JSX.HTMLAttributes<HTMLDivElement> {
+interface DialogHeaderProps
+  extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "children"> {
   class?: string;
 }
 
 /** Header section within the dialog, with a bottom border. */
-function DialogHeader(props: DialogHeaderProps) {
+function DialogHeader(props: ParentProps<DialogHeaderProps>) {
   const rest = omit(props, "class", "children");
 
   return (
@@ -201,14 +208,14 @@ function DialogHeader(props: DialogHeaderProps) {
  *
  * @public
  */
-type DialogTitleProps<T extends ValidComponent = "h2"> = {
-  /** The HTML tag or Solid component to render the title as. Default is "h2". */
-  as?: T;
-  /** The title text or rich children. */
-  children: JSX.Element;
-  /** Optional CSS classes merged with the canonical title typography. */
-  class?: string;
-} & Omit<ComponentProps<T>, "as" | "children" | "class">;
+type DialogTitleProps<T extends ValidComponent = "h2"> = FlowProps<
+  {
+    /** The HTML tag or Solid component to render the title as. Default is "h2". */
+    as?: T;
+    /** Optional CSS classes merged with the canonical title typography. */
+    class?: string;
+  } & Omit<ComponentProps<T>, "as" | "children" | "class">
+>;
 
 /**
  * Canonical title atom for modal dialogs. Renders a semantic heading with
@@ -219,10 +226,14 @@ type DialogTitleProps<T extends ValidComponent = "h2"> = {
  * @public
  */
 function DialogTitle<T extends ValidComponent = "h2">(
-  props: DialogTitleProps<T>
+  rawProps: DialogTitleProps<T>
 ) {
+  const props = merge(
+    { as: "h2" as const },
+    rawProps as DialogTitleProps<"h2">
+  );
   const rest = omit(props, "as", "class", "children");
-  const Comp = dynamic(() => props.as ?? "h2");
+  const Comp = dynamic(() => props.as as "h2");
 
   return (
     <Comp
@@ -239,12 +250,13 @@ function DialogTitle<T extends ValidComponent = "h2">(
 
 /* ---------- Close ---------- */
 
-interface DialogCloseProps extends JSX.HTMLAttributes<HTMLButtonElement> {
+interface DialogCloseProps
+  extends Omit<JSX.HTMLAttributes<HTMLButtonElement>, "children"> {
   class?: string;
 }
 
 /** Button that closes the dialog. */
-function DialogClose(props: DialogCloseProps) {
+function DialogClose(props: ParentProps<DialogCloseProps>) {
   const rest = omit(props, "class", "children", "onClick", "ref");
   const { close } = useDialog();
 

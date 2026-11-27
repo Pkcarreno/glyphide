@@ -1,6 +1,7 @@
 import type { JSX } from "@solidjs/web";
 import RefreshCcw from "lucide-solid/icons/refresh-ccw";
 import Settings2 from "lucide-solid/icons/settings-2";
+import type { FlowProps, VoidProps } from "solid-js";
 import {
   createEffect,
   createSignal,
@@ -8,6 +9,7 @@ import {
   isPending,
   Loading,
   latest,
+  merge,
   omit,
   Show,
 } from "solid-js";
@@ -20,15 +22,16 @@ import { ActionTooltip } from "../molecules/ActionTooltip.tsx";
 /**
  * Props for the StatusBar root component.
  */
-interface StatusBarProps extends JSX.HTMLAttributes<HTMLElement> {
+interface StatusBarProps
+  extends Omit<JSX.HTMLAttributes<HTMLElement>, "children"> {
   class?: string;
 }
 
 /**
  * Props for the StatusBarItem component.
  */
-interface StatusBarItemProps extends JSX.HTMLAttributes<HTMLDivElement> {
-  children: JSX.Element;
+interface StatusBarItemProps
+  extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "children"> {
   class?: string;
 }
 
@@ -36,7 +39,7 @@ interface StatusBarItemProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * Structural wrapper for static items inside the StatusBar.
  * Enforces standardized padding and vertical alignment.
  */
-function StatusBarItem(props: StatusBarItemProps) {
+function StatusBarItem(props: FlowProps<StatusBarItemProps>) {
   const rest = omit(props, "class", "children");
   return (
     <div
@@ -49,8 +52,7 @@ function StatusBarItem(props: StatusBarItemProps) {
 }
 
 interface StatusBarButtonBaseProps
-  extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
-  children: JSX.Element;
+  extends Omit<JSX.ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
   class?: string;
   commandId?: CommandId;
   tooltip?: string;
@@ -61,13 +63,14 @@ interface StatusBarButtonBaseProps
 /**
  * Props for the StatusBarButton component.
  */
-type StatusBarButtonProps = StatusBarButtonBaseProps;
+type StatusBarButtonProps = FlowProps<StatusBarButtonBaseProps>;
 
 /**
  * Interactive button for the StatusBar.
  * Enforces standard padding, hover effects, and automatic Tooltip integration.
  */
-function StatusBarButton(props: StatusBarButtonProps) {
+function StatusBarButton(rawProps: StatusBarButtonProps) {
+  const props = merge({ tooltip: "" }, rawProps);
   const rest = omit(
     props,
     "class",
@@ -101,7 +104,7 @@ function StatusBarButton(props: StatusBarButtonProps) {
         meta={props.tooltipDescription}
         position="top"
         shortcut={props.tooltipShortcut}
-        text={props.tooltip ?? ""}
+        text={props.tooltip}
         {...rest}
       >
         {props.children}
@@ -110,16 +113,19 @@ function StatusBarButton(props: StatusBarButtonProps) {
   );
 }
 
-function TerminalStatusIndicator(props: {
-  status: string;
-  isDirty?: boolean;
-  isSpinning?: boolean;
-}) {
+function TerminalStatusIndicator(
+  rawProps: VoidProps<{
+    status: string;
+    isDirty?: boolean;
+    isSpinning?: boolean;
+  }>
+) {
+  const props = merge({ isDirty: false, isSpinning: false }, rawProps);
   const [frame, setFrame] = createSignal(0);
   const brailleFrames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 
   createEffect(
-    () => Boolean(props.isSpinning),
+    () => props.isSpinning,
     (isActive) => {
       if (isActive) {
         const timer = setInterval(
@@ -148,7 +154,7 @@ function TerminalStatusIndicator(props: {
   );
 }
 
-function StatusBarEngineLanguage() {
+function StatusBarEngineLanguage(_props: VoidProps) {
   const core = useEditor();
   return (
     <Errored
@@ -169,7 +175,7 @@ function StatusBarEngineLanguage() {
   );
 }
 
-function StatusBarEngineStatusContent() {
+function StatusBarEngineStatusContent(_props: VoidProps) {
   const core = useEditor();
   const isEnginePending = () => isPending(() => core.engine.engine());
   const isRunPending = () =>
@@ -196,7 +202,7 @@ function StatusBarEngineStatusContent() {
   );
 }
 
-function StatusBarEngineStatus() {
+function StatusBarEngineStatus(_props: VoidProps) {
   const core = useEditor();
   return (
     <Errored
@@ -223,7 +229,7 @@ function StatusBarEngineStatus() {
   );
 }
 
-function StatusBarEngineSelector() {
+function StatusBarEngineSelector(_props: VoidProps) {
   const core = useEditor();
 
   function openEngineSelector() {
@@ -251,7 +257,7 @@ function StatusBarEngineSelector() {
   );
 }
 
-function StatusBarEngineAction() {
+function StatusBarEngineAction(_props: VoidProps) {
   const core = useEditor();
 
   const renderSettingsButton = () => (
@@ -294,7 +300,7 @@ function StatusBarEngineAction() {
  *
  * Compound parts: `StatusBar.Item`, `StatusBar.Button`.
  */
-function StatusBar(props: StatusBarProps) {
+function StatusBar(props: VoidProps<StatusBarProps>) {
   const rest = omit(props, "class");
   const core = useEditor();
 
