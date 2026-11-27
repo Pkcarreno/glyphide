@@ -4,16 +4,10 @@ import { createSignal, createUniqueId, omit, onCleanup, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { cn } from "../../helpers/cn.ts";
 import { Button } from "../atoms/Button.tsx";
+import { Dialog } from "../atoms/Dialog.tsx";
 import { Icon } from "../atoms/Icon.tsx";
 import { Input } from "../atoms/Input.tsx";
 import { Switch } from "../atoms/Switch.tsx";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "../molecules/Dialog.tsx";
 
 interface ShareModalProps {
   class?: string;
@@ -95,20 +89,20 @@ export function ShareModal(props: VoidProps<ShareModalProps>) {
   const switchId = createUniqueId();
 
   return (
-    <Dialog
+    <Dialog.Root
       isOpen={core.overlays.isOpen("share")}
       onOpenChange={handleOpenChange}
     >
-      <DialogContent
+      <Dialog.Content
         class={cn("w-full max-w-lg overflow-hidden p-0", props.class)}
         {...rest}
       >
-        <DialogHeader>
-          <DialogTitle>Share Project</DialogTitle>
-          <DialogClose aria-label="Close share dialog">
+        <Dialog.Header>
+          <Dialog.Title>Share Project</Dialog.Title>
+          <Dialog.Close aria-label="Close share dialog">
             <Icon icon={X} size={16} />
-          </DialogClose>
-        </DialogHeader>
+          </Dialog.Close>
+        </Dialog.Header>
 
         <div class="bg-surface flex flex-col gap-6 px-5 py-6">
           <div class="flex flex-col gap-2">
@@ -187,7 +181,7 @@ export function ShareModal(props: VoidProps<ShareModalProps>) {
             />
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </Dialog.Content>
+    </Dialog.Root>
   );
 }
