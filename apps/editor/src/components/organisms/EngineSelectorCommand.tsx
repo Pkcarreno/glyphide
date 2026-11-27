@@ -6,6 +6,7 @@ import type { EngineEntry } from "../../core/engine/registry.ts";
 import { getEngineEntries } from "../../core/engine/registry.ts";
 import { Command } from "../atoms/Command.tsx";
 import { Icon } from "../atoms/Icon.tsx";
+import { OverlayDialog } from "../molecules/OverlayDialog.tsx";
 
 function EngineEntrySpinner(props: VoidProps<{ entry: EngineEntry }>) {
   const core = useEditor();
@@ -40,42 +41,36 @@ function EngineEntrySpinner(props: VoidProps<{ entry: EngineEntry }>) {
 export function EngineSelectorCommand(_props: VoidProps) {
   const core = useEditor();
 
-  const handleOpenChange = (isOpen: boolean) => {
-    if (isOpen) {
-      core.overlays.open("engine-selector");
-    } else {
-      core.overlays.close("engine-selector");
-    }
-  };
-
   return (
-    <Command.Dialog
-      isOpen={core.overlays.isOpen("engine-selector")}
-      onOpenChange={handleOpenChange}
-    >
-      <Command.Root>
-        <Command.Input placeholder="Select execution engine..." />
-        <Command.List>
-          <Command.Empty>No engine found.</Command.Empty>
-          <Command.Group>
-            <For each={getEngineEntries(core.engineRegistry)}>
-              {(entry) => (
-                <Command.Item
-                  class="gap-2"
-                  onSelect={() => {
-                    core.commands.selectEngine(entry.engineId, entry.language);
-                    core.overlays.close("engine-selector");
-                  }}
-                  value={entry.label}
-                >
-                  <span class="truncate">{entry.label}</span>
-                  <EngineEntrySpinner entry={entry} />
-                </Command.Item>
-              )}
-            </For>
-          </Command.Group>
-        </Command.List>
-      </Command.Root>
-    </Command.Dialog>
+    <OverlayDialog.Root overlayId="engine-selector">
+      <OverlayDialog.Content align="top" class="max-w-lg p-0">
+        <Command.Root>
+          <Command.Input placeholder="Select execution engine..." />
+          <Command.List>
+            <Command.Empty>No engine found.</Command.Empty>
+            <Command.Group>
+              <For each={getEngineEntries(core.engineRegistry)}>
+                {(entry) => (
+                  <Command.Item
+                    class="gap-2"
+                    onSelect={() => {
+                      core.commands.selectEngine(
+                        entry.engineId,
+                        entry.language
+                      );
+                      core.overlays.close("engine-selector");
+                    }}
+                    value={entry.label}
+                  >
+                    <span class="truncate">{entry.label}</span>
+                    <EngineEntrySpinner entry={entry} />
+                  </Command.Item>
+                )}
+              </For>
+            </Command.Group>
+          </Command.List>
+        </Command.Root>
+      </OverlayDialog.Content>
+    </OverlayDialog.Root>
   );
 }

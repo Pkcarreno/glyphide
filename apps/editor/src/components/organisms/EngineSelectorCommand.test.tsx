@@ -171,4 +171,23 @@ describe("EngineSelectorCommand", () => {
 
     initDeferred.resolve({ engineId: "quickjs", language: "javascript" });
   });
+
+  it("uses top-aligned dialog content and closes via backdrop click", () => {
+    setMockIsOpen(true);
+    const { container, getByRole } = render(() => <EngineSelectorCommand />);
+
+    const dialog = getByRole("dialog");
+    expect(dialog.className).toContain("max-w-lg");
+    expect(dialog.className).toContain("p-0");
+
+    const wrapper = dialog.parentElement as HTMLElement;
+    expect(wrapper.className).toContain("items-start");
+    expect(wrapper.className).toContain("pt-[15vh]");
+
+    const backdrop = container.querySelector('[aria-hidden="true"]');
+    expect(backdrop).not.toBeNull();
+    fireEvent.click(backdrop as HTMLElement);
+
+    expect(mockCloseOverlay).toHaveBeenCalledWith("engine-selector");
+  });
 });
