@@ -1,4 +1,4 @@
-import type { JSX } from "@solidjs/web";
+import type { ParentProps } from "solid-js";
 import { createContext, onCleanup, onSettled, useContext } from "solid-js";
 import { createBrowserFileIoAdapter } from "./adapters/file-io.ts";
 import { createLocalStorageAdapter } from "./adapters/local-storage.ts";
@@ -15,7 +15,7 @@ const EditorContext = createContext<EditorCore>();
  * instantiated here — this is the boundary between pure business
  * logic and the browser environment.
  */
-export function EditorProvider(props: { children: JSX.Element }) {
+export function EditorProvider(props: ParentProps) {
   const core = createEditorCore({
     fileIo: createBrowserFileIoAdapter(),
     persistence: createLocalStorageAdapter(),

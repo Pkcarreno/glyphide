@@ -1,9 +1,10 @@
 import type { JSX } from "@solidjs/web";
-import type { Accessor } from "solid-js";
+import type { Accessor, FlowProps } from "solid-js";
 import {
   createContext,
   createEffect,
   createSignal,
+  merge,
   omit,
   onCleanup,
   untrack,
@@ -44,7 +45,6 @@ export function useTabs(): TabsContextValue {
 /* ---------- Root ---------- */
 
 interface TabsRootProps {
-  children: JSX.Element;
   class?: string;
   /** Uncontrolled initial value. */
   defaultValue?: string;
@@ -60,10 +60,17 @@ interface TabsRootProps {
  * Tabs root that owns the active value and provides context to sub-components.
  * Supports both controlled and uncontrolled modes.
  */
-function TabsRoot(props: TabsRootProps) {
+function TabsRoot(rawProps: FlowProps<TabsRootProps>) {
+  const props = merge(
+    {
+      defaultValue: "",
+      orientation: "horizontal" as TabsOrientation,
+    },
+    rawProps
+  );
   const isControlled = () => props.value !== undefined;
   const [internalValue, setInternalValue] = createSignal(
-    untrack(() => props.defaultValue ?? "")
+    untrack(() => props.defaultValue)
   );
   const activeValue = () =>
     isControlled() ? (props.value ?? "") : internalValue();
@@ -154,7 +161,7 @@ function TabsRoot(props: TabsRootProps) {
     activeValue,
     generateId,
     getNavigableTriggers,
-    orientation: () => props.orientation ?? "horizontal",
+    orientation: () => props.orientation,
     registerTrigger,
     selectValue,
     setDisabled,
@@ -170,8 +177,8 @@ function TabsRoot(props: TabsRootProps) {
 
 /* ---------- List ---------- */
 
-interface TabsListProps extends JSX.HTMLAttributes<HTMLDivElement> {
-  children: JSX.Element;
+interface TabsListProps
+  extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "children"> {
   class?: string;
 }
 
@@ -179,7 +186,7 @@ interface TabsListProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * Container for trigger elements with `role="tablist"`.
  * Handles orientation-aware keyboard navigation (Arrow keys, Home, End).
  */
-function TabsList(props: TabsListProps) {
+function TabsList(props: FlowProps<TabsListProps>) {
   const rest = omit(props, "class", "children");
   const ctx = useTabs();
 
@@ -258,8 +265,8 @@ function TabsList(props: TabsListProps) {
 
 /* ---------- Trigger ---------- */
 
-interface TabsTriggerProps extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
-  children: JSX.Element;
+interface TabsTriggerProps
+  extends Omit<JSX.ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
   class?: string;
   /** When true, the trigger is not interactive. */
   disabled?: boolean;
@@ -271,7 +278,8 @@ interface TabsTriggerProps extends JSX.ButtonHTMLAttributes<HTMLButtonElement> {
  * Individual tab button with `role="tab"`.
  * Applies ARIA, roving tabindex, registers with context, and renders visual states.
  */
-function TabsTrigger(props: TabsTriggerProps) {
+function TabsTrigger(rawProps: FlowProps<TabsTriggerProps>) {
+  const props = merge({ disabled: false }, rawProps);
   const rest = omit(
     props,
     "class",
@@ -301,7 +309,7 @@ function TabsTrigger(props: TabsTriggerProps) {
   };
 
   createEffect(
-    () => [props.value, Boolean(props.disabled)] as const,
+    () => [props.value, props.disabled] as const,
     ([tabValue, isDisabled]) => {
       ctx.setDisabled(tabValue, isDisabled);
       return () => {
@@ -344,8 +352,8 @@ function TabsTrigger(props: TabsTriggerProps) {
 
 /* ---------- Content ---------- */
 
-interface TabsContentProps extends JSX.HTMLAttributes<HTMLDivElement> {
-  children: JSX.Element;
+interface TabsContentProps
+  extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "children"> {
   class?: string;
   /** Must match a Tabs.Trigger value. */
   value: string;
@@ -355,7 +363,7 @@ interface TabsContentProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * Tab panel with `role="tabpanel"`.
  * Mounts all panels; hides non-active ones via the `hidden` attribute.
  */
-function TabsContent(props: TabsContentProps) {
+function TabsContent(props: FlowProps<TabsContentProps>) {
   const rest = omit(props, "class", "children", "value");
   const ctx = useTabs();
 

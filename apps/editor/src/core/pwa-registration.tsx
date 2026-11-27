@@ -1,6 +1,6 @@
 // biome-ignore lint/correctness/noUnresolvedImports: virtual module provided by vite-plugin-pwa at build time
 import { useRegisterSW } from "virtual:pwa-register/solid";
-import type { JSX } from "@solidjs/web";
+import type { ParentProps } from "solid-js";
 import { createContext, createMemo, useContext } from "solid-js";
 
 /**
@@ -29,7 +29,7 @@ const PwaContext = createContext<PwaUpdateController | null>(null);
  *
  * @public
  */
-export function PwaProvider(props: { children: JSX.Element }) {
+export function PwaProvider(props: ParentProps) {
   const {
     needRefresh: [needRefresh],
     updateServiceWorker,

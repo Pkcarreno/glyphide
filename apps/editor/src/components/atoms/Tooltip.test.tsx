@@ -83,4 +83,14 @@ describe("Tooltip", () => {
     expect(popup?.textContent).toContain("Paste");
     expect(popup?.textContent).not.toContain("Ctrl+");
   });
+
+  it("renders a div trigger by default via merge", () => {
+    const { getByTestId } = render(() => (
+      <Tooltip data-testid="trigger" text="Default element">
+        Trigger
+      </Tooltip>
+    ));
+
+    expect(getByTestId("trigger").tagName).toBe("DIV");
+  });
 });

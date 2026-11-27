@@ -1,4 +1,5 @@
 import { fireEvent, render } from "@solidjs/testing-library";
+import { createSignal, flush } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { StepperInput } from "./StepperInput.tsx";
 
@@ -130,5 +131,25 @@ describe("StepperInput", () => {
 
     fireEvent.click(getByLabelText("Decrease"));
     expect(handleChange).toHaveBeenCalledWith(0.9);
+  });
+
+  it("applies default inputAriaLabel and tracks reactive step changes", () => {
+    const handleChange = vi.fn();
+    const [step, setStep] = createSignal(2);
+    const { getByLabelText, getByRole } = render(() => (
+      <StepperInput onValueChange={handleChange} step={step()} value={10} />
+    ));
+
+    const input = getByRole("spinbutton") as HTMLInputElement;
+    expect(input.getAttribute("aria-label")).toBe("Numeric input");
+
+    fireEvent.click(getByLabelText("Increase"));
+    expect(handleChange).toHaveBeenCalledWith(12);
+
+    setStep(5);
+    flush();
+
+    fireEvent.click(getByLabelText("Increase"));
+    expect(handleChange).toHaveBeenCalledWith(15);
   });
 });

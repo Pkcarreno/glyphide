@@ -1,4 +1,5 @@
 import type { ConsoleToken } from "@glyphide/quickjs-engine/types";
+import type { VoidProps } from "solid-js";
 import { createMemo, For, Show } from "solid-js";
 import { ConsoleTokenView } from "../molecules/ConsoleTokenView/ConsoleTokenView.tsx";
 
@@ -166,7 +167,7 @@ function getCellToken(
  * Renders tabular data (Array, Object, Map, Set) as an HTML table.
  * If the token is not tabular, it falls back to ConsoleTokenView.
  */
-function ConsoleTableView(props: ConsoleTableViewProps) {
+function ConsoleTableView(props: VoidProps<ConsoleTableViewProps>) {
   const rows = () => getRows(props.token);
 
   return (

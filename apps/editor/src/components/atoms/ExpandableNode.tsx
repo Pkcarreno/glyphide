@@ -1,6 +1,7 @@
 import type { JSX } from "@solidjs/web";
 import ChevronRight from "lucide-solid/icons/chevron-right";
-import { createSignal, createUniqueId, Show, untrack } from "solid-js";
+import type { FlowProps } from "solid-js";
+import { createSignal, createUniqueId, merge, Show, untrack } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { Icon } from "./Icon.tsx";
 
@@ -16,8 +17,6 @@ import { Icon } from "./Icon.tsx";
  * Side effects: None.
  */
 interface ExpandableNodeProps {
-  /** Content shown in the expanded state. */
-  children: JSX.Element;
   class?: string;
   /** When true, the node starts in the expanded state. Defaults to false. */
   defaultExpanded?: boolean;
@@ -38,13 +37,13 @@ const idForStateKey = new WeakMap<object, string>();
  * The `defaultExpanded` prop controls the initial toggle state — e.g.
  * `console.groupCollapsed` sets it to `false`, `console.group` to `true`.
  */
-function ExpandableNode(props: ExpandableNodeProps) {
+function ExpandableNode(rawProps: FlowProps<ExpandableNodeProps>) {
+  const props = merge({ defaultExpanded: false }, rawProps);
+
   const initial = untrack(() =>
     props.stateKey
-      ? (globalExpandedState.get(props.stateKey) ??
-        props.defaultExpanded ??
-        false)
-      : (props.defaultExpanded ?? false)
+      ? (globalExpandedState.get(props.stateKey) ?? props.defaultExpanded)
+      : props.defaultExpanded
   );
 
   const [isExpanded, setIsExpanded] = createSignal(initial);

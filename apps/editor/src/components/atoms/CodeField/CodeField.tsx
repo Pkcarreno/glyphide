@@ -1,10 +1,12 @@
 import type { Extension } from "@codemirror/state";
 import { Compartment, EditorState } from "@codemirror/state";
 import { basicSetup, EditorView } from "codemirror";
+import type { VoidProps } from "solid-js";
 import {
   createEffect,
   createMemo,
   createSignal,
+  merge,
   onCleanup,
   onSettled,
 } from "solid-js";
@@ -39,7 +41,15 @@ export interface CodeFieldProps {
  * An atomic code editor input powered by CodeMirror.
  * It behaves like a standard controlled or uncontrolled input field.
  */
-export function CodeField(props: CodeFieldProps) {
+export function CodeField(rawProps: VoidProps<CodeFieldProps>) {
+  const props = merge(
+    {
+      isDark: false,
+      isReadOnly: false,
+      isWordWrapEnabled: false,
+    },
+    rawProps
+  );
   let containerRef: HTMLDivElement | undefined;
   let view: EditorView | undefined;
   const [editorView, setEditorView] = createSignal<EditorView>();
@@ -74,12 +84,12 @@ export function CodeField(props: CodeFieldProps) {
     });
 
     const state = EditorState.create({
-      doc: props.value || "",
+      doc: props.value ?? "",
       extensions: [
         basicSetup,
         updateListener,
         glyphideSyntaxHighlight,
-        appearanceCompartment.of(getEditorAppearance(!!props.isDark)),
+        appearanceCompartment.of(getEditorAppearance(props.isDark)),
         languageCompartment.of([]),
         wordWrapCompartment.of(
           props.isWordWrapEnabled ? EditorView.lineWrapping : []
@@ -104,7 +114,7 @@ export function CodeField(props: CodeFieldProps) {
   });
 
   createEffect(
-    () => !!props.isDark,
+    () => props.isDark,
     (isDark) => {
       if (view) {
         view.dispatch({
@@ -117,7 +127,7 @@ export function CodeField(props: CodeFieldProps) {
   );
 
   createEffect(
-    () => !!props.isWordWrapEnabled,
+    () => props.isWordWrapEnabled,
     (isWrap) => {
       if (view) {
         view.dispatch({
@@ -130,7 +140,7 @@ export function CodeField(props: CodeFieldProps) {
   );
 
   createEffect(
-    () => !!props.isReadOnly,
+    () => props.isReadOnly,
     (isReadOnly) => {
       if (view) {
         view.dispatch({

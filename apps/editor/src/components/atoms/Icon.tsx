@@ -1,6 +1,7 @@
 import type { JSX } from "@solidjs/web";
 import type { LucideProps } from "lucide-solid";
-import { dynamicComponent } from "solid-js";
+import type { VoidProps } from "solid-js";
+import { dynamicComponent, merge } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
 interface IconProps {
@@ -18,7 +19,8 @@ interface IconProps {
  * Wrapper over lucide-solid icons that standardizes
  * sizing and accessibility attributes.
  */
-function Icon(props: IconProps) {
+function Icon(rawProps: VoidProps<IconProps>) {
+  const props = merge({ size: 14 }, rawProps);
   const IconComponent = dynamicComponent(() => props.icon);
 
   return (
@@ -26,7 +28,7 @@ function Icon(props: IconProps) {
       aria-hidden={props.label ? undefined : "true"}
       aria-label={props.label}
       class={cn("shrink-0", props.class)}
-      size={props.size ?? 14}
+      size={props.size}
     />
   );
 }

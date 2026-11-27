@@ -1,9 +1,11 @@
 import type { JSX } from "@solidjs/web";
+import type { VoidProps } from "solid-js";
 import { omit, onCleanup } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { composeEventHandlers } from "../../helpers/compose-event-handlers.ts";
 
-interface ResizerProps extends JSX.HTMLAttributes<HTMLHRElement> {
+interface ResizerProps
+  extends Omit<JSX.HTMLAttributes<HTMLHRElement>, "children"> {
   class?: string;
   /** Fires continuously during drag with the delta in pixels. */
   onResizeDelta?: (deltaX: number) => void;
@@ -16,7 +18,7 @@ interface ResizerProps extends JSX.HTMLAttributes<HTMLHRElement> {
  * Handles pointer events (mouse and touch) to report
  * horizontal drag deltas.
  */
-function Resizer(props: ResizerProps) {
+function Resizer(props: VoidProps<ResizerProps>) {
   const rest = omit(
     props,
     "onResizeDelta",

@@ -1,5 +1,7 @@
 import Minus from "lucide-solid/icons/minus";
 import Plus from "lucide-solid/icons/plus";
+import type { VoidProps } from "solid-js";
+import { merge } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import {
   InputGroup,
@@ -35,13 +37,20 @@ export interface StepperInputProps {
  * Built on top of InputGroup compound component for consistent
  * styling and reusability.
  */
-export function StepperInput(props: StepperInputProps) {
-  const step = () => props.step ?? 1;
+export function StepperInput(rawProps: VoidProps<StepperInputProps>) {
+  const props = merge(
+    {
+      disabled: false,
+      inputAriaLabel: "Numeric input",
+      step: 1,
+    },
+    rawProps
+  );
   const isAtMin = () => props.min !== undefined && props.value <= props.min;
   const isAtMax = () => props.max !== undefined && props.value >= props.max;
 
   const handleDecrement = () => {
-    const next = Number((props.value - step()).toFixed(2));
+    const next = Number((props.value - props.step).toFixed(2));
     if (isAtMin()) {
       return;
     }
@@ -49,7 +58,7 @@ export function StepperInput(props: StepperInputProps) {
   };
 
   const handleIncrement = () => {
-    const next = Number((props.value + step()).toFixed(2));
+    const next = Number((props.value + props.step).toFixed(2));
     if (isAtMax()) {
       return;
     }
@@ -77,7 +86,7 @@ export function StepperInput(props: StepperInputProps) {
         </InputGroupButton>
       </InputGroupAddon>
       <InputGroupInput
-        aria-label={props.inputAriaLabel ?? "Numeric input"}
+        aria-label={props.inputAriaLabel}
         class="[appearance:textfield] text-center tabular-nums [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         disabled={props.disabled}
         id={props.id}
@@ -85,7 +94,7 @@ export function StepperInput(props: StepperInputProps) {
         min={props.min}
         onChange={handleChange}
         role="spinbutton"
-        step={step()}
+        step={props.step}
         type="number"
         value={props.value}
       />

@@ -2,7 +2,8 @@ import type { JSX } from "@solidjs/web";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import X from "lucide-solid/icons/x";
-import { createMemo, createSignal, Show } from "solid-js";
+import type { VoidProps } from "solid-js";
+import { createMemo, createSignal, merge, Show } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
 const fileDropVariants = cva(
@@ -72,7 +73,15 @@ function extensionOf(name: string): string {
  * signals and exposes a normalized callback to parents.
  * @public
  */
-export function FileDrop(props: FileDropProps) {
+export function FileDrop(rawProps: VoidProps<FileDropProps>) {
+  const props = merge(
+    {
+      accept: DEFAULT_ACCEPT,
+      disabled: false,
+      size: "default" as const,
+    },
+    rawProps
+  );
   const [visualState, setVisualState] = createSignal<VisualState>("idle");
   const [selectedFile, setSelectedFile] = createSignal<File | null>(null);
   const [errorMessage, setErrorMessage] = createSignal<string | null>(null);
@@ -93,7 +102,7 @@ export function FileDrop(props: FileDropProps) {
   }
 
   const acceptList = createMemo(() =>
-    (props.accept ?? DEFAULT_ACCEPT)
+    props.accept
       .split(",")
       .map((s) => s.trim().toLowerCase())
       .filter(Boolean)
@@ -243,7 +252,7 @@ export function FileDrop(props: FileDropProps) {
           </span>
         </Show>
         <input
-          accept={props.accept ?? DEFAULT_ACCEPT}
+          accept={props.accept}
           class="sr-only"
           onChange={handleInputChange}
           ref={(el) => {

@@ -1,6 +1,7 @@
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import { createSignal, omit, untrack } from "solid-js";
+import type { VoidProps } from "solid-js";
+import { createSignal, merge, omit, untrack } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
 const switchVariants = cva(
@@ -56,7 +57,8 @@ interface SwitchProps extends VariantProps<typeof switchVariants> {
  * Toggle switch primitive. Renders as a button with role="switch"
  * for accessibility. Supports both controlled and uncontrolled usage.
  */
-function Switch(props: SwitchProps) {
+function Switch(rawProps: VoidProps<SwitchProps>) {
+  const props = merge({ defaultChecked: false, disabled: false }, rawProps);
   const rest = omit(
     props,
     "checked",
@@ -68,11 +70,11 @@ function Switch(props: SwitchProps) {
 
   const isControlled = () => props.checked !== undefined;
   const [internalChecked, setInternalChecked] = createSignal(
-    untrack(() => props.defaultChecked ?? false)
+    untrack(() => props.defaultChecked)
   );
 
   const isChecked = () =>
-    isControlled() ? (props.checked ?? false) : internalChecked();
+    isControlled() ? Boolean(props.checked) : internalChecked();
 
   function handleToggle() {
     if (props.disabled) {

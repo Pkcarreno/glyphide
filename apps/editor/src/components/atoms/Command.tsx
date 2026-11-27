@@ -1,12 +1,19 @@
 import type { JSX } from "@solidjs/web";
 import SearchIcon from "lucide-solid/icons/search";
-import type { Accessor, Setter } from "solid-js";
+import type {
+  Accessor,
+  FlowProps,
+  ParentProps,
+  Setter,
+  VoidProps,
+} from "solid-js";
 import {
   children,
   createContext,
   createEffect,
   createMemo,
   createSignal,
+  merge,
   omit,
   onSettled,
   Show,
@@ -47,7 +54,8 @@ export function useCommand(): CommandContextValue {
 
 /* ---------- Root ---------- */
 
-interface CommandRootProps extends JSX.HTMLAttributes<HTMLDivElement> {
+interface CommandRootProps
+  extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "children"> {
   shouldFilter?: boolean;
 }
 
@@ -56,7 +64,8 @@ interface CommandRootProps extends JSX.HTMLAttributes<HTMLDivElement> {
  *
  * @public
  */
-export function CommandRoot(props: CommandRootProps) {
+export function CommandRoot(rawProps: ParentProps<CommandRootProps>) {
+  const props = merge({ shouldFilter: true }, rawProps);
   const rest = omit(
     props,
     "class",
@@ -94,9 +103,8 @@ export function CommandRoot(props: CommandRootProps) {
 
   const visibleItems = createMemo(() => {
     const query = search().toLowerCase();
-    const shouldFilter = props.shouldFilter !== false;
 
-    if (!(query && shouldFilter)) {
+    if (!(query && props.shouldFilter)) {
       return new Set(items().keys());
     }
 
@@ -188,7 +196,8 @@ export interface CommandInputProps extends InputProps {}
 /**
  * Input field for filtering the command menu items.
  */
-export function CommandInput(props: CommandInputProps) {
+export function CommandInput(rawProps: VoidProps<CommandInputProps>) {
+  const props = merge({ placeholder: "Search..." }, rawProps);
   const rest = omit(
     props,
     "class",
@@ -207,7 +216,7 @@ export function CommandInput(props: CommandInputProps) {
         (e) => ctx.setSearch(e.currentTarget.value),
         props.onInput
       )}
-      placeholder={props.placeholder ?? "Search..."}
+      placeholder={props.placeholder}
       ref={[createAutoFocus<HTMLInputElement>(), props.ref]}
       startIcon={<Icon icon={SearchIcon} size={16} />}
       value={ctx.search()}
@@ -220,7 +229,9 @@ export function CommandInput(props: CommandInputProps) {
 
 /* ---------- List ---------- */
 
-export function CommandList(props: JSX.HTMLAttributes<HTMLDivElement>) {
+export function CommandList(
+  props: ParentProps<Omit<JSX.HTMLAttributes<HTMLDivElement>, "children">>
+) {
   const rest = omit(props, "class", "children");
   return (
     <div
@@ -234,7 +245,9 @@ export function CommandList(props: JSX.HTMLAttributes<HTMLDivElement>) {
 
 /* ---------- Empty ---------- */
 
-export function CommandEmpty(props: JSX.HTMLAttributes<HTMLDivElement>) {
+export function CommandEmpty(
+  props: ParentProps<Omit<JSX.HTMLAttributes<HTMLDivElement>, "children">>
+) {
   const rest = omit(props, "class", "children");
   const ctx = useCommand();
   const resolved = children(() => props.children);
@@ -258,11 +271,12 @@ export function CommandEmpty(props: JSX.HTMLAttributes<HTMLDivElement>) {
 
 /* ---------- Group ---------- */
 
-interface CommandGroupProps extends JSX.HTMLAttributes<HTMLDivElement> {
+interface CommandGroupProps
+  extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "children"> {
   heading?: string;
 }
 
-export function CommandGroup(props: CommandGroupProps) {
+export function CommandGroup(props: ParentProps<CommandGroupProps>) {
   const rest = omit(props, "class", "children", "heading");
 
   return (
@@ -279,7 +293,8 @@ export function CommandGroup(props: CommandGroupProps) {
 
 /* ---------- Item ---------- */
 
-interface CommandItemProps extends JSX.HTMLAttributes<HTMLDivElement> {
+interface CommandItemProps
+  extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "children"> {
   onSelect?: () => void;
   value: string;
 }
@@ -287,7 +302,7 @@ interface CommandItemProps extends JSX.HTMLAttributes<HTMLDivElement> {
 /**
  * A selectable item in the command menu.
  */
-export function CommandItem(props: CommandItemProps) {
+export function CommandItem(props: ParentProps<CommandItemProps>) {
   const rest = omit(
     props,
     "class",
@@ -366,7 +381,9 @@ export function CommandItem(props: CommandItemProps) {
 
 /* ---------- Dialog Integration ---------- */
 
-function CommandDialogOverlay(props: JSX.HTMLAttributes<HTMLButtonElement>) {
+function CommandDialogOverlay(
+  props: VoidProps<Omit<JSX.HTMLAttributes<HTMLButtonElement>, "children">>
+) {
   const { close } = useDialog();
   return (
     // biome-ignore lint/a11y/noAriaHiddenOnFocusable: Backdrop overlay button is intentionally hidden from assistive tech
@@ -381,10 +398,7 @@ function CommandDialogOverlay(props: JSX.HTMLAttributes<HTMLButtonElement>) {
   );
 }
 
-function CommandDialogContent(props: {
-  children: JSX.Element;
-  class?: string;
-}) {
+function CommandDialogContent(props: FlowProps<{ class?: string }>) {
   const { isOpen } = useDialog();
   return (
     <Show when={isOpen()}>
@@ -402,12 +416,13 @@ function CommandDialogContent(props: {
   );
 }
 
-export function CommandDialog(props: {
-  isOpen?: boolean;
-  onOpenChange?: (isOpen: boolean) => void;
-  children: JSX.Element;
-  class?: string;
-}) {
+export function CommandDialog(
+  props: ParentProps<{
+    isOpen?: boolean;
+    onOpenChange?: (isOpen: boolean) => void;
+    class?: string;
+  }>
+) {
   return (
     <Dialog isOpen={props.isOpen} onOpenChange={props.onOpenChange}>
       <CommandDialogContent class={props.class}>

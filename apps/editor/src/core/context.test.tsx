@@ -69,6 +69,12 @@ describe("EditorContext", () => {
     expect(screen.getByTestId("test-comp").textContent).toBe("Core Injected");
   });
 
+  it("accepts optional children via ParentProps", () => {
+    setLocationHref("https://glyphide.com/");
+    const { container } = render(() => <EditorProvider />);
+    expect(container.innerHTML).toBe("");
+  });
+
   it("throws native ContextNotFoundError when useEditor is used outside provider", () => {
     let caught: unknown;
     try {

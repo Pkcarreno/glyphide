@@ -1,12 +1,14 @@
 import type { JSX } from "@solidjs/web";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import { omit } from "solid-js";
+import type { ParentProps, VoidProps } from "solid-js";
+import { merge, omit } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
 /* ---------- InputGroup (Root) ---------- */
 
-interface InputGroupProps extends JSX.HTMLAttributes<HTMLFieldSetElement> {
+interface InputGroupProps
+  extends Omit<JSX.HTMLAttributes<HTMLFieldSetElement>, "children"> {
   class?: string;
 }
 
@@ -15,7 +17,7 @@ interface InputGroupProps extends JSX.HTMLAttributes<HTMLFieldSetElement> {
  * Uses <fieldset> as the semantic element for grouping form controls.
  * Provides shared focus/invalid styling via CSS group selectors.
  */
-function InputGroup(props: InputGroupProps) {
+function InputGroup(props: ParentProps<InputGroupProps>) {
   const rest = omit(props, "class", "children");
 
   return (
@@ -65,7 +67,7 @@ const inputGroupAddonVariants = cva(
 );
 
 interface InputGroupAddonProps
-  extends JSX.HTMLAttributes<HTMLDivElement>,
+  extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "children">,
     VariantProps<typeof inputGroupAddonVariants> {
   class?: string;
 }
@@ -75,13 +77,14 @@ interface InputGroupAddonProps
  * at the start or end of the input group.
  * This is a visual layout container, not an interactive element.
  */
-function InputGroupAddon(props: InputGroupAddonProps) {
+function InputGroupAddon(rawProps: ParentProps<InputGroupAddonProps>) {
+  const props = merge({ align: "inline-start" as const }, rawProps);
   const rest = omit(props, "class", "align", "children");
 
   return (
     <div
       class={cn(inputGroupAddonVariants({ align: props.align }), props.class)}
-      data-align={props.align ?? "inline-start"}
+      data-align={props.align}
       data-slot="input-group-addon"
       {...rest}
     >
@@ -110,7 +113,7 @@ const inputGroupButtonVariants = cva(
 );
 
 interface InputGroupButtonProps
-  extends JSX.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends Omit<JSX.ButtonHTMLAttributes<HTMLButtonElement>, "children">,
     VariantProps<typeof inputGroupButtonVariants> {
   class?: string;
 }
@@ -119,7 +122,11 @@ interface InputGroupButtonProps
  * Compact button designed for use inside InputGroupAddon.
  * Uses the project's ghost-button aesthetic by default.
  */
-function InputGroupButton(props: InputGroupButtonProps) {
+function InputGroupButton(rawProps: ParentProps<InputGroupButtonProps>) {
+  const props = merge(
+    { size: "xs" as const, type: "button" as const },
+    rawProps
+  );
   const rest = omit(props, "class", "size", "type", "children");
 
   return (
@@ -132,8 +139,8 @@ function InputGroupButton(props: InputGroupButtonProps) {
         "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 cursor-pointer transition-colors outline-none select-none focus-visible:ring-3 aria-invalid:ring-3",
         props.class
       )}
-      data-size={props.size ?? "xs"}
-      type={props.type ?? "button"}
+      data-size={props.size}
+      type={props.type}
       {...rest}
     >
       {props.children}
@@ -143,12 +150,13 @@ function InputGroupButton(props: InputGroupButtonProps) {
 
 /* ---------- InputGroupText ---------- */
 
-interface InputGroupTextProps extends JSX.HTMLAttributes<HTMLSpanElement> {
+interface InputGroupTextProps
+  extends Omit<JSX.HTMLAttributes<HTMLSpanElement>, "children"> {
   class?: string;
 }
 
 /** Read-only text label rendered inside an InputGroupAddon. */
-function InputGroupText(props: InputGroupTextProps) {
+function InputGroupText(props: ParentProps<InputGroupTextProps>) {
   const rest = omit(props, "class", "children");
 
   return (
@@ -168,7 +176,7 @@ function InputGroupText(props: InputGroupTextProps) {
 /* ---------- InputGroupInput ---------- */
 
 interface InputGroupInputProps
-  extends JSX.InputHTMLAttributes<HTMLInputElement> {
+  extends Omit<JSX.InputHTMLAttributes<HTMLInputElement>, "children"> {
   class?: string;
 }
 
@@ -176,7 +184,8 @@ interface InputGroupInputProps
  * Stripped-down input that inherits the group's border/focus styling.
  * Apply this as the control inside an InputGroup.
  */
-function InputGroupInput(props: InputGroupInputProps) {
+function InputGroupInput(rawProps: VoidProps<InputGroupInputProps>) {
+  const props = merge({ type: "text" }, rawProps);
   const rest = omit(props, "class", "type");
 
   return (
@@ -190,7 +199,7 @@ function InputGroupInput(props: InputGroupInputProps) {
         props.class
       )}
       data-slot="input-group-control"
-      type={props.type ?? "text"}
+      type={props.type}
       {...rest}
     />
   );

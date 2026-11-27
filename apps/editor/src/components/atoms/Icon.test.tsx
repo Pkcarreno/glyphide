@@ -75,4 +75,17 @@ describe("Icon", () => {
     expect(queryByTestId("mock-icon")).toBeNull();
     expect(getByTestId("second-icon")).toBeTruthy();
   });
+
+  it("reactively updates size when toggled", () => {
+    const [size, setSize] = createSignal(14);
+    const { getByTestId } = render(() => (
+      <Icon icon={MockIcon} size={size()} />
+    ));
+    expect(getByTestId("mock-icon").getAttribute("width")).toBe("14");
+
+    setSize(24);
+    flush();
+
+    expect(getByTestId("mock-icon").getAttribute("width")).toBe("24");
+  });
 });
