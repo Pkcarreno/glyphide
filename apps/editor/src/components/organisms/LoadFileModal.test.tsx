@@ -265,6 +265,28 @@ describe("LoadFileModal", () => {
     expect(queryByText(OVERWRITE_RE)).toBeNull();
   });
 
+  it("closing via header close button resets confirmation state and closes overlay", async () => {
+    setMockIsOpen(true);
+    mockBufferContent.mockReturnValue("existing");
+    mockReadFileFromFile.mockResolvedValue({
+      content: "1",
+      extension: ".js",
+      name: "x.js",
+    });
+
+    const { getByRole, getByTestId, queryByText } = render(() => (
+      <LoadFileModal />
+    ));
+    dropFileOnZone(getByTestId("file-drop"), new File(["1"], "x.js"));
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(queryByText(OVERWRITE_RE)).toBeTruthy();
+
+    fireEvent.click(getByRole("button", { name: "Close load file dialog" }));
+    expect(mockCloseOverlay).toHaveBeenCalledWith("load-file");
+    expect(queryByText(OVERWRITE_RE)).toBeNull();
+  });
+
   it("dynamically derives FileDrop accept and error message from engineRegistry.supportedExtensions", async () => {
     mockSupportedExtensions = [".lua", ".rb"];
     setMockIsOpen(true);
