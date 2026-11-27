@@ -1,27 +1,18 @@
 import type { Placement } from "@floating-ui/dom";
-import {
-  autoUpdate,
-  computePosition,
-  flip,
-  offset as floatingOffset,
-  shift,
-} from "@floating-ui/dom";
 import type { ComponentProps, JSX, ValidComponent } from "@solidjs/web";
 import { dynamic, Portal } from "@solidjs/web";
 import type { Accessor, FlowProps, ParentProps } from "solid-js";
 import {
   createContext,
-  createEffect,
   createSignal,
   merge,
   omit,
-  onCleanup,
-  onSettled,
   Show,
   useContext,
 } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { composeEventHandlers } from "../../helpers/compose-event-handlers.ts";
+import { createFloatingAnchor } from "../../helpers/create-floating-anchor.ts";
 
 /* ---------- Types ---------- */
 
@@ -93,111 +84,39 @@ export function PopoverRoot(rawProps: FlowProps<PopoverRootProps>) {
   const [internalIsOpen, setInternalIsOpen] = createSignal(false);
   const isOpen = () => props.isOpen ?? internalIsOpen();
 
-  const [isPositioned, setIsPositioned] = createSignal(false);
-  const [coords, setCoords] = createSignal({ left: 0, top: 0 });
-
-  const [triggerEl, setTriggerEl] = createSignal<HTMLElement>();
-  const [positionerEl, setPositionerEl] = createSignal<HTMLElement>();
-  let cleanupAutoUpdate: (() => void) | undefined;
-
-  const updatePosition = (trigger: HTMLElement, positioner: HTMLElement) => {
-    computePosition(trigger, positioner, {
-      middleware: [floatingOffset(offset()), flip(), shift({ padding: 8 })],
-      placement: position(),
-    })
-      .then(({ x, y }) => {
-        setCoords({ left: Math.round(x), top: Math.round(y) });
-        setIsPositioned(true);
-      })
-      .catch(() => {
-        // Ignore positioning errors in JSDOM environments
-      });
-  };
-
-  createEffect(
-    () => ({ open: isOpen(), pos: positionerEl(), trig: triggerEl() }),
-    ({ open, pos, trig }) => {
-      cleanupAutoUpdate?.();
-      cleanupAutoUpdate = undefined;
-      if (open && trig && pos) {
-        try {
-          cleanupAutoUpdate = autoUpdate(trig, pos, () =>
-            updatePosition(trig, pos)
-          );
-        } catch {
-          updatePosition(trig, pos);
-          cleanupAutoUpdate = () => undefined;
-        }
-      }
-    }
-  );
-
-  const setTriggerRef = (el: HTMLElement) => {
-    setTriggerEl(el);
-  };
-
-  const setPositionerRef = (el: HTMLElement) => {
-    setPositionerEl(el);
-  };
-
   const handleOpenStateChange = (nextOpen: boolean) => {
     if (props.isOpen === undefined) {
       setInternalIsOpen(nextOpen);
     }
     props.onOpenChange?.(nextOpen);
-
-    if (!nextOpen) {
-      setIsPositioned(false);
-      cleanupAutoUpdate?.();
-      cleanupAutoUpdate = undefined;
-    }
   };
 
   const close = () => {
     handleOpenStateChange(false);
   };
 
-  const _open = () => {
-    handleOpenStateChange(true);
-  };
-
   const toggle = () => {
     handleOpenStateChange(!isOpen());
   };
 
-  onSettled(() => {
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (!isOpen()) {
-        return;
-      }
-      const target = e.target as Node;
-      const trig = triggerEl();
-      const pos = positionerEl();
-      if (trig && pos && !trig.contains(target) && !pos.contains(target)) {
-        close();
-      }
-    };
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-    };
-  });
-
-  onCleanup(() => {
-    cleanupAutoUpdate?.();
+  const anchor = createFloatingAnchor({
+    isOpen,
+    offset,
+    onOutsideClick: close,
+    placement: position,
   });
 
   return (
     <PopoverContext
       value={{
         close,
-        coords,
+        coords: anchor.coords,
         isOpen,
-        isPositioned,
+        isPositioned: anchor.isPositioned,
         offset,
         position,
-        setPositionerRef,
-        setTriggerRef,
+        setPositionerRef: anchor.setFloatingRef,
+        setTriggerRef: anchor.setTriggerRef,
         toggle,
       }}
     >
