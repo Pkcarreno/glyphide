@@ -4,9 +4,9 @@ import { createSignal, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type { FileReadResult } from "../../core/ports/file-io.ts";
 import { Button } from "../atoms/Button.tsx";
-import { Dialog } from "../atoms/Dialog.tsx";
 import { FileDrop } from "../atoms/FileDrop.tsx";
 import { Icon } from "../atoms/Icon.tsx";
+import { OverlayDialog } from "../molecules/OverlayDialog.tsx";
 
 function formatAllowedExtensions(extensions: readonly string[]): string {
   if (extensions.length === 0) {
@@ -48,17 +48,6 @@ export function LoadFileModal(_props: VoidProps) {
   function closeModal(): void {
     resetState();
     core.overlays.close("load-file");
-  }
-
-  function handleOpenChange(isOpen: boolean): void {
-    if (isOpen) {
-      core.overlays.open("load-file");
-    } else {
-      core.overlays.close("load-file");
-    }
-    if (!isOpen) {
-      resetState();
-    }
   }
 
   function commitLoad(targetFile?: FileReadResult | unknown): void {
@@ -120,17 +109,21 @@ export function LoadFileModal(_props: VoidProps) {
   }
 
   return (
-    <Dialog.Root
-      isOpen={core.overlays.isOpen("load-file")}
-      onOpenChange={handleOpenChange}
+    <OverlayDialog.Root
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          resetState();
+        }
+      }}
+      overlayId="load-file"
     >
-      <Dialog.Content class="w-full max-w-md overflow-hidden p-0">
-        <Dialog.Header>
-          <Dialog.Title>Load Project from File</Dialog.Title>
-          <Dialog.Close aria-label="Close load file dialog">
+      <OverlayDialog.Content class="w-full max-w-md overflow-hidden p-0">
+        <OverlayDialog.Header>
+          <OverlayDialog.Title>Load Project from File</OverlayDialog.Title>
+          <OverlayDialog.Close aria-label="Close load file dialog">
             <Icon icon={X} size={16} />
-          </Dialog.Close>
-        </Dialog.Header>
+          </OverlayDialog.Close>
+        </OverlayDialog.Header>
 
         <div class="bg-surface flex flex-col gap-5 px-5 py-6">
           <FileDrop
@@ -179,7 +172,7 @@ export function LoadFileModal(_props: VoidProps) {
             </Button>
           </Show>
         </div>
-      </Dialog.Content>
-    </Dialog.Root>
+      </OverlayDialog.Content>
+    </OverlayDialog.Root>
   );
 }

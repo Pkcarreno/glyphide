@@ -13,9 +13,9 @@ import {
 } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { Button } from "../atoms/Button.tsx";
-import { Dialog } from "../atoms/Dialog.tsx";
 import { Icon } from "../atoms/Icon.tsx";
 import { StepperInput } from "../atoms/StepperInput.tsx";
+import { OverlayDialog } from "../molecules/OverlayDialog.tsx";
 
 /* ---------- Internal Components ---------- */
 
@@ -211,28 +211,15 @@ function EngineSettingsContent(_props: VoidProps) {
  * Uses Dialog compound component for consistent modal behavior.
  */
 function EngineSettingsModal(_props: VoidProps) {
-  const core = useEditor();
-
-  const handleOpenChange = (isOpen: boolean) => {
-    if (isOpen) {
-      core.overlays.open("engine-settings");
-    } else {
-      core.overlays.close("engine-settings");
-    }
-  };
-
   return (
-    <Dialog.Root
-      isOpen={core.overlays.isOpen("engine-settings")}
-      onOpenChange={handleOpenChange}
-    >
-      <Dialog.Content class="max-w-xs p-0">
-        <Dialog.Header>
-          <Dialog.Title>Engine Settings</Dialog.Title>
-          <Dialog.Close aria-label="Close engine settings">
+    <OverlayDialog.Root overlayId="engine-settings">
+      <OverlayDialog.Content class="max-w-xs p-0">
+        <OverlayDialog.Header>
+          <OverlayDialog.Title>Engine Settings</OverlayDialog.Title>
+          <OverlayDialog.Close aria-label="Close engine settings">
             <Icon icon={X} size={16} />
-          </Dialog.Close>
-        </Dialog.Header>
+          </OverlayDialog.Close>
+        </OverlayDialog.Header>
         <Errored
           fallback={
             <EngineSettingsForm
@@ -252,8 +239,8 @@ function EngineSettingsModal(_props: VoidProps) {
             <EngineSettingsContent />
           </Loading>
         </Errored>
-      </Dialog.Content>
-    </Dialog.Root>
+      </OverlayDialog.Content>
+    </OverlayDialog.Root>
   );
 }
 

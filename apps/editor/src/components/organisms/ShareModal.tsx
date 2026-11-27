@@ -4,10 +4,10 @@ import { createSignal, createUniqueId, omit, onCleanup, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { cn } from "../../helpers/cn.ts";
 import { Button } from "../atoms/Button.tsx";
-import { Dialog } from "../atoms/Dialog.tsx";
 import { Icon } from "../atoms/Icon.tsx";
 import { Input } from "../atoms/Input.tsx";
 import { Switch } from "../atoms/Switch.tsx";
+import { OverlayDialog } from "../molecules/OverlayDialog.tsx";
 
 interface ShareModalProps {
   class?: string;
@@ -78,31 +78,20 @@ export function ShareModal(props: VoidProps<ShareModalProps>) {
     core.commands.downloadBufferToFile();
   };
 
-  const handleOpenChange = (isOpen: boolean) => {
-    if (isOpen) {
-      core.overlays.open("share");
-    } else {
-      core.overlays.close("share");
-    }
-  };
-
   const switchId = createUniqueId();
 
   return (
-    <Dialog.Root
-      isOpen={core.overlays.isOpen("share")}
-      onOpenChange={handleOpenChange}
-    >
-      <Dialog.Content
+    <OverlayDialog.Root overlayId="share">
+      <OverlayDialog.Content
         class={cn("w-full max-w-lg overflow-hidden p-0", props.class)}
         {...rest}
       >
-        <Dialog.Header>
-          <Dialog.Title>Share Project</Dialog.Title>
-          <Dialog.Close aria-label="Close share dialog">
+        <OverlayDialog.Header>
+          <OverlayDialog.Title>Share Project</OverlayDialog.Title>
+          <OverlayDialog.Close aria-label="Close share dialog">
             <Icon icon={X} size={16} />
-          </Dialog.Close>
-        </Dialog.Header>
+          </OverlayDialog.Close>
+        </OverlayDialog.Header>
 
         <div class="bg-surface flex flex-col gap-6 px-5 py-6">
           <div class="flex flex-col gap-2">
@@ -181,7 +170,7 @@ export function ShareModal(props: VoidProps<ShareModalProps>) {
             />
           </div>
         </div>
-      </Dialog.Content>
-    </Dialog.Root>
+      </OverlayDialog.Content>
+    </OverlayDialog.Root>
   );
 }
