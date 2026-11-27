@@ -15,19 +15,25 @@ import {
   refresh,
 } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { ActionTooltip } from "../molecules/ActionTooltip.tsx";
 import { StatusBar } from "./StatusBar.tsx";
 
-const { mockCursorPositionFn, retryEngineInitMock, openOverlayMock } =
-  vi.hoisted(() => ({
-    mockCursorPositionFn: vi.fn(() => ({
-      column: 5,
-      line: 1,
-      selectionLength: 0,
-      selectionLines: 0,
-    })),
-    openOverlayMock: vi.fn(),
-    retryEngineInitMock: vi.fn(),
-  }));
+const {
+  mockCursorPositionFn,
+  mockGetBindingFn,
+  retryEngineInitMock,
+  openOverlayMock,
+} = vi.hoisted(() => ({
+  mockCursorPositionFn: vi.fn(() => ({
+    column: 5,
+    line: 1,
+    selectionLength: 0,
+    selectionLines: 0,
+  })),
+  mockGetBindingFn: vi.fn((): { label: string } | undefined => undefined),
+  openOverlayMock: vi.fn(),
+  retryEngineInitMock: vi.fn(),
+}));
 
 interface MockEngineEntry {
   engineId: string;
@@ -117,7 +123,7 @@ vi.mock("../../core/context.tsx", () => ({
       cursorPosition: mockCursorPositionFn,
     },
     shortcuts: {
-      getBinding: () => undefined,
+      getBinding: mockGetBindingFn,
     },
   }),
 }));
@@ -139,6 +145,7 @@ afterEach(() => {
     selectionLength: 0,
     selectionLines: 0,
   });
+  mockGetBindingFn.mockReset();
   retryEngineInitMock.mockClear();
   openOverlayMock.mockClear();
 });
@@ -332,11 +339,13 @@ describe("StatusBar.Item", () => {
 });
 
 describe("StatusBar.Button", () => {
-  it("when rendered, renders a native button element", () => {
+  it("when rendered, renders a native button element with type button", () => {
     const { getByRole } = render(() => (
       <StatusBar.Button>Click</StatusBar.Button>
     ));
-    expect(getByRole("button").tagName).toBe("BUTTON");
+    const button = getByRole("button");
+    expect(button.tagName).toBe("BUTTON");
+    expect(button.getAttribute("type")).toBe("button");
   });
 
   it("when clicked, fires onClick handler", () => {
@@ -348,48 +357,12 @@ describe("StatusBar.Button", () => {
     expect(handler).toHaveBeenCalledOnce();
   });
 
-  it("when rendered without tooltip, does not inject tooltip in the DOM", () => {
-    const { queryByRole } = render(() => (
-      <StatusBar.Button>No tip</StatusBar.Button>
+  it("does not inject tooltip in the DOM on hover", () => {
+    const { getByRole, queryByRole } = render(() => (
+      <StatusBar.Button>Plain</StatusBar.Button>
     ));
+    fireEvent.mouseEnter(getByRole("button"));
     expect(queryByRole("tooltip")).toBeNull();
-  });
-
-  it("when rendered with tooltip and hovered, shows tooltip popup", () => {
-    const { getByRole } = render(() => (
-      <StatusBar.Button tooltip="Help text">Hover me</StatusBar.Button>
-    ));
-    expect(screen.queryByRole("tooltip")).toBeNull();
-    fireEvent.mouseEnter(getByRole("button"));
-    expect(screen.queryByRole("tooltip")).not.toBeNull();
-    expect(screen.queryByRole("tooltip")?.textContent).toContain("Help text");
-  });
-
-  it("when rendered with tooltip and shortcut, shows shortcut in popup", () => {
-    const { getByRole } = render(() => (
-      <StatusBar.Button tooltip="Save" tooltipShortcut="⌘S">
-        Save
-      </StatusBar.Button>
-    ));
-    fireEvent.mouseEnter(getByRole("button"));
-    const popup = screen.queryByRole("tooltip");
-    expect(popup).not.toBeNull();
-    expect(popup?.textContent).toContain("⌘S");
-  });
-
-  it("when rendered with tooltip and description, shows description in popup", () => {
-    const { getByRole } = render(() => (
-      <StatusBar.Button
-        tooltip="Engine"
-        tooltipDescription="Select the execution engine"
-      >
-        QuickJS
-      </StatusBar.Button>
-    ));
-    fireEvent.mouseEnter(getByRole("button"));
-    const popup = screen.queryByRole("tooltip");
-    expect(popup).not.toBeNull();
-    expect(popup?.textContent).toContain("Select the execution engine");
   });
 
   it("when rendered with hover classes, applies them", () => {
@@ -410,22 +383,83 @@ describe("StatusBar.Button", () => {
     expect(btn.className).toContain("rounded-md");
   });
 
-  it("reactively switches between plain button and tooltip button when tooltip changes", () => {
-    const [tooltip, setTooltip] = createSignal("");
+  it("composes explicitly with ActionTooltip via as={StatusBar.Button}", () => {
+    const handler = vi.fn();
     const { getByRole } = render(() => (
-      <StatusBar.Button tooltip={tooltip()}>Toggle tip</StatusBar.Button>
+      <ActionTooltip
+        as={StatusBar.Button}
+        meta="Select the execution engine"
+        onClick={handler}
+        position="top"
+        shortcut="⌘E"
+        text="Engine"
+      >
+        QuickJS
+      </ActionTooltip>
     ));
+    const button = getByRole("button");
+    fireEvent.mouseEnter(button);
+    const popup = screen.queryByRole("tooltip");
+    expect(popup).not.toBeNull();
+    expect(popup?.textContent).toContain("Engine");
+    expect(popup?.textContent).toContain("⌘E");
+    expect(popup?.textContent).toContain("Select the execution engine");
+    button.click();
+    expect(handler).toHaveBeenCalledOnce();
+  });
+});
 
-    fireEvent.mouseEnter(getByRole("button"));
+describe("StatusBar.ActionButton", () => {
+  it("when hovered, shows tooltip popup", () => {
+    const { getByRole } = render(() => (
+      <StatusBar.ActionButton text="Help text">Hover me</StatusBar.ActionButton>
+    ));
     expect(screen.queryByRole("tooltip")).toBeNull();
-
-    setTooltip("Reactive help");
-    flush();
-
     fireEvent.mouseEnter(getByRole("button"));
     const popup = screen.queryByRole("tooltip");
     expect(popup).not.toBeNull();
-    expect(popup?.textContent).toContain("Reactive help");
+    expect(popup?.textContent).toContain("Help text");
+  });
+
+  it("when shortcut and meta are provided, shows both in popup", () => {
+    const { getByRole } = render(() => (
+      <StatusBar.ActionButton
+        meta="Save current buffer"
+        shortcut="⌘S"
+        text="Save"
+      >
+        Save
+      </StatusBar.ActionButton>
+    ));
+    fireEvent.mouseEnter(getByRole("button"));
+    const popup = screen.queryByRole("tooltip");
+    expect(popup).not.toBeNull();
+    expect(popup?.textContent).toContain("⌘S");
+    expect(popup?.textContent).toContain("Save current buffer");
+  });
+
+  it("when commandId is provided, resolves its shortcut in the tooltip", () => {
+    mockGetBindingFn.mockReturnValue({ label: "Ctrl+," });
+    const { getByRole } = render(() => (
+      <StatusBar.ActionButton commandId="toggle-settings" text="Settings">
+        Settings
+      </StatusBar.ActionButton>
+    ));
+    fireEvent.mouseEnter(getByRole("button"));
+    const popup = screen.queryByRole("tooltip");
+    expect(popup).not.toBeNull();
+    expect(popup?.textContent).toContain("Ctrl+,");
+  });
+
+  it("when clicked, fires onClick handler", () => {
+    const handler = vi.fn();
+    const { getByRole } = render(() => (
+      <StatusBar.ActionButton onClick={handler} text="Run">
+        Run
+      </StatusBar.ActionButton>
+    ));
+    getByRole("button").click();
+    expect(handler).toHaveBeenCalledOnce();
   });
 });
 

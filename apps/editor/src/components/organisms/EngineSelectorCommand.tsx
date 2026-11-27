@@ -1,6 +1,6 @@
 import LoaderCircle from "lucide-solid/icons/loader-circle";
 import type { VoidProps } from "solid-js";
-import { Errored, For, isPending, Loading, latest, Show } from "solid-js";
+import { Errored, For, Loading, latest, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type { EngineEntry } from "../../core/engine/registry.ts";
 import { getEngineEntries } from "../../core/engine/registry.ts";
@@ -15,21 +15,30 @@ function EngineEntrySpinner(props: VoidProps<{ entry: EngineEntry }>) {
     latest(() => core.engine.activeEngineId()) === props.entry.engineId &&
     latest(() => core.engine.activeLanguage()) === props.entry.language;
 
-  const renderSpinner = () => (
-    <Icon
-      class="text-on-surface-variant ml-auto animate-spin"
-      icon={LoaderCircle}
-      label="Initializing engine"
-      size={14}
-    />
-  );
+  const awaitEngine = () => {
+    core.engine.engine();
+    return null;
+  };
 
   return (
     <Errored fallback={null}>
-      <Loading fallback={<Show when={isTargetEntry()}>{renderSpinner()}</Show>}>
-        <Show when={isPending(() => core.engine.engine()) && isTargetEntry()}>
-          {renderSpinner()}
-        </Show>
+      <Loading
+        fallback={
+          <Show when={isTargetEntry()}>
+            <Icon
+              class="text-on-surface-variant ml-auto animate-spin"
+              icon={LoaderCircle}
+              label="Initializing engine"
+              size={14}
+            />
+          </Show>
+        }
+        on={[
+          latest(() => core.engine.activeEngineId()),
+          latest(() => core.engine.activeLanguage()),
+        ]}
+      >
+        {awaitEngine()}
       </Loading>
     </Errored>
   );
