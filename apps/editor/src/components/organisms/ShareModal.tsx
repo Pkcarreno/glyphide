@@ -1,5 +1,5 @@
 import X from "lucide-solid/icons/x";
-import { createSignal, createUniqueId, omit, onCleanup } from "solid-js";
+import { createSignal, createUniqueId, omit, onCleanup, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { cn } from "../../helpers/cn.ts";
 import { Button } from "../atoms/Button.tsx";
@@ -124,12 +124,12 @@ export function ShareModal(props: ShareModalProps) {
               readonly
               value={buildShareUrl()}
             />
-            {!isUrlShareable() && (
+            <Show when={!isUrlShareable()}>
               <p class="text-warning text-xs">
                 Project is too large to share via URL. Use "Download as file"
                 instead.
               </p>
-            )}
+            </Show>
           </div>
 
           <div class="flex gap-3">

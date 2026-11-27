@@ -1,5 +1,5 @@
 import type { ConsoleToken } from "@glyphide/quickjs-engine/types";
-import { For, Show } from "solid-js";
+import { createMemo, For, Show } from "solid-js";
 import { ConsoleTokenView } from "../molecules/ConsoleTokenView/ConsoleTokenView.tsx";
 
 interface ConsoleTableViewProps {
@@ -172,7 +172,7 @@ function ConsoleTableView(props: ConsoleTableViewProps) {
   return (
     <Show fallback={<ConsoleTokenView tokens={[props.token]} />} when={rows()}>
       {(resolvedRows) => {
-        const cols = () => getColumns(resolvedRows());
+        const cols = createMemo(() => getColumns(resolvedRows()));
 
         return (
           <div class="border-outline-variant my-2 w-full overflow-x-auto rounded-md border shadow-sm">
@@ -182,30 +182,31 @@ function ConsoleTableView(props: ConsoleTableViewProps) {
                   <th class="border-outline-variant border-b px-3 py-1.5 font-medium select-none">
                     (index)
                   </th>
-                  <For each={cols()}>
+                  <For each={cols()} keyed={false}>
                     {(col) => (
                       <th class="border-outline-variant border-b px-3 py-1.5 font-medium select-none">
-                        {col}
+                        {col()}
                       </th>
                     )}
                   </For>
                 </tr>
               </thead>
               <tbody class="divide-outline-variant bg-surface divide-y">
-                <For each={resolvedRows()}>
+                <For each={resolvedRows()} keyed={(row) => row.key}>
                   {(row) => (
                     <tr class="hover:bg-surface-variant/50 transition-colors">
                       <td class="text-on-surface-variant px-3 py-1.5 align-top font-bold select-none">
-                        {row.key}
+                        {row().key}
                       </td>
-                      <For each={cols()}>
+                      <For each={cols()} keyed={false}>
                         {(col) => {
-                          const cellToken = getCellToken(row.value, col);
+                          const cellToken = () =>
+                            getCellToken(row().value, col());
                           return (
                             <td class="px-3 py-1.5 align-top">
                               <Show
                                 fallback={<span class="opacity-0">-</span>}
-                                when={cellToken}
+                                when={cellToken()}
                               >
                                 {(token) => (
                                   <ConsoleTokenView tokens={[token()]} />

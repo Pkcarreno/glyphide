@@ -1,4 +1,6 @@
+import type { ConsoleToken } from "@glyphide/quickjs-engine/types";
 import { fireEvent, render } from "@solidjs/testing-library";
+import { createSignal, flush } from "solid-js";
 import { describe, expect, it } from "vitest";
 import { ConsoleTokenView } from "./ConsoleTokenView.tsx";
 
@@ -604,5 +606,53 @@ describe("ConsoleTokenView", () => {
         expect(container.textContent).toBe("");
       }).not.toThrow();
     });
+  });
+
+  it("reactively updates object and map tuple entries when tokens prop changes", () => {
+    const [tokens, setTokens] = createSignal<ConsoleToken[]>([
+      {
+        properties: { first: { type: "number", value: 1 } },
+        type: "object",
+      },
+      {
+        entries: [
+          [
+            { type: "string", value: "k1" },
+            { type: "number", value: 10 },
+          ],
+        ],
+        size: 1,
+        type: "map",
+      },
+    ]);
+
+    const { container } = render(() => <ConsoleTokenView tokens={tokens()} />);
+    expect(container.textContent).toContain("first: 1");
+    expect(container.textContent).toContain('"k1" => 10');
+
+    setTokens([
+      {
+        properties: {
+          first: { type: "number", value: 2 },
+          second: { type: "string", value: "added" },
+        },
+        type: "object",
+      },
+      {
+        entries: [
+          [
+            { type: "string", value: "k2" },
+            { type: "number", value: 20 },
+          ],
+        ],
+        size: 1,
+        type: "map",
+      },
+    ]);
+    flush();
+
+    expect(container.textContent).toContain("first: 2");
+    expect(container.textContent).toContain('second: "added"');
+    expect(container.textContent).toContain('"k2" => 20');
   });
 });

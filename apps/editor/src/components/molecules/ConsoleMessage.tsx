@@ -1,8 +1,9 @@
 import type { JSX } from "@solidjs/web";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import { omit } from "solid-js";
+import { children, omit, Show } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
+import { hasResolvedChildren } from "../../helpers/has-resolved-children.ts";
 
 const consoleMessageVariants = cva(
   "shrink-0 border-l-2 px-2 py-1 font-mono text-sm",
@@ -46,13 +47,16 @@ interface ConsoleMessageProps
  */
 function ConsoleMessage(props: ConsoleMessageProps) {
   const rest = omit(props, "type", "message", "children", "class");
+  const resolved = children(() => props.children);
 
   return (
     <div
       class={cn(consoleMessageVariants({ type: props.type }), props.class)}
       {...rest}
     >
-      {props.children ?? props.message}
+      <Show fallback={props.message} when={hasResolvedChildren(resolved)}>
+        {resolved()}
+      </Show>
     </div>
   );
 }

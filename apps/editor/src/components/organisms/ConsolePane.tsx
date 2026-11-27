@@ -65,9 +65,9 @@ function renderMessageContent(
     return (
       <ConsoleMessage type={variant}>
         <ConsoleTableView token={rendered.tokens[0]} />
-        {rendered.tokens.length > 1 && (
+        <Show when={rendered.tokens.length > 1}>
           <ConsoleTokenView tokens={rendered.tokens.slice(1)} />
-        )}
+        </Show>
       </ConsoleMessage>
     );
   }
