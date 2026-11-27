@@ -47,18 +47,12 @@ const PopoverContext = createContext<PopoverContextValue>();
 
 /**
  * Retrieves the popover context.
- * Throws if used outside a PopoverRoot.
+ * Throws `ContextNotFoundError` if used outside `<Popover.Root>`.
  *
  * @public
  */
 export function usePopover(): PopoverContextValue {
-  const ctx = useContext(PopoverContext);
-  if (!ctx) {
-    throw new Error(
-      "Popover compound components must be used within <PopoverRoot>"
-    );
-  }
-  return ctx;
+  return useContext(PopoverContext);
 }
 
 /* ---------- Root ---------- */

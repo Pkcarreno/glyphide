@@ -35,15 +35,14 @@ interface CommandContextValue {
 
 const CommandContext = createContext<CommandContextValue>();
 
-/** @public */
-export function useCommand() {
-  const context = useContext(CommandContext);
-  if (!context) {
-    throw new Error(
-      "Command compound components must be used within CommandRoot"
-    );
-  }
-  return context;
+/**
+ * Retrieves the Command context.
+ * Throws `ContextNotFoundError` if used outside `<CommandRoot>`.
+ *
+ * @public
+ */
+export function useCommand(): CommandContextValue {
+  return useContext(CommandContext);
 }
 
 /* ---------- Root ---------- */

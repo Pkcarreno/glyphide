@@ -24,11 +24,7 @@ interface DialogContextValue {
 const DialogContext = createContext<DialogContextValue>();
 
 function useDialog(): DialogContextValue {
-  const ctx = useContext(DialogContext);
-  if (!ctx) {
-    throw new Error("Dialog compound components must be used within <Dialog>");
-  }
-  return ctx;
+  return useContext(DialogContext);
 }
 
 /* ---------- Root ---------- */

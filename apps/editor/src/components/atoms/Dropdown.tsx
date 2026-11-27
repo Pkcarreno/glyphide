@@ -45,18 +45,12 @@ const DropdownContext = createContext<DropdownContextValue>();
 
 /**
  * Retrieves the dropdown context.
- * Throws if used outside a DropdownRoot.
+ * Throws `ContextNotFoundError` if used outside `<Dropdown.Root>`.
  *
  * @public
  */
 export function useDropdown(): DropdownContextValue {
-  const ctx = useContext(DropdownContext);
-  if (!ctx) {
-    throw new Error(
-      "Dropdown compound components must be used within <Dropdown.Root>"
-    );
-  }
-  return ctx;
+  return useContext(DropdownContext);
 }
 
 /* ---------- Root ---------- */

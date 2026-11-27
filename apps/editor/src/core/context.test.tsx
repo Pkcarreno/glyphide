@@ -1,5 +1,6 @@
 import { encodePayload as codecEncode } from "@glyphide/url-migration/codec";
 import { cleanup, render, screen } from "@solidjs/testing-library";
+import { resetErrorHalt } from "solid-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EditorProvider, useEditor } from "./context.tsx";
 
@@ -52,6 +53,11 @@ function setLocationHref(href: string) {
 }
 
 describe("EditorContext", () => {
+  afterEach(() => {
+    cleanup();
+    resetErrorHalt();
+  });
+
   it("provides EditorCore to children", () => {
     setLocationHref("https://glyphide.com/");
     render(() => (
@@ -63,10 +69,19 @@ describe("EditorContext", () => {
     expect(screen.getByTestId("test-comp").textContent).toBe("Core Injected");
   });
 
-  it("throws when useEditor is used outside provider", () => {
-    expect(() => {
+  it("throws native ContextNotFoundError when useEditor is used outside provider", () => {
+    let caught: unknown;
+    try {
       render(() => <TestComponent />);
-    }).toThrow("useEditor must be called within an <EditorProvider>.");
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(caught).toBeInstanceOf(Error);
+    expect((caught as Error).constructor.name).toBe("ContextNotFoundError");
+    expect((caught as Error).message).toContain(
+      "has no provider above this read"
+    );
   });
 });
 

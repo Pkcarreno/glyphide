@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
-import { createSignal, flush, Show } from "solid-js";
+import { createSignal, flush, resetErrorHalt, Show } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   CommandEmpty,
@@ -7,9 +7,13 @@ import {
   CommandItem,
   CommandList,
   CommandRoot,
+  useCommand,
 } from "./Command.tsx";
 
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  resetErrorHalt();
+});
 
 describe("Command", () => {
   it("renders and filters items correctly", async () => {
@@ -204,7 +208,6 @@ describe("Command", () => {
     expect(onItemClick).toHaveBeenCalledOnce();
     expect(onSelect).toHaveBeenCalledTimes(2);
   });
-
   it("CommandEmpty resolves children before falling back to default message", () => {
     const [hasCustomEmpty, setHasCustomEmpty] = createSignal(false);
 
@@ -228,5 +231,25 @@ describe("Command", () => {
 
     expect(screen.queryByText("No results found.")).toBeNull();
     expect(screen.getByText("Nothing matched")).toBeTruthy();
+  });
+
+  it("throws native ContextNotFoundError when useCommand is called outside CommandRoot", () => {
+    function OrphanConsumer() {
+      useCommand();
+      return null;
+    }
+
+    let caught: unknown;
+    try {
+      render(() => <OrphanConsumer />);
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(caught).toBeInstanceOf(Error);
+    expect((caught as Error).constructor.name).toBe("ContextNotFoundError");
+    expect((caught as Error).message).toContain(
+      "has no provider above this read"
+    );
   });
 });
