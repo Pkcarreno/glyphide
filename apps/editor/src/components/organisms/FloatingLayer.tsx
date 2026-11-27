@@ -1,3 +1,4 @@
+import type { VoidProps } from "solid-js";
 import { EngineSelectorCommand } from "./EngineSelectorCommand.tsx";
 import { EngineSettingsModal } from "./EngineSettingsModal.tsx";
 import { LoadFileModal } from "./LoadFileModal.tsx";
@@ -11,7 +12,7 @@ import { TrustRequiredModal } from "./TrustRequiredModal.tsx";
  * Orchestrates all application-level floating elements.
  * Renders modals, command menus, and overlays decoupled from normal view flow.
  */
-export function FloatingLayer() {
+export function FloatingLayer(_props: VoidProps) {
   return (
     <>
       <SettingsModal />

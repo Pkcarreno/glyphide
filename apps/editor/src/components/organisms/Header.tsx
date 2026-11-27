@@ -8,6 +8,7 @@ import Settings from "lucide-solid/icons/settings";
 import Share2 from "lucide-solid/icons/share-2";
 import ShieldAlert from "lucide-solid/icons/shield-exclamation-point";
 import Square from "lucide-solid/icons/square";
+import type { VoidProps } from "solid-js";
 import { createSignal, isPending, omit, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { usePwaUpdate } from "../../core/pwa-registration.tsx";
@@ -21,7 +22,7 @@ import { ActionTooltip } from "../molecules/ActionTooltip.tsx";
 interface HeaderProps
   extends Omit<
     JSX.HTMLAttributes<HTMLElement>,
-    "onSettingsClick" | "onShareClick" | "onRunOptionsClick"
+    "children" | "onSettingsClick" | "onShareClick" | "onRunOptionsClick"
   > {
   class?: string;
 }
@@ -30,7 +31,7 @@ interface HeaderProps
  * Top header organism containing the app logo/title
  * and primary actions (Settings, Share, Run).
  */
-function Header(props: HeaderProps) {
+function Header(props: VoidProps<HeaderProps>) {
   const rest = omit(props, "class");
 
   const core = useEditor();

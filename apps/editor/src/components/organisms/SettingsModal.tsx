@@ -1,7 +1,7 @@
-import type { JSX } from "@solidjs/web";
 import Undo from "lucide-solid/icons/undo-2";
 import X from "lucide-solid/icons/x";
-import { createUniqueId, For, omit, Show } from "solid-js";
+import type { ParentProps, VoidProps } from "solid-js";
+import { createUniqueId, For, merge, omit, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { DEFAULT_SETTINGS } from "../../core/models/settings.ts";
 import { cn } from "../../helpers/cn.ts";
@@ -15,7 +15,6 @@ import { Dialog, DialogClose, DialogContent } from "../molecules/Dialog.tsx";
 /* ---------- Internal Composables ---------- */
 
 interface SettingsItemProps {
-  children?: JSX.Element;
   class?: string;
   description?: string;
   forId?: string;
@@ -24,7 +23,8 @@ interface SettingsItemProps {
   onReset?: () => void;
 }
 
-function SettingsItem(props: SettingsItemProps) {
+function SettingsItem(rawProps: ParentProps<SettingsItemProps>) {
+  const props = merge({ isModified: false }, rawProps);
   return (
     <div
       class={cn(
@@ -63,15 +63,18 @@ function SettingsItem(props: SettingsItemProps) {
   );
 }
 
-function SettingsSwitchItem(props: {
-  label: string;
-  description?: string;
-  checked: boolean;
-  onCheckedChange: (c: boolean) => void;
-  isModified?: boolean;
-  onReset?: () => void;
-  class?: string;
-}) {
+function SettingsSwitchItem(
+  rawProps: VoidProps<{
+    label: string;
+    description?: string;
+    checked: boolean;
+    onCheckedChange: (c: boolean) => void;
+    isModified?: boolean;
+    onReset?: () => void;
+    class?: string;
+  }>
+) {
+  const props = merge({ isModified: false }, rawProps);
   const id = createUniqueId();
   return (
     <SettingsItem
@@ -92,18 +95,21 @@ function SettingsSwitchItem(props: {
   );
 }
 
-function SettingsNumberItem(props: {
-  label: string;
-  description?: string;
-  value: number;
-  step?: number;
-  min?: number;
-  max?: number;
-  onValueChange: (v: number) => void;
-  isModified?: boolean;
-  onReset?: () => void;
-  class?: string;
-}) {
+function SettingsNumberItem(
+  rawProps: VoidProps<{
+    label: string;
+    description?: string;
+    value: number;
+    step?: number;
+    min?: number;
+    max?: number;
+    onValueChange: (v: number) => void;
+    isModified?: boolean;
+    onReset?: () => void;
+    class?: string;
+  }>
+) {
+  const props = merge({ isModified: false }, rawProps);
   const id = createUniqueId();
   return (
     <SettingsItem
@@ -139,7 +145,7 @@ const TABS = ["Appearance", "Editor", "Execution"] as const;
  * Settings modal organism.
  * Displays application settings using high density components and the Tabs primitive.
  */
-function SettingsModal(props: SettingsModalProps) {
+function SettingsModal(props: VoidProps<SettingsModalProps>) {
   const rest = omit(props, "class");
 
   const core = useEditor();

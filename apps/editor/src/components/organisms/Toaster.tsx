@@ -1,3 +1,4 @@
+import type { VoidProps } from "solid-js";
 import { For } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { Toast } from "../molecules/Toast.tsx";
@@ -6,7 +7,7 @@ import { Toast } from "../molecules/Toast.tsx";
  * Global container for active toast notifications.
  * Manages the layout and positioning of the toast stack.
  */
-export function Toaster() {
+export function Toaster(_props: VoidProps) {
   const core = useEditor();
 
   function handleClose(id: string) {

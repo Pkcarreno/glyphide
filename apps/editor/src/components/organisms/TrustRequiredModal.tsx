@@ -1,4 +1,5 @@
 import type { JSX } from "@solidjs/web";
+import type { VoidProps } from "solid-js";
 import { omit } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { cn } from "../../helpers/cn.ts";
@@ -10,7 +11,8 @@ import {
   DialogTitle,
 } from "../molecules/Dialog.tsx";
 
-interface TrustRequiredModalProps extends JSX.HTMLAttributes<HTMLDivElement> {
+interface TrustRequiredModalProps
+  extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "children"> {
   class?: string;
 }
 
@@ -18,7 +20,7 @@ interface TrustRequiredModalProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * Modal shown when code requires user trust before execution.
  * Appears when the workspace contains untrusted shared code.
  */
-export function TrustRequiredModal(props: TrustRequiredModalProps) {
+export function TrustRequiredModal(props: VoidProps<TrustRequiredModalProps>) {
   const rest = omit(props, "class");
   const core = useEditor();
 

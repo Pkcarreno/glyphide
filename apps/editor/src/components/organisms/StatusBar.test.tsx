@@ -409,6 +409,24 @@ describe("StatusBar.Button", () => {
     expect(btn.className).toContain("gap-2");
     expect(btn.className).toContain("rounded-md");
   });
+
+  it("reactively switches between plain button and tooltip button when tooltip changes", () => {
+    const [tooltip, setTooltip] = createSignal("");
+    const { getByRole } = render(() => (
+      <StatusBar.Button tooltip={tooltip()}>Toggle tip</StatusBar.Button>
+    ));
+
+    fireEvent.mouseEnter(getByRole("button"));
+    expect(screen.queryByRole("tooltip")).toBeNull();
+
+    setTooltip("Reactive help");
+    flush();
+
+    fireEvent.mouseEnter(getByRole("button"));
+    const popup = screen.queryByRole("tooltip");
+    expect(popup).not.toBeNull();
+    expect(popup?.textContent).toContain("Reactive help");
+  });
 });
 
 describe("StatusBar - Errored boundary & Mobile Visibility", () => {

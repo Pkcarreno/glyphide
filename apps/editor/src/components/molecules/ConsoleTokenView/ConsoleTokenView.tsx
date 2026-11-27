@@ -1,5 +1,6 @@
 import type { ConsoleToken } from "@glyphide/quickjs-engine/types";
-import { createMemo, For, Show } from "solid-js";
+import type { VoidProps } from "solid-js";
+import { createMemo, For, merge, Show } from "solid-js";
 import { ExpandableNode } from "../../atoms/ExpandableNode.tsx";
 
 /**
@@ -19,7 +20,7 @@ interface ConsoleTokenViewProps {
 }
 
 /** Truncation marker rendered when inline preview has more items. */
-function Ellipsis() {
+function Ellipsis(_props: VoidProps) {
   return <span class="text-on-surface-variant opacity-50">…</span>;
 }
 
@@ -191,14 +192,18 @@ function renderTokenContent(token: unknown, isPreview?: boolean) {
 }
 
 /** Renders a single ConsoleToken with type-appropriate styling. */
-function Token(props: { token: unknown; isPreview?: boolean }) {
+function Token(rawProps: VoidProps<{ token: unknown; isPreview?: boolean }>) {
+  const props = merge({ isPreview: false }, rawProps);
   return <>{renderTokenContent(props.token, props.isPreview)}</>;
 }
 
-function TokenArray(props: {
-  token: Extract<ConsoleToken, { type: "array" }>;
-  isPreview?: boolean;
-}) {
+function TokenArray(
+  rawProps: VoidProps<{
+    token: Extract<ConsoleToken, { type: "array" }>;
+    isPreview?: boolean;
+  }>
+) {
+  const props = merge({ isPreview: false }, rawProps);
   const elements = createMemo(() =>
     Array.isArray(props.token.elements) ? props.token.elements : []
   );
@@ -253,10 +258,13 @@ function TokenArray(props: {
   );
 }
 
-function TokenObject(props: {
-  token: Extract<ConsoleToken, { type: "object" }>;
-  isPreview?: boolean;
-}) {
+function TokenObject(
+  rawProps: VoidProps<{
+    token: Extract<ConsoleToken, { type: "object" }>;
+    isPreview?: boolean;
+  }>
+) {
+  const props = merge({ isPreview: false }, rawProps);
   const propertyEntries = createMemo(() =>
     Object.entries(props.token.properties)
   );
@@ -308,10 +316,13 @@ function TokenObject(props: {
   );
 }
 
-function TokenMap(props: {
-  token: Extract<ConsoleToken, { type: "map" }>;
-  isPreview?: boolean;
-}) {
+function TokenMap(
+  rawProps: VoidProps<{
+    token: Extract<ConsoleToken, { type: "map" }>;
+    isPreview?: boolean;
+  }>
+) {
+  const props = merge({ isPreview: false }, rawProps);
   const entries = createMemo(() =>
     Array.isArray(props.token.entries) ? props.token.entries : []
   );
@@ -377,10 +388,13 @@ function TokenMap(props: {
   );
 }
 
-function TokenSet(props: {
-  token: Extract<ConsoleToken, { type: "set" }>;
-  isPreview?: boolean;
-}) {
+function TokenSet(
+  rawProps: VoidProps<{
+    token: Extract<ConsoleToken, { type: "set" }>;
+    isPreview?: boolean;
+  }>
+) {
+  const props = merge({ isPreview: false }, rawProps);
   const elements = createMemo(() =>
     Array.isArray(props.token.elements) ? props.token.elements : []
   );
@@ -436,7 +450,7 @@ function TokenSet(props: {
  * Molecule that renders a `ConsoleToken[]`.
  * Provides interactive expansion for structured collections (objects, arrays, maps, sets).
  */
-function ConsoleTokenView(props: ConsoleTokenViewProps) {
+function ConsoleTokenView(props: VoidProps<ConsoleTokenViewProps>) {
   const tokens = () => (Array.isArray(props.tokens) ? props.tokens : []);
   return (
     <span class="inline-flex flex-wrap items-baseline gap-x-1.5">

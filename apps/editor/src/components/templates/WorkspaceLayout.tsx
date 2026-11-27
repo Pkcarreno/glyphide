@@ -1,4 +1,5 @@
 import type { JSX } from "@solidjs/web";
+import type { VoidProps } from "solid-js";
 import { createSignal } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { Resizer } from "../atoms/Resizer.tsx";
@@ -20,7 +21,7 @@ interface WorkspaceLayoutProps {
  * Main layout template coordinating the Header, Editor, Console, and Status Bar.
  * Handles the responsive resizer logic between the Editor and Console panes via CSS and DOM updates.
  */
-function WorkspaceLayout(props: WorkspaceLayoutProps) {
+function WorkspaceLayout(props: VoidProps<WorkspaceLayoutProps>) {
   let containerRef: HTMLElement | undefined;
   const [editorSize, setEditorSize] = createSignal<number>(50); // 50% by default
 

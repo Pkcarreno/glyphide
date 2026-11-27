@@ -1,6 +1,7 @@
 import type { JSX } from "@solidjs/web";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
+import type { ParentProps } from "solid-js";
 import { children, omit, Show } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { hasResolvedChildren } from "../../helpers/has-resolved-children.ts";
@@ -28,10 +29,8 @@ const consoleMessageVariants = cva(
 type ConsoleMessageVariants = VariantProps<typeof consoleMessageVariants>;
 
 interface ConsoleMessageProps
-  extends JSX.HTMLAttributes<HTMLDivElement>,
+  extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "children">,
     ConsoleMessageVariants {
-  /** JSX children for structured output (e.g. ConsoleTokenView). When set, `message` is ignored. */
-  children?: JSX.Element;
   class?: string;
   /** Plain text message. Required when `children` is not provided. */
   message?: string;
@@ -45,7 +44,7 @@ interface ConsoleMessageProps
  * output such as `ConsoleTokenView`. When `children` is provided, it takes
  * precedence over `message`.
  */
-function ConsoleMessage(props: ConsoleMessageProps) {
+function ConsoleMessage(props: ParentProps<ConsoleMessageProps>) {
   const rest = omit(props, "type", "message", "children", "class");
   const resolved = children(() => props.children);
 

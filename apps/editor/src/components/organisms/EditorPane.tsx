@@ -1,18 +1,19 @@
 import type { JSX } from "@solidjs/web";
+import type { VoidProps } from "solid-js";
 import { omit } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { cn } from "../../helpers/cn.ts";
 import { CodeField } from "../atoms/CodeField/CodeField.tsx";
 
 interface EditorPaneProps
-  extends Omit<JSX.HTMLAttributes<HTMLElement>, "onChange"> {
+  extends Omit<JSX.HTMLAttributes<HTMLElement>, "children" | "onChange"> {
   class?: string;
 }
 
 /**
  * Main code editor organism.
  */
-function EditorPane(props: EditorPaneProps) {
+function EditorPane(props: VoidProps<EditorPaneProps>) {
   const rest = omit(props, "class");
   const core = useEditor();
 

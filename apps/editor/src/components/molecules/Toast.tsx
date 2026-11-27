@@ -2,6 +2,7 @@ import CircleCheckIcon from "lucide-solid/icons/circle-check";
 import CircleXIcon from "lucide-solid/icons/circle-x";
 import TriangleAlertIcon from "lucide-solid/icons/triangle-exclamation-point";
 import XIcon from "lucide-solid/icons/x";
+import type { VoidProps } from "solid-js";
 import {
   createSignal,
   Match,
@@ -27,7 +28,7 @@ interface ToastProps {
  * Ephemeral notification component that displays a message and an optional action.
  * Uses CSS transitions for smooth mounting and unmounting.
  */
-export function Toast(props: ToastProps) {
+export function Toast(props: VoidProps<ToastProps>) {
   const [isClosing, setIsClosing] = createSignal(false);
   const [isMounted, setIsMounted] = createSignal(false);
   let closeTimer: ReturnType<typeof setTimeout> | undefined;

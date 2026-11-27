@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web";
 import Trash from "lucide-solid/icons/trash";
-import type { Accessor } from "solid-js";
+import type { Accessor, VoidProps } from "solid-js";
 import { Errored, omit, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type {
@@ -24,7 +24,8 @@ type MessageVariant = Exclude<
   "group" | "groupCollapsed" | "groupEnd"
 >;
 
-interface ConsolePaneProps extends JSX.HTMLAttributes<HTMLElement> {
+interface ConsolePaneProps
+  extends Omit<JSX.HTMLAttributes<HTMLElement>, "children"> {
   class?: string;
 }
 
@@ -79,7 +80,7 @@ function renderMessageContent(
   );
 }
 
-function ConsolePane(props: ConsolePaneProps) {
+function ConsolePane(props: VoidProps<ConsolePaneProps>) {
   const rest = omit(props, "class");
   const core = useEditor();
 

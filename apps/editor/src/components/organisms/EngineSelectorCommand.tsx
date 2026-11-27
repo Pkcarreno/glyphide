@@ -1,4 +1,5 @@
 import LoaderCircle from "lucide-solid/icons/loader-circle";
+import type { VoidProps } from "solid-js";
 import { Errored, For, isPending, Loading, latest, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type { EngineEntry } from "../../core/engine/registry.ts";
@@ -14,7 +15,7 @@ import {
 } from "../atoms/Command.tsx";
 import { Icon } from "../atoms/Icon.tsx";
 
-function EngineEntrySpinner(props: { entry: EngineEntry }) {
+function EngineEntrySpinner(props: VoidProps<{ entry: EngineEntry }>) {
   const core = useEditor();
 
   const isTargetEntry = () =>
@@ -44,7 +45,7 @@ function EngineEntrySpinner(props: { entry: EngineEntry }) {
 /**
  * Command menu for selecting the active execution engine.
  */
-export function EngineSelectorCommand() {
+export function EngineSelectorCommand(_props: VoidProps) {
   const core = useEditor();
 
   const handleOpenChange = (isOpen: boolean) => {

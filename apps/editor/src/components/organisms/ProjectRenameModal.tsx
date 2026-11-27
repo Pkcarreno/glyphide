@@ -1,10 +1,11 @@
+import type { VoidProps } from "solid-js";
 import { createSignal, Show, untrack } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import { createAutoFocus } from "../../helpers/create-auto-focus.ts";
 import { Input } from "../atoms/Input.tsx";
 import { Dialog, useDialog } from "../molecules/Dialog.tsx";
 
-function ProjectRenameOverlay() {
+function ProjectRenameOverlay(_props: VoidProps) {
   const { close } = useDialog();
   return (
     // biome-ignore lint/a11y/noAriaHiddenOnFocusable: Backdrop overlay button is intentionally hidden from assistive tech
@@ -18,7 +19,7 @@ function ProjectRenameOverlay() {
   );
 }
 
-function ProjectRenameForm() {
+function ProjectRenameForm(_props: VoidProps) {
   const core = useEditor();
   const { close } = useDialog();
   const [name, setName] = createSignal(
@@ -61,7 +62,7 @@ function ProjectRenameForm() {
   );
 }
 
-function ProjectRenameContent() {
+function ProjectRenameContent(_props: VoidProps) {
   const { isOpen } = useDialog();
 
   return (
@@ -74,7 +75,7 @@ function ProjectRenameContent() {
 /**
  * Floating modal for renaming the active project.
  */
-export function ProjectRenameModal() {
+export function ProjectRenameModal(_props: VoidProps) {
   const core = useEditor();
 
   const handleOpenChange = (isOpen: boolean) => {
