@@ -11,12 +11,14 @@ import {
   latest,
   merge,
   omit,
+  Reveal,
   Show,
 } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
-import type { CommandId } from "../../core/shortcuts/registry.ts";
 import { cn } from "../../helpers/cn.ts";
 import { Icon } from "../atoms/Icon.tsx";
+import type { TooltipPosition } from "../atoms/Tooltip.tsx";
+import type { ActionTooltipProps } from "../molecules/ActionTooltip.tsx";
 import { ActionTooltip } from "../molecules/ActionTooltip.tsx";
 
 /**
@@ -51,65 +53,57 @@ function StatusBarItem(props: FlowProps<StatusBarItemProps>) {
   );
 }
 
-interface StatusBarButtonBaseProps
-  extends Omit<JSX.ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
-  class?: string;
-  commandId?: CommandId;
-  tooltip?: string;
-  tooltipDescription?: string;
-  tooltipShortcut?: string;
-}
-
 /**
  * Props for the StatusBarButton component.
  */
-type StatusBarButtonProps = FlowProps<StatusBarButtonBaseProps>;
+interface StatusBarButtonProps
+  extends Omit<JSX.ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
+  class?: string;
+}
 
 /**
  * Interactive button for the StatusBar.
- * Enforces standard padding, hover effects, and automatic Tooltip integration.
+ * Enforces standard padding and hover effects.
  */
-function StatusBarButton(rawProps: StatusBarButtonProps) {
-  const props = merge({ tooltip: "" }, rawProps);
-  const rest = omit(
-    props,
-    "class",
-    "commandId",
-    "tooltip",
-    "tooltipShortcut",
-    "tooltipDescription",
-    "children"
-  );
-
-  const buttonClass = () =>
-    cn(
-      "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 flex h-full items-center gap-1 rounded-md px-1 outline-none focus-visible:ring-3 aria-invalid:ring-3",
-      "hover:bg-surface-variant hover:text-on-surface cursor-pointer transition-colors",
-      props.class
-    );
+function StatusBarButton(props: FlowProps<StatusBarButtonProps>) {
+  const rest = omit(props, "class", "children");
 
   return (
-    <Show
-      fallback={
-        <button class={buttonClass()} {...rest}>
-          {props.children}
-        </button>
-      }
-      when={props.tooltip}
+    <button
+      class={cn(
+        "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 flex h-full items-center gap-1 rounded-md px-1 outline-none focus-visible:ring-3 aria-invalid:ring-3",
+        "hover:bg-surface-variant hover:text-on-surface cursor-pointer transition-colors",
+        props.class
+      )}
+      type="button"
+      {...rest}
     >
-      <ActionTooltip
-        as="button"
-        class={buttonClass()}
-        commandId={props.commandId}
-        meta={props.tooltipDescription}
-        position="top"
-        shortcut={props.tooltipShortcut}
-        text={props.tooltip}
-        {...rest}
-      >
-        {props.children}
-      </ActionTooltip>
-    </Show>
+      {props.children}
+    </button>
+  );
+}
+
+/**
+ * Props for the StatusBarActionButton component.
+ */
+type StatusBarActionButtonProps = FlowProps<
+  Omit<ActionTooltipProps<typeof StatusBarButton>, "as" | "position"> & {
+    /** Placement of the tooltip relative to the button. Default is "top". */
+    position?: TooltipPosition;
+  }
+>;
+
+/**
+ * StatusBar button composed with ActionTooltip above the bar by default.
+ */
+function StatusBarActionButton(rawProps: StatusBarActionButtonProps) {
+  const props = merge({ position: "top" as TooltipPosition }, rawProps);
+  const rest = omit(props, "children", "position");
+
+  return (
+    <ActionTooltip as={StatusBarButton} position={props.position} {...rest}>
+      {props.children}
+    </ActionTooltip>
   );
 }
 
@@ -154,24 +148,37 @@ function TerminalStatusIndicator(
   );
 }
 
+function StatusBarEngineInitializing(_props: VoidProps) {
+  const core = useEditor();
+  return (
+    <TerminalStatusIndicator
+      isDirty={core.engine.isDirty()}
+      isSpinning={true}
+      status="initializing"
+    />
+  );
+}
+
 function StatusBarEngineLanguage(_props: VoidProps) {
   const core = useEditor();
   return (
-    <Errored
-      fallback={<span class="capitalize">{core.engine.activeLanguage()}</span>}
+    <Loading
+      fallback={
+        <span class="capitalize">
+          {latest(() => core.engine.activeLanguage())}
+        </span>
+      }
     >
-      <Loading
+      <Errored
         fallback={
-          <span class="capitalize">
-            {latest(() => core.engine.activeLanguage())}
-          </span>
+          <span class="capitalize">{core.engine.activeLanguage()}</span>
         }
       >
         <span class="capitalize">
           {core.engine.engine()?.language ?? core.engine.activeLanguage()}
         </span>
-      </Loading>
-    </Errored>
+      </Errored>
+    </Loading>
   );
 }
 
@@ -187,110 +194,131 @@ function StatusBarEngineStatusContent(_props: VoidProps) {
     if (isRunPending()) {
       return "running";
     }
-    if (isEnginePending()) {
-      return "initializing";
-    }
     return core.engine.engine() === null ? "blocked" : "ready";
   };
 
   return (
-    <TerminalStatusIndicator
-      isDirty={core.engine.isDirty()}
-      isSpinning={isRunPending() || isEnginePending()}
-      status={status()}
-    />
+    <Show
+      fallback={<StatusBarEngineInitializing />}
+      when={isRunPending() || !isEnginePending()}
+    >
+      <TerminalStatusIndicator
+        isDirty={core.engine.isDirty()}
+        isSpinning={isRunPending()}
+        status={status()}
+      />
+    </Show>
   );
 }
 
 function StatusBarEngineStatus(_props: VoidProps) {
   const core = useEditor();
   return (
-    <Errored
-      fallback={
-        <TerminalStatusIndicator
-          isDirty={core.engine.isDirty()}
-          isSpinning={false}
-          status="error"
-        />
-      }
-    >
-      <Loading
+    <Loading fallback={<StatusBarEngineInitializing />}>
+      <Errored
         fallback={
           <TerminalStatusIndicator
             isDirty={core.engine.isDirty()}
-            isSpinning={true}
-            status="initializing"
+            isSpinning={false}
+            status="error"
           />
         }
       >
         <StatusBarEngineStatusContent />
-      </Loading>
-    </Errored>
+      </Errored>
+    </Loading>
+  );
+}
+
+function StatusBarEngineSelectorButton(props: VoidProps<{ label: string }>) {
+  const core = useEditor();
+
+  return (
+    <StatusBarItem class="hidden md:block">
+      <StatusBarActionButton
+        meta="Switch the active execution engine."
+        onClick={() => core.overlays.open("engine-selector")}
+        text="Select Engine"
+      >
+        <span>{props.label}</span>
+      </StatusBarActionButton>
+    </StatusBarItem>
   );
 }
 
 function StatusBarEngineSelector(_props: VoidProps) {
   const core = useEditor();
 
-  function openEngineSelector() {
-    core.overlays.open("engine-selector");
-  }
+  return (
+    <Errored
+      fallback={
+        <StatusBarEngineSelectorButton label={core.engine.activeEngineId()} />
+      }
+    >
+      <StatusBarEngineSelectorButton
+        label={core.engine.engine()?.engineId ?? core.engine.activeEngineId()}
+      />
+    </Errored>
+  );
+}
+
+function StatusBarEngineSettingsButton(_props: VoidProps) {
+  const core = useEditor();
 
   return (
-    <StatusBarItem class="hidden md:block">
-      <StatusBarButton
-        onClick={openEngineSelector}
-        tooltip="Select Engine"
-        tooltipDescription="Switch the active execution engine."
+    /* Hidden on mobile, visible md+ */
+    <span class="hidden md:block">
+      <StatusBarActionButton
+        id="engine-settings-trigger"
+        onClick={() => core.overlays.open("engine-settings")}
+        text="Engine Settings"
       >
-        <Errored fallback={<span>{core.engine.activeEngineId()}</span>}>
-          <Loading
-            fallback={<span>{latest(() => core.engine.activeEngineId())}</span>}
-          >
-            <span>
-              {core.engine.engine()?.engineId ?? core.engine.activeEngineId()}
-            </span>
-          </Loading>
-        </Errored>
-      </StatusBarButton>
-    </StatusBarItem>
+        <Icon icon={Settings2} size={14} />
+      </StatusBarActionButton>
+    </span>
   );
 }
 
 function StatusBarEngineAction(_props: VoidProps) {
   const core = useEditor();
 
-  const renderSettingsButton = () => (
-    /* Hidden on mobile, visible md+ */
-    <span class="hidden md:block">
-      <StatusBarButton
-        id="engine-settings-trigger"
-        onClick={() => core.overlays.open("engine-settings")}
-        tooltip="Engine Settings"
-      >
-        <Icon icon={Settings2} size={14} />
-      </StatusBarButton>
-    </span>
-  );
-
   return (
     <Errored
       fallback={
-        <StatusBarButton
+        <StatusBarActionButton
           aria-label="Retry engine initialization"
           onClick={() => core.commands.retryEngineInit()}
-          tooltip="Retry Initialization"
+          text="Retry Initialization"
         >
           <Icon class="text-red-500" icon={RefreshCcw} size={12} />
-        </StatusBarButton>
+        </StatusBarActionButton>
       }
     >
-      <Loading fallback={renderSettingsButton()}>
-        <Show when={core.engine.engine() !== undefined}>
-          {renderSettingsButton()}
-        </Show>
-      </Loading>
+      {(() => {
+        core.engine.engine();
+        return <StatusBarEngineSettingsButton />;
+      })()}
     </Errored>
+  );
+}
+
+function StatusBarEngineControls(_props: VoidProps) {
+  const core = useEditor();
+
+  return (
+    <Loading
+      fallback={
+        <>
+          <StatusBarEngineSelectorButton
+            label={latest(() => core.engine.activeEngineId())}
+          />
+          <StatusBarEngineSettingsButton />
+        </>
+      }
+    >
+      <StatusBarEngineSelector />
+      <StatusBarEngineAction />
+    </Loading>
   );
 }
 
@@ -298,7 +326,7 @@ function StatusBarEngineAction(_props: VoidProps) {
  * Bottom status bar compound organism.
  * Shows system state on the left and layout controls on the right.
  *
- * Compound parts: `StatusBar.Item`, `StatusBar.Button`.
+ * Compound parts: `StatusBar.Item`, `StatusBar.Button`, `StatusBar.ActionButton`.
  */
 function StatusBar(props: VoidProps<StatusBarProps>) {
   const rest = omit(props, "class");
@@ -314,43 +342,45 @@ function StatusBar(props: VoidProps<StatusBarProps>) {
       )}
       {...rest}
     >
-      <div class="flex h-full items-center gap-1">
-        <StatusBarItem>
-          <StatusBarEngineLanguage />
-        </StatusBarItem>
+      <Reveal order="together">
+        <div class="flex h-full items-center gap-1">
+          <StatusBarItem>
+            <StatusBarEngineLanguage />
+          </StatusBarItem>
 
-        <StatusBarItem class="lowercase">
-          <StatusBarEngineStatus />
-        </StatusBarItem>
-      </div>
+          <StatusBarItem class="lowercase">
+            <StatusBarEngineStatus />
+          </StatusBarItem>
+        </div>
 
-      <div class="flex h-full items-center gap-1">
-        <StatusBarItem>
-          <span>
-            {core.session.cursorPosition().line}:
-            {core.session.cursorPosition().column}
-            <Show when={core.session.cursorPosition().selectionLength > 0}>
-              {" "}
-              ({core.session.cursorPosition().selectionLines}l,{" "}
-              {core.session.cursorPosition().selectionLength}c)
-            </Show>
-          </span>
-        </StatusBarItem>
+        <div class="flex h-full items-center gap-1">
+          <StatusBarItem>
+            <span>
+              {core.session.cursorPosition().line}:
+              {core.session.cursorPosition().column}
+              <Show when={core.session.cursorPosition().selectionLength > 0}>
+                {" "}
+                ({core.session.cursorPosition().selectionLines}l,{" "}
+                {core.session.cursorPosition().selectionLength}c)
+              </Show>
+            </span>
+          </StatusBarItem>
 
-        <StatusBarEngineSelector />
-
-        <StatusBarEngineAction />
-      </div>
+          <StatusBarEngineControls />
+        </div>
+      </Reveal>
     </footer>
   );
 }
 
 StatusBar.Item = StatusBarItem;
 StatusBar.Button = StatusBarButton;
+StatusBar.ActionButton = StatusBarActionButton;
 
 /** @public */
 export {
   StatusBar,
+  type StatusBarActionButtonProps,
   type StatusBarButtonProps,
   type StatusBarItemProps,
   type StatusBarProps,
