@@ -1,8 +1,12 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
+import { resetErrorHalt } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Popover } from "./Popover.tsx";
+import { Popover, usePopover } from "./Popover.tsx";
 
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  resetErrorHalt();
+});
 
 describe("Popover", () => {
   it("renders trigger and ignores content when closed", () => {
@@ -113,5 +117,25 @@ describe("Popover", () => {
     fireEvent.mouseDown(document.body);
     await Promise.resolve();
     expect(screen.queryByText("Popup Body")).toBeNull();
+  });
+
+  it("throws native ContextNotFoundError when usePopover is called outside Popover.Root", () => {
+    function OrphanConsumer() {
+      usePopover();
+      return null;
+    }
+
+    let caught: unknown;
+    try {
+      render(() => <OrphanConsumer />);
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(caught).toBeInstanceOf(Error);
+    expect((caught as Error).constructor.name).toBe("ContextNotFoundError");
+    expect((caught as Error).message).toContain(
+      "has no provider above this read"
+    );
   });
 });

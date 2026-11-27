@@ -1,8 +1,8 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
 import type { JSX } from "@solidjs/web";
-import { createSignal, flush } from "solid-js";
+import { createSignal, flush, resetErrorHalt } from "solid-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Dropdown } from "./Dropdown.tsx";
+import { Dropdown, useDropdown } from "./Dropdown.tsx";
 
 const { computePositionSpy } = vi.hoisted(() => ({
   computePositionSpy: vi.fn(),
@@ -23,6 +23,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  resetErrorHalt();
   vi.useRealTimers();
   vi.restoreAllMocks();
 });
@@ -1089,6 +1090,28 @@ describe("Dropdown", () => {
       expect(cancelSpy).toHaveBeenCalled();
       await vi.advanceTimersByTimeAsync(50);
       expect(focusSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Context contract", () => {
+    it("throws native ContextNotFoundError when useDropdown is called outside Dropdown.Root", () => {
+      function OrphanConsumer() {
+        useDropdown();
+        return null;
+      }
+
+      let caught: unknown;
+      try {
+        render(() => <OrphanConsumer />);
+      } catch (error) {
+        caught = error;
+      }
+
+      expect(caught).toBeInstanceOf(Error);
+      expect((caught as Error).constructor.name).toBe("ContextNotFoundError");
+      expect((caught as Error).message).toContain(
+        "has no provider above this read"
+      );
     });
   });
 });
