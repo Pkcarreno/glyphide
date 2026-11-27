@@ -1,6 +1,11 @@
 import { fireEvent, render } from "@solidjs/testing-library";
-import { describe, expect, it } from "vitest";
-import { ExpandableNode } from "./ExpandableNode.tsx";
+import { createSignal, flush, Show } from "solid-js";
+import { describe, expect, it, vi } from "vitest";
+import {
+  ExpandableNode,
+  ExpandableScope,
+  ExpandableTrigger,
+} from "./ExpandableNode.tsx";
 
 const EXPANDABLE_CONTENT_REGEX = /^expandable-content-/u;
 
@@ -53,8 +58,72 @@ describe("ExpandableNode", () => {
     expect(container.textContent).not.toContain("Expanded Content");
   });
 
-  it("persists expanded state across remounts using stateKey", () => {
+  it("persists expanded state and content id across remounts inside ExpandableScope", () => {
     const key = { some: "reference" };
+    const [isVisible, setIsVisible] = createSignal(true);
+    const { container } = render(() => (
+      <ExpandableScope>
+        <Show when={isVisible()}>
+          <ExpandableNode preview={<span>Preview</span>} stateKey={key}>
+            <div>Expanded Content</div>
+          </ExpandableNode>
+        </Show>
+      </ExpandableScope>
+    ));
+
+    const toggleButton = container.querySelector("button");
+    if (!toggleButton) {
+      throw new Error("Button not found");
+    }
+    const firstContentId = toggleButton.getAttribute("aria-controls");
+
+    fireEvent.click(toggleButton);
+    expect(container.textContent).toContain("Expanded Content");
+
+    setIsVisible(false);
+    flush();
+    expect(container.textContent).not.toContain("Preview");
+
+    setIsVisible(true);
+    flush();
+    const remountedButton = container.querySelector("button");
+    expect(container.textContent).toContain("Expanded Content");
+    expect(remountedButton?.getAttribute("aria-expanded")).toBe("true");
+    expect(remountedButton?.getAttribute("aria-controls")).toBe(firstContentId);
+  });
+
+  it("isolates stateKey expansion state across separate ExpandableScope instances", () => {
+    const sharedKey = { shared: "reference" };
+    const scopeOne = render(() => (
+      <ExpandableScope>
+        <ExpandableNode preview={<span>Scope 1</span>} stateKey={sharedKey}>
+          <div>Expanded 1</div>
+        </ExpandableNode>
+      </ExpandableScope>
+    ));
+    const scopeTwo = render(() => (
+      <ExpandableScope>
+        <ExpandableNode preview={<span>Scope 2</span>} stateKey={sharedKey}>
+          <div>Expanded 2</div>
+        </ExpandableNode>
+      </ExpandableScope>
+    ));
+
+    const buttonOne = scopeOne.container.querySelector("button");
+    const buttonTwo = scopeTwo.container.querySelector("button");
+    if (!(buttonOne && buttonTwo)) {
+      throw new Error("Expected buttons in both scopes");
+    }
+
+    fireEvent.click(buttonOne);
+    expect(scopeOne.container.textContent).toContain("Expanded 1");
+    expect(buttonOne.getAttribute("aria-expanded")).toBe("true");
+    expect(scopeTwo.container.textContent).not.toContain("Expanded 2");
+    expect(buttonTwo.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("falls back to per-instance state when rendered outside ExpandableScope", () => {
+    const key = { isolated: "reference" };
     const { container, unmount } = render(() => (
       <ExpandableNode preview={<span>Preview</span>} stateKey={key}>
         <div>Expanded Content</div>
@@ -77,7 +146,7 @@ describe("ExpandableNode", () => {
       </ExpandableNode>
     ));
 
-    expect(container2.textContent).toContain("Expanded Content");
+    expect(container2.textContent).not.toContain("Expanded Content");
   });
 
   it("button has data-expanded attribute matching isExpanded state", () => {
@@ -188,5 +257,30 @@ describe("ExpandableNode", () => {
 
     expect(contentPanel).not.toBeNull();
     expect(contentPanel?.getAttribute("id")).toBe(contentId ?? "");
+  });
+
+  describe("ExpandableTrigger", () => {
+    it("exposes aria-expanded and data-expanded matching isExpanded", () => {
+      const [isExpanded, setIsExpanded] = createSignal(false);
+      const onClick = vi.fn();
+      const { getByRole } = render(() => (
+        <ExpandableTrigger isExpanded={isExpanded()} onClick={onClick}>
+          <span>Trigger Label</span>
+        </ExpandableTrigger>
+      ));
+
+      const button = getByRole("button");
+      expect(button.getAttribute("type")).toBe("button");
+      expect(button.getAttribute("aria-expanded")).toBe("false");
+      expect(button.getAttribute("data-expanded")).toBe("false");
+
+      setIsExpanded(true);
+      flush();
+      expect(button.getAttribute("aria-expanded")).toBe("true");
+      expect(button.getAttribute("data-expanded")).toBe("true");
+
+      fireEvent.click(button);
+      expect(onClick).toHaveBeenCalledOnce();
+    });
   });
 });

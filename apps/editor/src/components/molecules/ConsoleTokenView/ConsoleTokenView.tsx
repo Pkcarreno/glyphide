@@ -1,6 +1,7 @@
 import type { ConsoleToken } from "@glyphide/quickjs-engine/types";
-import type { VoidProps } from "solid-js";
-import { createMemo, For, merge, Show } from "solid-js";
+import type { JSX } from "@solidjs/web";
+import type { FlowProps, VoidProps } from "solid-js";
+import { createMemo, For, Show } from "solid-js";
 import { ExpandableNode } from "../../atoms/ExpandableNode.tsx";
 
 /**
@@ -10,7 +11,7 @@ import { ExpandableNode } from "../../atoms/ExpandableNode.tsx";
  * to their respective visual representations.
  *
  * Edge cases: If an empty array is provided, it renders an empty container.
- * Unrecognized token types return null (render nothing).
+ * Unrecognized token types return fallback text.
  *
  * Side effects: None.
  */
@@ -19,9 +20,45 @@ interface ConsoleTokenViewProps {
   tokens: ConsoleToken[];
 }
 
+interface CollectionRenderers {
+  array: (token: Extract<ConsoleToken, { type: "array" }>) => JSX.Element;
+  map: (token: Extract<ConsoleToken, { type: "map" }>) => JSX.Element;
+  object: (token: Extract<ConsoleToken, { type: "object" }>) => JSX.Element;
+  set: (token: Extract<ConsoleToken, { type: "set" }>) => JSX.Element;
+}
+
+interface TokenExpandableCollectionProps {
+  /** Number of items in the collection; zero renders `emptyText` without an expander. */
+  count: number;
+  /** Text shown when the collection is empty. */
+  emptyText: string;
+  /** Inline preview rendered inside the toggle trigger. */
+  preview: JSX.Element;
+  /** Stable token object used to scope expansion across remounts. */
+  stateKey: object;
+}
+
 /** Truncation marker rendered when inline preview has more items. */
 function Ellipsis(_props: VoidProps) {
   return <span class="text-on-surface-variant opacity-50">…</span>;
+}
+
+/** Shared wrapper for expandable console collection tokens. */
+function TokenExpandableCollection(
+  props: FlowProps<TokenExpandableCollectionProps>
+) {
+  return (
+    <Show
+      fallback={
+        <span class="text-on-surface opacity-50">{props.emptyText}</span>
+      }
+      when={props.count > 0}
+    >
+      <ExpandableNode preview={props.preview} stateKey={props.stateKey}>
+        {props.children}
+      </ExpandableNode>
+    </Show>
+  );
 }
 
 /** Safely formats a fallback token or non-standard value as a string. */
@@ -60,6 +97,41 @@ function isObjectToken(
   );
 }
 
+function resolveConsoleToken(token: unknown): ConsoleToken | null {
+  if (
+    !token ||
+    typeof token !== "object" ||
+    !("type" in token) ||
+    typeof (token as { type: unknown }).type !== "string"
+  ) {
+    return null;
+  }
+  return token as ConsoleToken;
+}
+
+function getArrayParts(token: Extract<ConsoleToken, { type: "array" }>) {
+  const elements = Array.isArray(token.elements) ? token.elements : [];
+  const length =
+    typeof token.length === "number" ? token.length : elements.length;
+  return { elements, length };
+}
+
+function getObjectEntries(token: Extract<ConsoleToken, { type: "object" }>) {
+  return Object.entries(token.properties);
+}
+
+function getMapParts(token: Extract<ConsoleToken, { type: "map" }>) {
+  const entries = Array.isArray(token.entries) ? token.entries : [];
+  const size = typeof token.size === "number" ? token.size : entries.length;
+  return { entries, size };
+}
+
+function getSetParts(token: Extract<ConsoleToken, { type: "set" }>) {
+  const elements = Array.isArray(token.elements) ? token.elements : [];
+  const size = typeof token.size === "number" ? token.size : elements.length;
+  return { elements, size };
+}
+
 function renderFunctionToken(
   typedToken: Extract<ConsoleToken, { type: "function" }>
 ) {
@@ -85,18 +157,7 @@ function renderFunctionToken(
   );
 }
 
-function renderTokenContent(token: unknown, isPreview?: boolean) {
-  if (
-    !token ||
-    typeof token !== "object" ||
-    !("type" in token) ||
-    typeof (token as { type: unknown }).type !== "string"
-  ) {
-    return <span class="text-on-surface">{formatFallbackToken(token)}</span>;
-  }
-
-  const typedToken = token as ConsoleToken;
-
+function renderScalarToken(typedToken: ConsoleToken): JSX.Element {
   switch (typedToken.type) {
     case "string":
       return (
@@ -142,15 +203,6 @@ function renderTokenContent(token: unknown, isPreview?: boolean) {
         </span>
       );
 
-    case "array":
-      return <TokenArray isPreview={isPreview} token={typedToken} />;
-
-    case "object": {
-      const objectToken: Extract<ConsoleToken, { type: "object" }> =
-        isObjectToken(token) ? token : { properties: {}, type: "object" };
-      return <TokenObject isPreview={isPreview} token={objectToken} />;
-    }
-
     case "bigint":
       return <span class="text-log-warn">{String(typedToken.value)}n</span>;
 
@@ -178,12 +230,6 @@ function renderTokenContent(token: unknown, isPreview?: boolean) {
         </span>
       );
 
-    case "map":
-      return <TokenMap isPreview={isPreview} token={typedToken} />;
-
-    case "set":
-      return <TokenSet isPreview={isPreview} token={typedToken} />;
-
     default:
       return (
         <span class="text-on-surface">{formatFallbackToken(typedToken)}</span>
@@ -191,37 +237,75 @@ function renderTokenContent(token: unknown, isPreview?: boolean) {
   }
 }
 
-/** Renders a single ConsoleToken with type-appropriate styling. */
-function Token(rawProps: VoidProps<{ token: unknown; isPreview?: boolean }>) {
-  const props = merge({ isPreview: false }, rawProps);
-  return <>{renderTokenContent(props.token, props.isPreview)}</>;
+function renderTokenWithCollections(
+  token: unknown,
+  collections: CollectionRenderers
+): JSX.Element {
+  const typedToken = resolveConsoleToken(token);
+  if (!typedToken) {
+    return <span class="text-on-surface">{formatFallbackToken(token)}</span>;
+  }
+
+  switch (typedToken.type) {
+    case "array":
+      return collections.array(typedToken);
+    case "object":
+      return collections.object(
+        isObjectToken(typedToken)
+          ? typedToken
+          : { properties: {}, type: "object" }
+      );
+    case "map":
+      return collections.map(typedToken);
+    case "set":
+      return collections.set(typedToken);
+    default:
+      return renderScalarToken(typedToken);
+  }
 }
 
-function TokenArray(
-  rawProps: VoidProps<{
-    token: Extract<ConsoleToken, { type: "array" }>;
-    isPreview?: boolean;
-  }>
-) {
-  const props = merge({ isPreview: false }, rawProps);
-  const elements = createMemo(() =>
-    Array.isArray(props.token.elements) ? props.token.elements : []
+/** Renders a single ConsoleToken with interactive expandable collections. */
+function Token(props: VoidProps<{ token: unknown }>) {
+  return (
+    <>
+      {renderTokenWithCollections(props.token, {
+        array: (token) => <TokenArray token={token} />,
+        map: (token) => <TokenMap token={token} />,
+        object: (token) => <TokenObject token={token} />,
+        set: (token) => <TokenSet token={token} />,
+      })}
+    </>
   );
-  const length = createMemo(() =>
-    typeof props.token.length === "number"
-      ? props.token.length
-      : elements().length
-  );
-  const preview = createMemo(() => elements().slice(0, 5));
-  const hasMore = () => length() > 5;
+}
 
-  const renderInlinePreview = () => (
+/** Renders a single ConsoleToken as a static inline preview without nested expanders. */
+function TokenPreview(props: VoidProps<{ token: unknown }>) {
+  return (
+    <>
+      {renderTokenWithCollections(props.token, {
+        array: (token) => <TokenArrayPreview token={token} />,
+        map: (token) => <TokenMapPreview token={token} />,
+        object: (token) => <TokenObjectPreview token={token} />,
+        set: (token) => <TokenSetPreview token={token} />,
+      })}
+    </>
+  );
+}
+
+function TokenArrayPreview(
+  props: VoidProps<{ token: Extract<ConsoleToken, { type: "array" }> }>
+) {
+  const parts = createMemo(() => getArrayParts(props.token));
+  const preview = createMemo(() => parts().elements.slice(0, 5));
+  const hasMore = () => parts().length > 5;
+
+  return (
     <span class="text-on-surface">
-      <span class="opacity-50">Array({length()}) [</span>
+      <span class="opacity-50">Array({parts().length}) [</span>
       <For each={preview()}>
         {(element, index) => (
           <>
-            <Token isPreview token={element} />
+            <TokenPreview token={element} />
             <Show when={index() < preview().length - 1 || hasMore()}>
               <span class="opacity-50">, </span>
             </Show>
@@ -234,44 +318,42 @@ function TokenArray(
       <span class="opacity-50">]</span>
     </span>
   );
+}
+
+function TokenArray(
+  props: VoidProps<{ token: Extract<ConsoleToken, { type: "array" }> }>
+) {
+  const parts = createMemo(() => getArrayParts(props.token));
 
   return (
-    <Show fallback={renderInlinePreview()} when={!props.isPreview}>
-      <Show
-        fallback={<span class="text-on-surface opacity-50">Array(0) []</span>}
-        when={length() > 0}
-      >
-        <ExpandableNode preview={renderInlinePreview()} stateKey={props.token}>
-          <For each={elements()}>
-            {(element, index) => (
-              <span class="flex items-baseline gap-2">
-                <span class="text-on-surface-variant min-w-5 text-right opacity-50">
-                  {index()}:
-                </span>
-                <Token token={element} />
-              </span>
-            )}
-          </For>
-        </ExpandableNode>
-      </Show>
-    </Show>
+    <TokenExpandableCollection
+      count={parts().length}
+      emptyText="Array(0) []"
+      preview={<TokenArrayPreview token={props.token} />}
+      stateKey={props.token}
+    >
+      <For each={parts().elements}>
+        {(element, index) => (
+          <span class="flex items-baseline gap-2">
+            <span class="text-on-surface-variant min-w-5 text-right opacity-50">
+              {index()}:
+            </span>
+            <Token token={element} />
+          </span>
+        )}
+      </For>
+    </TokenExpandableCollection>
   );
 }
 
-function TokenObject(
-  rawProps: VoidProps<{
-    token: Extract<ConsoleToken, { type: "object" }>;
-    isPreview?: boolean;
-  }>
+function TokenObjectPreview(
+  props: VoidProps<{ token: Extract<ConsoleToken, { type: "object" }> }>
 ) {
-  const props = merge({ isPreview: false }, rawProps);
-  const propertyEntries = createMemo(() =>
-    Object.entries(props.token.properties)
-  );
+  const propertyEntries = createMemo(() => getObjectEntries(props.token));
   const preview = createMemo(() => propertyEntries().slice(0, 5));
   const hasMore = () => propertyEntries().length > 5;
 
-  const renderInlinePreview = () => (
+  return (
     <span class="text-on-surface">
       <span class="opacity-50">{"{"}</span>
       <For each={preview()} keyed={([key]) => key}>
@@ -279,7 +361,7 @@ function TokenObject(
           <>
             <span class="text-on-surface-variant opacity-80">{entry()[0]}</span>
             <span class="opacity-50">: </span>
-            <Token isPreview token={entry()[1]} />
+            <TokenPreview token={entry()[1]} />
             <Show when={index() < preview().length - 1 || hasMore()}>
               <span class="opacity-50">, </span>
             </Show>
@@ -292,50 +374,45 @@ function TokenObject(
       <span class="opacity-50">{"}"}</span>
     </span>
   );
+}
+
+function TokenObject(
+  props: VoidProps<{ token: Extract<ConsoleToken, { type: "object" }> }>
+) {
+  const propertyEntries = createMemo(() => getObjectEntries(props.token));
 
   return (
-    <Show fallback={renderInlinePreview()} when={!props.isPreview}>
-      <Show
-        fallback={<span class="text-on-surface opacity-50">{"{}"}</span>}
-        when={propertyEntries().length > 0}
-      >
-        <ExpandableNode preview={renderInlinePreview()} stateKey={props.token}>
-          <For each={propertyEntries()} keyed={([key]) => key}>
-            {(entry) => (
-              <span class="flex items-baseline gap-2">
-                <span class="text-on-surface-variant opacity-80">
-                  {entry()[0]}:
-                </span>
-                <Token token={entry()[1]} />
-              </span>
-            )}
-          </For>
-        </ExpandableNode>
-      </Show>
-    </Show>
+    <TokenExpandableCollection
+      count={propertyEntries().length}
+      emptyText="{}"
+      preview={<TokenObjectPreview token={props.token} />}
+      stateKey={props.token}
+    >
+      <For each={propertyEntries()} keyed={([key]) => key}>
+        {(entry) => (
+          <span class="flex items-baseline gap-2">
+            <span class="text-on-surface-variant opacity-80">
+              {entry()[0]}:
+            </span>
+            <Token token={entry()[1]} />
+          </span>
+        )}
+      </For>
+    </TokenExpandableCollection>
   );
 }
 
-function TokenMap(
-  rawProps: VoidProps<{
-    token: Extract<ConsoleToken, { type: "map" }>;
-    isPreview?: boolean;
-  }>
+function TokenMapPreview(
+  props: VoidProps<{ token: Extract<ConsoleToken, { type: "map" }> }>
 ) {
-  const props = merge({ isPreview: false }, rawProps);
-  const entries = createMemo(() =>
-    Array.isArray(props.token.entries) ? props.token.entries : []
-  );
-  const size = createMemo(() =>
-    typeof props.token.size === "number" ? props.token.size : entries().length
-  );
-  const preview = createMemo(() => entries().slice(0, 5));
-  const hasMore = () => size() > 5;
+  const parts = createMemo(() => getMapParts(props.token));
+  const preview = createMemo(() => parts().entries.slice(0, 5));
+  const hasMore = () => parts().size > 5;
 
-  const renderInlinePreview = () => (
+  return (
     <span class="text-on-surface">
       <span class="opacity-50">
-        Map({size()}) {"{"}
+        Map({parts().size}) {"{"}
       </span>
       <For each={preview()} keyed={false}>
         {(entry, index) => {
@@ -343,9 +420,9 @@ function TokenMap(
             Array.isArray(entry()) ? entry() : ([entry(), undefined] as const);
           return (
             <>
-              <Token isPreview token={pair()[0]} />
+              <TokenPreview token={pair()[0]} />
               <span class="opacity-50"> =&gt; </span>
-              <Token isPreview token={pair()[1]} />
+              <TokenPreview token={pair()[1]} />
               <Show when={index < preview().length - 1 || hasMore()}>
                 <span class="opacity-50">, </span>
               </Show>
@@ -359,60 +436,53 @@ function TokenMap(
       <span class="opacity-50">{"}"}</span>
     </span>
   );
+}
+
+function TokenMap(
+  props: VoidProps<{ token: Extract<ConsoleToken, { type: "map" }> }>
+) {
+  const parts = createMemo(() => getMapParts(props.token));
 
   return (
-    <Show fallback={renderInlinePreview()} when={!props.isPreview}>
-      <Show
-        fallback={<span class="text-on-surface opacity-50">Map(0) {"{}"}</span>}
-        when={size() > 0}
-      >
-        <ExpandableNode preview={renderInlinePreview()} stateKey={props.token}>
-          <For each={entries()} keyed={false}>
-            {(entry) => {
-              const pair = () =>
-                Array.isArray(entry())
-                  ? entry()
-                  : ([entry(), undefined] as const);
-              return (
-                <span class="flex items-baseline gap-2">
-                  <Token token={pair()[0]} />
-                  <span class="text-on-surface-variant opacity-50">=&gt;</span>
-                  <Token token={pair()[1]} />
-                </span>
-              );
-            }}
-          </For>
-        </ExpandableNode>
-      </Show>
-    </Show>
+    <TokenExpandableCollection
+      count={parts().size}
+      emptyText="Map(0) {}"
+      preview={<TokenMapPreview token={props.token} />}
+      stateKey={props.token}
+    >
+      <For each={parts().entries} keyed={false}>
+        {(entry) => {
+          const pair = () =>
+            Array.isArray(entry()) ? entry() : ([entry(), undefined] as const);
+          return (
+            <span class="flex items-baseline gap-2">
+              <Token token={pair()[0]} />
+              <span class="text-on-surface-variant opacity-50">=&gt;</span>
+              <Token token={pair()[1]} />
+            </span>
+          );
+        }}
+      </For>
+    </TokenExpandableCollection>
   );
 }
 
-function TokenSet(
-  rawProps: VoidProps<{
-    token: Extract<ConsoleToken, { type: "set" }>;
-    isPreview?: boolean;
-  }>
+function TokenSetPreview(
+  props: VoidProps<{ token: Extract<ConsoleToken, { type: "set" }> }>
 ) {
-  const props = merge({ isPreview: false }, rawProps);
-  const elements = createMemo(() =>
-    Array.isArray(props.token.elements) ? props.token.elements : []
-  );
-  const size = createMemo(() =>
-    typeof props.token.size === "number" ? props.token.size : elements().length
-  );
-  const preview = createMemo(() => elements().slice(0, 5));
-  const hasMore = () => size() > 5;
+  const parts = createMemo(() => getSetParts(props.token));
+  const preview = createMemo(() => parts().elements.slice(0, 5));
+  const hasMore = () => parts().size > 5;
 
-  const renderInlinePreview = () => (
+  return (
     <span class="text-on-surface">
       <span class="opacity-50">
-        Set({size()}) {"{"}
+        Set({parts().size}) {"{"}
       </span>
       <For each={preview()}>
         {(element, index) => (
           <>
-            <Token isPreview token={element} />
+            <TokenPreview token={element} />
             <Show when={index() < preview().length - 1 || hasMore()}>
               <span class="opacity-50">, </span>
             </Show>
@@ -425,24 +495,28 @@ function TokenSet(
       <span class="opacity-50">{"}"}</span>
     </span>
   );
+}
+
+function TokenSet(
+  props: VoidProps<{ token: Extract<ConsoleToken, { type: "set" }> }>
+) {
+  const parts = createMemo(() => getSetParts(props.token));
 
   return (
-    <Show fallback={renderInlinePreview()} when={!props.isPreview}>
-      <Show
-        fallback={<span class="text-on-surface opacity-50">Set(0) {"{}"}</span>}
-        when={size() > 0}
-      >
-        <ExpandableNode preview={renderInlinePreview()} stateKey={props.token}>
-          <For each={elements()}>
-            {(element) => (
-              <span class="flex items-baseline gap-2">
-                <Token token={element} />
-              </span>
-            )}
-          </For>
-        </ExpandableNode>
-      </Show>
-    </Show>
+    <TokenExpandableCollection
+      count={parts().size}
+      emptyText="Set(0) {}"
+      preview={<TokenSetPreview token={props.token} />}
+      stateKey={props.token}
+    >
+      <For each={parts().elements}>
+        {(element) => (
+          <span class="flex items-baseline gap-2">
+            <Token token={element} />
+          </span>
+        )}
+      </For>
+    </TokenExpandableCollection>
   );
 }
 

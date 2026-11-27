@@ -316,4 +316,89 @@ describe("ConsolePane", () => {
 
     consoleErrorSpy.mockRestore();
   });
+
+  it("persists token expansion across row remounts within one ConsolePane while isolating across panes", () => {
+    const sharedObjectToken: ConsoleToken = {
+      properties: { scopedKey: { type: "number", value: 777 } },
+      type: "object",
+    };
+
+    setEntries([
+      {
+        data: [{ type: "string", value: "Scoped Group" }],
+        id: "scope-group",
+        type: "group",
+      },
+      {
+        data: [sharedObjectToken],
+        id: "scope-test-1",
+        type: "log",
+      },
+    ]);
+
+    const paneOne = render(() => <ConsolePane />);
+    const paneTwo = render(() => <ConsolePane />);
+
+    const getObjectExpander = (root: HTMLElement) => {
+      const buttons = Array.from(
+        root.querySelectorAll("button[aria-expanded]")
+      );
+      return buttons.find((button) =>
+        button.textContent?.includes("scopedKey")
+      );
+    };
+
+    const buttonOne = getObjectExpander(paneOne.container);
+    const buttonTwo = getObjectExpander(paneTwo.container);
+    if (!(buttonOne && buttonTwo)) {
+      throw new Error("Expected expandable buttons in both panes");
+    }
+
+    fireEvent.click(buttonOne);
+    expect(buttonOne.getAttribute("aria-expanded")).toBe("true");
+    const panelOneId = buttonOne.getAttribute("aria-controls");
+    expect(
+      paneOne.container.querySelector(`#${panelOneId}`)?.textContent
+    ).toContain("scopedKey:");
+
+    // Collapse and re-expand the parent group in paneOne to unmount and remount the token row.
+    const groupOneButton = paneOne.getByText("Scoped Group").closest("button");
+    if (!groupOneButton) {
+      throw new Error("Expected group toggle button in paneOne");
+    }
+    fireEvent.click(groupOneButton);
+    expect(getObjectExpander(paneOne.container)).toBeUndefined();
+
+    fireEvent.click(groupOneButton);
+    const remountedButtonOne = getObjectExpander(paneOne.container);
+    expect(remountedButtonOne?.getAttribute("aria-expanded")).toBe("true");
+
+    // paneTwo remains collapsed even though it renders the same token reference.
+    expect(buttonTwo.getAttribute("aria-expanded")).toBe("false");
+    const panelTwoId = buttonTwo.getAttribute("aria-controls");
+    expect(paneTwo.container.querySelector(`#${panelTwoId}`)?.textContent).toBe(
+      ""
+    );
+  });
+
+  it("sets aria-expanded on ConsoleGroupView toggles", () => {
+    setEntries([
+      {
+        data: [{ type: "string", value: "Accessible Group" }],
+        id: "aria-group-1",
+        type: "group",
+      },
+      { data: "Inside accessible group", id: "aria-group-2", type: "log" },
+    ]);
+
+    const { getByText } = render(() => <ConsolePane />);
+    const groupButton = getByText("Accessible Group").closest("button");
+    if (!groupButton) {
+      throw new Error("Expected group toggle button");
+    }
+
+    expect(groupButton.getAttribute("aria-expanded")).toBe("true");
+    fireEvent.click(groupButton);
+    expect(groupButton.getAttribute("aria-expanded")).toBe("false");
+  });
 });

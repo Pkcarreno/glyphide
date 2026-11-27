@@ -1,9 +1,81 @@
 import type { JSX } from "@solidjs/web";
 import ChevronRight from "lucide-solid/icons/chevron-right";
-import type { FlowProps } from "solid-js";
-import { createSignal, createUniqueId, merge, Show, untrack } from "solid-js";
+import type { FlowProps, ParentProps } from "solid-js";
+import {
+  createContext,
+  createSignal,
+  createUniqueId,
+  merge,
+  omit,
+  Show,
+  untrack,
+  useContext,
+} from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { Icon } from "./Icon.tsx";
+
+interface ExpandableScopeStore {
+  contentIds: WeakMap<object, string>;
+  expandedState: WeakMap<object, boolean>;
+}
+
+const ExpandableScopeContext = createContext<ExpandableScopeStore | null>(null);
+
+/**
+ * Provides an isolated `stateKey` expansion store for descendant `ExpandableNode` instances.
+ */
+function ExpandableScope(props: ParentProps) {
+  const store: ExpandableScopeStore = {
+    contentIds: new WeakMap(),
+    expandedState: new WeakMap(),
+  };
+
+  return (
+    <ExpandableScopeContext value={store}>
+      {props.children}
+    </ExpandableScopeContext>
+  );
+}
+
+/**
+ * Configuration props for the ExpandableTrigger component.
+ */
+interface ExpandableTriggerProps
+  extends Omit<JSX.ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
+  class?: string;
+  /** Whether the controlled region is expanded. */
+  isExpanded: boolean;
+}
+
+/**
+ * Accessible chevron button trigger shared by `ExpandableNode` and `ConsoleGroupView`.
+ */
+function ExpandableTrigger(rawProps: ParentProps<ExpandableTriggerProps>) {
+  const props = merge({ type: "button" as const }, rawProps);
+  const rest = omit(props, "class", "children", "isExpanded");
+
+  return (
+    <button
+      aria-expanded={props.isExpanded ? "true" : "false"}
+      class={cn(
+        "group hover:bg-surface-variant/50 focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 -ml-1 inline-flex cursor-pointer items-center gap-1 rounded px-1 text-left transition-colors outline-none focus-visible:ring-3 aria-invalid:ring-3 pointer-coarse:min-h-11 pointer-coarse:px-3",
+        props.class
+      )}
+      data-expanded={props.isExpanded ? "true" : "false"}
+      {...rest}
+    >
+      <span
+        class={cn(
+          "text-on-surface-variant rotate-0 opacity-70 motion-safe:transition-transform motion-safe:duration-150",
+          "group-data-[expanded=true]:rotate-90 motion-reduce:transition-none motion-reduce:duration-0"
+        )}
+      >
+        <Icon icon={ChevronRight} size={12} />
+      </span>
+      {props.children}
+    </button>
+  );
+}
 
 /**
  * Configuration props for the ExpandableNode component.
@@ -11,8 +83,8 @@ import { Icon } from "./Icon.tsx";
  * Intent: Defines the content, initial visual state, and an optional persistence key
  * for the togglable view.
  *
- * Edge cases: If `stateKey` is omitted, the expansion state relies entirely on local
- * component state and will reset if the component unmounts.
+ * Edge cases: If `stateKey` is omitted or no `ExpandableScope` ancestor is mounted,
+ * the expansion state uses per-instance local state and resets on unmount.
  *
  * Side effects: None.
  */
@@ -22,27 +94,23 @@ interface ExpandableNodeProps {
   defaultExpanded?: boolean;
   /** Inline content shown as the toggle trigger / collapsed preview. */
   preview: JSX.Element;
-  /** Optional stable object reference to persist the expanded state across remounts (e.g. when scrolling out of view in a VirtualList). */
+  /** Optional stable object reference to persist expansion within the nearest `ExpandableScope`. */
   stateKey?: object;
 }
-
-const globalExpandedState = new WeakMap<object, boolean>();
-const idForStateKey = new WeakMap<object, string>();
 
 /**
  * Atom that renders a chevron-toggled expandable node.
  *
- * Used by both token collection rendering (arrays, objects, maps, sets) and
- * console group rendering to provide visual consistency between the two.
- * The `defaultExpanded` prop controls the initial toggle state — e.g.
- * `console.groupCollapsed` sets it to `false`, `console.group` to `true`.
+ * Used by token collection rendering (arrays, objects, maps, sets).
+ * When mounted inside `ExpandableScope`, `stateKey` persists toggle state across remounts.
  */
 function ExpandableNode(rawProps: FlowProps<ExpandableNodeProps>) {
   const props = merge({ defaultExpanded: false }, rawProps);
+  const scope = useContext(ExpandableScopeContext);
 
   const initial = untrack(() =>
-    props.stateKey
-      ? (globalExpandedState.get(props.stateKey) ?? props.defaultExpanded)
+    scope && props.stateKey
+      ? (scope.expandedState.get(props.stateKey) ?? props.defaultExpanded)
       : props.defaultExpanded
   );
 
@@ -51,18 +119,18 @@ function ExpandableNode(rawProps: FlowProps<ExpandableNodeProps>) {
   const toggle = () => {
     const next = !isExpanded();
     setIsExpanded(next);
-    if (props.stateKey) {
-      globalExpandedState.set(props.stateKey, next);
+    if (scope && props.stateKey) {
+      scope.expandedState.set(props.stateKey, next);
     }
   };
 
   const generatedId = `expandable-content-${createUniqueId()}`;
   const contentId = untrack(() => {
-    if (props.stateKey) {
-      let existingId = idForStateKey.get(props.stateKey);
+    if (scope && props.stateKey) {
+      let existingId = scope.contentIds.get(props.stateKey);
       if (!existingId) {
         existingId = generatedId;
-        idForStateKey.set(props.stateKey, existingId);
+        scope.contentIds.set(props.stateKey, existingId);
       }
       return existingId;
     }
@@ -71,24 +139,13 @@ function ExpandableNode(rawProps: FlowProps<ExpandableNodeProps>) {
 
   return (
     <span class={cn("inline-flex flex-col align-top", props.class)}>
-      <button
+      <ExpandableTrigger
         aria-controls={contentId}
-        aria-expanded={isExpanded() ? "true" : "false"}
-        class="group hover:bg-surface-variant/50 focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 -ml-1 inline-flex cursor-pointer items-center gap-1 rounded px-1 text-left transition-colors outline-none focus-visible:ring-3 aria-invalid:ring-3 pointer-coarse:min-h-11 pointer-coarse:px-3"
-        data-expanded={isExpanded() ? "true" : "false"}
+        isExpanded={isExpanded()}
         onClick={toggle}
-        type="button"
       >
-        <span
-          class={cn(
-            "text-on-surface-variant rotate-0 opacity-70 motion-safe:transition-transform motion-safe:duration-150",
-            "group-data-[expanded=true]:rotate-90 motion-reduce:transition-none motion-reduce:duration-0"
-          )}
-        >
-          <Icon icon={ChevronRight} size={12} />
-        </span>
         {props.preview}
-      </button>
+      </ExpandableTrigger>
 
       <span
         class="border-outline-variant/30 mt-1 ml-1.5 flex flex-col gap-1 border-l pl-4"
@@ -101,4 +158,10 @@ function ExpandableNode(rawProps: FlowProps<ExpandableNodeProps>) {
 }
 
 /** @public */
-export { ExpandableNode, type ExpandableNodeProps };
+export {
+  ExpandableNode,
+  type ExpandableNodeProps,
+  ExpandableScope,
+  ExpandableTrigger,
+  type ExpandableTriggerProps,
+};
