@@ -1,7 +1,7 @@
 import type { Extension } from "@codemirror/state";
 import { Compartment, EditorState } from "@codemirror/state";
 import { basicSetup, EditorView } from "codemirror";
-import type { VoidProps } from "solid-js";
+import type { Accessor, VoidProps } from "solid-js";
 import {
   createEffect,
   createMemo,
@@ -35,6 +35,33 @@ export interface CodeFieldProps {
   value?: string;
 }
 
+function getWordWrapExtension(isWordWrapEnabled: boolean): Extension {
+  return isWordWrapEnabled ? EditorView.lineWrapping : [];
+}
+
+function getReadOnlyExtension(isReadOnly: boolean): Extension {
+  return isReadOnly
+    ? [EditorState.readOnly.of(true), EditorView.editable.of(false)]
+    : [];
+}
+
+function createCompartmentEffect(
+  view: Accessor<EditorView | undefined>,
+  compartment: Compartment,
+  getExtension: () => Extension
+): void {
+  createEffect(
+    () => ({ currentView: view(), extension: getExtension() }),
+    ({ currentView, extension }) => {
+      if (currentView) {
+        currentView.dispatch({
+          effects: compartment.reconfigure(extension),
+        });
+      }
+    }
+  );
+}
+
 /**
  * CodeField Component
  *
@@ -51,8 +78,7 @@ export function CodeField(rawProps: VoidProps<CodeFieldProps>) {
     rawProps
   );
   let containerRef: HTMLDivElement | undefined;
-  let view: EditorView | undefined;
-  const [editorView, setEditorView] = createSignal<EditorView>();
+  const [view, setView] = createSignal<EditorView>();
   let isProgrammaticSync = false;
 
   const languageCompartment = new Compartment();
@@ -91,68 +117,19 @@ export function CodeField(rawProps: VoidProps<CodeFieldProps>) {
         glyphideSyntaxHighlight,
         appearanceCompartment.of(getEditorAppearance(props.isDark)),
         languageCompartment.of([]),
-        wordWrapCompartment.of(
-          props.isWordWrapEnabled ? EditorView.lineWrapping : []
-        ),
-        readOnlyCompartment.of(
-          props.isReadOnly
-            ? [EditorState.readOnly.of(true), EditorView.editable.of(false)]
-            : []
-        ),
+        wordWrapCompartment.of(getWordWrapExtension(props.isWordWrapEnabled)),
+        readOnlyCompartment.of(getReadOnlyExtension(props.isReadOnly)),
       ],
     });
 
-    const v = new EditorView({ parent: containerRef, state });
-    view = v;
-    setEditorView(v);
+    const editorView = new EditorView({ parent: containerRef, state });
+    setView(editorView);
 
     return () => {
-      v.destroy();
-      view = undefined;
-      setEditorView(undefined);
+      editorView.destroy();
+      setView(undefined);
     };
   });
-
-  createEffect(
-    () => props.isDark,
-    (isDark) => {
-      if (view) {
-        view.dispatch({
-          effects: appearanceCompartment.reconfigure(
-            getEditorAppearance(isDark)
-          ),
-        });
-      }
-    }
-  );
-
-  createEffect(
-    () => props.isWordWrapEnabled,
-    (isWrap) => {
-      if (view) {
-        view.dispatch({
-          effects: wordWrapCompartment.reconfigure(
-            isWrap ? EditorView.lineWrapping : []
-          ),
-        });
-      }
-    }
-  );
-
-  createEffect(
-    () => props.isReadOnly,
-    (isReadOnly) => {
-      if (view) {
-        view.dispatch({
-          effects: readOnlyCompartment.reconfigure(
-            isReadOnly
-              ? [EditorState.readOnly.of(true), EditorView.editable.of(false)]
-              : []
-          ),
-        });
-      }
-    }
-  );
 
   const languageExtension = createMemo(async (): Promise<Extension> => {
     const { language } = props;
@@ -172,36 +149,38 @@ export function CodeField(rawProps: VoidProps<CodeFieldProps>) {
     }
   });
 
-  createEffect(
-    () => ({ currentView: editorView(), extension: languageExtension() }),
-    ({ currentView, extension }) => {
-      if (currentView) {
-        currentView.dispatch({
-          effects: languageCompartment.reconfigure(extension),
-        });
-      }
-    }
+  createCompartmentEffect(view, appearanceCompartment, () =>
+    getEditorAppearance(props.isDark)
   );
+  createCompartmentEffect(view, wordWrapCompartment, () =>
+    getWordWrapExtension(props.isWordWrapEnabled)
+  );
+  createCompartmentEffect(view, readOnlyCompartment, () =>
+    getReadOnlyExtension(props.isReadOnly)
+  );
+  createCompartmentEffect(view, languageCompartment, languageExtension);
 
   createEffect(
-    () => props.value,
-    (newValue) => {
-      if (view && newValue !== undefined) {
-        const currentValue = view.state.doc.toString();
-        if (newValue !== currentValue) {
-          isProgrammaticSync = true;
-          try {
-            view.dispatch({
-              changes: {
-                from: 0,
-                insert: newValue,
-                to: currentValue.length,
-              },
-            });
-          } finally {
-            isProgrammaticSync = false;
-          }
-        }
+    () => ({ currentView: view(), value: props.value }),
+    ({ currentView, value }) => {
+      if (!currentView || value === undefined) {
+        return;
+      }
+      const currentValue = currentView.state.doc.toString();
+      if (value === currentValue) {
+        return;
+      }
+      isProgrammaticSync = true;
+      try {
+        currentView.dispatch({
+          changes: {
+            from: 0,
+            insert: value,
+            to: currentValue.length,
+          },
+        });
+      } finally {
+        isProgrammaticSync = false;
       }
     }
   );
