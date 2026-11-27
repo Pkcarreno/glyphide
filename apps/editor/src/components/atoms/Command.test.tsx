@@ -252,4 +252,30 @@ describe("Command", () => {
       "has no provider above this read"
     );
   });
+
+  it("defaults CommandInput placeholder to Search... and tracks reactive shouldFilter", async () => {
+    const [shouldFilter, setShouldFilter] = createSignal(true);
+    const { getByPlaceholderText } = render(() => (
+      <CommandRoot shouldFilter={shouldFilter()}>
+        <CommandInput />
+        <CommandList>
+          <CommandItem value="apple">Apple</CommandItem>
+          <CommandItem value="banana">Banana</CommandItem>
+        </CommandList>
+      </CommandRoot>
+    ));
+
+    const input = getByPlaceholderText("Search...");
+    fireEvent.input(input, { target: { value: "app" } });
+    await Promise.resolve();
+
+    expect(screen.getByText("Apple")).toBeTruthy();
+    expect(screen.queryByText("Banana")).toBeNull();
+
+    setShouldFilter(false);
+    flush();
+
+    expect(screen.getByText("Apple")).toBeTruthy();
+    expect(screen.getByText("Banana")).toBeTruthy();
+  });
 });

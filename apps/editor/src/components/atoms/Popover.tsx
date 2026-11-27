@@ -8,11 +8,12 @@ import {
 } from "@floating-ui/dom";
 import type { ComponentProps, JSX, ValidComponent } from "@solidjs/web";
 import { dynamic, Portal } from "@solidjs/web";
-import type { Accessor } from "solid-js";
+import type { Accessor, FlowProps, ParentProps } from "solid-js";
 import {
   createContext,
   createEffect,
   createSignal,
+  merge,
   omit,
   onCleanup,
   onSettled,
@@ -63,8 +64,6 @@ export function usePopover(): PopoverContextValue {
  * @public
  */
 export interface PopoverRootProps {
-  /** The children nodes. */
-  children: JSX.Element;
   /** If provided, makes the popover controlled */
   isOpen?: boolean;
   /** Distance from the trigger element in pixels. Default: 4 */
@@ -80,9 +79,16 @@ export interface PopoverRootProps {
  *
  * @public
  */
-export function PopoverRoot(props: PopoverRootProps) {
-  const position = () => props.position ?? "bottom";
-  const offset = () => props.offset ?? 4;
+export function PopoverRoot(rawProps: FlowProps<PopoverRootProps>) {
+  const props = merge(
+    {
+      offset: 4,
+      position: "bottom" as PopoverPosition,
+    },
+    rawProps
+  );
+  const position = () => props.position;
+  const offset = () => props.offset;
 
   const [internalIsOpen, setInternalIsOpen] = createSignal(false);
   const isOpen = () => props.isOpen ?? internalIsOpen();
@@ -207,14 +213,15 @@ export function PopoverRoot(props: PopoverRootProps) {
  *
  * @public
  */
-export type PopoverTriggerProps<T extends ValidComponent = "button"> = {
-  /** The HTML tag or Solid component to render as. Default is "button". */
-  as?: T;
-  /** The children nodes. */
-  children?: JSX.Element;
-  /** Optional CSS classes. */
-  class?: string;
-} & Omit<ComponentProps<T>, "as" | "children" | "class">;
+export type PopoverTriggerProps<T extends ValidComponent = "button"> =
+  ParentProps<
+    {
+      /** The HTML tag or Solid component to render as. Default is "button". */
+      as?: T;
+      /** Optional CSS classes. */
+      class?: string;
+    } & Omit<ComponentProps<T>, "as" | "children" | "class">
+  >;
 
 /**
  * The element that triggers the popover to open or close.
@@ -264,10 +271,7 @@ export function PopoverTrigger<T extends ValidComponent = "button">(
  *
  * @public
  */
-export interface PopoverPortalProps {
-  /** The content to portal when the popover is open. */
-  children: JSX.Element;
-}
+export type PopoverPortalProps = FlowProps;
 
 /**
  * Portals the children into the document body (or custom portal target)
@@ -293,9 +297,7 @@ export function PopoverPortal(props: PopoverPortalProps) {
  * @public
  */
 export interface PopoverPositionerProps
-  extends JSX.HTMLAttributes<HTMLDivElement> {
-  /** The children nodes. */
-  children?: JSX.Element;
+  extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "children"> {
   /** Optional CSS classes. */
   class?: string;
 }
@@ -306,7 +308,7 @@ export interface PopoverPositionerProps
  *
  * @public
  */
-export function PopoverPositioner(props: PopoverPositionerProps) {
+export function PopoverPositioner(props: ParentProps<PopoverPositionerProps>) {
   const rest = omit(props, "class", "children", "ref");
   const ctx = usePopover();
 
@@ -333,9 +335,8 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
  *
  * @public
  */
-export interface PopoverPopupProps extends JSX.HTMLAttributes<HTMLDivElement> {
-  /** The children nodes. */
-  children?: JSX.Element;
+export interface PopoverPopupProps
+  extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "children"> {
   /** Optional CSS classes. */
   class?: string;
 }
@@ -346,7 +347,7 @@ export interface PopoverPopupProps extends JSX.HTMLAttributes<HTMLDivElement> {
  *
  * @public
  */
-export function PopoverPopup(props: PopoverPopupProps) {
+export function PopoverPopup(props: ParentProps<PopoverPopupProps>) {
   const rest = omit(props, "class", "children");
 
   return (

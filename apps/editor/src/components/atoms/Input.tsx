@@ -1,6 +1,7 @@
 import type { JSX } from "@solidjs/web";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
+import type { VoidProps } from "solid-js";
 import { omit, Show } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
@@ -29,7 +30,8 @@ const inputWrapperVariants = cva(
   }
 );
 
-export interface InputProps extends JSX.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps
+  extends Omit<JSX.InputHTMLAttributes<HTMLInputElement>, "children"> {
   /**
    * Icon or element to render at the end of the input.
    */
@@ -56,7 +58,7 @@ export interface InputProps extends JSX.InputHTMLAttributes<HTMLInputElement> {
  * A highly reusable input primitive applying SOLID principles.
  * Handles variants for standard inputs, ghost inputs, and bottom-bordered inputs.
  */
-export function Input(props: InputProps) {
+export function Input(props: VoidProps<InputProps>) {
   const rest = omit(
     props,
     "class",

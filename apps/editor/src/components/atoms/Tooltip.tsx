@@ -1,5 +1,6 @@
-import type { ComponentProps, JSX, ValidComponent } from "@solidjs/web";
-import { createSignal, omit, Show } from "solid-js";
+import type { ComponentProps, ValidComponent } from "@solidjs/web";
+import type { FlowProps } from "solid-js";
+import { createSignal, merge, omit, Show } from "solid-js";
 import type { PopoverPosition } from "./Popover.tsx";
 import { Popover } from "./Popover.tsx";
 
@@ -11,33 +12,33 @@ import { Popover } from "./Popover.tsx";
 export type TooltipPosition = PopoverPosition;
 
 /** Properties for the Tooltip component. */
-export type TooltipProps<T extends ValidComponent = "div"> = {
-  /** The element type to render the trigger as. Default: 'div' */
-  as?: T;
-  /** The child elements that will trigger the tooltip. */
-  children: JSX.Element;
-  /** Optional CSS classes for the trigger. */
-  class?: string;
-  /** Optional secondary text describing a shortcut or type. */
-  meta?: string;
-  /** Distance in pixels between the tooltip and the trigger. */
-  offset?: number;
-  /** Placement of the tooltip relative to the trigger. */
-  position?: TooltipPosition;
-  /** Optional keyboard shortcut string to display. */
-  shortcut?: string;
-  /** The primary text content of the tooltip. */
-  text: string;
-} & Omit<
-  ComponentProps<T>,
-  | "as"
-  | "children"
-  | "class"
-  | "text"
-  | "meta"
-  | "shortcut"
-  | "position"
-  | "offset"
+export type TooltipProps<T extends ValidComponent = "div"> = FlowProps<
+  {
+    /** The element type to render the trigger as. Default: 'div' */
+    as?: T;
+    /** Optional CSS classes for the trigger. */
+    class?: string;
+    /** Optional secondary text describing a shortcut or type. */
+    meta?: string;
+    /** Distance in pixels between the tooltip and the trigger. */
+    offset?: number;
+    /** Placement of the tooltip relative to the trigger. */
+    position?: TooltipPosition;
+    /** Optional keyboard shortcut string to display. */
+    shortcut?: string;
+    /** The primary text content of the tooltip. */
+    text: string;
+  } & Omit<
+    ComponentProps<T>,
+    | "as"
+    | "children"
+    | "class"
+    | "text"
+    | "meta"
+    | "shortcut"
+    | "position"
+    | "offset"
+  >
 >;
 
 /**
@@ -45,8 +46,16 @@ export type TooltipProps<T extends ValidComponent = "div"> = {
  * Enforces consistency by accepting only specific textual props.
  */
 export function Tooltip<T extends ValidComponent = "div">(
-  props: TooltipProps<T>
+  rawProps: TooltipProps<T>
 ) {
+  const props = merge(
+    {
+      as: "div" as T,
+      offset: 4,
+      position: "bottom" as TooltipPosition,
+    },
+    rawProps
+  );
   const rest = omit(
     props,
     "as",

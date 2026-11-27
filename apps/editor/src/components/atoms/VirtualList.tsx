@@ -1,10 +1,11 @@
 import type { JSX } from "@solidjs/web";
-import type { Accessor } from "solid-js";
+import type { Accessor, FlowProps, VoidProps } from "solid-js";
 import {
   createEffect,
   createMemo,
   createSignal,
   For,
+  merge,
   onSettled,
   untrack,
 } from "solid-js";
@@ -37,7 +38,6 @@ interface VirtualListProps<T> {
 }
 
 interface VirtualRowProps<T> {
-  children: JSX.Element;
   elementToKeyMap: WeakMap<Element, ItemKey<T>>;
   itemHeights: Map<ItemKey<T>, number>;
   itemKey: ItemKey<T>;
@@ -45,7 +45,7 @@ interface VirtualRowProps<T> {
   offset: number;
 }
 
-function VirtualRow<T>(props: VirtualRowProps<T>) {
+function VirtualRow<T>(props: FlowProps<VirtualRowProps<T>>) {
   let element: HTMLDivElement | undefined;
 
   onSettled(() => {
@@ -96,7 +96,8 @@ function VirtualRow<T>(props: VirtualRowProps<T>) {
  * A highly optimized, dependency-free Virtual List for dynamic height items.
  * Uses Prefix Sums for O(N) layout calculations and Binary Search for O(log N) scroll positioning.
  */
-export function VirtualList<T>(props: VirtualListProps<T>) {
+export function VirtualList<T>(rawProps: VoidProps<VirtualListProps<T>>) {
+  const props = merge({ class: "", itemHeight: 24, overscan: 10 }, rawProps);
   let scrollContainerElement: HTMLDivElement | undefined;
   const [scrollTop, setScrollTop] = createSignal(0);
   const [clientHeight, setClientHeight] = createSignal(0);
@@ -106,7 +107,6 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
   const itemHeights = new Map<ItemKey<T>, number>();
   const [itemHeightsVersion, setItemHeightsVersion] = createSignal(0);
 
-  const defaultItemHeight = () => props.itemHeight ?? 24;
   const resolveKey = (item: T): ItemKey<T> =>
     props.getKey ? props.getKey(item) : item;
 
@@ -118,7 +118,7 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
       itemHeights.clear();
     }
 
-    const defaultSize = defaultItemHeight();
+    const defaultSize = props.itemHeight;
     const itemVerticalOffsets = new Float64Array(items.length);
     const activeKeys =
       itemHeights.size > 0 && items.length > 0
@@ -188,10 +188,9 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
       end += 1;
     }
 
-    const overscan = props.overscan ?? 10;
     return {
-      end: Math.min(totalItemsCount, end + overscan),
-      start: Math.max(0, start - overscan),
+      end: Math.min(totalItemsCount, end + props.overscan),
+      start: Math.max(0, start - props.overscan),
     };
   });
 
@@ -262,7 +261,7 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
 
   return (
     <div
-      class={`relative overflow-x-hidden overflow-y-auto ${props.class ?? ""}`}
+      class={`relative overflow-x-hidden overflow-y-auto ${props.class}`}
       ref={(containerElement) => {
         scrollContainerElement = containerElement;
       }}

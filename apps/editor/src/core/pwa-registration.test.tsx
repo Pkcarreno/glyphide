@@ -73,6 +73,11 @@ describe("PwaProvider & usePwaUpdate", () => {
     expect(getByTestId("consumer")).toBeTruthy();
   });
 
+  it("accepts optional children via ParentProps", () => {
+    const { container } = render(() => <PwaProvider />);
+    expect(container.innerHTML).toBe("");
+  });
+
   it("does not set updateAvailable when needRefresh is initially false", () => {
     render(() => (
       <PwaProvider>

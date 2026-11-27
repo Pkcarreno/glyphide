@@ -9,12 +9,19 @@ import {
 import type { ComponentProps, JSX, ValidComponent } from "@solidjs/web";
 import { dynamic, Portal } from "@solidjs/web";
 import Check from "lucide-solid/icons/check";
-import type { Accessor, Setter } from "solid-js";
+import type {
+  Accessor,
+  FlowProps,
+  ParentProps,
+  Setter,
+  VoidProps,
+} from "solid-js";
 import {
   createContext,
   createEffect,
   createSignal,
   createUniqueId,
+  merge,
   omit,
   onCleanup,
   onSettled,
@@ -56,7 +63,6 @@ export function useDropdown(): DropdownContextValue {
 /* ---------- Root ---------- */
 
 interface DropdownRootProps {
-  children: JSX.Element;
   /** Controlled open state */
   isOpen?: boolean;
   /** Distance from the trigger element in pixels. Default: 4 */
@@ -71,9 +77,16 @@ interface DropdownRootProps {
  * Dropdown root that manages open state and provides context to sub-components.
  * Supports both controlled and uncontrolled modes.
  */
-function DropdownRoot(props: DropdownRootProps) {
-  const offset = () => props.offset ?? 4;
-  const placement = () => props.placement ?? "bottom-start";
+function DropdownRoot(rawProps: FlowProps<DropdownRootProps>) {
+  const props = merge(
+    {
+      offset: 4,
+      placement: "bottom-start" as Placement,
+    },
+    rawProps
+  );
+  const offset = () => props.offset;
+  const placement = () => props.placement;
 
   const [internalIsOpen, setInternalIsOpen] = createSignal(false);
   const isOpen = () => props.isOpen ?? internalIsOpen();
@@ -231,11 +244,12 @@ function DropdownRoot(props: DropdownRootProps) {
 
 /* ---------- Trigger ---------- */
 
-type DropdownTriggerProps<T extends ValidComponent = "button"> = {
-  as?: T;
-  children?: JSX.Element;
-  class?: string;
-} & Omit<ComponentProps<T>, "as" | "children" | "class">;
+type DropdownTriggerProps<T extends ValidComponent = "button"> = ParentProps<
+  {
+    as?: T;
+    class?: string;
+  } & Omit<ComponentProps<T>, "as" | "children" | "class">
+>;
 
 /**
  * The element that triggers the dropdown to open or close.
@@ -281,15 +295,11 @@ function DropdownTrigger<T extends ValidComponent = "button">(
 
 /* ---------- Portal ---------- */
 
-interface DropdownPortalProps {
-  children: JSX.Element;
-}
-
 /**
  * Portals the children into the document body
  * conditionally when the dropdown is open.
  */
-function DropdownPortal(props: DropdownPortalProps) {
+function DropdownPortal(props: FlowProps) {
   const ctx = useDropdown();
 
   return <Show when={ctx.isOpen()}>{props.children}</Show>;
@@ -297,8 +307,8 @@ function DropdownPortal(props: DropdownPortalProps) {
 
 /* ---------- Content ---------- */
 
-interface DropdownContentProps extends JSX.HTMLAttributes<HTMLDivElement> {
-  children?: JSX.Element;
+interface DropdownContentProps
+  extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "children"> {
   class?: string;
 }
 
@@ -306,7 +316,7 @@ interface DropdownContentProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * The dropdown content panel with role="menu" and keyboard navigation.
  * Positioned by Floating UI relative to the trigger.
  */
-function DropdownContent(props: DropdownContentProps) {
+function DropdownContent(props: ParentProps<DropdownContentProps>) {
   const rest = omit(props, "class", "children", "onKeyDown", "ref");
   const ctx = useDropdown();
   let contentRef: HTMLDivElement | undefined;
@@ -428,8 +438,8 @@ function DropdownContent(props: DropdownContentProps) {
 
 /* ---------- Group ---------- */
 
-interface DropdownGroupProps extends JSX.HTMLAttributes<HTMLFieldSetElement> {
-  children?: JSX.Element;
+interface DropdownGroupProps
+  extends Omit<JSX.HTMLAttributes<HTMLFieldSetElement>, "children"> {
   class?: string;
   heading?: string;
 }
@@ -437,7 +447,7 @@ interface DropdownGroupProps extends JSX.HTMLAttributes<HTMLFieldSetElement> {
 /**
  * Groups related menu items with an optional heading.
  */
-function DropdownGroup(props: DropdownGroupProps) {
+function DropdownGroup(props: ParentProps<DropdownGroupProps>) {
   const rest = omit(props, "class", "children", "heading");
 
   return (
@@ -454,17 +464,24 @@ function DropdownGroup(props: DropdownGroupProps) {
 
 /* ---------- Item ---------- */
 
-type DropdownItemProps<T extends ValidComponent = "div"> = {
-  as?: T;
-  children?: JSX.Element;
-  class?: string;
-  isDisabled?: boolean;
-  inset?: boolean;
-  variant?: "default" | "destructive";
-  onSelect?: () => void;
-} & Omit<
-  ComponentProps<T>,
-  "as" | "children" | "class" | "isDisabled" | "inset" | "variant" | "onSelect"
+type DropdownItemProps<T extends ValidComponent = "div"> = ParentProps<
+  {
+    as?: T;
+    class?: string;
+    isDisabled?: boolean;
+    inset?: boolean;
+    variant?: "default" | "destructive";
+    onSelect?: () => void;
+  } & Omit<
+    ComponentProps<T>,
+    | "as"
+    | "children"
+    | "class"
+    | "isDisabled"
+    | "inset"
+    | "variant"
+    | "onSelect"
+  >
 >;
 
 /**
@@ -472,10 +489,17 @@ type DropdownItemProps<T extends ValidComponent = "div"> = {
  * Supports inset alignment, destructive variant, disabled state, and polymorphic `as` prop.
  */
 function DropdownItem<T extends ValidComponent = "div">(
-  props: DropdownItemProps<T>
+  rawProps: DropdownItemProps<T>
 ) {
+  const props = merge(
+    {
+      inset: false,
+      isDisabled: false,
+    },
+    rawProps as DropdownItemProps<"div">
+  );
   const rest = omit(
-    props as DropdownItemProps<"div">,
+    props,
     "as",
     "class",
     "children",
@@ -513,7 +537,7 @@ function DropdownItem<T extends ValidComponent = "div">(
     ctx.close();
   };
 
-  const Comp = dynamic(() => props.as ?? "div");
+  const Comp = dynamic(() => rawProps.as ?? "div");
 
   return (
     <Comp
@@ -531,15 +555,12 @@ function DropdownItem<T extends ValidComponent = "div">(
       data-active={isActive() ? "true" : undefined}
       data-disabled={props.isDisabled}
       data-variant={props.variant}
-      onClick={composeEventHandlers(
-        handleClick,
-        (props as DropdownItemProps<"div">).onClick
-      )}
+      onClick={composeEventHandlers(handleClick, props.onClick)}
       ref={[
         (el: HTMLElement) => {
           itemRef = el;
         },
-        (props as DropdownItemProps<"div">).ref,
+        props.ref,
       ]}
       role="menuitem"
       tabindex={-1}
@@ -552,8 +573,8 @@ function DropdownItem<T extends ValidComponent = "div">(
 
 /* ---------- CheckboxItem ---------- */
 
-interface DropdownCheckboxItemProps extends JSX.HTMLAttributes<HTMLDivElement> {
-  children?: JSX.Element;
+interface DropdownCheckboxItemProps
+  extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "children"> {
   class?: string;
   inset?: boolean;
   isChecked?: boolean;
@@ -565,7 +586,17 @@ interface DropdownCheckboxItemProps extends JSX.HTMLAttributes<HTMLDivElement> {
  * A menu item with checkbox behavior and role="menuitemcheckbox".
  * Shows a check indicator when checked.
  */
-function DropdownCheckboxItem(props: DropdownCheckboxItemProps) {
+function DropdownCheckboxItem(
+  rawProps: ParentProps<DropdownCheckboxItemProps>
+) {
+  const props = merge(
+    {
+      inset: false,
+      isChecked: false,
+      isDisabled: false,
+    },
+    rawProps
+  );
   const rest = omit(
     props,
     "class",
@@ -656,16 +687,17 @@ function DropdownCheckboxItem(props: DropdownCheckboxItemProps) {
 
 /* ---------- Link ---------- */
 
-type DropdownLinkProps<T extends ValidComponent = "a"> = {
-  as?: T;
-  children?: JSX.Element;
-  class?: string;
-  isDisabled?: boolean;
-  inset?: boolean;
-  onSelect?: () => void;
-} & Omit<
-  ComponentProps<T>,
-  "as" | "children" | "class" | "isDisabled" | "inset" | "onSelect"
+type DropdownLinkProps<T extends ValidComponent = "a"> = ParentProps<
+  {
+    as?: T;
+    class?: string;
+    isDisabled?: boolean;
+    inset?: boolean;
+    onSelect?: () => void;
+  } & Omit<
+    ComponentProps<T>,
+    "as" | "children" | "class" | "isDisabled" | "inset" | "onSelect"
+  >
 >;
 
 /**
@@ -675,10 +707,17 @@ type DropdownLinkProps<T extends ValidComponent = "a"> = {
  * @public
  */
 function DropdownLink<T extends ValidComponent = "a">(
-  props: DropdownLinkProps<T>
+  rawProps: DropdownLinkProps<T>
 ) {
+  const props = merge(
+    {
+      inset: false,
+      isDisabled: false,
+    },
+    rawProps as DropdownLinkProps<"a">
+  );
   const rest = omit(
-    props as DropdownLinkProps<"a">,
+    props,
     "as",
     "class",
     "children",
@@ -715,7 +754,7 @@ function DropdownLink<T extends ValidComponent = "a">(
     ctx.close();
   };
 
-  const Comp = dynamic(() => props.as ?? "a");
+  const Comp = dynamic(() => rawProps.as ?? "a");
 
   return (
     <Comp
@@ -730,15 +769,12 @@ function DropdownLink<T extends ValidComponent = "a">(
       )}
       data-active={isActive() ? "true" : undefined}
       data-disabled={props.isDisabled}
-      onClick={composeEventHandlers(
-        handleClick,
-        (props as DropdownLinkProps<"a">).onClick
-      )}
+      onClick={composeEventHandlers(handleClick, props.onClick)}
       ref={[
         (el: HTMLElement) => {
           itemRef = el;
         },
-        (props as DropdownLinkProps<"a">).ref,
+        props.ref,
       ]}
       role="menuitem"
       tabindex={-1}
@@ -751,8 +787,8 @@ function DropdownLink<T extends ValidComponent = "a">(
 
 /* ---------- Caption ---------- */
 
-interface DropdownCaptionProps extends JSX.HTMLAttributes<HTMLDivElement> {
-  children?: JSX.Element;
+interface DropdownCaptionProps
+  extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "children"> {
   class?: string;
 }
 
@@ -762,7 +798,7 @@ interface DropdownCaptionProps extends JSX.HTMLAttributes<HTMLDivElement> {
  *
  * @public
  */
-function DropdownCaption(props: DropdownCaptionProps) {
+function DropdownCaption(props: ParentProps<DropdownCaptionProps>) {
   const rest = omit(props, "class", "children");
 
   return (
@@ -778,15 +814,15 @@ function DropdownCaption(props: DropdownCaptionProps) {
 
 /* ---------- Label ---------- */
 
-interface DropdownLabelProps extends JSX.HTMLAttributes<HTMLDivElement> {
-  children?: JSX.Element;
+interface DropdownLabelProps
+  extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "children"> {
   class?: string;
 }
 
 /**
  * Non-interactive section header with role="presentation".
  */
-function DropdownLabel(props: DropdownLabelProps) {
+function DropdownLabel(props: ParentProps<DropdownLabelProps>) {
   const rest = omit(props, "class", "children");
 
   return (
@@ -805,14 +841,15 @@ function DropdownLabel(props: DropdownLabelProps) {
 
 /* ---------- Separator ---------- */
 
-interface DropdownSeparatorProps extends JSX.HTMLAttributes<HTMLHRElement> {
+interface DropdownSeparatorProps
+  extends Omit<JSX.HTMLAttributes<HTMLHRElement>, "children"> {
   class?: string;
 }
 
 /**
  * Visual divider between menu items with role="separator".
  */
-function DropdownSeparator(props: DropdownSeparatorProps) {
+function DropdownSeparator(props: VoidProps<DropdownSeparatorProps>) {
   const rest = omit(props, "class");
 
   return (
@@ -826,15 +863,15 @@ function DropdownSeparator(props: DropdownSeparatorProps) {
 
 /* ---------- Shortcut ---------- */
 
-interface DropdownShortcutProps extends JSX.HTMLAttributes<HTMLSpanElement> {
-  children?: JSX.Element;
+interface DropdownShortcutProps
+  extends Omit<JSX.HTMLAttributes<HTMLSpanElement>, "children"> {
   class?: string;
 }
 
 /**
  * Displays keyboard shortcut hints, right-aligned with muted styling.
  */
-function DropdownShortcut(props: DropdownShortcutProps) {
+function DropdownShortcut(props: ParentProps<DropdownShortcutProps>) {
   const rest = omit(props, "class", "children");
 
   return (

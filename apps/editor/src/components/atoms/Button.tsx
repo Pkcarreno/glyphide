@@ -1,6 +1,7 @@
 import type { JSX } from "@solidjs/web";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
+import type { ParentProps } from "solid-js";
 import { omit } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
@@ -52,7 +53,10 @@ const buttonVariants = cva(
 type ButtonVariants = VariantProps<typeof buttonVariants>;
 
 interface ButtonProps
-  extends Omit<JSX.ButtonHTMLAttributes<HTMLButtonElement>, "style">,
+  extends Omit<
+      JSX.ButtonHTMLAttributes<HTMLButtonElement>,
+      "style" | "children"
+    >,
     ButtonVariants {
   class?: string;
 }
@@ -62,7 +66,7 @@ interface ButtonProps
  * Encapsulates all interactive target sizing
  * and visual states via CVA.
  */
-function Button(props: ButtonProps) {
+function Button(props: ParentProps<ButtonProps>) {
   const rest = omit(props, "class", "variant", "size", "children");
 
   return (

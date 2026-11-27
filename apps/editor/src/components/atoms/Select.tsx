@@ -1,5 +1,6 @@
 import type { JSX } from "@solidjs/web";
 import ChevronDown from "lucide-solid/icons/chevron-down";
+import type { ParentProps } from "solid-js";
 import { omit } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { Icon } from "./Icon.tsx";
@@ -9,7 +10,7 @@ import { Icon } from "./Icon.tsx";
  * Maintains native select behavior while allowing custom utility classes.
  */
 export interface SelectProps
-  extends JSX.SelectHTMLAttributes<HTMLSelectElement> {
+  extends Omit<JSX.SelectHTMLAttributes<HTMLSelectElement>, "children"> {
   class?: string;
 }
 
@@ -18,7 +19,7 @@ export interface SelectProps
  * Uses native `<select>` structure to guarantee a11y compliance and mobile support,
  * whilst overriding the default appearance to match the application's aesthetic.
  */
-export function Select(props: SelectProps) {
+export function Select(props: ParentProps<SelectProps>) {
   const rest = omit(props, "class", "children", "value");
 
   return (
