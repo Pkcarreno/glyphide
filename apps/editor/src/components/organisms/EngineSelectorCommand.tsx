@@ -4,15 +4,7 @@ import { Errored, For, isPending, Loading, latest, Show } from "solid-js";
 import { useEditor } from "../../core/context.tsx";
 import type { EngineEntry } from "../../core/engine/registry.ts";
 import { getEngineEntries } from "../../core/engine/registry.ts";
-import {
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandRoot,
-} from "../atoms/Command.tsx";
+import { Command } from "../atoms/Command.tsx";
 import { Icon } from "../atoms/Icon.tsx";
 
 function EngineEntrySpinner(props: VoidProps<{ entry: EngineEntry }>) {
@@ -57,18 +49,18 @@ export function EngineSelectorCommand(_props: VoidProps) {
   };
 
   return (
-    <CommandDialog
+    <Command.Dialog
       isOpen={core.overlays.isOpen("engine-selector")}
       onOpenChange={handleOpenChange}
     >
-      <CommandRoot>
-        <CommandInput placeholder="Select execution engine..." />
-        <CommandList>
-          <CommandEmpty>No engine found.</CommandEmpty>
-          <CommandGroup>
+      <Command.Root>
+        <Command.Input placeholder="Select execution engine..." />
+        <Command.List>
+          <Command.Empty>No engine found.</Command.Empty>
+          <Command.Group>
             <For each={getEngineEntries(core.engineRegistry)}>
               {(entry) => (
-                <CommandItem
+                <Command.Item
                   class="gap-2"
                   onSelect={() => {
                     core.commands.selectEngine(entry.engineId, entry.language);
@@ -78,12 +70,12 @@ export function EngineSelectorCommand(_props: VoidProps) {
                 >
                   <span class="truncate">{entry.label}</span>
                   <EngineEntrySpinner entry={entry} />
-                </CommandItem>
+                </Command.Item>
               )}
             </For>
-          </CommandGroup>
-        </CommandList>
-      </CommandRoot>
-    </CommandDialog>
+          </Command.Group>
+        </Command.List>
+      </Command.Root>
+    </Command.Dialog>
   );
 }

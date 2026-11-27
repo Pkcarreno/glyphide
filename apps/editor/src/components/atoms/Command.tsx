@@ -1,12 +1,6 @@
 import type { JSX } from "@solidjs/web";
 import SearchIcon from "lucide-solid/icons/search";
-import type {
-  Accessor,
-  FlowProps,
-  ParentProps,
-  Setter,
-  VoidProps,
-} from "solid-js";
+import type { Accessor, ParentProps, Setter, VoidProps } from "solid-js";
 import {
   children,
   createContext,
@@ -23,7 +17,8 @@ import { cn } from "../../helpers/cn.ts";
 import { composeEventHandlers } from "../../helpers/compose-event-handlers.ts";
 import { createAutoFocus } from "../../helpers/create-auto-focus.ts";
 import { hasResolvedChildren } from "../../helpers/has-resolved-children.ts";
-import { Dialog, useDialog } from "./Dialog.tsx";
+import type { DialogRootProps } from "./Dialog.tsx";
+import { Dialog } from "./Dialog.tsx";
 import { Icon } from "./Icon.tsx";
 import type { InputProps } from "./Input.tsx";
 import { Input } from "./Input.tsx";
@@ -44,11 +39,9 @@ const CommandContext = createContext<CommandContextValue>();
 
 /**
  * Retrieves the Command context.
- * Throws `ContextNotFoundError` if used outside `<CommandRoot>`.
- *
- * @public
+ * Throws `ContextNotFoundError` if used outside `<Command.Root>`.
  */
-export function useCommand(): CommandContextValue {
+function useCommand(): CommandContextValue {
   return useContext(CommandContext);
 }
 
@@ -61,10 +54,8 @@ interface CommandRootProps
 
 /**
  * Root container for a command menu. Provides state and filtering logic.
- *
- * @public
  */
-export function CommandRoot(rawProps: ParentProps<CommandRootProps>) {
+function CommandRoot(rawProps: ParentProps<CommandRootProps>) {
   const props = merge({ shouldFilter: true }, rawProps);
   const rest = omit(
     props,
@@ -191,12 +182,12 @@ export function CommandRoot(rawProps: ParentProps<CommandRootProps>) {
 
 /* ---------- Input ---------- */
 
-export interface CommandInputProps extends InputProps {}
+type CommandInputProps = InputProps;
 
 /**
  * Input field for filtering the command menu items.
  */
-export function CommandInput(rawProps: VoidProps<CommandInputProps>) {
+function CommandInput(rawProps: VoidProps<CommandInputProps>) {
   const props = merge({ placeholder: "Search..." }, rawProps);
   const rest = omit(
     props,
@@ -229,9 +220,9 @@ export function CommandInput(rawProps: VoidProps<CommandInputProps>) {
 
 /* ---------- List ---------- */
 
-export function CommandList(
-  props: ParentProps<Omit<JSX.HTMLAttributes<HTMLDivElement>, "children">>
-) {
+type CommandListProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "children">;
+
+function CommandList(props: ParentProps<CommandListProps>) {
   const rest = omit(props, "class", "children");
   return (
     <div
@@ -245,9 +236,9 @@ export function CommandList(
 
 /* ---------- Empty ---------- */
 
-export function CommandEmpty(
-  props: ParentProps<Omit<JSX.HTMLAttributes<HTMLDivElement>, "children">>
-) {
+type CommandEmptyProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "children">;
+
+function CommandEmpty(props: ParentProps<CommandEmptyProps>) {
   const rest = omit(props, "class", "children");
   const ctx = useCommand();
   const resolved = children(() => props.children);
@@ -276,7 +267,7 @@ interface CommandGroupProps
   heading?: string;
 }
 
-export function CommandGroup(props: ParentProps<CommandGroupProps>) {
+function CommandGroup(props: ParentProps<CommandGroupProps>) {
   const rest = omit(props, "class", "children", "heading");
 
   return (
@@ -302,7 +293,7 @@ interface CommandItemProps
 /**
  * A selectable item in the command menu.
  */
-export function CommandItem(props: ParentProps<CommandItemProps>) {
+function CommandItem(props: ParentProps<CommandItemProps>) {
   const rest = omit(
     props,
     "class",
@@ -381,53 +372,52 @@ export function CommandItem(props: ParentProps<CommandItemProps>) {
 
 /* ---------- Dialog Integration ---------- */
 
-function CommandDialogOverlay(
-  props: VoidProps<Omit<JSX.HTMLAttributes<HTMLButtonElement>, "children">>
-) {
-  const { close } = useDialog();
-  return (
-    // biome-ignore lint/a11y/noAriaHiddenOnFocusable: Backdrop overlay button is intentionally hidden from assistive tech
-    <button
-      aria-hidden="true"
-      class="fixed inset-0 z-50 m-0 cursor-default border-none bg-transparent p-0"
-      onClick={close}
-      tabindex={-1}
-      type="button"
-      {...props}
-    />
-  );
+interface CommandDialogProps extends DialogRootProps {
+  /** Optional CSS classes merged with the dialog content panel. */
+  class?: string;
 }
 
-function CommandDialogContent(props: FlowProps<{ class?: string }>) {
-  const { isOpen } = useDialog();
-  return (
-    <Show when={isOpen()}>
-      <div class="fixed inset-0 z-50 flex items-start justify-center px-4 pt-[15vh]">
-        <CommandDialogOverlay />
-        <div
-          aria-modal="true"
-          class={cn("relative z-50 w-full max-w-lg", props.class)}
-          role="dialog"
-        >
-          {props.children}
-        </div>
-      </div>
-    </Show>
-  );
-}
+/**
+ * Top-aligned dialog wrapper for a command palette.
+ */
+function CommandDialog(props: ParentProps<CommandDialogProps>) {
+  const rootProps = omit(props, "class", "children");
 
-export function CommandDialog(
-  props: ParentProps<{
-    isOpen?: boolean;
-    onOpenChange?: (isOpen: boolean) => void;
-    class?: string;
-  }>
-) {
   return (
-    <Dialog.Root isOpen={props.isOpen} onOpenChange={props.onOpenChange}>
-      <CommandDialogContent class={props.class}>
+    <Dialog.Root {...rootProps}>
+      <Dialog.Content align="top" class={cn("max-w-lg p-0", props.class)}>
         {props.children}
-      </CommandDialogContent>
+      </Dialog.Content>
     </Dialog.Root>
   );
 }
+
+/* ---------- Unified Namespace ---------- */
+
+/**
+ * Composable Command palette compound component.
+ *
+ * @public
+ */
+const Command = {
+  Dialog: CommandDialog,
+  Empty: CommandEmpty,
+  Group: CommandGroup,
+  Input: CommandInput,
+  Item: CommandItem,
+  List: CommandList,
+  Root: CommandRoot,
+};
+
+/** @public */
+export {
+  Command,
+  type CommandDialogProps,
+  type CommandEmptyProps,
+  type CommandGroupProps,
+  type CommandInputProps,
+  type CommandItemProps,
+  type CommandListProps,
+  type CommandRootProps,
+  useCommand,
+};
