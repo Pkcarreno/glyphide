@@ -156,17 +156,10 @@ export function LoadFileModal(_props: VoidProps) {
         </div>
 
         <div class="border-outline-variant bg-surface-variant/50 flex items-center justify-end gap-2 border-t px-5 py-4">
-          <Show
-            fallback={
-              <Button onClick={closeModal} size="md" variant="ghost">
-                Cancel
-              </Button>
-            }
-            when={needsConfirm()}
-          >
-            <Button onClick={closeModal} size="md" variant="ghost">
-              Cancel
-            </Button>
+          <Button onClick={closeModal} size="md" variant="ghost">
+            Cancel
+          </Button>
+          <Show when={needsConfirm()}>
             <Button onClick={() => commitLoad()} size="md" variant="primary">
               Overwrite
             </Button>

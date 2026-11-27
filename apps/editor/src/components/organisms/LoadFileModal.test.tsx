@@ -91,11 +91,14 @@ describe("LoadFileModal", () => {
     expect(getByText("Load Project from File")).toBeTruthy();
   });
 
-  it("renders the FileDrop drop zone and a Cancel button", () => {
+  it("renders the FileDrop drop zone and a Cancel button without Overwrite initially", () => {
     setMockIsOpen(true);
-    const { getByTestId, getByText } = render(() => <LoadFileModal />);
+    const { getByTestId, getByText, queryByText } = render(() => (
+      <LoadFileModal />
+    ));
     expect(getByTestId("file-drop")).toBeTruthy();
     expect(getByText("Cancel")).toBeTruthy();
+    expect(queryByText("Overwrite")).toBeNull();
   });
 
   it("Cancel button closes the modal without state changes", () => {
@@ -164,7 +167,7 @@ describe("LoadFileModal", () => {
     expect(mockCloseOverlay).toHaveBeenCalledWith("load-file");
   });
 
-  it("dropping a valid file with non-empty buffer shows overwrite confirmation", async () => {
+  it("dropping a valid file with non-empty buffer shows overwrite confirmation while keeping the same Cancel button", async () => {
     setMockIsOpen(true);
     mockBufferContent.mockReturnValue("existing");
     mockReadFileFromFile.mockResolvedValue({
@@ -173,12 +176,19 @@ describe("LoadFileModal", () => {
       name: "x.js",
     });
 
-    const { getByTestId, getByText } = render(() => <LoadFileModal />);
+    const { getAllByRole, getByRole, getByTestId, getByText } = render(() => (
+      <LoadFileModal />
+    ));
+    const initialCancelButton = getByRole("button", { name: "Cancel" });
     dropFileOnZone(getByTestId("file-drop"), new File(["1"], "x.js"));
 
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(getByText(OVERWRITE_RE)).toBeTruthy();
+    expect(getByRole("button", { name: "Overwrite" })).toBeTruthy();
+    expect(getAllByRole("button", { name: "Cancel" })).toEqual([
+      initialCancelButton,
+    ]);
     // No direct load before confirmation.
     expect(mockLoadFile).not.toHaveBeenCalled();
   });

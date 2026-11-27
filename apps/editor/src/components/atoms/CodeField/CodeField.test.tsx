@@ -1,5 +1,6 @@
 import { language as cmLanguage } from "@codemirror/language";
 import type { Extension } from "@codemirror/state";
+import { EditorState } from "@codemirror/state";
 import { render, screen, waitFor } from "@solidjs/testing-library";
 import { EditorView } from "codemirror";
 import { createSignal, flush } from "solid-js";
@@ -173,6 +174,51 @@ describe("CodeField", () => {
     ));
     await waitFor(() => {
       expect(container.querySelector(".cm-lineWrapping")).toBeNull();
+    });
+  });
+
+  it("reconfigures appearance, word wrap, and read-only compartments dynamically", async () => {
+    const [isDark, setIsDark] = createSignal(false);
+    const [isWordWrapEnabled, setIsWordWrapEnabled] = createSignal(false);
+    const [isReadOnly, setIsReadOnly] = createSignal(false);
+
+    const { container } = render(() => (
+      <CodeField
+        isDark={isDark()}
+        isReadOnly={isReadOnly()}
+        isWordWrapEnabled={isWordWrapEnabled()}
+        value="const x = 1;"
+      />
+    ));
+    const view = getEditorView(container);
+
+    expect(view.state.facet(EditorView.darkTheme)).toBe(false);
+    expect(container.querySelector(".cm-lineWrapping")).toBeNull();
+    expect(view.state.facet(EditorState.readOnly)).toBe(false);
+    expect(view.state.facet(EditorView.editable)).toBe(true);
+
+    setIsDark(true);
+    setIsWordWrapEnabled(true);
+    setIsReadOnly(true);
+    flush();
+
+    await waitFor(() => {
+      expect(view.state.facet(EditorView.darkTheme)).toBe(true);
+      expect(container.querySelector(".cm-lineWrapping")).not.toBeNull();
+      expect(view.state.facet(EditorState.readOnly)).toBe(true);
+      expect(view.state.facet(EditorView.editable)).toBe(false);
+    });
+
+    setIsDark(false);
+    setIsWordWrapEnabled(false);
+    setIsReadOnly(false);
+    flush();
+
+    await waitFor(() => {
+      expect(view.state.facet(EditorView.darkTheme)).toBe(false);
+      expect(container.querySelector(".cm-lineWrapping")).toBeNull();
+      expect(view.state.facet(EditorState.readOnly)).toBe(false);
+      expect(view.state.facet(EditorView.editable)).toBe(true);
     });
   });
 
