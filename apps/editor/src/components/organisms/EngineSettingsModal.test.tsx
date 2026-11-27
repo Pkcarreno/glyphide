@@ -5,11 +5,19 @@ import {
   screen,
   waitFor,
 } from "@solidjs/testing-library";
-import { createMemo, createRoot, createSignal, flush } from "solid-js";
+import {
+  affects,
+  createMemo,
+  createRoot,
+  createSignal,
+  flush,
+  refresh,
+} from "solid-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { EngineSettingsModal } from "./EngineSettingsModal.tsx";
 
 const updateEngineConfigMock = vi.fn();
+const retryEngineInitMock = vi.fn();
 const openOverlayMock = vi.fn();
 const closeOverlayMock = vi.fn();
 const [mockIsOpen, setMockIsOpen] = createSignal(false);
@@ -21,6 +29,36 @@ interface MockEngineData {
   initParams: Record<string, unknown>;
   language: string;
 }
+
+interface MockParamDescriptor {
+  inputProps?: Record<string, unknown>;
+  inputType?: "compact-number" | "text";
+  isEditable: boolean;
+  key: string;
+  label: string;
+  toModel?: (val: unknown) => unknown;
+  toView?: (val: unknown) => unknown;
+}
+
+const DEFAULT_PARAM_DESCRIPTORS: MockParamDescriptor[] = [
+  {
+    inputProps: { max: 120, min: 1, step: 1 },
+    inputType: "compact-number",
+    isEditable: true,
+    key: "timeout",
+    label: "Timeout (s)",
+    toModel: (val: unknown) => Number(val) * 1000,
+    toView: (val: unknown) => Number(val) / 1000,
+  },
+  {
+    inputType: "text",
+    isEditable: false,
+    key: "retries",
+    label: "Retries",
+  },
+];
+
+let currentParamDescriptors: MockParamDescriptor[] = DEFAULT_PARAM_DESCRIPTORS;
 
 let engineResolver:
   | (() => MockEngineData | null | Promise<MockEngineData | null>)
@@ -60,6 +98,13 @@ function createDeferred<T>() {
 
 vi.mock("../../core/context.tsx", () => ({
   useEditor: () => ({
+    commands: {
+      retryEngineInit: () => {
+        retryEngineInitMock();
+        affects(currentEngineMemo);
+        return refresh(currentEngineMemo).catch(() => undefined);
+      },
+    },
     engine: {
       activeEngineId: () => "mock-engine",
       activeInitParams: () => ({ retries: 3, timeout: 5000 }),
@@ -72,23 +117,7 @@ vi.mock("../../core/context.tsx", () => ({
     engineRegistry: {
       getDefinition: () => ({
         defaultInitParams: {},
-        paramDescriptors: [
-          {
-            inputProps: { max: 120, min: 1, step: 1 },
-            inputType: "compact-number",
-            isEditable: true,
-            key: "timeout",
-            label: "Timeout (s)",
-            toModel: (val: unknown) => Number(val) * 1000,
-            toView: (val: unknown) => Number(val) / 1000,
-          },
-          {
-            inputType: "text",
-            isEditable: false,
-            key: "retries",
-            label: "Retries",
-          },
-        ],
+        paramDescriptors: currentParamDescriptors,
       }),
     },
     overlays: {
@@ -103,11 +132,13 @@ afterEach(() => {
   cleanup();
   disposeRoot?.();
   engineResolver = null;
+  currentParamDescriptors = DEFAULT_PARAM_DESCRIPTORS;
   setMockIsBlocked(false);
   setMockIsRunning(false);
   flush();
   currentEngineMemo = createEngineAccessor();
   updateEngineConfigMock.mockClear();
+  retryEngineInitMock.mockClear();
   openOverlayMock.mockClear();
   closeOverlayMock.mockClear();
 });
@@ -199,122 +230,17 @@ describe("EngineSettingsModal Apply behavior", () => {
   });
 });
 
-describe("EngineSettingsModal ready-state gate", () => {
+describe("EngineSettingsForm accessibility and editability", () => {
   beforeEach(() => {
     setMockIsOpen(true);
     setMockIsBlocked(false);
     setMockIsRunning(false);
     flush();
-    updateEngineConfigMock.mockClear();
-    openOverlayMock.mockClear();
-    closeOverlayMock.mockClear();
   });
 
   afterEach(cleanup);
 
-  it("disables all inputs and Apply button when engine is blocked", () => {
-    setMockIsBlocked(true);
-    flush();
-    render(() => <EngineSettingsModal />);
-
-    const input = screen.getByRole("spinbutton") as HTMLInputElement;
-    expect(input.disabled).toBe(true);
-    const decreaseBtn = screen.getByLabelText("Decrease") as HTMLButtonElement;
-    const increaseBtn = screen.getByLabelText("Increase") as HTMLButtonElement;
-    expect(decreaseBtn.disabled).toBe(true);
-    expect(increaseBtn.disabled).toBe(true);
-    const retriesInput = screen.getByLabelText("Retries") as HTMLInputElement;
-    expect(retriesInput.disabled).toBe(true);
-    expect(
-      (screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement)
-        .disabled
-    ).toBe(true);
-    expect(
-      screen.getByText(
-        "The engine initializes when you grant trust. Parameters can be modified once initialized."
-      )
-    ).toBeTruthy();
-  });
-
-  it("disables all inputs and Apply button when engine is initializing", () => {
-    const deferred = createDeferred<MockEngineData | null>();
-    engineResolver = () => deferred.promise;
-    currentEngineMemo = createEngineAccessor();
-
-    render(() => <EngineSettingsModal />);
-
-    const input = screen.getByRole("spinbutton") as HTMLInputElement;
-    expect(input.disabled).toBe(true);
-    const decreaseBtn = screen.getByLabelText("Decrease") as HTMLButtonElement;
-    const increaseBtn = screen.getByLabelText("Increase") as HTMLButtonElement;
-    expect(decreaseBtn.disabled).toBe(true);
-    expect(increaseBtn.disabled).toBe(true);
-    const retriesInput = screen.getByLabelText("Retries") as HTMLInputElement;
-    expect(retriesInput.disabled).toBe(true);
-    expect(
-      (screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement)
-        .disabled
-    ).toBe(true);
-    expect(
-      screen.getByText("The engine is initializing. Please wait...")
-    ).toBeTruthy();
-
-    deferred.resolve(null);
-  });
-
-  it("disables all inputs and Apply button when engine is running", () => {
-    setMockIsRunning(true);
-    flush();
-    render(() => <EngineSettingsModal />);
-
-    const input = screen.getByRole("spinbutton") as HTMLInputElement;
-    expect(input.disabled).toBe(true);
-    const decreaseBtn = screen.getByLabelText("Decrease") as HTMLButtonElement;
-    const increaseBtn = screen.getByLabelText("Increase") as HTMLButtonElement;
-    expect(decreaseBtn.disabled).toBe(true);
-    expect(increaseBtn.disabled).toBe(true);
-    const retriesInput = screen.getByLabelText("Retries") as HTMLInputElement;
-    expect(retriesInput.disabled).toBe(true);
-    expect(
-      (screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement)
-        .disabled
-    ).toBe(true);
-    expect(
-      screen.getByText(
-        "The engine is currently running. Stop execution to modify parameters."
-      )
-    ).toBeTruthy();
-  });
-
-  it("disables all inputs and Apply button when engine fails to initialize", async () => {
-    engineResolver = () => Promise.reject(new Error("Init failed"));
-    currentEngineMemo = createEngineAccessor();
-
-    render(() => <EngineSettingsModal />);
-
-    await waitFor(() => {
-      expect(
-        screen.getByText(
-          "Engine initialization failed. Retry to modify parameters."
-        )
-      ).toBeTruthy();
-    });
-
-    const input = screen.getByRole("spinbutton") as HTMLInputElement;
-    expect(input.disabled).toBe(true);
-    const decreaseBtn = screen.getByLabelText("Decrease") as HTMLButtonElement;
-    const increaseBtn = screen.getByLabelText("Increase") as HTMLButtonElement;
-    expect(decreaseBtn.disabled).toBe(true);
-    expect(increaseBtn.disabled).toBe(true);
-    const retriesInput = screen.getByLabelText("Retries") as HTMLInputElement;
-    expect(retriesInput.disabled).toBe(true);
-    expect(
-      (screen.getByRole("button", { name: "Apply" }) as HTMLButtonElement)
-        .disabled
-    ).toBe(true);
-  });
-
-  it("enables editable inputs and Apply button when engine is ready", () => {
+  it("renders editable inputs and Apply button when engine is ready without status text", () => {
     render(() => <EngineSettingsModal />);
 
     const input = screen.getByRole("spinbutton") as HTMLInputElement;
@@ -349,18 +275,218 @@ describe("EngineSettingsModal ready-state gate", () => {
     expect(retriesInput.disabled).toBe(true);
   });
 
-  it("transition: blocked → ready enables inputs and hides message", () => {
+  it("wires inputAriaLabel and matching createUniqueId() IDs to StepperInput and text inputs", () => {
+    currentParamDescriptors = [
+      ...DEFAULT_PARAM_DESCRIPTORS,
+      {
+        inputType: "text",
+        isEditable: true,
+        key: "tag",
+        label: "Tag",
+      },
+    ];
+
+    render(() => <EngineSettingsModal />);
+
+    const timeoutLabel = screen.getByText("Timeout (s)") as HTMLLabelElement;
+    const timeoutInput = screen.getByRole("spinbutton") as HTMLInputElement;
+    expect(timeoutInput.getAttribute("aria-label")).toBe("Timeout (s)");
+    expect(timeoutLabel.htmlFor).toBeTruthy();
+    expect(timeoutLabel.htmlFor).toBe(timeoutInput.id);
+    expect(timeoutLabel.control).toBe(timeoutInput);
+    expect(screen.getByLabelText("Timeout (s)")).toBe(timeoutInput);
+
+    const retriesLabel = screen.getByText("Retries") as HTMLLabelElement;
+    const retriesInput = screen.getByLabelText("Retries") as HTMLInputElement;
+    expect(retriesLabel.htmlFor).toBeTruthy();
+    expect(retriesLabel.htmlFor).toBe(retriesInput.id);
+    expect(retriesLabel.control).toBe(retriesInput);
+
+    const tagLabel = screen.getByText("Tag") as HTMLLabelElement;
+    const tagInput = screen.getByLabelText("Tag") as HTMLInputElement;
+    expect(tagLabel.htmlFor).toBeTruthy();
+    expect(tagLabel.htmlFor).toBe(tagInput.id);
+    expect(tagLabel.control).toBe(tagInput);
+    expect(tagInput.id).not.toBe(timeoutInput.id);
+    expect(retriesInput.id).not.toBe(timeoutInput.id);
+
+    const onTimeoutClick = vi.fn();
+    timeoutInput.addEventListener("click", onTimeoutClick);
+    fireEvent.click(timeoutLabel);
+    expect(onTimeoutClick).toHaveBeenCalledOnce();
+
+    const onTagClick = vi.fn();
+    tagInput.addEventListener("click", onTagClick);
+    fireEvent.click(tagLabel);
+    expect(onTagClick).toHaveBeenCalledOnce();
+  });
+});
+
+describe("EngineSettingsStatus variants and transitions", () => {
+  beforeEach(() => {
+    setMockIsOpen(true);
+    setMockIsBlocked(false);
+    setMockIsRunning(false);
+    flush();
+  });
+
+  afterEach(cleanup);
+
+  it("renders blocked status without editable form when engine is blocked", () => {
     setMockIsBlocked(true);
     flush();
     render(() => <EngineSettingsModal />);
 
-    const inputBlocked = screen.getByRole("spinbutton") as HTMLInputElement;
-    expect(inputBlocked.disabled).toBe(true);
     expect(
       screen.getByText(
         "The engine initializes when you grant trust. Parameters can be modified once initialized."
       )
     ).toBeTruthy();
+    expect(screen.queryByRole("spinbutton")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Apply" })).toBeNull();
+  });
+
+  it("renders loading status without editable form when engine is initializing", () => {
+    const deferred = createDeferred<MockEngineData | null>();
+    engineResolver = () => deferred.promise;
+    currentEngineMemo = createEngineAccessor();
+
+    render(() => <EngineSettingsModal />);
+
+    expect(
+      screen.getByText("The engine is initializing. Please wait...")
+    ).toBeTruthy();
+    expect(screen.queryByRole("spinbutton")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Apply" })).toBeNull();
+
+    deferred.resolve(null);
+  });
+
+  it("renders loading status without editable form during held refresh", async () => {
+    let deferred: ReturnType<
+      typeof createDeferred<MockEngineData | null>
+    > | null = null;
+    engineResolver = () => {
+      if (deferred) {
+        return deferred.promise;
+      }
+      return {
+        engineId: "mock-engine",
+        initParams: { retries: 3, timeout: 5000 },
+        language: "plaintext",
+      };
+    };
+    currentEngineMemo = createEngineAccessor();
+
+    render(() => <EngineSettingsModal />);
+    expect(screen.getByRole("spinbutton")).toBeTruthy();
+
+    deferred = createDeferred<MockEngineData | null>();
+    affects(currentEngineMemo);
+    void refresh(currentEngineMemo);
+    flush();
+
+    expect(
+      screen.getByText("The engine is initializing. Please wait...")
+    ).toBeTruthy();
+    expect(screen.queryByRole("spinbutton")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Apply" })).toBeNull();
+
+    deferred.resolve({
+      engineId: "mock-engine",
+      initParams: { retries: 3, timeout: 5000 },
+      language: "plaintext",
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole("spinbutton")).toBeTruthy();
+    });
+  });
+
+  it("renders running status without editable form when engine is running", () => {
+    setMockIsRunning(true);
+    flush();
+    render(() => <EngineSettingsModal />);
+
+    expect(
+      screen.getByText(
+        "The engine is currently running. Stop execution to modify parameters."
+      )
+    ).toBeTruthy();
+    expect(screen.queryByRole("spinbutton")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Apply" })).toBeNull();
+  });
+
+  it("renders uninitialized status without editable form when engine is null", () => {
+    engineResolver = () => null;
+    currentEngineMemo = createEngineAccessor();
+
+    render(() => <EngineSettingsModal />);
+
+    expect(
+      screen.getByText(
+        "The engine initializes when you run code. Parameters can be modified once initialized."
+      )
+    ).toBeTruthy();
+    expect(screen.queryByRole("spinbutton")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Apply" })).toBeNull();
+  });
+
+  it("renders error status with retry button and recovers when retried", async () => {
+    let shouldFail: boolean;
+    shouldFail = true;
+    engineResolver = () => {
+      if (shouldFail) {
+        return Promise.reject(new Error("Init failed"));
+      }
+      return {
+        engineId: "mock-engine",
+        initParams: { retries: 3, timeout: 5000 },
+        language: "plaintext",
+      };
+    };
+    currentEngineMemo = createEngineAccessor();
+
+    render(() => <EngineSettingsModal />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          "Engine initialization failed. Retry to modify parameters."
+        )
+      ).toBeTruthy();
+    });
+    expect(screen.queryByRole("spinbutton")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Apply" })).toBeNull();
+
+    shouldFail = false;
+    const retryButton = screen.getByRole("button", { name: "Retry" });
+    fireEvent.click(retryButton);
+
+    expect(retryEngineInitMock).toHaveBeenCalledOnce();
+
+    await waitFor(() => {
+      expect(screen.getByRole("spinbutton")).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Apply" })).toBeTruthy();
+    });
+    expect(
+      screen.queryByText(
+        "Engine initialization failed. Retry to modify parameters."
+      )
+    ).toBeNull();
+  });
+
+  it("transition: blocked → ready switches from status to editable form", () => {
+    setMockIsBlocked(true);
+    flush();
+    render(() => <EngineSettingsModal />);
+
+    expect(
+      screen.getByText(
+        "The engine initializes when you grant trust. Parameters can be modified once initialized."
+      )
+    ).toBeTruthy();
+    expect(screen.queryByRole("spinbutton")).toBeNull();
 
     setMockIsBlocked(false);
     flush();
@@ -374,7 +500,7 @@ describe("EngineSettingsModal ready-state gate", () => {
     ).toBeNull();
   });
 
-  it("transition: ready → running disables inputs and shows message", () => {
+  it("transition: ready → running switches from editable form to status", () => {
     render(() => <EngineSettingsModal />);
 
     const inputReady = screen.getByRole("spinbutton") as HTMLInputElement;
@@ -383,8 +509,7 @@ describe("EngineSettingsModal ready-state gate", () => {
     setMockIsRunning(true);
     flush();
 
-    const inputRunning = screen.getByRole("spinbutton") as HTMLInputElement;
-    expect(inputRunning.disabled).toBe(true);
+    expect(screen.queryByRole("spinbutton")).toBeNull();
     expect(
       screen.getByText(
         "The engine is currently running. Stop execution to modify parameters."
