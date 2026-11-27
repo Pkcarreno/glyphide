@@ -58,4 +58,25 @@ describe("ConsoleGroupView", () => {
     fireEvent.click(getByRole("button"));
     expect(onToggle).toHaveBeenCalledOnce();
   });
+
+  it("exposes aria-expanded and data-expanded matching collapse state using ChevronRight", () => {
+    const { container, getByRole } = render(() => (
+      <ConsoleGroupView item={mockItem} onToggle={() => undefined} />
+    ));
+
+    const expandedButton = getByRole("button");
+    expect(expandedButton.getAttribute("aria-expanded")).toBe("true");
+    expect(expandedButton.getAttribute("data-expanded")).toBe("true");
+    expect(container.querySelector('[data-lucide="chevron-down"]')).toBeNull();
+
+    const collapsed = render(() => (
+      <ConsoleGroupView
+        item={{ ...mockItem, isCollapsed: true }}
+        onToggle={() => undefined}
+      />
+    ));
+    const collapsedButton = collapsed.getByRole("button");
+    expect(collapsedButton.getAttribute("aria-expanded")).toBe("false");
+    expect(collapsedButton.getAttribute("data-expanded")).toBe("false");
+  });
 });

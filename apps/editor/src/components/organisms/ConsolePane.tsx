@@ -12,6 +12,7 @@ import type { FlatConsoleItem } from "../../helpers/console-hierarchy.ts";
 import { createConsoleProjection } from "../../helpers/console-projection.ts";
 import { formatCompactCount } from "../../helpers/format-compact-count.ts";
 import { ConsoleTableView } from "../atoms/ConsoleTableView.tsx";
+import { ExpandableScope } from "../atoms/ExpandableNode.tsx";
 import { Icon } from "../atoms/Icon.tsx";
 import { Tooltip } from "../atoms/Tooltip.tsx";
 import { VirtualList } from "../atoms/VirtualList.tsx";
@@ -183,13 +184,15 @@ function ConsolePane(props: VoidProps<ConsolePaneProps>) {
       </div>
 
       <div class="relative flex flex-1 flex-col overflow-hidden py-2">
-        <VirtualList
-          class="h-full w-full"
-          getKey={(item) => item.entry.id}
-          itemHeight={24}
-          items={projection.visibleItems()}
-          renderItem={(item, index) => renderFlatNode(item, index)}
-        />
+        <ExpandableScope>
+          <VirtualList
+            class="h-full w-full"
+            getKey={(item) => item.entry.id}
+            itemHeight={24}
+            items={projection.visibleItems()}
+            renderItem={(item, index) => renderFlatNode(item, index)}
+          />
+        </ExpandableScope>
       </div>
     </section>
   );

@@ -1,7 +1,8 @@
 import type { ConsoleToken } from "@glyphide/quickjs-engine/types";
 import { fireEvent, render } from "@solidjs/testing-library";
-import { createSignal, flush } from "solid-js";
+import { createSignal, flush, Show } from "solid-js";
 import { describe, expect, it } from "vitest";
+import { ExpandableScope } from "../../atoms/ExpandableNode.tsx";
 import { ConsoleTokenView } from "./ConsoleTokenView.tsx";
 
 describe("ConsoleTokenView", () => {
@@ -142,7 +143,7 @@ describe("ConsoleTokenView", () => {
       expect(container.textContent).toContain("200");
     });
 
-    it("persists expanded state when remounted with the same token reference", () => {
+    it("persists expanded state when remounted inside ExpandableScope with the same token reference", () => {
       const tokenArray = {
         elements: [
           { type: "number" as const, value: 50 },
@@ -151,9 +152,14 @@ describe("ConsoleTokenView", () => {
         length: 2,
         type: "array" as const,
       };
+      const [isVisible, setIsVisible] = createSignal(true);
 
-      const { container, unmount } = render(() => (
-        <ConsoleTokenView tokens={[tokenArray]} />
+      const { container } = render(() => (
+        <ExpandableScope>
+          <Show when={isVisible()}>
+            <ConsoleTokenView tokens={[tokenArray]} />
+          </Show>
+        </ExpandableScope>
       ));
 
       const expander = container.querySelector("button");
@@ -162,15 +168,17 @@ describe("ConsoleTokenView", () => {
       }
       fireEvent.click(expander);
       expect(container.textContent).toContain("50");
+      expect(container.textContent).toContain("0:");
 
-      unmount();
+      setIsVisible(false);
+      flush();
+      expect(container.textContent).toBe("");
 
-      const { container: container2 } = render(() => (
-        <ConsoleTokenView tokens={[tokenArray]} />
-      ));
+      setIsVisible(true);
+      flush();
 
-      expect(container2.textContent).toContain("0:");
-      expect(container2.textContent).toContain("50");
+      expect(container.textContent).toContain("0:");
+      expect(container.textContent).toContain("50");
     });
 
     it("renders ellipsis when elements > 5", () => {
@@ -391,12 +399,31 @@ describe("ConsoleTokenView", () => {
   });
 
   describe("nested structured tokens", () => {
-    it("does not render expand buttons for nested items inside inline preview", () => {
+    it("renders nested collections as static inline previews when collapsed and interactive expanders when expanded", () => {
       const { container } = render(() => (
         <ConsoleTokenView
           tokens={[
             {
               properties: {
+                nestedArray: {
+                  elements: [{ type: "number", value: 1 }],
+                  length: 1,
+                  type: "array",
+                },
+                nestedMap: {
+                  entries: [
+                    [
+                      { type: "string", value: "k" },
+                      {
+                        elements: [{ type: "string", value: "v" }],
+                        size: 1,
+                        type: "set",
+                      },
+                    ],
+                  ],
+                  size: 1,
+                  type: "map",
+                },
                 nestedObject: {
                   properties: { inner: { type: "number", value: 1 } },
                   type: "object",
@@ -408,10 +435,20 @@ describe("ConsoleTokenView", () => {
         />
       ));
 
-      // There should only be one button (for the outer object)
-      // The nestedObject should be rendered statically because of isPreview
-      const buttons = container.querySelectorAll("button");
-      expect(buttons.length).toBe(1);
+      // Before expanding outer object, only the outer trigger button exists.
+      const collapsedButtons = container.querySelectorAll("button");
+      expect(collapsedButtons.length).toBe(1);
+      expect(collapsedButtons[0]?.getAttribute("aria-expanded")).toBe("false");
+
+      if (!collapsedButtons[0]) {
+        throw new Error("Outer expander not found");
+      }
+      fireEvent.click(collapsedButtons[0]);
+
+      // After expanding outer object, nested collections inside the tree become expandable buttons.
+      const expandedButtons = container.querySelectorAll("button");
+      expect(expandedButtons.length).toBe(4);
+      expect(expandedButtons[0]?.getAttribute("aria-expanded")).toBe("true");
     });
   });
 
