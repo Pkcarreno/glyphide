@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web";
 import ChevronRight from "lucide-solid/icons/chevron-right";
-import { createSignal, Show, untrack } from "solid-js";
+import { createSignal, createUniqueId, Show, untrack } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 import { Icon } from "./Icon.tsx";
 
@@ -29,7 +29,6 @@ interface ExpandableNodeProps {
 
 const globalExpandedState = new WeakMap<object, boolean>();
 const idForStateKey = new WeakMap<object, string>();
-let nextExpandableContentId = 1;
 
 /**
  * Atom that renders a chevron-toggled expandable node.
@@ -58,19 +57,17 @@ function ExpandableNode(props: ExpandableNodeProps) {
     }
   };
 
+  const generatedId = `expandable-content-${createUniqueId()}`;
   const contentId = untrack(() => {
     if (props.stateKey) {
-      if (!idForStateKey.has(props.stateKey)) {
-        idForStateKey.set(
-          props.stateKey,
-          `expandable-content-${Math.random().toString(36).slice(2, 9)}`
-        );
+      let existingId = idForStateKey.get(props.stateKey);
+      if (!existingId) {
+        existingId = generatedId;
+        idForStateKey.set(props.stateKey, existingId);
       }
-      return idForStateKey.get(props.stateKey) ?? "";
+      return existingId;
     }
-    const instanceAutoId = nextExpandableContentId;
-    nextExpandableContentId += 1;
-    return `expandable-content-${instanceAutoId}`;
+    return generatedId;
   });
 
   return (

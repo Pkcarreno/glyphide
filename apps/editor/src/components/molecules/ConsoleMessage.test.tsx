@@ -1,4 +1,5 @@
 import { render } from "@solidjs/testing-library";
+import { createSignal, flush, Show } from "solid-js";
 import { describe, expect, it } from "vitest";
 import { ConsoleMessage } from "./ConsoleMessage.tsx";
 
@@ -108,5 +109,25 @@ describe("ConsoleMessage", () => {
       </ConsoleMessage>
     ));
     expect(getByText("no message prop")).toBeDefined();
+  });
+
+  it("resolves children before falling back to message", () => {
+    const [showToken, setShowToken] = createSignal(false);
+    const { getByText, queryByText } = render(() => (
+      <ConsoleMessage message="Fallback text">
+        <Show when={showToken()}>
+          <span>Resolved child</span>
+        </Show>
+      </ConsoleMessage>
+    ));
+
+    expect(getByText("Fallback text")).toBeDefined();
+    expect(queryByText("Resolved child")).toBeNull();
+
+    setShowToken(true);
+    flush();
+
+    expect(queryByText("Fallback text")).toBeNull();
+    expect(getByText("Resolved child")).toBeDefined();
   });
 });

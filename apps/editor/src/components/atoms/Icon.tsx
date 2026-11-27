@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web";
-import { dynamic } from "@solidjs/web";
 import type { LucideProps } from "lucide-solid";
+import { dynamicComponent } from "solid-js";
 import { cn } from "../../helpers/cn.ts";
 
 interface IconProps {
@@ -19,7 +19,7 @@ interface IconProps {
  * sizing and accessibility attributes.
  */
 function Icon(props: IconProps) {
-  const IconComponent = dynamic(() => props.icon);
+  const IconComponent = dynamicComponent(() => props.icon);
 
   return (
     <IconComponent

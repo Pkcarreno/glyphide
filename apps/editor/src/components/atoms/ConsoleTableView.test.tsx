@@ -1,4 +1,6 @@
+import type { ConsoleToken } from "@glyphide/quickjs-engine/types";
 import { render } from "@solidjs/testing-library";
+import { createSignal, flush } from "solid-js";
 import { describe, expect, it } from "vitest";
 import { ConsoleTableView } from "./ConsoleTableView.tsx";
 
@@ -180,5 +182,50 @@ describe("ConsoleTableView", () => {
         expect(container.querySelector("table")).toBeDefined();
       }).not.toThrow();
     });
+  });
+
+  it("reactively updates columns and cell tokens when token prop changes", () => {
+    const [token, setToken] = createSignal<ConsoleToken>({
+      elements: [
+        {
+          properties: { a: { type: "number", value: 1 } },
+          type: "object",
+        },
+      ],
+      length: 1,
+      type: "array",
+    });
+
+    const { container } = render(() => <ConsoleTableView token={token()} />);
+
+    const initialHeaders = Array.from(container.querySelectorAll("th")).map(
+      (h) => h.textContent?.trim()
+    );
+    expect(initialHeaders).toEqual(["(index)", "a"]);
+    expect(
+      container.querySelector("tbody tr td:nth-child(2)")?.textContent
+    ).toBe("1");
+
+    setToken({
+      elements: [
+        {
+          properties: {
+            b: { type: "string", value: "updated" },
+          },
+          type: "object",
+        },
+      ],
+      length: 1,
+      type: "array",
+    });
+    flush();
+
+    const updatedHeaders = Array.from(container.querySelectorAll("th")).map(
+      (h) => h.textContent?.trim()
+    );
+    expect(updatedHeaders).toEqual(["(index)", "b"]);
+    expect(
+      container.querySelector("tbody tr td:nth-child(2)")?.textContent
+    ).toBe('"updated"');
   });
 });

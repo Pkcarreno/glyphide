@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
-import { resetErrorHalt } from "solid-js";
+import { createSignal, flush, resetErrorHalt, Show } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   CommandEmpty,
@@ -207,6 +207,30 @@ describe("Command", () => {
     fireEvent.click(beta);
     expect(onItemClick).toHaveBeenCalledOnce();
     expect(onSelect).toHaveBeenCalledTimes(2);
+  });
+  it("CommandEmpty resolves children before falling back to default message", () => {
+    const [hasCustomEmpty, setHasCustomEmpty] = createSignal(false);
+
+    render(() => (
+      <CommandRoot>
+        <CommandList>
+          <CommandEmpty>
+            <Show when={hasCustomEmpty()}>
+              <span>Nothing matched</span>
+            </Show>
+          </CommandEmpty>
+        </CommandList>
+      </CommandRoot>
+    ));
+
+    expect(screen.getByText("No results found.")).toBeTruthy();
+    expect(screen.queryByText("Nothing matched")).toBeNull();
+
+    setHasCustomEmpty(true);
+    flush();
+
+    expect(screen.queryByText("No results found.")).toBeNull();
+    expect(screen.getByText("Nothing matched")).toBeTruthy();
   });
 
   it("throws native ContextNotFoundError when useCommand is called outside CommandRoot", () => {

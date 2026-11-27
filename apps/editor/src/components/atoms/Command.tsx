@@ -2,6 +2,7 @@ import type { JSX } from "@solidjs/web";
 import SearchIcon from "lucide-solid/icons/search";
 import type { Accessor, Setter } from "solid-js";
 import {
+  children,
   createContext,
   createEffect,
   createMemo,
@@ -14,6 +15,7 @@ import {
 import { cn } from "../../helpers/cn.ts";
 import { composeEventHandlers } from "../../helpers/compose-event-handlers.ts";
 import { createAutoFocus } from "../../helpers/create-auto-focus.ts";
+import { hasResolvedChildren } from "../../helpers/has-resolved-children.ts";
 import { Dialog, useDialog } from "../molecules/Dialog.tsx";
 import { Icon } from "./Icon.tsx";
 import type { InputProps } from "./Input.tsx";
@@ -235,6 +237,7 @@ export function CommandList(props: JSX.HTMLAttributes<HTMLDivElement>) {
 export function CommandEmpty(props: JSX.HTMLAttributes<HTMLDivElement>) {
   const rest = omit(props, "class", "children");
   const ctx = useCommand();
+  const resolved = children(() => props.children);
 
   return (
     <Show when={ctx.visibleItems().size === 0}>
@@ -245,7 +248,9 @@ export function CommandEmpty(props: JSX.HTMLAttributes<HTMLDivElement>) {
         )}
         {...rest}
       >
-        {props.children ?? "No results found."}
+        <Show fallback="No results found." when={hasResolvedChildren(resolved)}>
+          {resolved()}
+        </Show>
       </div>
     </Show>
   );

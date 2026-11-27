@@ -266,12 +266,12 @@ function TokenObject(props: {
   const renderInlinePreview = () => (
     <span class="text-on-surface">
       <span class="opacity-50">{"{"}</span>
-      <For each={preview()}>
-        {([key, value], index) => (
+      <For each={preview()} keyed={([key]) => key}>
+        {(entry, index) => (
           <>
-            <span class="text-on-surface-variant opacity-80">{key}</span>
+            <span class="text-on-surface-variant opacity-80">{entry()[0]}</span>
             <span class="opacity-50">: </span>
-            <Token isPreview token={value} />
+            <Token isPreview token={entry()[1]} />
             <Show when={index() < preview().length - 1 || hasMore()}>
               <span class="opacity-50">, </span>
             </Show>
@@ -292,11 +292,13 @@ function TokenObject(props: {
         when={propertyEntries().length > 0}
       >
         <ExpandableNode preview={renderInlinePreview()} stateKey={props.token}>
-          <For each={propertyEntries()}>
-            {([key, value]) => (
+          <For each={propertyEntries()} keyed={([key]) => key}>
+            {(entry) => (
               <span class="flex items-baseline gap-2">
-                <span class="text-on-surface-variant opacity-80">{key}:</span>
-                <Token token={value} />
+                <span class="text-on-surface-variant opacity-80">
+                  {entry()[0]}:
+                </span>
+                <Token token={entry()[1]} />
               </span>
             )}
           </For>
@@ -324,17 +326,16 @@ function TokenMap(props: {
       <span class="opacity-50">
         Map({size()}) {"{"}
       </span>
-      <For each={preview()}>
+      <For each={preview()} keyed={false}>
         {(entry, index) => {
-          const [key, value] = Array.isArray(entry)
-            ? entry
-            : [entry, undefined];
+          const pair = () =>
+            Array.isArray(entry()) ? entry() : ([entry(), undefined] as const);
           return (
             <>
-              <Token isPreview token={key} />
+              <Token isPreview token={pair()[0]} />
               <span class="opacity-50"> =&gt; </span>
-              <Token isPreview token={value} />
-              <Show when={index() < preview().length - 1 || hasMore()}>
+              <Token isPreview token={pair()[1]} />
+              <Show when={index < preview().length - 1 || hasMore()}>
                 <span class="opacity-50">, </span>
               </Show>
             </>
@@ -355,16 +356,17 @@ function TokenMap(props: {
         when={size() > 0}
       >
         <ExpandableNode preview={renderInlinePreview()} stateKey={props.token}>
-          <For each={entries()}>
+          <For each={entries()} keyed={false}>
             {(entry) => {
-              const [key, value] = Array.isArray(entry)
-                ? entry
-                : [entry, undefined];
+              const pair = () =>
+                Array.isArray(entry())
+                  ? entry()
+                  : ([entry(), undefined] as const);
               return (
                 <span class="flex items-baseline gap-2">
-                  <Token token={key} />
+                  <Token token={pair()[0]} />
                   <span class="text-on-surface-variant opacity-50">=&gt;</span>
-                  <Token token={value} />
+                  <Token token={pair()[1]} />
                 </span>
               );
             }}

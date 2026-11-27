@@ -14,6 +14,7 @@ import {
   createContext,
   createEffect,
   createSignal,
+  createUniqueId,
   omit,
   onCleanup,
   onSettled,
@@ -486,7 +487,7 @@ function DropdownItem<T extends ValidComponent = "div">(
     "ref"
   );
   const ctx = useDropdown();
-  const itemId = `dropdown-item-${Math.random().toString(36).slice(2, 9)}`;
+  const itemId = `dropdown-item-${createUniqueId()}`;
 
   let itemRef: HTMLElement | undefined;
 
@@ -578,7 +579,7 @@ function DropdownCheckboxItem(props: DropdownCheckboxItemProps) {
     "ref"
   );
   const ctx = useDropdown();
-  const itemId = `dropdown-checkbox-${Math.random().toString(36).slice(2, 9)}`;
+  const itemId = `dropdown-checkbox-${createUniqueId()}`;
 
   let itemRef: HTMLDivElement | undefined;
 
@@ -688,7 +689,7 @@ function DropdownLink<T extends ValidComponent = "a">(
     "ref"
   );
   const ctx = useDropdown();
-  const itemId = `dropdown-link-${Math.random().toString(36).slice(2, 9)}`;
+  const itemId = `dropdown-link-${createUniqueId()}`;
 
   let itemRef: HTMLElement | undefined;
 

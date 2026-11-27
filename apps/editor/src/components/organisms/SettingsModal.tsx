@@ -180,10 +180,10 @@ function SettingsModal(props: SettingsModalProps) {
               Settings
             </h2>
             <Tabs.List class="flex-row overflow-x-auto md:flex-col">
-              <For each={TABS}>
+              <For each={TABS} keyed={false}>
                 {(tab) => (
-                  <Tabs.Trigger class="text-center md:text-left" value={tab}>
-                    {tab}
+                  <Tabs.Trigger class="text-center md:text-left" value={tab()}>
+                    {tab()}
                   </Tabs.Trigger>
                 )}
               </For>
