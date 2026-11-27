@@ -1,14 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
 import { createSignal, flush, resetErrorHalt, Show } from "solid-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  CommandEmpty,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandRoot,
-  useCommand,
-} from "./Command.tsx";
+import { Command, useCommand } from "./Command.tsx";
 
 afterEach(() => {
   cleanup();
@@ -21,18 +14,18 @@ describe("Command", () => {
     const handleSelect2 = vi.fn();
 
     render(() => (
-      <CommandRoot>
-        <CommandInput placeholder="Search test..." />
-        <CommandList>
-          <CommandEmpty>No results</CommandEmpty>
-          <CommandItem onSelect={handleSelect1} value="apple">
+      <Command.Root>
+        <Command.Input placeholder="Search test..." />
+        <Command.List>
+          <Command.Empty>No results</Command.Empty>
+          <Command.Item onSelect={handleSelect1} value="apple">
             Apple
-          </CommandItem>
-          <CommandItem onSelect={handleSelect2} value="banana">
+          </Command.Item>
+          <Command.Item onSelect={handleSelect2} value="banana">
             Banana
-          </CommandItem>
-        </CommandList>
-      </CommandRoot>
+          </Command.Item>
+        </Command.List>
+      </Command.Root>
     ));
 
     expect(screen.getByPlaceholderText("Search test...")).toBeTruthy();
@@ -55,11 +48,11 @@ describe("Command", () => {
 
   it("root uses shadow-md and ring-1 instead of border", () => {
     render(() => (
-      <CommandRoot data-testid="command-root">
-        <CommandList>
-          <CommandItem value="test">Test</CommandItem>
-        </CommandList>
-      </CommandRoot>
+      <Command.Root data-testid="command-root">
+        <Command.List>
+          <Command.Item value="test">Test</Command.Item>
+        </Command.List>
+      </Command.Root>
     ));
 
     const root = screen.getByTestId("command-root");
@@ -70,11 +63,11 @@ describe("Command", () => {
 
   it("item uses min-h-7, text-xs, rounded-sm, and compact padding", () => {
     render(() => (
-      <CommandRoot>
-        <CommandList>
-          <CommandItem value="test">Test Item</CommandItem>
-        </CommandList>
-      </CommandRoot>
+      <Command.Root>
+        <Command.List>
+          <Command.Item value="test">Test Item</Command.Item>
+        </Command.List>
+      </Command.Root>
     ));
 
     const item = screen.getByText("Test Item");
@@ -87,14 +80,14 @@ describe("Command", () => {
 
   it("derives initial selection to first visible item and resets to first match when search changes", async () => {
     const { getByPlaceholderText, getByRole, getByText } = render(() => (
-      <CommandRoot>
-        <CommandInput placeholder="Filter..." />
-        <CommandList>
-          <CommandEmpty>No results</CommandEmpty>
-          <CommandItem value="alpha">Alpha</CommandItem>
-          <CommandItem value="beta">Beta</CommandItem>
-        </CommandList>
-      </CommandRoot>
+      <Command.Root>
+        <Command.Input placeholder="Filter..." />
+        <Command.List>
+          <Command.Empty>No results</Command.Empty>
+          <Command.Item value="alpha">Alpha</Command.Item>
+          <Command.Item value="beta">Beta</Command.Item>
+        </Command.List>
+      </Command.Root>
     ));
 
     const alpha = getByText("Alpha");
@@ -117,24 +110,24 @@ describe("Command", () => {
     expect(getByText("Alpha").getAttribute("aria-selected")).toBe("true");
   });
 
-  it("chains onInput and composes ref on CommandInput without breaking auto-focus", async () => {
+  it("chains onInput and composes ref on Command.Input without breaking auto-focus", async () => {
     const callerOnInput = vi.fn();
     let callerInputRef: HTMLInputElement | undefined;
 
     render(() => (
-      <CommandRoot>
-        <CommandInput
+      <Command.Root>
+        <Command.Input
           onInput={callerOnInput}
           placeholder="Search..."
           ref={(el) => {
             callerInputRef = el;
           }}
         />
-        <CommandList>
-          <CommandItem value="apple">Apple</CommandItem>
-          <CommandItem value="banana">Banana</CommandItem>
-        </CommandList>
-      </CommandRoot>
+        <Command.List>
+          <Command.Item value="apple">Apple</Command.Item>
+          <Command.Item value="banana">Banana</Command.Item>
+        </Command.List>
+      </Command.Root>
     ));
 
     const input = screen.getByPlaceholderText("Search...");
@@ -151,7 +144,7 @@ describe("Command", () => {
     expect(screen.getByText("Banana")).toBeTruthy();
   });
 
-  it("chains handlers and composes ref on CommandItem and CommandRoot", async () => {
+  it("chains handlers and composes ref on Command.Item and Command.Root", async () => {
     const onRootKeyDown = vi.fn();
     const onSelect = vi.fn();
     const onItemClick = vi.fn();
@@ -161,15 +154,15 @@ describe("Command", () => {
     let itemEl: HTMLDivElement | undefined;
 
     const { getByRole, getByText } = render(() => (
-      <CommandRoot
+      <Command.Root
         onKeyDown={onRootKeyDown}
         ref={(el) => {
           rootEl = el;
         }}
       >
-        <CommandList>
-          <CommandItem value="alpha">Alpha</CommandItem>
-          <CommandItem
+        <Command.List>
+          <Command.Item value="alpha">Alpha</Command.Item>
+          <Command.Item
             onClick={onItemClick}
             onKeyDown={onItemKeyDown}
             onMouseEnter={onItemMouseEnter}
@@ -180,9 +173,9 @@ describe("Command", () => {
             value="beta"
           >
             Beta
-          </CommandItem>
-        </CommandList>
-      </CommandRoot>
+          </Command.Item>
+        </Command.List>
+      </Command.Root>
     ));
 
     const root = getByRole("combobox");
@@ -208,19 +201,20 @@ describe("Command", () => {
     expect(onItemClick).toHaveBeenCalledOnce();
     expect(onSelect).toHaveBeenCalledTimes(2);
   });
-  it("CommandEmpty resolves children before falling back to default message", () => {
+
+  it("Command.Empty resolves children before falling back to default message", () => {
     const [hasCustomEmpty, setHasCustomEmpty] = createSignal(false);
 
     render(() => (
-      <CommandRoot>
-        <CommandList>
-          <CommandEmpty>
+      <Command.Root>
+        <Command.List>
+          <Command.Empty>
             <Show when={hasCustomEmpty()}>
               <span>Nothing matched</span>
             </Show>
-          </CommandEmpty>
-        </CommandList>
-      </CommandRoot>
+          </Command.Empty>
+        </Command.List>
+      </Command.Root>
     ));
 
     expect(screen.getByText("No results found.")).toBeTruthy();
@@ -233,7 +227,7 @@ describe("Command", () => {
     expect(screen.getByText("Nothing matched")).toBeTruthy();
   });
 
-  it("throws native ContextNotFoundError when useCommand is called outside CommandRoot", () => {
+  it("throws native ContextNotFoundError when useCommand is called outside Command.Root", () => {
     function OrphanConsumer() {
       useCommand();
       return null;
@@ -253,16 +247,16 @@ describe("Command", () => {
     );
   });
 
-  it("defaults CommandInput placeholder to Search... and tracks reactive shouldFilter", async () => {
+  it("defaults Command.Input placeholder to Search... and tracks reactive shouldFilter", async () => {
     const [shouldFilter, setShouldFilter] = createSignal(true);
     const { getByPlaceholderText } = render(() => (
-      <CommandRoot shouldFilter={shouldFilter()}>
-        <CommandInput />
-        <CommandList>
-          <CommandItem value="apple">Apple</CommandItem>
-          <CommandItem value="banana">Banana</CommandItem>
-        </CommandList>
-      </CommandRoot>
+      <Command.Root shouldFilter={shouldFilter()}>
+        <Command.Input />
+        <Command.List>
+          <Command.Item value="apple">Apple</Command.Item>
+          <Command.Item value="banana">Banana</Command.Item>
+        </Command.List>
+      </Command.Root>
     ));
 
     const input = getByPlaceholderText("Search...");
@@ -277,5 +271,75 @@ describe("Command", () => {
 
     expect(screen.getByText("Apple")).toBeTruthy();
     expect(screen.getByText("Banana")).toBeTruthy();
+  });
+
+  it("renders Command.Group with optional heading", () => {
+    render(() => (
+      <Command.Root>
+        <Command.List>
+          <Command.Group heading="Engines">
+            <Command.Item value="quickjs">QuickJS</Command.Item>
+          </Command.Group>
+        </Command.List>
+      </Command.Root>
+    ));
+
+    expect(screen.getByText("Engines")).toBeTruthy();
+    expect(screen.getByText("QuickJS")).toBeTruthy();
+  });
+});
+
+describe("Command.Dialog", () => {
+  it("uses top-aligned Dialog.Content with max-w-lg and p-0, and merges custom class", () => {
+    const [isOpen, setIsOpen] = createSignal(false);
+    const { queryByRole, getByRole } = render(() => (
+      <Command.Dialog
+        class="max-w-xl"
+        isOpen={isOpen()}
+        onOpenChange={setIsOpen}
+      >
+        <Command.Root>
+          <Command.List>
+            <Command.Item value="item">Item</Command.Item>
+          </Command.List>
+        </Command.Root>
+      </Command.Dialog>
+    ));
+
+    expect(queryByRole("dialog")).toBeNull();
+
+    setIsOpen(true);
+    flush();
+
+    const dialog = getByRole("dialog");
+    expect(dialog.className).toContain("p-0");
+    expect(dialog.className).toContain("max-w-xl");
+
+    const wrapper = dialog.parentElement as HTMLElement;
+    expect(wrapper.className).toContain("items-start");
+    expect(wrapper.className).toContain("pt-[15vh]");
+  });
+
+  it("closes via shared Dialog backdrop overlay", () => {
+    const onOpenChange = vi.fn();
+    const { container, getByRole } = render(() => (
+      <Command.Dialog isOpen onOpenChange={onOpenChange}>
+        <Command.Root>
+          <Command.List>
+            <Command.Item value="item">Item</Command.Item>
+          </Command.List>
+        </Command.Root>
+      </Command.Dialog>
+    ));
+
+    const dialog = getByRole("dialog");
+    expect(dialog.className).toContain("max-w-lg");
+    expect(dialog.className).toContain("p-0");
+
+    const overlay = container.querySelector('[aria-hidden="true"]');
+    expect(overlay).not.toBeNull();
+    overlay?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+    expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 });
